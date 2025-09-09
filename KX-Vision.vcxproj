@@ -92,6 +92,7 @@
     <ClCompile Include="libs\safetyhook\Zydis.c" />
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
+    <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
     <ClCompile Include="src\Rendering\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESP_Helpers.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
@@ -115,6 +116,7 @@
     <ClInclude Include="src\Game\AddressManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
     <ClInclude Include="src\Game\Camera.h" />
+    <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />

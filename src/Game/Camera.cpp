@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include "D3DRenderHook.h" // For GetWindowHandle()
 #include <windows.h>
 #include <iostream>
 #include <string>
@@ -7,11 +6,13 @@
 
 namespace kx {
 
-    float ParseFov(const wchar_t* identity) {
+    // This helper function is only used by the Camera to get the FoV
+    // from the MumbleLink identity string. It can remain here as a static helper.
+    static float ParseFov(const wchar_t* identity) {
         constexpr float defaultFov = 1.0472f; // ~60 degrees
         if (!identity) return defaultFov;
         std::wstring identityStr(identity);
-        size_t fovPos = identityStr.find(L"\"fov\":");
+        size_t fovPos = identityStr.find(L"fov:");
         if (fovPos != std::wstring::npos) {
             try {
                 size_t start = identityStr.find(L':', fovPos) + 1;
@@ -32,102 +33,39 @@ namespace kx {
     }
 
     Camera::~Camera() {
-        if (m_mumbleLink) UnmapViewOfFile(m_mumbleLink);
-        if (m_mumbleLinkFile) CloseHandle(m_mumbleLinkFile);
+        // No longer responsible for MumbleLink cleanup
     }
 
-    bool Camera::InitializeMumbleLink() {
-        // Use CreateFileMappingW to create or open the named file mapping.
-        // This is equivalent to .NET's MemoryMappedFile.CreateOrOpen.
-        // If the object already exists, it opens it.
-        m_mumbleLinkFile = CreateFileMappingW(
-            INVALID_HANDLE_VALUE, // Use INVALID_HANDLE_VALUE for a file-backed mapping
-            NULL,                 // Default security attributes
-            PAGE_READWRITE,       // Read/write access
-            0,                    // High-order DWORD of maximum size
-            sizeof(MumbleLinkData), // Low-order DWORD of maximum size
-            L"MumbleLink"         // Name of the mapping object
-        );
-
-        if (m_mumbleLinkFile == NULL) {
-            // Failed to create or open file mapping
-            return false;
+    void Camera::Update(const MumbleLinkData* mumbleData, HWND hWnd) {
+        if (!mumbleData) {
+            // If there's no data, don't update the matrices.
+            // They will retain their last valid state.
+            return;
         }
-
-        // Check if the file mapping object was just created (not opened existing)
-        bool wasCreated = (GetLastError() == 0);
-
-        // Map a view of the file mapping into the address space of the current process.
-        m_mumbleLink = static_cast<MumbleLinkData*>(MapViewOfFile(
-            m_mumbleLinkFile,     // Handle to file mapping object
-            FILE_MAP_READ,        // Read access
-            0,                    // High-order DWORD of a file offset
-            0,                    // Low-order DWORD of a file offset
-            sizeof(MumbleLinkData) // Number of bytes to map
-        ));
-
-        if (m_mumbleLink == NULL) {
-            // Failed to map view of file
-            CloseHandle(m_mumbleLinkFile);
-            m_mumbleLinkFile = nullptr;
-            return false;
-        }
-
-        m_mumbleLinkInitialized = true;
-        return true;
-    }
-
-    void Camera::Update() {
-        if (!m_mumbleLinkInitialized) {
-            auto now = std::chrono::steady_clock::now();
-            if (now - m_lastMumbleRetryTime >= MumbleRetryInterval) {
-                m_lastMumbleRetryTime = now; // Update last retry time
-                if (!InitializeMumbleLink()) {
-                    // Initialization failed, will retry after interval
-                    return;
-                }
-            } else {
-                // Not time to retry yet, skip update for now
-                return;
-            }
-        }
-
-        // Check if MumbleLink data is valid and updated
-        // 1. Check uiVersion (should be 2 for GW2)
-        // 2. Check game name
-        // 3. Check uiTick to see if data has changed
-        if (m_mumbleLink->uiVersion != 2 ||
-            std::wcscmp(m_mumbleLink->name, GW2_GAME_NAME) != 0 ||
-            m_mumbleLink->uiTick == m_lastTick) {
-            return; // Data is invalid or not updated
-        }
-
-        m_lastTick = m_mumbleLink->uiTick; // Update last tick
 
         // Get camera position from MumbleLink (already in Y-up)
         m_camPos = glm::vec3(
-            m_mumbleLink->fCameraPosition[0],
-            m_mumbleLink->fCameraPosition[1],
-            m_mumbleLink->fCameraPosition[2]
+            mumbleData->fCameraPosition[0],
+            mumbleData->fCameraPosition[1],
+            mumbleData->fCameraPosition[2]
         );
 
         // Get player position from MumbleLink (already in Y-up)
         m_playerPosition = glm::vec3(
-            m_mumbleLink->fAvatarPosition[0],
-            m_mumbleLink->fAvatarPosition[1],
-            m_mumbleLink->fAvatarPosition[2]
+            mumbleData->fAvatarPosition[0],
+            mumbleData->fAvatarPosition[1],
+            mumbleData->fAvatarPosition[2]
         );
 
         // Get camera direction from MumbleLink
         glm::vec3 camFront = glm::vec3(
-            m_mumbleLink->fCameraFront[0],
-            m_mumbleLink->fCameraFront[1],
-            m_mumbleLink->fCameraFront[2]
+            mumbleData->fCameraFront[0],
+            mumbleData->fCameraFront[1],
+            mumbleData->fCameraFront[2]
         );
 
         // Get window dimensions for aspect ratio
         RECT rect;
-        HWND hWnd = Hooking::D3DRenderHook::GetWindowHandle();
         float screenWidth = 1920.0f;  // Default values in case GetClientRect fails
         float screenHeight = 1080.0f;
         if (hWnd && GetClientRect(hWnd, &rect)) {
@@ -136,7 +74,7 @@ namespace kx {
         }
 
         // Parse FOV from MumbleLink identity data
-        float fov_radians = ParseFov(m_mumbleLink->identity);
+        float fov_radians = ParseFov(mumbleData->identity);
 
         // Calculate view matrix - manually implementing a left-handed lookAt
         glm::vec3 target = m_camPos + camFront;

@@ -4,17 +4,19 @@
 #include "../../libs/ImGui/imgui.h"
 #include "../../libs/ImGui/imgui_impl_win32.h"
 #include "../../libs/ImGui/imgui_impl_dx11.h"
-#include "AppState.h"
+#include "../Core/AppState.h"
 #include "GuiStyle.h"
-#include "Config.h"
+#include "../Core/Config.h"
 #include "ESPRenderer.h"
+#include "../Hooking/D3DRenderHook.h"
 
 #include <string>
 #include <windows.h>
 #include <algorithm>
 
-// Define static Camera object
+// Define static members
 kx::Camera ImGuiManager::m_camera;
+kx::MumbleLinkManager ImGuiManager::m_mumbleLinkManager;
 
 bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
     IMGUI_CHECKVERSION();
@@ -77,7 +79,7 @@ void ImGuiManager::RenderESPWindow() {
 
     // Connection status
     ImGui::Text("MumbleLink Status: %s", 
-        m_camera.IsMumbleLinkInitialized() ? "Connected" : "Disconnected");
+        m_mumbleLinkManager.IsInitialized() ? "Connected" : "Disconnected");
 
     // Visual separator
     ImGui::Separator();
@@ -117,21 +119,20 @@ void ImGuiManager::RenderInfoSection() {
 }
 
 void ImGuiManager::RenderUI() {
-    // Get screen dimensions
     ImGuiIO& io = ImGui::GetIO();
-    float screenWidth = io.DisplaySize.x;
-    float screenHeight = io.DisplaySize.y;
-    
+
+    // Update MumbleLink and Camera
+    m_mumbleLinkManager.Update();
+    m_camera.Update(m_mumbleLinkManager.GetData(), kx::Hooking::D3DRenderHook::GetWindowHandle());
+
     // Render the ESP overlay
-    kx::ESPRenderer::Render(screenWidth, screenHeight);
+    kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, m_mumbleLinkManager.GetData());
     
     // Render the UI window if it's shown
     if (kx::g_settings.showVisionWindow) {
         RenderESPWindow();
     }
 }
-
-// Already refactored - this function was moved up
 
 void ImGuiManager::RenderHints() {
     // Display keyboard shortcuts with consistent styling
