@@ -1,8 +1,9 @@
 #pragma once
 
-#include "MumbleLink.h"
-#include <windows.h>
 #include <chrono>
+#include <windows.h>
+
+#include "MumbleLink.h"
 
 namespace kx {
 

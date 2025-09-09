@@ -1,7 +1,8 @@
 #pragma once
+
 #include "glm.hpp"
-#include "gtc/matrix_transform.hpp"
 #include "MumbleLink.h" // For the struct in the Update method parameter
+#include "gtc/matrix_transform.hpp"
 
 namespace kx {
 

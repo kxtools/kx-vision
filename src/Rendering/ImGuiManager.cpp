@@ -1,17 +1,18 @@
 #define NOMINMAX
 
 #include "ImGuiManager.h"
-#include "../../libs/ImGui/imgui.h"
-#include "../../libs/ImGui/imgui_impl_win32.h"
-#include "../../libs/ImGui/imgui_impl_dx11.h"
-#include "../Core/AppState.h"
-#include "GuiStyle.h"
-#include "../Core/Config.h"
-#include "ESPRenderer.h"
-#include "../Hooking/D3DRenderHook.h"
 
 #include <string>
 #include <windows.h>
+
+#include "ESPRenderer.h"
+#include "GuiStyle.h"
+#include "../../libs/ImGui/imgui.h"
+#include "../../libs/ImGui/imgui_impl_dx11.h"
+#include "../../libs/ImGui/imgui_impl_win32.h"
+#include "../Core/AppState.h"
+#include "../Core/Config.h"
+#include "../Hooking/D3DRenderHook.h"
 
 // Define static members
 kx::Camera ImGuiManager::m_camera;

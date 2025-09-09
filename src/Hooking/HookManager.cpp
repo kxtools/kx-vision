@@ -1,5 +1,7 @@
 #include "HookManager.h"
+
 #include <iostream> // Replace with proper logging later
+
 #include "../../libs/MinHook/MinHook.h"
 
 namespace kx::Hooking {

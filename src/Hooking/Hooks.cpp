@@ -1,6 +1,6 @@
 #include "Hooks.h"
-#include "AppState.h"
 #include <iostream>
+#include "AppState.h"
 
 #include "D3DRenderHook.h"
 #include "HookManager.h"

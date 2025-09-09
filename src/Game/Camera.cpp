@@ -1,7 +1,7 @@
 #include "Camera.h"
-#include <windows.h>
 #include <iostream>
 #include <string>
+#include <windows.h>
 
 namespace kx {
 

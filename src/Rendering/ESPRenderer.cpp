@@ -1,14 +1,14 @@
 #define NOMINMAX
 
 #include "ESPRenderer.h"
+#include <algorithm>
+#include <cstdio>                     // For snprintf
+#include <gtc/type_ptr.hpp>
+#include "ESP_Helpers.h"
 #include "../../libs/ImGui/imgui.h"      // Required for ImGui types and functions
+#include "../Core/AppState.h"
 #include "../Game/AddressManager.h"
 #include "../Game/GameStructs.h"
-#include "ESP_Helpers.h"
-#include "../Core/AppState.h"
-#include <algorithm>
-#include <gtc/type_ptr.hpp>
-#include <cstdio>                     // For snprintf
 
 namespace kx {
 

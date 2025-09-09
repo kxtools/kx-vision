@@ -1,9 +1,9 @@
 #pragma once
 
-#include <windows.h>
-#include <vector>
-#include <string>
 #include <optional>
+#include <string>
+#include <vector>
+#include <windows.h>
 
 namespace kx {
 

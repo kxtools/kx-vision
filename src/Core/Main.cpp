@@ -1,10 +1,11 @@
-#include <iostream>
 #include <cstdio> // Required for fclose
+#include <iostream>
 #include <windows.h>
+
+#include "AddressManager.h"
+#include "AppState.h"   // Include for g_isVisionWindowOpen, g_isShuttingDown
 #include "Console.h"
 #include "Hooks.h"
-#include "AppState.h"   // Include for g_isVisionWindowOpen, g_isShuttingDown
-#include "AddressManager.h"
 
 HINSTANCE dll_handle;
 

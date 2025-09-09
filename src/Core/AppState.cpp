@@ -1,4 +1,5 @@
 #include "AppState.h"
+
 #include <atomic>
 
 namespace kx {

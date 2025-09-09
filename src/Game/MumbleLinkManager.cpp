@@ -1,4 +1,5 @@
 #include "MumbleLinkManager.h"
+
 #include <iostream>
 
 namespace kx {

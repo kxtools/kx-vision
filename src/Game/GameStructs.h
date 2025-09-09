@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
+
 #include "ForeignClass.h"
-#include <windows.h> // Required for EXCEPTION_EXECUTE_HANDLER
 
 namespace kx {
 

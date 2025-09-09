@@ -1,10 +1,10 @@
 #include "D3DRenderHook.h"
-#include "HookManager.h"      // To create/remove the hook
-#include "ImGuiManager.h"     // To initialize and render ImGui
-#include "AppState.h"         // For UI visibility state (g_showVisionWindow, g_isShuttingDown)
+
 #include <iostream>           // Replace with logging
 
-// Include ImGui backend headers for WndProc handler
+#include "AppState.h"         // For UI visibility state (g_showVisionWindow, g_isShuttingDown)
+#include "HookManager.h"      // To create/remove the hook
+#include "ImGuiManager.h"     // To initialize and render ImGui
 #include "../../libs/ImGui/imgui.h"
 
 // Declare the external ImGui Win32 handler

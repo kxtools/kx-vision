@@ -1,7 +1,7 @@
 #include "Console.h"
-#include <windows.h>
-#include <iostream>
 #include <cstdio>
+#include <iostream>
+#include <windows.h>
 
 namespace kx {
 void SetupConsole() {

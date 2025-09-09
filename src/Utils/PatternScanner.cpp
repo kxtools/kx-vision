@@ -1,12 +1,12 @@
 #include "PatternScanner.h"
-#include <windows.h>
-#include <psapi.h> // For GetModuleInformation
-#include <vector>
-#include <string>
-#include <sstream>
 #include <iomanip>
-#include <optional>
 #include <iostream> // For error logging (temporary, consider a proper logger)
+#include <optional>
+#include <psapi.h> // For GetModuleInformation
+#include <sstream>
+#include <string>
+#include <vector>
+#include <windows.h>
 
 #pragma comment(lib, "psapi.lib") // Link against psapi.lib for GetModuleInformation
 
