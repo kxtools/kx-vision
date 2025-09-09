@@ -1,5 +1,5 @@
 #include "PatternScanner.h"
-#include <iomanip>
+
 #include <iostream> // For error logging (temporary, consider a proper logger)
 #include <optional>
 #include <psapi.h> // For GetModuleInformation

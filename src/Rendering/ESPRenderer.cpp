@@ -1,9 +1,11 @@
 #define NOMINMAX
 
 #include "ESPRenderer.h"
+
 #include <algorithm>
 #include <cstdio>                     // For snprintf
 #include <gtc/type_ptr.hpp>
+
 #include "ESP_Helpers.h"
 #include "../../libs/ImGui/imgui.h"      // Required for ImGui types and functions
 #include "../Core/AppState.h"

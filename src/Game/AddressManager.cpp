@@ -1,5 +1,7 @@
 #include "AddressManager.h"
+
 #include <iostream>
+
 #include "Config.h" // For TARGET_PROCESS_NAME
 #include "PatternScanner.h"
 

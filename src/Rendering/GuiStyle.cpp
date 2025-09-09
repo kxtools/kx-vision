@@ -1,13 +1,13 @@
 #define NOMINMAX
 
 #include "GuiStyle.h"
-#include <algorithm> // Required for std::min/max
-#include "../../libs/ImGui/imgui.h"
 
-// Headers needed for font loading
+#include <algorithm> // Required for std::min/max
 #include <ShlObj.h> // For SHGetFolderPath
 #include <string>
 #include <windows.h>
+
+#include "../../libs/ImGui/imgui.h"
 #pragma comment(lib, "Shell32.lib")
 
 namespace GUIStyle {
