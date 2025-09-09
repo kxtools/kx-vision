@@ -18,8 +18,6 @@ namespace ESP_Helpers {
      */
     bool WorldToScreen(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight, glm::vec2& outScreenPos);
 
-    glm::vec3 WorldToScreen_GetProjected(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight);
-
 } // namespace ESP_Helpers
 
 } // namespace kx

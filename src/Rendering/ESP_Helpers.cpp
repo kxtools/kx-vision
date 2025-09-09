@@ -39,21 +39,6 @@ namespace kx {
             return true;
         }
 
-        glm::vec3 WorldToScreen_GetProjected(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight) {
-            // Use our implementation to maintain consistency
-            glm::vec2 screenPos;
-            bool visible = WorldToScreen(worldPos, camera, screenWidth, screenHeight, screenPos);
-
-            if (visible) {
-                // Use the calculated Z from clip space for depth info
-                glm::vec4 clipPos = camera.GetProjectionMatrix() * camera.GetViewMatrix() * glm::vec4(worldPos, 1.0f);
-                float depth = clipPos.z / clipPos.w;
-                return glm::vec3(screenPos.x, screenPos.y, depth);
-            }
-
-            return glm::vec3(screenPos.x, screenPos.y, 2.0f); // 2.0 indicates "behind camera"
-        }
-
     } // namespace ESP_Helpers
 
 } // namespace kx
