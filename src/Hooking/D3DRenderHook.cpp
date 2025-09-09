@@ -212,7 +212,7 @@ namespace kx::Hooking {
             static bool lastToggleKeyState = false;
             bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
             if (currentToggleKeyState && !lastToggleKeyState) {
-                kx::g_showVisionWindow = !kx::g_showVisionWindow;
+                kx::g_settings.showVisionWindow = !kx::g_settings.showVisionWindow;
             }
             lastToggleKeyState = currentToggleKeyState;
 
@@ -252,7 +252,7 @@ namespace kx::Hooking {
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
         // If ImGui is initialized and visible, let it process the message first.
-        if (m_isInit && kx::g_showVisionWindow) {
+        if (m_isInit && kx::g_settings.showVisionWindow) {
 
             // Pass messages to ImGui handler to update its state and capture flags.
             ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);

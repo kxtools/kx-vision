@@ -21,7 +21,7 @@ void ESPRenderer::Initialize(Camera& camera) {
 
 void ESPRenderer::Render(float screenWidth, float screenHeight) {
     // Skip ESP rendering if disabled
-    if (!g_espEnabled) return;
+    if (!g_settings.espEnabled) return;
     
     // Skip if camera not initialized
     if (!s_camera) return;
@@ -85,7 +85,7 @@ void ESPRenderer::RenderAgent(ImDrawList* drawList, Agent& agent, float screenWi
         float boxSize = std::max(4.0f, 15.0f * (50.0f / (distance + 20.0f)));
         
         // Draw box
-        if (g_espRenderBox) {
+        if (g_settings.espRenderBox) {
             drawList->AddRect(
                 ::ImVec2(screenPos.x - boxSize / 2, screenPos.y - boxSize / 2),
                 ::ImVec2(screenPos.x + boxSize / 2, screenPos.y + boxSize / 2),
@@ -97,7 +97,7 @@ void ESPRenderer::RenderAgent(ImDrawList* drawList, Agent& agent, float screenWi
         }
         
         // Draw distance text
-        if (g_espRenderDistance) {
+        if (g_settings.espRenderDistance) {
             char distText[32];
             snprintf(distText, sizeof(distText), "%.1fm", distance);
             
@@ -120,7 +120,7 @@ void ESPRenderer::RenderAgent(ImDrawList* drawList, Agent& agent, float screenWi
         }
         
         // Draw center dot
-        if (g_espRenderDot) {
+        if (g_settings.espRenderDot) {
             drawList->AddCircleFilled(
                 ::ImVec2(screenPos.x, screenPos.y),
                 2.0f,

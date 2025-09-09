@@ -66,14 +66,14 @@ void ImGuiManager::RenderESPWindow() {
     RenderHints();
 
     // ESP main toggle
-    ImGui::Checkbox("Enable ESP", &kx::g_espEnabled);
+    ImGui::Checkbox("Enable ESP", &kx::g_settings.espEnabled);
 
     // ESP feature toggles with side-by-side layout
-    ImGui::Checkbox("Render Box", &kx::g_espRenderBox);
+    ImGui::Checkbox("Render Box", &kx::g_settings.espRenderBox);
     ImGui::SameLine();
-    ImGui::Checkbox("Render Distance", &kx::g_espRenderDistance);
+    ImGui::Checkbox("Render Distance", &kx::g_settings.espRenderDistance);
     ImGui::SameLine();
-    ImGui::Checkbox("Render Dot", &kx::g_espRenderDot);
+    ImGui::Checkbox("Render Dot", &kx::g_settings.espRenderDot);
 
     // Connection status
     ImGui::Text("MumbleLink Status: %s", 
@@ -126,7 +126,7 @@ void ImGuiManager::RenderUI() {
     kx::ESPRenderer::Render(screenWidth, screenHeight);
     
     // Render the UI window if it's shown
-    if (kx::g_showVisionWindow) {
+    if (kx::g_settings.showVisionWindow) {
         RenderESPWindow();
     }
 }
