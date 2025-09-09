@@ -21,6 +21,6 @@ void SetupConsole() {
         DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
     }
 
-    std::cout << "Console initialized!" << std::endl;
+    std::cout << "[Console] Console initialized!" << std::endl;
 }
 }

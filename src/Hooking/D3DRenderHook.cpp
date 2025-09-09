@@ -24,7 +24,7 @@ namespace kx::Hooking {
 
     bool D3DRenderHook::Initialize() {
         if (!FindPresentPointer()) {
-            std::cerr << "[D3DRenderHook] Failed to find Present pointer." << std::endl;
+            std::cerr << "[D3DRenderHook] ERROR: Failed to find Present pointer." << std::endl;
             return false;
         }
 

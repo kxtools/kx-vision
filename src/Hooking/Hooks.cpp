@@ -21,12 +21,12 @@ namespace kx {
             return false;
         }
 
-        std::cout << "[Hooks] Overall initialization finished." << std::endl;
+        std::cout << "[Hooks] All hooks initialized successfully." << std::endl;
         return true;
     }
 
     void CleanupHooks() {
-        std::cout << "[Hooks] Starting cleanup..." << std::endl;
+        std::cout << "[Hooks] Cleaning up..." << std::endl;
 
         kx::Hooking::D3DRenderHook::Shutdown();
         kx::Hooking::HookManager::Shutdown();

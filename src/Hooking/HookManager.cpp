@@ -9,7 +9,7 @@ namespace kx::Hooking {
     bool HookManager::Initialize() {
         MH_STATUS status = MH_Initialize();
         if (status != MH_OK) {
-            std::cerr << "[HookManager] Failed to initialize MinHook: "
+            std::cerr << "[HookManager] ERROR: Failed to initialize MinHook: "
                 << MH_StatusToString(status) << std::endl;
             return false;
         }
