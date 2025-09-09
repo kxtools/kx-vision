@@ -1,8 +1,5 @@
 #pragma once
 
-#include "HookManager.h"
-#include "D3DRenderHook.h"
-
 namespace kx {
 
     /**

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <windows.h> // Required for VirtualProtect
 
 namespace kx

@@ -2,6 +2,9 @@
 #include "AppState.h"
 #include <iostream>
 
+#include "D3DRenderHook.h"
+#include "HookManager.h"
+
 namespace kx {
 
     bool InitializeHooks() {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <atomic>
-#include <cstdint> // For uintptr_t
 
 namespace kx {
 

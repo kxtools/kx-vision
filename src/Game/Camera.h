@@ -1,5 +1,4 @@
 #pragma once
-#include <cstdint>
 #include "glm.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "MumbleLink.h" // For the struct in the Update method parameter

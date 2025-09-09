@@ -5,7 +5,6 @@
 #include "Hooks.h"
 #include "AppState.h"   // Include for g_isVisionWindowOpen, g_isShuttingDown
 #include "AddressManager.h"
-#include "MumbleLink.h" // Include MumbleLinkData definition
 
 HINSTANCE dll_handle;
 

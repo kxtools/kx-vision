@@ -6,8 +6,6 @@
 
 // Include ImGui backend headers for WndProc handler
 #include "../../libs/ImGui/imgui.h"
-#include "../../libs/ImGui/imgui_impl_win32.h"
-#include "../../libs/ImGui/imgui_impl_dx11.h"
 
 // Declare the external ImGui Win32 handler
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

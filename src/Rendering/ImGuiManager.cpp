@@ -12,7 +12,6 @@
 
 #include <string>
 #include <windows.h>
-#include <algorithm>
 
 // Define static members
 kx::Camera ImGuiManager::m_camera;

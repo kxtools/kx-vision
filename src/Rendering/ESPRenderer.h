@@ -1,6 +1,5 @@
 #pragma once
 
-#include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 #include "../Game/Camera.h" // Include Camera header
 #include "../Game/MumbleLink.h" // Include MumbleLink for the parameter
