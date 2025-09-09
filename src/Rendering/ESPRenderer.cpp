@@ -77,9 +77,9 @@ void ESPRenderer::RenderAgent(ImDrawList* drawList, Agent& agent, float screenWi
             std::min(255, int(255 * (distance / 200.0f))),
             200
         );
-        
+
         float boxSize = std::max(4.0f, 15.0f * (50.0f / (distance + 20.0f)));
-        
+
         if (g_settings.espRenderBox) {
             drawList->AddRect(
                 ::ImVec2(screenPos.x - boxSize / 2, screenPos.y - boxSize / 2),
@@ -90,31 +90,69 @@ void ESPRenderer::RenderAgent(ImDrawList* drawList, Agent& agent, float screenWi
                 1.5f
             );
         }
-        
+
         if (g_settings.espRenderDistance) {
             char distText[32];
             snprintf(distText, sizeof(distText), "%.1fm", distance);
-            
+
             ::ImVec2 textSize = ImGui::CalcTextSize(distText);
-            
+
             drawList->AddRectFilled(
                 ::ImVec2(screenPos.x - textSize.x / 2 - 2, screenPos.y - boxSize / 2 - textSize.y - 4),
                 ::ImVec2(screenPos.x + textSize.x / 2 + 2, screenPos.y - boxSize / 2),
                 IM_COL32(0, 0, 0, 180)
             );
-            
+
             drawList->AddText(
                 ::ImVec2(screenPos.x - textSize.x / 2, screenPos.y - boxSize / 2 - textSize.y - 2),
                 IM_COL32(255, 255, 255, 255),
                 distText
             );
         }
-        
+
         if (g_settings.espRenderDot) {
             drawList->AddCircleFilled(
                 ::ImVec2(screenPos.x, screenPos.y),
                 2.0f,
                 IM_COL32(255, 255, 255, 255)
+            );
+        }
+
+        if (g_settings.espRenderDetails) {
+            // Vertical position for additional text, starting below the box
+            float textY = screenPos.y + boxSize / 2 + 2; // 2 pixels padding below the box
+
+            // Display Type
+            char typeText[64];
+            snprintf(typeText, sizeof(typeText), "Type: %d", agent.GetType());
+            ::ImVec2 typeTextSize = ImGui::CalcTextSize(typeText);
+
+            drawList->AddRectFilled(
+                ::ImVec2(screenPos.x - typeTextSize.x / 2 - 2, textY),
+                ::ImVec2(screenPos.x + typeTextSize.x / 2 + 2, textY + typeTextSize.y + 4),
+                IM_COL32(0, 0, 0, 180)
+            );
+            drawList->AddText(
+                ::ImVec2(screenPos.x - typeTextSize.x / 2, textY + 2),
+                IM_COL32(255, 255, 255, 255),
+                typeText
+            );
+            textY += typeTextSize.y + 6; // Advance Y for the next line of text
+
+            // Display Gadget Type
+            char gadgetTypeText[64];
+            snprintf(gadgetTypeText, sizeof(gadgetTypeText), "Gadget: %d", agent.GetGadgetType());
+            ::ImVec2 gadgetTypeTextSize = ImGui::CalcTextSize(gadgetTypeText);
+
+            drawList->AddRectFilled(
+                ::ImVec2(screenPos.x - gadgetTypeTextSize.x / 2 - 2, textY),
+                ::ImVec2(screenPos.x + gadgetTypeTextSize.x / 2 + 2, textY + gadgetTypeTextSize.y + 4),
+                IM_COL32(0, 0, 0, 180)
+            );
+            drawList->AddText(
+                ::ImVec2(screenPos.x - gadgetTypeTextSize.x / 2, textY + 2),
+                IM_COL32(255, 255, 255, 255),
+                gadgetTypeText
             );
         }
     }

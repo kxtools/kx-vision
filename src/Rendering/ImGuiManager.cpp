@@ -78,6 +78,8 @@ void ImGuiManager::RenderESPWindow() {
     ImGui::Checkbox("Render Distance", &kx::g_settings.espRenderDistance);
     ImGui::SameLine();
     ImGui::Checkbox("Render Dot", &kx::g_settings.espRenderDot);
+    ImGui::SameLine();
+    ImGui::Checkbox("ESP Details", &kx::g_settings.espRenderDetails);
 
     // Connection status
     ImGui::Text("MumbleLink Status: %s", 
@@ -145,11 +147,37 @@ void ImGuiManager::RenderDebugSection() {
         ImGui::PopItemWidth();
 
         uint32_t agentCount = 0;
+        uint32_t agentCapacity = 0;
+        kx::Agent firstAgent(nullptr);
+        int firstAgentIndex = -1; // Variable to store the index
+
         if (agentArrayAddr) {
             kx::AgentArray agentArray(reinterpret_cast<void*>(agentArrayAddr));
             agentCount = agentArray.Count();
+            agentCapacity = agentArray.Capacity();
+
+            // Find the first valid agent to display its info
+            for (uint32_t i = 0; i < agentCount; ++i) {
+                kx::Agent agent = agentArray.GetAgent(i);
+                if (agent) {
+                    firstAgent = agent;
+                    firstAgentIndex = i; // Store the index
+                    break;
+                }
+            }
         }
-        ImGui::Text("Agent Count: %u", agentCount);
+        ImGui::Text("Agents: %u / %u", agentCount, agentCapacity);
+
+        ImGui::Separator();
+        ImGui::Text("First Valid Agent Details:");
+        if (firstAgent) {
+            ImGui::Text("Index: %d (0x%X)", firstAgentIndex, firstAgentIndex);
+            ImGui::Text("ID: %u (0x%X)", firstAgent.GetId(), firstAgent.GetId());
+            ImGui::Text("Type: %d", firstAgent.GetType());
+            ImGui::Text("Gadget Type: %d", firstAgent.GetGadgetType());
+        } else {
+            ImGui::Text("No valid agents found in array.");
+        }
     }
 #endif
 }

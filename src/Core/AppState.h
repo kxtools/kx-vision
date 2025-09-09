@@ -11,6 +11,7 @@ namespace kx {
         bool espRenderBox = true;
         bool espRenderDistance = true;
         bool espRenderDot = true;
+        bool espRenderDetails = false;
     };
 
     extern Settings g_settings;
