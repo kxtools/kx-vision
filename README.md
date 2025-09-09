@@ -1,7 +1,7 @@
 # KX-Vision for Guild Wars 2
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.5-green.svg)
+![Version](https://img.shields.io/badge/version-0.1-green.svg)
 
 **Educational Purpose Only:** This project is developed solely for educational purposes, allowing developers to learn about game rendering concepts, memory manipulation, and MumbleLink API integration in Guild Wars 2.
 
