@@ -1,9 +1,9 @@
 #define NOMINMAX
 
 #include "ImGuiManager.h"
-#include "../libs/ImGui/imgui.h"
-#include "../libs/ImGui/imgui_impl_win32.h"
-#include "../libs/ImGui/imgui_impl_dx11.h"
+#include "../../libs/ImGui/imgui.h"
+#include "../../libs/ImGui/imgui_impl_win32.h"
+#include "../../libs/ImGui/imgui_impl_dx11.h"
 #include "AppState.h"
 #include "GuiStyle.h"
 #include "Config.h"

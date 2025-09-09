@@ -1,7 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include "../libs/MinHook/MinHook.h"
+#include "../../libs/MinHook/MinHook.h"
 
 #if _WIN64
 #pragma comment(lib, "libs/MinHook/libMinHook.x64.lib")

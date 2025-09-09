@@ -62,7 +62,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)libs\safetyhook;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs\safetyhook;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -78,7 +78,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)libs\safetyhook;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs\safetyhook;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -90,17 +90,17 @@
   <ItemGroup>
     <ClCompile Include="libs\safetyhook\safetyhook.cpp" />
     <ClCompile Include="libs\safetyhook\Zydis.c" />
-    <ClCompile Include="src\AddressManager.cpp" />
-    <ClCompile Include="src\Camera.cpp" />
-    <ClCompile Include="src\ESPRenderer.cpp" />
-    <ClCompile Include="src\ESP_Helpers.cpp" />
-    <ClCompile Include="src\AppState.cpp" />
-    <ClCompile Include="src\Console.cpp" />
-    <ClCompile Include="src\D3DRenderHook.cpp" />
-    <ClCompile Include="src\GuiStyle.cpp" />
-    <ClCompile Include="src\HookManager.cpp" />
-    <ClCompile Include="src\Hooks.cpp" />
-    <ClCompile Include="src\ImGuiManager.cpp" />
+    <ClCompile Include="src\Game\AddressManager.cpp" />
+    <ClCompile Include="src\Game\Camera.cpp" />
+    <ClCompile Include="src\Rendering\ESPRenderer.cpp" />
+    <ClCompile Include="src\Rendering\ESP_Helpers.cpp" />
+    <ClCompile Include="src\Core\AppState.cpp" />
+    <ClCompile Include="src\Utils\Console.cpp" />
+    <ClCompile Include="src\Hooking\D3DRenderHook.cpp" />
+    <ClCompile Include="src\Rendering\GuiStyle.cpp" />
+    <ClCompile Include="src\Hooking\HookManager.cpp" />
+    <ClCompile Include="src\Hooking\Hooks.cpp" />
+    <ClCompile Include="src\Rendering\ImGuiManager.cpp" />
     <ClCompile Include="libs\ImGui\imgui.cpp" />
     <ClCompile Include="libs\ImGui\imgui_demo.cpp" />
     <ClCompile Include="libs\ImGui\imgui_draw.cpp" />
@@ -108,24 +108,24 @@
     <ClCompile Include="libs\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="libs\ImGui\imgui_tables.cpp" />
     <ClCompile Include="libs\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\PatternScanner.cpp" />
+    <ClCompile Include="src\Core\Main.cpp" />
+    <ClCompile Include="src\Utils\PatternScanner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\AddressManager.h" />
-    <ClInclude Include="src\AppState.h" />
-    <ClInclude Include="src\Camera.h" />
-    <ClInclude Include="src\Config.h" />
-    <ClInclude Include="src\Console.h" />
-    <ClInclude Include="src\D3DRenderHook.h" />
-    <ClInclude Include="src\ESPRenderer.h" />
-    <ClInclude Include="src\ESP_Helpers.h" />
-    <ClInclude Include="src\ForeignClass.h" />
-    <ClInclude Include="src\GameStructs.h" />
-    <ClInclude Include="src\GuiStyle.h" />
-    <ClInclude Include="src\HookManager.h" />
-    <ClInclude Include="src\Hooks.h" />
-    <ClInclude Include="src\ImGuiManager.h" />
+    <ClInclude Include="src\Game\AddressManager.h" />
+    <ClInclude Include="src\Core\AppState.h" />
+    <ClInclude Include="src\Game\Camera.h" />
+    <ClInclude Include="src\Core\Config.h" />
+    <ClInclude Include="src\Utils\Console.h" />
+    <ClInclude Include="src\Hooking\D3DRenderHook.h" />
+    <ClInclude Include="src\Rendering\ESPRenderer.h" />
+    <ClInclude Include="src\Rendering\ESP_Helpers.h" />
+    <ClInclude Include="src\Utils\ForeignClass.h" />
+    <ClInclude Include="src\Game\GameStructs.h" />
+    <ClInclude Include="src\Rendering\GuiStyle.h" />
+    <ClInclude Include="src\Hooking\HookManager.h" />
+    <ClInclude Include="src\Hooking\Hooks.h" />
+    <ClInclude Include="src\Rendering\ImGuiManager.h" />
     <ClInclude Include="libs\ImGui\imconfig.h" />
     <ClInclude Include="libs\ImGui\imgui.h" />
     <ClInclude Include="libs\ImGui\imgui_impl_dx11.h" />
@@ -135,9 +135,9 @@
     <ClInclude Include="libs\ImGui\imstb_textedit.h" />
     <ClInclude Include="libs\ImGui\imstb_truetype.h" />
     <ClInclude Include="libs\MinHook\MinHook.h" />
-    <ClInclude Include="src\MumbleLink.h" />
-    <ClInclude Include="src\offsets.h" />
-    <ClInclude Include="src\PatternScanner.h" />
+    <ClInclude Include="src\Game\MumbleLink.h" />
+    <ClInclude Include="src\Game\offsets.h" />
+    <ClInclude Include="src\Utils\PatternScanner.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
