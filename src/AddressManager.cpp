@@ -12,7 +12,7 @@ void AddressManager::ScanAgentArray() {
     std::cout << "Scanning for AgentViewContext function..." << std::endl;
     
     std::optional<uintptr_t> avContextFuncOpt = kx::PatternScanner::FindPattern(
-        "40 53 48 83 EC 20 F6 05 ?? ?? ?? ?? 01 48 8D 05",
+        std::string(kx::AGENT_VIEW_CONTEXT_PATTERN),
         std::string(kx::TARGET_PROCESS_NAME)
     );
 
@@ -25,8 +25,7 @@ void AddressManager::ScanAgentArray() {
     uintptr_t avContextFuncAddr = *avContextFuncOpt;
     std::cout << "[AddressManager] AgentViewContext function found at: 0x" << std::hex << avContextFuncAddr << std::dec << std::endl;
 
-    const std::string microSignature = "48 8D 0D ?? ?? ?? ?? 48 89 1D ?? ?? ?? ?? 48 89 1D ?? ?? ?? ?? 48 83 C4 20";
-    std::optional<uintptr_t> leaInstructionOpt = kx::PatternScanner::FindPattern(microSignature, avContextFuncAddr, 0x300);
+    std::optional<uintptr_t> leaInstructionOpt = kx::PatternScanner::FindPattern(std::string(kx::AGENT_ARRAY_LEA_PATTERN), avContextFuncAddr, 0x300);
 
     if (!leaInstructionOpt) {
         std::cerr << "[AddressManager] CRITICAL: Found AvContext, but could not find the AgentArray LEA instruction inside it." << std::endl;
@@ -47,9 +46,8 @@ void AddressManager::ScanAgentArray() {
 
 void AddressManager::ScanWorldViewContextPtr() {
     std::cout << "Scanning for WorldViewContext accessor function..." << std::endl;
-    const std::string wvContextSignature = "48 85 C0 75 20 41 B8 2E 04 00 00";
     std::optional<uintptr_t> landmarkOpt = kx::PatternScanner::FindPattern(
-        wvContextSignature,
+        std::string(kx::WORLD_VIEW_CONTEXT_PATTERN),
         std::string(kx::TARGET_PROCESS_NAME)
     );
 

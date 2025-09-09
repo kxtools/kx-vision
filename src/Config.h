@@ -7,4 +7,9 @@ namespace kx {
 
     // Configuration for the target process and function signature
     constexpr std::string_view TARGET_PROCESS_NAME = "Gw2-64.exe";
+
+    // Patterns for address scanning
+    constexpr std::string_view AGENT_VIEW_CONTEXT_PATTERN = "40 53 48 83 EC 20 F6 05 ?? ?? ?? ?? 01 48 8D 05";
+    constexpr std::string_view AGENT_ARRAY_LEA_PATTERN = "48 8D 0D ?? ?? ?? ?? 48 89 1D ?? ?? ?? ?? 48 89 1D ?? ?? ?? ?? 48 83 C4 20";
+    constexpr std::string_view WORLD_VIEW_CONTEXT_PATTERN = "48 85 C0 75 20 41 B8 2E 04 00 00";
 }
