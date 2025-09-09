@@ -21,6 +21,7 @@ public:
 private:
     static void RenderESPWindow();
     static void RenderInfoSection();
+    static void RenderDebugSection();
     static void RenderHints();
 
     static kx::Camera m_camera;

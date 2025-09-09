@@ -12,6 +12,8 @@
 #include "../../libs/ImGui/imgui_impl_win32.h"
 #include "../Core/AppState.h"
 #include "../Core/Config.h"
+#include "../Game/AddressManager.h"
+#include "../Game/GameStructs.h"
 #include "../Hooking/D3DRenderHook.h"
 
 // Define static members
@@ -87,6 +89,9 @@ void ImGuiManager::RenderESPWindow() {
     // Additional information section
     RenderInfoSection();
 
+    // Debug information section (only in debug builds)
+    RenderDebugSection();
+
     ImGui::End();
 }
 
@@ -116,6 +121,40 @@ void ImGuiManager::RenderInfoSection() {
         
         ImGui::Spacing();
     }
+}
+
+void ImGuiManager::RenderDebugSection() {
+#ifdef _DEBUG
+    if (ImGui::CollapsingHeader("Debug Info")) {
+        uintptr_t agentArrayAddr = kx::AddressManager::GetAgentArray();
+        uintptr_t worldViewCtxAddr = kx::AddressManager::GetWorldViewContextPtr();
+
+        // AgentArray
+        ImGui::Text("AgentArray: 0x%p", (void*)agentArrayAddr);
+        ImGui::SameLine();
+        if (ImGui::Button("Copy##AgentArray")) {
+            char addrStr[32];
+            snprintf(addrStr, sizeof(addrStr), "0x%llX", (unsigned long long)agentArrayAddr);
+            ImGui::SetClipboardText(addrStr);
+        }
+
+        // WorldViewContext
+        ImGui::Text("WorldViewContext: 0x%p", (void*)worldViewCtxAddr);
+        ImGui::SameLine();
+        if (ImGui::Button("Copy##WorldViewContext")) {
+            char addrStr[32];
+            snprintf(addrStr, sizeof(addrStr), "0x%llX", (unsigned long long)worldViewCtxAddr);
+            ImGui::SetClipboardText(addrStr);
+        }
+
+        uint32_t agentCount = 0;
+        if (agentArrayAddr) {
+            kx::AgentArray agentArray(reinterpret_cast<void*>(agentArrayAddr));
+            agentCount = agentArray.Count();
+        }
+        ImGui::Text("Agent Count: %u", agentCount);
+    }
+#endif
 }
 
 void ImGuiManager::RenderUI() {
