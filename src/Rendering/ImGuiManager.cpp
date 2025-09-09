@@ -129,23 +129,20 @@ void ImGuiManager::RenderDebugSection() {
         uintptr_t agentArrayAddr = kx::AddressManager::GetAgentArray();
         uintptr_t worldViewCtxAddr = kx::AddressManager::GetWorldViewContextPtr();
 
-        // AgentArray
-        ImGui::Text("AgentArray: 0x%p", (void*)agentArrayAddr);
-        ImGui::SameLine();
-        if (ImGui::Button("Copy##AgentArray")) {
-            char addrStr[32];
-            snprintf(addrStr, sizeof(addrStr), "0x%llX", (unsigned long long)agentArrayAddr);
-            ImGui::SetClipboardText(addrStr);
-        }
+        char addrStr1[32];
+        char addrStr2[32];
+        snprintf(addrStr1, sizeof(addrStr1), "0x%p", (void*)agentArrayAddr);
+        snprintf(addrStr2, sizeof(addrStr2), "0x%p", (void*)worldViewCtxAddr);
 
-        // WorldViewContext
-        ImGui::Text("WorldViewContext: 0x%p", (void*)worldViewCtxAddr);
-        ImGui::SameLine();
-        if (ImGui::Button("Copy##WorldViewContext")) {
-            char addrStr[32];
-            snprintf(addrStr, sizeof(addrStr), "0x%llX", (unsigned long long)worldViewCtxAddr);
-            ImGui::SetClipboardText(addrStr);
-        }
+        ImGui::Text("AgentArray:");
+        ImGui::PushItemWidth(-1.0f);
+        ImGui::InputText("##AgentArrayAddr", addrStr1, sizeof(addrStr1), ImGuiInputTextFlags_ReadOnly);
+        ImGui::PopItemWidth();
+
+        ImGui::Text("WorldViewContext:");
+        ImGui::PushItemWidth(-1.0f);
+        ImGui::InputText("##WorldViewContextAddr", addrStr2, sizeof(addrStr2), ImGuiInputTextFlags_ReadOnly);
+        ImGui::PopItemWidth();
 
         uint32_t agentCount = 0;
         if (agentArrayAddr) {
