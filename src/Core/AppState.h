@@ -7,7 +7,7 @@ namespace kx {
     // --- User-configurable settings ---
     struct Settings {
         bool showVisionWindow = true;
-        bool espEnabled = true;
+        bool espRenderAgents = true;
         bool espRenderBox = true;
         bool espRenderDistance = true;
         bool espRenderDot = true;

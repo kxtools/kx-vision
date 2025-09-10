@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 #pragma comment(lib, "d3d11.lib")
 #include "../Game/Camera.h" // Include Camera header
 #include "../Game/MumbleLink.h" // Include MumbleLink for the parameter
@@ -17,8 +20,7 @@ public:
     static void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData);
 
 private:
-    static void RenderAgent(ImDrawList* drawList, Agent& agent, float screenWidth, float screenHeight);
-    static void RenderCharacterESP(ImDrawList* drawList, float screenWidth, float screenHeight);
+    static void RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details);
     static bool ShouldHideESP(const MumbleLinkData* mumbleData);
 
     static Camera* s_camera; // Camera reference for world-to-screen projections
