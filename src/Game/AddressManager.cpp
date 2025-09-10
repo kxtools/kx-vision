@@ -10,6 +10,7 @@ namespace kx {
 uintptr_t AddressManager::m_agentArray = 0;
 uintptr_t AddressManager::m_worldViewContextPtr = 0;
 uintptr_t AddressManager::m_bgfxContextFunc = 0;
+uintptr_t AddressManager::m_contextCollectionFunc = 0;
 
 void AddressManager::ScanAgentArray() {
     std::optional<uintptr_t> avContextFuncOpt = kx::PatternScanner::FindPattern(
@@ -96,11 +97,31 @@ void AddressManager::ScanBgfxContextFunc()
     std::cout << "[AddressManager] -> SUCCESS: BGFX Context function resolved to: 0x" << std::hex << m_bgfxContextFunc << std::dec << std::endl;
 }
 
+void AddressManager::ScanContextCollectionFunc()
+{
+    std::optional<uintptr_t> funcOpt = kx::PatternScanner::FindPattern(
+        std::string(kx::CONTEXT_COLLECTION_FUNC_PATTERN),
+        std::string(kx::TARGET_PROCESS_NAME)
+    );
+
+    if (!funcOpt) {
+        std::cerr << "[AddressManager] ERROR: ContextCollection function pattern not found." << std::endl;
+        m_contextCollectionFunc = 0;
+        return;
+    }
+
+    m_contextCollectionFunc = *funcOpt;
+    std::cout << "[AddressManager] -> SUCCESS: ContextCollection function resolved to: 0x" << std::hex << m_contextCollectionFunc << std::dec << std::endl;
+}
+
 void AddressManager::Scan() {
     std::cout << "[AddressManager] Scanning for memory addresses..." << std::endl;
     ScanAgentArray();
-    ScanWorldViewContextPtr();
+
+	// currently unused
+    /*ScanWorldViewContextPtr();
     ScanBgfxContextFunc();
+    ScanContextCollectionFunc();*/
 }
 
 void AddressManager::Initialize() {
@@ -124,4 +145,8 @@ uintptr_t AddressManager::GetBgfxContextFunc()
     return m_bgfxContextFunc;
 }
 
+uintptr_t AddressManager::GetContextCollectionFunc()
+{
+    return m_contextCollectionFunc;
+}
 } // namespace kx
