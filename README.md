@@ -69,6 +69,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 *   Uses [GLM](https://github.com/g-truc/glm)
 *   Uses [MinHook](https://github.com/TsudaKageyu/minhook) for function hooking.
 *   **Hacklib:** A valuable learning resource for the initial development of this project. [https://bitbucket.org/rafzi/hacklib_gw2/src/master/](https://bitbucket.org/rafzi/hacklib_gw2/src/master/)
+*   **retrosax:** For sharing valuable reverse engineering information from the "Leyline - Guild Wars 2 Multihack and ESP" project. [UnknownCheats Thread](https://www.unknowncheats.me/forum/guild-wars-2-a/610320-leylin-guild-wars-2-multihack-esp.html)
 
 ## Links
 
