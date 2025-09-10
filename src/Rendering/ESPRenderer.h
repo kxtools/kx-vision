@@ -20,6 +20,8 @@ public:
     static void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData);
 
 private:
+    static void RenderAgents(ImDrawList* drawList, float screenWidth, float screenHeight);
+    static void RenderCharacters(ImDrawList* drawList, float screenWidth, float screenHeight);
     static void RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent = -1.0f);
     static bool ShouldHideESP(const MumbleLinkData* mumbleData);
 
