@@ -1,32 +1,35 @@
-# Game Thread Hook
+# Game Thread Hooking
 
-To safely access gameplay data for our ESP, we must execute code on the game's main logic thread. This is achieved by hooking a high-level, per-frame update function.
+To safely access gameplay data for our ESP, we must execute code on the game's main logic thread. This is achieved by hooking a high-level, per-frame update function. This document details the "what" and the "why" of our approach.
 
-## 1. Target Identification
+## 1. The Target: What Are We Hooking?
 
-The target is a virtual function within a core engine class instance, which we refer to as the `AlertContext` (as it manages the update cycle for many systems, including UI alerts). This object contains the main game loop function, `Arena::Services::Handle::Handle` (or a similar virtual wrapper like `DvContext`).
+Our target is a virtual function within a core engine class instance. We refer to this instance as the `AlertContext` based on nearby performance marker strings like `"ViewAdvanceAlert"`.
 
-## 2. Pattern and Location Strategy
+**Why this target?**
+- The object instance is a high-level manager that contains the main game loop function, `Arena::Services::Handle::Handle` (or a similar virtual wrapper like `DvContext`).
+- Hooking a virtual function (`vtable[0]`, which is typically the `Update` or `Tick` method) is a standard, clean, and stable way to inject our code into a class's update cycle.
+- This ensures our code runs exactly once per frame on the correct **game logic thread**, at a point where all game systems are initialized and in a valid state.
 
-The function is located using a unique signature of machine code, which is more stable than relying on direct memory addresses or fragile offsets from string literals.
+## 2. The Strategy: How Do We Find It?
+
+We locate the target vtable function using a robust pattern scan that is resilient to game updates.
 
 **Pattern (`ALERT_CONTEXT_LOCATOR_PATTERN`):**
 ```
 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 41 0F 28 CA 48 8B 08 48 8B 51 58
 ```
 
-**Strategy:**
-1.  This pattern identifies a unique code block related to the `ViewAdvanceAlert` performance marker inside the main game loop. This block serves as a stable "anchor".
-2.  The `CALL` instruction that retrieves the `AlertContext` instance is located at a fixed negative offset (`-0x19` bytes) from the start of this anchor.
-3.  We resolve this relative `CALL` to find the getter function.
-4.  The getter function contains a relative `MOV`, which we resolve to find a static pointer to the `AlertContext` instance.
-5.  The first 8 bytes of this instance is a pointer to its vtable.
-6.  We hook the first function (`vtable[0]`) in this vtable.
+**The logic behind this strategy:**
+1.  **Find a Unique Anchor:** The game's main update loop calls the update methods for dozens of subsystems in a fixed, predictable order. Our pattern finds a unique sequence of machine code instructions associated with the `"ViewAdvanceAlert"` performance marker. This sequence is far more unique than a generic function prologue and serves as a reliable anchor in memory.
+2.  **Navigate with a Fixed Offset:** From this unique anchor, the `CALL` to the `AlertContext`'s getter function is located at a fixed negative offset (`-0x19` bytes). Because the update order is so stable, this offset is also very stable.
+3.  **Resolve Pointers:** From the getter `CALL`, we programmatically resolve the relative pointers to get the address of the `AlertContext` instance, then its `vtable`, and finally the address of `vtable[0]`, which is our hook target.
 
-## 3. Implementation (`DetourGameThread`)
+This multi-step, context-aware approach is vastly superior to relying on fragile, direct patterns or magic number offsets from string literals.
 
-Our detour function, `DetourGameThread`, is injected at `vtable[0]`. This ensures our code runs once per frame on the correct game logic thread.
+## 3. The Implementation (`DetourGameThread`)
 
-Its primary responsibility is to execute the "Capture" step of our data access pattern: it calls the `GetContextCollection()` function and stores the returned pointer in a shared static variable (`AddressManager::s_pContextCollection`) for the render thread to use.
-
-This approach provides a stable, reliable, and architecturally sound method for interacting with the game's core logic.
+Our detour function, `DetourGameThread`, is injected at `vtable[0]`. Its primary responsibility is to execute the **"Capture"** step of our data access pattern. Each frame, it:
+1.  Calls `GetContextCollection()`, which now succeeds because it's on the correct thread.
+2.  Stores the returned pointer in a shared static variable (`AddressManager::s_pContextCollection`).
+3.  Calls the original game function to ensure the game continues to operate normally.
