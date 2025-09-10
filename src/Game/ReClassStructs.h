@@ -48,6 +48,14 @@ namespace kx {
                     return CoChar(nullptr);
                 }
             }
+
+            uint32_t GetType() {
+                __try {
+                    return data() ? get<uint32_t>(0x08) : 0;
+                } __except (EXCEPTION_EXECUTE_HANDLER) {
+                    return 0;
+                }
+            }
         };
 
         class ChCliEnergies : public ForeignClass {

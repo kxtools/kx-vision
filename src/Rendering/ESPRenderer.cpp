@@ -151,6 +151,13 @@ void ESPRenderer::RenderCharacters(ImDrawList* drawList, float screenWidth, floa
                     details.push_back(std::string(levelText) + " " + race + " " + prof);
                 }
 
+                uint32_t agentType = agent.GetType();
+                if (agentType != 0) { // 0 is standard character type, only show for others
+                    char typeText[64];
+                    snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
+                    details.push_back(typeText);
+                }
+
                 kx::ReClass::ChCliEnergies energies = character.GetEnergies();
                 if (energies) {
                     float maxEnergy = energies.GetMax();
