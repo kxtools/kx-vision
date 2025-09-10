@@ -95,7 +95,7 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
                 // If it's a gadget and NOT a character, treat it as an object.
                 // (Characters are already handled above, this prevents double-rendering)
                 int agentType = agent.GetType();
-                if (agentType != 0 && agentType != -1) { // 0 is character type
+                if (agentType != AGENT_TYPE_CHARACTER && agentType != AGENT_TYPE_ERROR) { // 0 is character type
                      RenderObject(drawList, screenWidth, screenHeight, agent);
                 }
             }
@@ -146,7 +146,7 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
         }
 
         uint32_t agentType = agent.GetType();
-        if (agentType != 0) { // 0 is standard character type, only show for others
+        if (agentType != AGENT_TYPE_CHARACTER) { // AGENT_TYPE_CHARACTER is standard character type, only show for others
             char typeText[64];
             snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
             details.push_back(typeText);
@@ -217,7 +217,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         details.push_back(attitudeText);
 
         uint32_t agentType = agent.GetType();
-        if (agentType != 0) { // 0 is standard character type, only show for others
+        if (agentType != AGENT_TYPE_CHARACTER) { // AGENT_TYPE_CHARACTER is standard character type, only show for others
             char typeText[64];
             snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
             details.push_back(typeText);

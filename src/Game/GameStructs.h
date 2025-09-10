@@ -8,6 +8,10 @@
 
 namespace kx {
 
+// Agent Type Constants
+constexpr int AGENT_TYPE_CHARACTER = 0;
+constexpr int AGENT_TYPE_ERROR = -1;
+
 struct Coordinates3D {
     float X;
     float Y;
@@ -68,10 +72,10 @@ public:
     int GetType() {
         __try {
             kx::ForeignClass pAgentBase = GetBaseAgent();
-            if (!pAgentBase) return -1; // Return -1 for error
+            if (!pAgentBase) return AGENT_TYPE_ERROR; // Return -1 for error
             return pAgentBase.get<int>(Offsets::AGENT_BASE_TYPE);
         } __except (EXCEPTION_EXECUTE_HANDLER) {
-            return -1;
+            return AGENT_TYPE_ERROR;
         }
     }
 
@@ -79,10 +83,10 @@ public:
     int GetGadgetType() {
         __try {
             kx::ForeignClass pAgentBase = GetBaseAgent();
-            if (!pAgentBase) return -1; // Return -1 for error
+            if (!pAgentBase) return AGENT_TYPE_ERROR; // Return -1 for error
             return pAgentBase.get<int>(Offsets::AGENT_BASE_GADGET_TYPE);
         } __except (EXCEPTION_EXECUTE_HANDLER) {
-            return -1;
+            return AGENT_TYPE_ERROR;
         }
     }
 
