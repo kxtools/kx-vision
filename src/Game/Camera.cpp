@@ -12,7 +12,7 @@ namespace kx {
         constexpr float defaultFov = 1.0472f; // ~60 degrees
         if (!identity) return defaultFov;
         std::wstring identityStr(identity);
-        size_t fovPos = identityStr.find(L"fov:");
+        size_t fovPos = identityStr.find(L"\"fov\":");
         if (fovPos != std::wstring::npos) {
             try {
                 size_t start = identityStr.find(L':', fovPos) + 1;
