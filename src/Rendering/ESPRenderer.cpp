@@ -103,7 +103,7 @@ void ESPRenderer::RenderCharacters(ImDrawList* drawList, float screenWidth, floa
 
         kx::ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
         uint32_t characterCapacity = charContext.GetCharacterListCapacity();
-        if (!characterList || characterCapacity > 8000) return;
+        if (!characterList || characterCapacity > 0x10000) return;
 
         for (uint32_t i = 0; i < characterCapacity; ++i) {
             kx::ReClass::ChCliCharacter character(characterList[i]);
