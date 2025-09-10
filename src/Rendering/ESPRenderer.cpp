@@ -86,11 +86,8 @@ void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, 
             float barWidth = 3.0f;
             float healthHeight = barHeight * healthPercent;
 
-            // Background
             drawList->AddRectFilled(ImVec2(boxLeft - barWidth - 2, boxTop), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 0, 0, 180));
-            // Health
             drawList->AddRectFilled(ImVec2(boxLeft - barWidth - 2, boxBottom - healthHeight), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 200, 0, 255));
-            // Border
             drawList->AddRect(ImVec2(boxLeft - barWidth - 2, boxTop), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 0, 0, 255));
         }
 
@@ -173,11 +170,10 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
                 kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
                 if (!charContext) return;
 
-                // 1. Create a map from Character Pointer -> Player Name for fast lookups
                 std::map<void*, const wchar_t*> characterNameToPlayerName;
                 kx::ReClass::ChCliPlayer** playerList = charContext.GetPlayerList();
                 uint32_t playerCount = charContext.GetPlayerListSize();
-                if (playerList && playerCount < 2000) { // Safety check
+                if (playerList && playerCount < 2000) {
                     for (uint32_t i = 0; i < playerCount; ++i) {
                         kx::ReClass::ChCliPlayer player(playerList[i]);
                         if (!player) continue;
@@ -189,7 +185,6 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
                     }
                 }
 
-                // 2. Iterate the main character list, which contains players, NPCs, and mobs.
                 kx::ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
                 uint32_t characterCapacity = charContext.GetCharacterListCapacity();
                 if (!characterList || characterCapacity > 8000) return;
@@ -238,6 +233,16 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
                             std::string prof = ProfessionToString(stats.GetProfession());
                             std::string race = RaceToString(stats.GetRace());
                             details.push_back(std::string(levelText) + " " + race + " " + prof);
+                        }
+
+                        kx::ReClass::ChCliEnergies energies = character.GetEnergies();
+                        if (energies) {
+                            float maxEnergy = energies.GetMax();
+                            if (maxEnergy > 0) {
+                                char energyText[64];
+                                snprintf(energyText, sizeof(energyText), "E: %.0f/%.0f", energies.GetCurrent(), maxEnergy);
+                                details.push_back(energyText);
+                            }
                         }
                     }
 

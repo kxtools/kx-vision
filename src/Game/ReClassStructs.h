@@ -12,6 +12,7 @@ namespace kx {
         class ChCliHealth;
         class ChCliCoreStats;
         class ChCliPlayer;
+        class ChCliEnergies;
 
         // --- Safe Wrappers for Game Structures ---
 
@@ -47,6 +48,13 @@ namespace kx {
                     return CoChar(nullptr);
                 }
             }
+        };
+
+        class ChCliEnergies : public ForeignClass {
+        public:
+            ChCliEnergies(void* ptr) : ForeignClass(ptr) {}
+            float GetCurrent() { __try { return data() ? get<float>(0x0C) : 0.0f; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0.0f; } }
+            float GetMax() { __try { return data() ? get<float>(0x10) : 0.0f; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0.0f; } }
         };
 
         class ChCliHealth : public ForeignClass {
@@ -88,6 +96,10 @@ namespace kx {
 
             uint32_t GetAttitude() { 
                 __try { return data() ? get<uint32_t>(0x00C0) : 1; } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; } // Default to Neutral
+            }
+
+            ChCliEnergies GetEnergies() { 
+                __try { return ChCliEnergies(data() ? get<void*>(0x03D8) : nullptr); } __except (EXCEPTION_EXECUTE_HANDLER) { return ChCliEnergies(nullptr); } 
             }
         };
 
