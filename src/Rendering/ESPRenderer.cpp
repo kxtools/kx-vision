@@ -11,6 +11,7 @@
 #include "../Core/AppState.h"
 #include "../Game/AddressManager.h"
 #include "../Game/GameStructs.h"
+#include "../Game/ReClassStructs.h"
 
 namespace kx {
 
@@ -22,9 +23,6 @@ void ESPRenderer::Initialize(Camera& camera) {
 }
 
 void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData) {
-    // Skip ESP rendering if disabled
-    if (!g_settings.espEnabled) return;
-    
     // Skip if camera not initialized
     if (!s_camera) return;
     
@@ -37,22 +35,108 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     ::ImDrawList* drawList = ImGui::GetBackgroundDrawList();
     
     // Render agents
-    uintptr_t agentArrayPtr = AddressManager::GetAgentArray();
-    if (agentArrayPtr) {
-        AgentArray agentArray(reinterpret_cast<void*>(agentArrayPtr));
-        uint32_t count = agentArray.Count();
-        
-        for (uint32_t i = 0; i < count; ++i) {
-            Agent agent = agentArray.GetAgent(i);
-            if (!agent) continue;
+    if (g_settings.espEnabled) {
+        uintptr_t agentArrayPtr = AddressManager::GetAgentArray();
+        if (agentArrayPtr) {
+            AgentArray agentArray(reinterpret_cast<void*>(agentArrayPtr));
+            uint32_t count = agentArray.Count();
             
-            Coordinates3D gameWorldPos = agent.GetPosition();
+            for (uint32_t i = 0; i < count; ++i) {
+                Agent agent = agentArray.GetAgent(i);
+                if (!agent) continue;
+                
+                Coordinates3D gameWorldPos = agent.GetPosition();
+                if (gameWorldPos.X == 0.0f && gameWorldPos.Y == 0.0f && gameWorldPos.Z == 0.0f) {
+                    continue;
+                }
+                
+                RenderAgent(drawList, agent, screenWidth, screenHeight);
+            }
+        }
+    }
+
+    if (g_settings.espRenderCharacters) {
+        RenderCharacterESP(drawList, screenWidth, screenHeight);
+    }
+}
+
+void ESPRenderer::RenderCharacterESP(ImDrawList* drawList, float screenWidth, float screenHeight) {
+    void* pContextCollection = AddressManager::GetContextCollectionPtr();
+    if (!pContextCollection) return;
+
+    try {
+        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+        if (!ctxCollection) return;
+
+        kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+        if (!charContext) return;
+
+        kx::ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
+        uint32_t characterCapacity = charContext.GetCharacterListCapacity();
+
+        if (!characterList || characterCapacity > 8000) return;
+
+        const uintptr_t MIN_VALID_POINTER = 0x10000;
+        const uintptr_t MAX_VALID_POINTER = 0x00007FFFFFFFFFFF;
+
+        for (uint32_t i = 0; i < characterCapacity; ++i) {
+            void* rawCharacterPtr = characterList[i];
+            if (!rawCharacterPtr || (uintptr_t)rawCharacterPtr < MIN_VALID_POINTER || (uintptr_t)rawCharacterPtr > MAX_VALID_POINTER) {
+                continue;
+            }
+
+            kx::ReClass::ChCliCharacter character(rawCharacterPtr);
+            kx::ReClass::AgChar agent = character.GetAgent();
+            if (!agent) continue;
+            kx::ReClass::CoChar coChar = agent.GetCoChar();
+            if (!coChar) continue;
+
+            Coordinates3D gameWorldPos = coChar.GetVisualPosition();
             if (gameWorldPos.X == 0.0f && gameWorldPos.Y == 0.0f && gameWorldPos.Z == 0.0f) {
                 continue;
             }
-            
-            RenderAgent(drawList, agent, screenWidth, screenHeight);
+
+            // --- THIS IS THE CORRECTED LINE ---
+            const float scaleFactor = 1.23f;
+            glm::vec3 cameraWorldPos(
+                gameWorldPos.X / scaleFactor,  // X is the same
+                gameWorldPos.Z / scaleFactor,  // Game Z (height) -> Camera Y (height)
+                gameWorldPos.Y / scaleFactor   // Game Y (depth) -> Camera Z (depth)
+            );
+            // --- END OF CORRECTION ---
+
+            float distance = glm::length(cameraWorldPos - s_camera->GetPlayerPosition());
+
+            if (g_settings.espUseDistanceLimit && distance > g_settings.espRenderDistanceLimit) {
+                continue;
+            }
+
+            glm::vec2 screenPos;
+            if (ESP_Helpers::WorldToScreen(cameraWorldPos, *s_camera, screenWidth, screenHeight, screenPos)) {
+                ImU32 lineColor = IM_COL32(255, 0, 0, 200);
+                float boxSize = std::max(4.0f, 15.0f * (50.0f / (distance + 20.0f)));
+
+                if (g_settings.espRenderBox) {
+                    drawList->AddRect(
+                        ::ImVec2(screenPos.x - boxSize / 2, screenPos.y - boxSize / 2),
+                        ::ImVec2(screenPos.x + boxSize / 2, screenPos.y + boxSize / 2),
+                        lineColor, 1.0f, ImDrawFlags_RoundCornersAll, 1.5f);
+                }
+                if (g_settings.espRenderDistance) {
+                    char distText[32];
+                    snprintf(distText, sizeof(distText), "%.1fm", distance);
+                    ::ImVec2 textSize = ImGui::CalcTextSize(distText);
+                    drawList->AddText(::ImVec2(screenPos.x - textSize.x / 2, screenPos.y - boxSize / 2 - textSize.y - 2),
+                        IM_COL32(255, 255, 255, 255), distText);
+                }
+                if (g_settings.espRenderDot) {
+                    drawList->AddCircleFilled(::ImVec2(screenPos.x, screenPos.y), 2.0f, IM_COL32(255, 255, 255, 255));
+                }
+            }
         }
+    }
+    catch (...) {
+        // This catch block prevents the tool from crashing the game.
     }
 }
 

@@ -18,6 +18,7 @@ public:
 
 private:
     static void RenderAgent(ImDrawList* drawList, Agent& agent, float screenWidth, float screenHeight);
+    static void RenderCharacterESP(ImDrawList* drawList, float screenWidth, float screenHeight);
     static bool ShouldHideESP(const MumbleLinkData* mumbleData);
 
     static Camera* s_camera; // Camera reference for world-to-screen projections

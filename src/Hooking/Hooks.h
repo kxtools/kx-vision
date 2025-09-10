@@ -13,4 +13,8 @@ namespace kx {
      */
     void CleanupHooks();
 
+    namespace Hooking {
+        void __fastcall DetourGameThread(void* pInst, int frame_time);
+    }
+
 } // namespace kx
