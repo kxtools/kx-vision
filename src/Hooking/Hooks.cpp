@@ -91,7 +91,7 @@ namespace kx {
         // NEW: Disable and remove the game thread hook during shutdown
         uintptr_t gameThreadFuncAddr = AddressManager::GetGameThreadUpdateFunc();
         if (gameThreadFuncAddr && Hooking::pOriginalGameThreadUpdate) {
-	        Hooking::HookManager::DisableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
+            Hooking::HookManager::DisableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
             Hooking::HookManager::RemoveHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
             std::cout << "[Hooks] GameThread hook cleaned up." << std::endl;
         }
