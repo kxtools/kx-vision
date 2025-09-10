@@ -9,6 +9,7 @@
 #include <vector>
 #include <gtc/type_ptr.hpp>
 
+#include "Config.h"
 #include "ESP_Helpers.h"
 #include "StringHelpers.h" // New include
 #include "../../libs/ImGui/imgui.h"
@@ -241,7 +242,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     if (!g_settings.objectESP.enabled) return;
 
     int gadgetType = agent.GetGadgetType();
-    if (gadgetType >= 0 && gadgetType < 32 && (g_settings.objectESP.ignoredGadgets & (1 << gadgetType))) {
+    if (gadgetType >= 0 && gadgetType < kx::MAX_GADGET_TYPES && (g_settings.objectESP.ignoredGadgets & (1 << gadgetType))) {
         return;
     }
 
