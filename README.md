@@ -5,6 +5,8 @@
 
 ![KX-Vision GUI](images/gui.jpg)
 
+[➡️ Download the Latest Release](https://github.com/kxtools/kx-vision/releases/latest)
+
 **Educational Purpose Only:** This project is developed solely for educational purposes, allowing developers to learn about game rendering concepts, memory manipulation, and MumbleLink API integration in Guild Wars 2.
 
 ## Overview
@@ -67,9 +69,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 *   Initial concept and development by Krixx
 *   Uses [Dear ImGui](https://github.com/ocornut/imgui)
-*   Uses [MinHook](https://github.com/TsudaKageyu/minhook)
-*   Uses [SafetyHook](https://github.com/cursey/safetyhook)
-*   Uses [GLM](https://g-truc.github.io/glm/)
+*   Uses [GLM](https://github.com/g-truc/glm)
 *   **Hacklib:** A valuable learning resource for the initial development of this project. [https://bitbucket.org/rafzi/hacklib_gw2/src/master/](https://bitbucket.org/rafzi/hacklib_gw2/src/master/)
 
 ## Links
