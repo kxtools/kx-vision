@@ -241,7 +241,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     if (!g_settings.objectESP.enabled) return;
 
     int gadgetType = agent.GetGadgetType();
-    if (gadgetType != -1 && (g_settings.objectESP.ignoredGadgets & (1 << gadgetType))) {
+    if (gadgetType >= 0 && gadgetType < 32 && (g_settings.objectESP.ignoredGadgets & (1 << gadgetType))) {
         return;
     }
 
