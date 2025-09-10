@@ -68,6 +68,11 @@ void ESPRenderer::RenderAgent(ImDrawList* drawList, Agent& agent, float screenWi
     );
     
     float distance = glm::length(cameraWorldPos - s_camera->GetPlayerPosition());
+
+    // Apply distance limit
+    if (kx::g_settings.espUseDistanceLimit && distance > kx::g_settings.espRenderDistanceLimit) {
+        return; // Don't render if beyond limit
+    }
     
     glm::vec2 screenPos;
     if (ESP_Helpers::WorldToScreen(cameraWorldPos, *s_camera, screenWidth, screenHeight, screenPos)) {

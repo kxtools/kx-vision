@@ -12,6 +12,8 @@ namespace kx {
         bool espRenderDistance = true;
         bool espRenderDot = true;
         bool espRenderDetails = false;
+        bool espUseDistanceLimit = true;
+        float espRenderDistanceLimit = 250.0f;
     };
 
     extern Settings g_settings;

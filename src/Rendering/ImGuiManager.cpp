@@ -81,6 +81,13 @@ void ImGuiManager::RenderESPWindow() {
     ImGui::SameLine();
     ImGui::Checkbox("ESP Details", &kx::g_settings.espRenderDetails);
 
+    ImGui::Checkbox("Use Distance Limit", &kx::g_settings.espUseDistanceLimit);
+    if (kx::g_settings.espUseDistanceLimit) {
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::SliderFloat("Render Distance Limit", &kx::g_settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
+        ImGui::PopItemWidth();
+    }
+
     // Connection status
     ImGui::Text("MumbleLink Status: %s", 
         m_mumbleLinkManager.IsInitialized() ? "Connected" : "Disconnected");
