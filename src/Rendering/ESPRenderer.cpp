@@ -32,6 +32,34 @@ std::string WStringToString(const wchar_t* wstr) {
     return strTo;
 }
 
+// Helper to convert profession ID to string
+std::string ProfessionToString(uint32_t profId) {
+    switch (profId) {
+        case 1: return "Guardian";
+        case 2: return "Warrior";
+        case 3: return "Engineer";
+        case 4: return "Ranger";
+        case 5: return "Thief";
+        case 6: return "Elementalist";
+        case 7: return "Mesmer";
+        case 8: return "Necromancer";
+        case 9: return "Revenant";
+        default: return "Prof ID: " + std::to_string(profId);
+    }
+}
+
+// Helper to convert race ID to string
+std::string RaceToString(uint8_t raceId) {
+    switch (raceId) {
+        case 0: return "Asura";
+        case 1: return "Charr";
+        case 2: return "Human";
+        case 3: return "Norn";
+        case 4: return "Sylvari";
+        default: return "Race ID: " + std::to_string(raceId);
+    }
+}
+
 // Initialize the static camera pointer
 Camera* ESPRenderer::s_camera = nullptr;
 
@@ -201,6 +229,15 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
                         auto it = characterNameToPlayerName.find(character.data());
                         if (it != characterNameToPlayerName.end()) {
                             details.push_back(WStringToString(it->second));
+                        }
+
+                        kx::ReClass::ChCliCoreStats stats = character.GetCoreStats();
+                        if (stats) {
+                            char levelText[32];
+                            snprintf(levelText, sizeof(levelText), "Lvl: %u", stats.GetLevel());
+                            std::string prof = ProfessionToString(stats.GetProfession());
+                            std::string race = RaceToString(stats.GetRace());
+                            details.push_back(std::string(levelText) + " " + race + " " + prof);
                         }
                     }
 

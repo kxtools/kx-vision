@@ -59,6 +59,7 @@ namespace kx {
         class ChCliCoreStats : public ForeignClass {
         public:
             ChCliCoreStats(void* ptr) : ForeignClass(ptr) {}
+            uint8_t GetRace() { __try { return data() ? get<uint8_t>(0x33) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
             uint32_t GetLevel() { __try { return data() ? get<uint32_t>(0xAC) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
             uint32_t GetProfession() { __try { return data() ? get<uint32_t>(0x12C) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
         };
