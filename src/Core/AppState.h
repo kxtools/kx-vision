@@ -7,13 +7,14 @@ namespace kx {
     // --- User-configurable settings ---
     struct Settings {
         bool showVisionWindow = true;
-        bool espEnabled = true;
+        bool espRenderAgents = true;
         bool espRenderBox = true;
         bool espRenderDistance = true;
         bool espRenderDot = true;
         bool espRenderDetails = false;
         bool espUseDistanceLimit = true;
         float espRenderDistanceLimit = 250.0f;
+        bool espRenderCharacters = true;
     };
 
     extern Settings g_settings;

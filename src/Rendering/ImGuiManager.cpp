@@ -70,7 +70,8 @@ void ImGuiManager::RenderESPWindow() {
     RenderHints();
 
     // ESP main toggle
-    ImGui::Checkbox("Enable ESP", &kx::g_settings.espEnabled);
+    ImGui::Checkbox("Render Agents", &kx::g_settings.espRenderAgents);
+    ImGui::Checkbox("Render Characters", &kx::g_settings.espRenderCharacters);
 
     // ESP feature toggles with side-by-side layout
     ImGui::Checkbox("Render Box", &kx::g_settings.espRenderBox);

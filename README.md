@@ -16,13 +16,10 @@ KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild War
 ## Features
 
 *   **MumbleLink Integration:** Utilizes GW2's MumbleLink API for player and game state data.
-*   **Visual ESP:** Agent box rendering, distance measurements, position indicators, and color coding.
-*   **Minimalist UI:** Simple, configurable interface.
-*   **Patch-Resistant:** Designed to avoid direct memory manipulation where possible.
-
-## Known Issues
-
-*   Current ESP agent rendering primarily targets "gadgets" (e.g., resource nodes, specific interactables). The pointer chain used for agent position retrieval currently works most reliably for these types of entities. Rendering other agent types (characters, NPCs) may be inconsistent or inaccurate.
+*   **Dual-Source ESP:** Renders general agents (e.g., resource nodes) and provides a separate, highly reliable ESP for characters (players, NPCs) by hooking the game's main update loop.
+*   **Configurable Visuals:** ESP includes options for boxes, distance, and position dots.
+*   **Minimalist UI:** Simple, configurable ImGui interface.
+*   **Patch-Resistant Scanning:** Uses pattern scanning to locate necessary game functions, increasing resilience to game updates.
 
 ## Building
 
@@ -70,7 +67,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 *   Initial concept and development by Krixx
 *   Uses [Dear ImGui](https://github.com/ocornut/imgui)
 *   Uses [GLM](https://github.com/g-truc/glm)
+*   Uses [MinHook](https://github.com/TsudaKageyu/minhook) for function hooking.
 *   **Hacklib:** A valuable learning resource for the initial development of this project. [https://bitbucket.org/rafzi/hacklib_gw2/src/master/](https://bitbucket.org/rafzi/hacklib_gw2/src/master/)
+*   **retrosax:** For sharing valuable reverse engineering information from the "Leyline - Guild Wars 2 Multihack and ESP" project. [UnknownCheats Thread](https://www.unknowncheats.me/forum/guild-wars-2-a/610320-leylin-guild-wars-2-multihack-esp.html)
 
 ## Links
 

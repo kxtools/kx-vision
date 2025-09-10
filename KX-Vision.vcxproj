@@ -118,6 +118,8 @@
     <ClInclude Include="src\Game\Camera.h" />
     <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
+    <ClInclude Include="src\Game\ReClassStructs.h" />
+    <ClInclude Include="src\Rendering\StringHelpers.h" />
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Rendering\ESPRenderer.h" />
