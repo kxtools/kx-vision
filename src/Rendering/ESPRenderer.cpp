@@ -95,7 +95,7 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
                 // If it's a gadget and NOT a character, treat it as an object.
                 // (Characters are already handled above, this prevents double-rendering)
                 int agentType = agent.GetType();
-                if (agentType != AGENT_TYPE_CHARACTER && agentType != AGENT_TYPE_ERROR) { // 0 is character type
+                if (agentType != AGENT_TYPE_CHARACTER && agentType != AGENT_TYPE_ERROR) {
                      RenderObject(drawList, screenWidth, screenHeight, agent);
                 }
             }
