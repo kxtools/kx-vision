@@ -58,13 +58,20 @@ void MumbleLinkManager::Update() {
         }
     }
 
+    // 1. Validate the basic MumbleLink data (uiVersion and game name).
+    //    If invalid, we stop processing this frame.
     if (m_mumbleLink->uiVersion != 2 ||
-        std::wcscmp(m_mumbleLink->name, GW2_GAME_NAME) != 0 ||
-        m_mumbleLink->uiTick == m_lastTick) {
-        return; // Data is invalid or not updated
+        std::wcscmp(m_mumbleLink->name, GW2_GAME_NAME) != 0) {
+        return; 
     }
 
-    m_lastTick = m_mumbleLink->uiTick;
+    // 2. If the data is valid, update m_lastTick if the uiTick has advanced.
+    //    This is for internal tracking of MumbleLink's own tick counter.
+    //    Crucially, the function DOES NOT return here if uiTick hasn't changed.
+    //    The actual camera/avatar data (m_mumbleLink) is always available via GetData().
+    if (m_mumbleLink->uiTick != m_lastTick) {
+        m_lastTick = m_mumbleLink->uiTick;
+    }
 }
 
 } // namespace kx
