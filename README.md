@@ -34,7 +34,7 @@ KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild War
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/Krixx1337/kx-vision.git
+    git clone https://github.com/kxtools/kx-vision.git
     cd kx-vision
     ```
 2.  Open `KX-Vision.sln` in Visual Studio.
@@ -76,4 +76,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 *   🌐 **Website:** [kxtools.xyz](https://kxtools.xyz)
 *   💬 **Discord:** [Join Server](https://discord.gg/z92rnB4kHm)
-*   📚 **GitHub:** [Repository](https://github.com/Krixx1337/kx-vision)
