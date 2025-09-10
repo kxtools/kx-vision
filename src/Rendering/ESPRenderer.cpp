@@ -218,7 +218,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         details.push_back(attitudeText);
 
         uint32_t agentType = agent.GetType();
-        if (agentType != AGENT_TYPE_CHARACTER) { // AGENT_TYPE_CHARACTER is standard character type, only show for others
+        if (agentType != AGENT_TYPE_CHARACTER) { // Only show for agent types other than AGENT_TYPE_CHARACTER (standard character type)
             char typeText[64];
             snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
             details.push_back(typeText);
