@@ -9,7 +9,7 @@
 #include <vector>
 #include <gtc/type_ptr.hpp>
 
-#include "Config.h"
+#include "../Core/Config.h"
 #include "ESP_Helpers.h"
 #include "StringHelpers.h" // New include
 #include "../../libs/ImGui/imgui.h"
