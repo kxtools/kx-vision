@@ -87,6 +87,8 @@ public:
     }
 
     explicit operator bool() const { return pAvAgent.data() != nullptr; }
+
+	const void* GetAddress() const { return pAvAgent.data(); }
 };
 
 class AgentArray {

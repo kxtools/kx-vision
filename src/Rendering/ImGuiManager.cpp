@@ -173,6 +173,15 @@ void ImGuiManager::RenderDebugSection() {
         if (firstAgent) {
             ImGui::Text("Index: %d (0x%X)", firstAgentIndex, firstAgentIndex);
             ImGui::Text("ID: %u (0x%X)", firstAgent.GetId(), firstAgent.GetId());
+
+            // Display memory address of the first agent
+            char agentAddrStr[32];
+            snprintf(agentAddrStr, sizeof(agentAddrStr), "0x%p", (void*)firstAgent.GetAddress());
+            ImGui::Text("Address:");
+            ImGui::PushItemWidth(-1.0f);
+            ImGui::InputText("##AgentAddress", agentAddrStr, sizeof(agentAddrStr), ImGuiInputTextFlags_ReadOnly);
+            ImGui::PopItemWidth();
+
             ImGui::Text("Type: %d", firstAgent.GetType());
             ImGui::Text("Gadget Type: %d", firstAgent.GetGadgetType());
         } else {
