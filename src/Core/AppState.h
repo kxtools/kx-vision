@@ -22,7 +22,7 @@ namespace kx {
         bool renderDot = true;
         bool renderDetails = false;
         // Add attitude filtering like in zenith
-        int ignoredAttitude = 0; // Bitmask for GW2::Attitude
+        int ignoredAttitude = 0; // Bitmask for NPC attitude types (e.g., hostile, friendly, neutral)
         // Add specific colors
         // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
         // etc.
