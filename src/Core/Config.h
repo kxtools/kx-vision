@@ -12,4 +12,5 @@ namespace kx {
     constexpr std::string_view AGENT_VIEW_CONTEXT_PATTERN = "40 53 48 83 EC 20 F6 05 ?? ?? ?? ?? 01 48 8D 05";
     constexpr std::string_view AGENT_ARRAY_LEA_PATTERN = "48 8D 0D ?? ?? ?? ?? 48 89 1D ?? ?? ?? ?? 48 89 1D ?? ?? ?? ?? 48 83 C4 20";
     constexpr std::string_view WORLD_VIEW_CONTEXT_PATTERN = "48 85 C0 75 20 41 B8 2E 04 00 00";
+    constexpr std::string_view BGFX_CONTEXT_FUNC_PATTERN = "BA 10 00 00 00 48 8B 04 C8 81 3C 02 62 67 66 78"; // backup: "57 ? ? ? ? 48 8B 35 2D CD" (Offset: 9)
 }

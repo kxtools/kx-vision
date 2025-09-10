@@ -9,6 +9,7 @@ namespace kx {
 
 uintptr_t AddressManager::m_agentArray = 0;
 uintptr_t AddressManager::m_worldViewContextPtr = 0;
+uintptr_t AddressManager::m_bgfxContextFunc = 0;
 
 void AddressManager::ScanAgentArray() {
     std::optional<uintptr_t> avContextFuncOpt = kx::PatternScanner::FindPattern(
@@ -64,17 +65,42 @@ void AddressManager::ScanWorldViewContextPtr() {
     m_worldViewContextPtr = *reinterpret_cast<uintptr_t*>(staticPointerAddress);
 
     if (m_worldViewContextPtr) {
-        std::cout << "[AddressManager] SUCCESS: WorldViewContext resolved to: 0x" << std::hex << m_worldViewContextPtr << std::dec << std::endl;
+        std::cout << "[AddressManager] -> SUCCESS: WorldViewContext resolved to: 0x" << std::hex << m_worldViewContextPtr << std::dec << std::endl;
     }
     else {
         std::cerr << "[AddressManager] ERROR: WvContext static address was null." << std::endl;
     }
 }
 
+void AddressManager::ScanBgfxContextFunc()
+{
+    std::optional<uintptr_t> getContextOpt = kx::PatternScanner::FindPattern(
+        std::string(kx::BGFX_CONTEXT_FUNC_PATTERN),
+        std::string(kx::TARGET_PROCESS_NAME)
+    );
+
+    if (!getContextOpt) {
+        std::cerr << "[AddressManager] ERROR: BGFX Context function pattern not found." << std::endl;
+        m_bgfxContextFunc = 0;
+        return;
+    }
+
+    // The pattern is located inside the function. We must subtract the offset
+    // to get the address of the function's first instruction.
+    // Start of function: 00b41ef0
+    // Start of pattern:  00b41f25
+    // Offset = 0x35
+    uintptr_t patternAddress = *getContextOpt;
+    m_bgfxContextFunc = patternAddress - 0x35;
+
+    std::cout << "[AddressManager] -> SUCCESS: BGFX Context function resolved to: 0x" << std::hex << m_bgfxContextFunc << std::dec << std::endl;
+}
+
 void AddressManager::Scan() {
     std::cout << "[AddressManager] Scanning for memory addresses..." << std::endl;
     ScanAgentArray();
     ScanWorldViewContextPtr();
+    ScanBgfxContextFunc();
 }
 
 void AddressManager::Initialize() {
@@ -91,6 +117,11 @@ uintptr_t AddressManager::GetAgentArray() {
 
 uintptr_t AddressManager::GetWorldViewContextPtr() {
     return m_worldViewContextPtr;
+}
+
+uintptr_t AddressManager::GetBgfxContextFunc()
+{
+    return m_bgfxContextFunc;
 }
 
 } // namespace kx
