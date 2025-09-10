@@ -1,6 +1,7 @@
 #include "Hooks.h"
 
 #include <iostream>
+#include <windows.h> // For __try/__except
 
 #include "AddressManager.h"
 #include "AppState.h"
@@ -26,7 +27,15 @@ namespace kx {
                 auto getContextCollection = reinterpret_cast<GetContextCollectionFn>(funcAddr);
 
                 // CAPTURE the pointer and store it in our shared static variable.
-                AddressManager::s_pContextCollection = getContextCollection();
+                // This is a call into game code, so we wrap it in a __try/__except block
+                // to prevent a crash in the game's function from crashing our tool.
+                __try {
+                    AddressManager::SetContextCollectionPtr(getContextCollection());
+                }
+                __except (EXCEPTION_EXECUTE_HANDLER) {
+                    // If the game function crashes, we'll just get a nullptr this frame.
+                    AddressManager::SetContextCollectionPtr(nullptr);
+                }
             }
 
             // IMPORTANT: Call the original game function to allow the game to run normally.

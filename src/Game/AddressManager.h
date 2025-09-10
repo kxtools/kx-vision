@@ -2,26 +2,35 @@
 
 #include <cstdint>
 
-namespace kx { namespace Hooking { void __fastcall DetourGameThread(void* pInst, int frame_time); } }
-
 namespace kx {
+
+// A struct to hold all game-related pointers and addresses.
+struct GamePointers {
+    uintptr_t agentArray = 0;
+    uintptr_t worldViewContextPtr = 0;
+    uintptr_t bgfxContextFunc = 0;
+    uintptr_t contextCollectionFunc = 0;
+    uintptr_t gameThreadUpdateFunc = 0;
+    void* pContextCollection = nullptr;
+};
 
 class AddressManager {
 public:
     static void Initialize();
     static void Refresh();
-    static uintptr_t GetAgentArray();
-    static uintptr_t GetWorldViewContextPtr();
-    static uintptr_t GetBgfxContextFunc();
-    static uintptr_t GetContextCollectionFunc();
-    static uintptr_t GetGameThreadUpdateFunc();
 
-    static void* GetContextCollectionPtr();
+    // Public setter for the hook to store the captured pointer.
+    static void SetContextCollectionPtr(void* ptr);
+
+    // Inlined getters for direct and fast access.
+    static uintptr_t GetAgentArray() { return s_pointers.agentArray; }
+    static uintptr_t GetWorldViewContextPtr() { return s_pointers.worldViewContextPtr; }
+    static uintptr_t GetBgfxContextFunc() { return s_pointers.bgfxContextFunc; }
+    static uintptr_t GetContextCollectionFunc() { return s_pointers.contextCollectionFunc; }
+    static uintptr_t GetGameThreadUpdateFunc() { return s_pointers.gameThreadUpdateFunc; }
+    static void* GetContextCollectionPtr() { return s_pointers.pContextCollection; }
 
 private:
-    // NEW: Friend our hook so it can access the private s_pContextCollection.
-    friend void Hooking::DetourGameThread(void* pInst, int frame_time);
-
     static void Scan();
     static void ScanAgentArray();
     static void ScanWorldViewContextPtr();
@@ -29,13 +38,8 @@ private:
     static void ScanContextCollectionFunc();
     static void ScanGameThreadUpdateFunc();
 
-    static uintptr_t m_agentArray;
-    static uintptr_t m_worldViewContextPtr;
-    static uintptr_t m_bgfxContextFunc;
-    static uintptr_t m_contextCollectionFunc;
-    static uintptr_t m_gameThreadUpdateFunc;
-
-    static void* s_pContextCollection;
+    // Single static struct instance holding all pointers.
+    static GamePointers s_pointers;
 };
 
 } // namespace kx
