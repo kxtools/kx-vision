@@ -9,6 +9,9 @@ namespace kx {
         // Forward declarations
         class ChCliCharacter;
         class AgChar;
+        class ChCliHealth;
+        class ChCliCoreStats;
+        class ChCliPlayer;
 
         // --- Safe Wrappers for Game Structures ---
 
@@ -16,8 +19,6 @@ namespace kx {
         public:
             CoChar(void* ptr) : ForeignClass(ptr) {}
 
-            // Offset from ReClass: CoChar->vec3PositionVisual (0x01A0)
-            // This seems to be the character's visual position.
             Coordinates3D GetVisualPosition() {
                 __try {
                     if (!data()) return { 0, 0, 0 };
@@ -37,7 +38,6 @@ namespace kx {
         public:
             AgChar(void* ptr) : ForeignClass(ptr) {}
 
-            // Offset from ReClass: AgChar->pCoChar (0x0050)
             CoChar GetCoChar() {
                 __try {
                     if (!data()) return CoChar(nullptr);
@@ -49,12 +49,24 @@ namespace kx {
             }
         };
 
+        class ChCliHealth : public ForeignClass {
+        public:
+            ChCliHealth(void* ptr) : ForeignClass(ptr) {}
+            float GetCurrent() { __try { return data() ? get<float>(0x0C) : 0.0f; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0.0f; } }
+            float GetMax() { __try { return data() ? get<float>(0x10) : 0.0f; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0.0f; } }
+        };
+
+        class ChCliCoreStats : public ForeignClass {
+        public:
+            ChCliCoreStats(void* ptr) : ForeignClass(ptr) {}
+            uint32_t GetLevel() { __try { return data() ? get<uint32_t>(0xAC) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
+            uint32_t GetProfession() { __try { return data() ? get<uint32_t>(0x12C) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
+        };
+
         class ChCliCharacter : public ForeignClass {
         public:
             ChCliCharacter(void* ptr) : ForeignClass(ptr) {}
 
-            // Offset from ReClass: ChCliCharacter->pAgChar (0x0098)
-            // THIS IS THE FUNCTION THAT WAS CRASHING. IT IS NOW PROTECTED.
             AgChar GetAgent() {
                 __try {
                     if (!data()) return AgChar(nullptr);
@@ -64,6 +76,25 @@ namespace kx {
                     return AgChar(nullptr);
                 }
             }
+
+            ChCliHealth GetHealth() { 
+                __try { return ChCliHealth(data() ? get<void*>(0x03E8) : nullptr); } __except (EXCEPTION_EXECUTE_HANDLER) { return ChCliHealth(nullptr); } 
+            }
+
+            ChCliCoreStats GetCoreStats() { 
+                __try { return ChCliCoreStats(data() ? get<void*>(0x0388) : nullptr); } __except (EXCEPTION_EXECUTE_HANDLER) { return ChCliCoreStats(nullptr); } 
+            }
+
+            uint32_t GetAttitude() { 
+                __try { return data() ? get<uint32_t>(0x00C0) : 1; } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; } // Default to Neutral
+            }
+        };
+
+        class ChCliPlayer : public ForeignClass {
+        public:
+            ChCliPlayer(void* ptr) : ForeignClass(ptr) {}
+            ChCliCharacter GetCharacter() { __try { return ChCliCharacter(data() ? get<void*>(0x18) : nullptr); } __except (EXCEPTION_EXECUTE_HANDLER) { return ChCliCharacter(nullptr); } }
+            const wchar_t* GetName() { __try { return data() ? get<wchar_t*>(0x68) : nullptr; } __except (EXCEPTION_EXECUTE_HANDLER) { return nullptr; } }
         };
 
         class ChCliContext : public ForeignClass {
@@ -88,6 +119,20 @@ namespace kx {
                 __except (EXCEPTION_EXECUTE_HANDLER) {
                     return 0;
                 }
+            }
+
+            ChCliPlayer** GetPlayerList() {
+                __try {
+                    if (!data()) return nullptr;
+                    return get<ChCliPlayer**>(0x80);
+                } __except (EXCEPTION_EXECUTE_HANDLER) { return nullptr; }
+            }
+
+            uint32_t GetPlayerListSize() {
+                __try {
+                    if (!data()) return 0;
+                    return get<uint32_t>(0x88);
+                } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
             }
         };
 

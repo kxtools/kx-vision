@@ -20,7 +20,7 @@ public:
     static void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData);
 
 private:
-    static void RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details);
+    static void RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent = -1.0f);
     static bool ShouldHideESP(const MumbleLinkData* mumbleData);
 
     static Camera* s_camera; // Camera reference for world-to-screen projections
