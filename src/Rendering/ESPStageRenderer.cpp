@@ -6,6 +6,8 @@
 #include "EnhancedESPHelpers.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../Utils/EntityFilter.h"
+#include <limits>
+#include <cmath>
 
 namespace kx {
 
@@ -21,6 +23,10 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
     const auto& settings = AppState::Get().GetSettings();
     if (!settings.playerESP.enabled) return;
 
+    const glm::vec3 cameraPos = camera.GetPlayerPosition();
+    const float maxDistanceSquared = settings.espUseDistanceLimit ? 
+        (settings.espRenderDistanceLimit * settings.espRenderDistanceLimit) : (std::numeric_limits<float>::max)();
+
     for (const auto& player : players) {
         if (!player.isValid) continue;
         
@@ -29,7 +35,14 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
             continue;
         }
         
-        float distance = glm::length(player.position - camera.GetPlayerPosition());
+        // Early distance culling using squared distance (faster than sqrt)
+        const glm::vec3 deltaPos = player.position - cameraPos;
+        const float distanceSquared = glm::dot(deltaPos, deltaPos);
+        if (distanceSquared > maxDistanceSquared) {
+            continue;
+        }
+        
+        const float distance = std::sqrt(distanceSquared);  // Only calculate sqrt when needed
         
         unsigned int color = IM_COL32(0, 255, 100, 220); // Friendly player color
 
@@ -39,26 +52,27 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
         }
 
         std::vector<std::string> details;
+        details.reserve(5); // Pre-allocate to avoid reallocations
         if (settings.playerESP.renderDetails) {
             if (!player.playerName.empty()) {
-                details.push_back("Player: " + player.playerName);
+                details.emplace_back("Player: " + player.playerName);
             }
             
             if (player.level > 0) {
-                details.push_back("Level: " + std::to_string(player.level));
+                details.emplace_back("Level: " + std::to_string(player.level));
             }
             
             if (player.profession > 0) {
-                details.push_back("Prof: " + std::to_string(player.profession));
+                details.emplace_back("Prof: " + std::to_string(player.profession));
             }
             
             if (player.maxHealth > 0) {
-                details.push_back("HP: " + std::to_string((int)player.currentHealth) + "/" + std::to_string((int)player.maxHealth));
+                details.emplace_back("HP: " + std::to_string(static_cast<int>(player.currentHealth)) + "/" + std::to_string(static_cast<int>(player.maxHealth)));
             }
             
             if (player.maxEnergy > 0) {
-                float energyPercent = (player.currentEnergy / player.maxEnergy) * 100.0f;
-                details.push_back("Energy: " + std::to_string((int)player.currentEnergy) + "/" + std::to_string((int)player.maxEnergy) + " (" + std::to_string((int)energyPercent) + "%)");
+                const int energyPercent = static_cast<int>((player.currentEnergy / player.maxEnergy) * 100.0f);
+                details.emplace_back("Energy: " + std::to_string(static_cast<int>(player.currentEnergy)) + "/" + std::to_string(static_cast<int>(player.maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
             }
         }
 
@@ -73,10 +87,21 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
     const auto& settings = AppState::Get().GetSettings();
     if (!settings.npcESP.enabled) return;
 
+    const glm::vec3 cameraPos = camera.GetPlayerPosition();
+    const float maxDistanceSquared = settings.espUseDistanceLimit ? 
+        (settings.espRenderDistanceLimit * settings.espRenderDistanceLimit) : (std::numeric_limits<float>::max)();
+
     for (const auto& npc : npcs) {
         if (!npc.isValid) continue;
         
-        float distance = glm::length(npc.position - camera.GetPlayerPosition());
+        // Early distance culling using squared distance (faster than sqrt)
+        const glm::vec3 deltaPos = npc.position - cameraPos;
+        const float distanceSquared = glm::dot(deltaPos, deltaPos);
+        if (distanceSquared > maxDistanceSquared) {
+            continue;
+        }
+        
+        const float distance = std::sqrt(distanceSquared);  // Only calculate sqrt when needed
         
         // Use attitude-based coloring for NPCs
         unsigned int color = IM_COL32(255, 165, 0, 220); // Default orange for NPCs
@@ -87,20 +112,21 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
         }
 
         std::vector<std::string> details;
+        details.reserve(4); // Pre-allocate to avoid reallocations
         if (settings.npcESP.renderDetails) {
             if (!npc.name.empty()) {
-                details.push_back("NPC: " + npc.name);
+                details.emplace_back("NPC: " + npc.name);
             }
             
             if (npc.level > 0) {
-                details.push_back("Level: " + std::to_string(npc.level));
+                details.emplace_back("Level: " + std::to_string(npc.level));
             }
             
             if (npc.maxHealth > 0) {
-                details.push_back("HP: " + std::to_string((int)npc.currentHealth) + "/" + std::to_string((int)npc.maxHealth));
+                details.emplace_back("HP: " + std::to_string(static_cast<int>(npc.currentHealth)) + "/" + std::to_string(static_cast<int>(npc.maxHealth)));
             }
             
-            details.push_back("Attitude: " + std::to_string(npc.attitude));
+            details.emplace_back("Attitude: " + std::to_string(npc.attitude));
         }
 
         RenderEntity(drawList, npc.position, distance, screenWidth, screenHeight, color, details, healthPercent, 
@@ -114,74 +140,28 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
     const auto& settings = AppState::Get().GetSettings();
     if (!settings.objectESP.enabled) return;
 
+    const glm::vec3 cameraPos = camera.GetPlayerPosition();
+    const float maxDistanceSquared = settings.espUseDistanceLimit ? 
+        (settings.espRenderDistanceLimit * settings.espRenderDistanceLimit) : (std::numeric_limits<float>::max)();
+
     for (const auto& gadget : gadgets) {
         if (!gadget.isValid) continue;
         
-        float distance = glm::length(gadget.position - camera.GetPlayerPosition());
-        
-        // Convert back to GadgetType enum for filtering
-        Game::GadgetType gadgetType = static_cast<Game::GadgetType>(gadget.type);
-        
-        // Use the existing filtering logic
-        bool shouldRender = false;
-        switch (gadgetType) {
-            case Game::GadgetType::ResourceNode:
-                shouldRender = settings.objectESP.showResourceNodes;
-                break;
-            case Game::GadgetType::Waypoint:
-                shouldRender = settings.objectESP.showWaypoints;
-                break;
-            case Game::GadgetType::Vista:
-                shouldRender = settings.objectESP.showVistas;
-                break;
-            case Game::GadgetType::Crafting:
-                shouldRender = settings.objectESP.showCraftingStations;
-                break;
-            case Game::GadgetType::AttackTarget:
-                shouldRender = settings.objectESP.showAttackTargets;
-                break;
-            case Game::GadgetType::PlayerCreated:
-                shouldRender = settings.objectESP.showPlayerCreated;
-                break;
-            case Game::GadgetType::Interact:
-                shouldRender = settings.objectESP.showInteractables;
-                break;
-            case Game::GadgetType::Door:
-                shouldRender = settings.objectESP.showDoors;
-                break;
-            case Game::GadgetType::MapPortal:
-                shouldRender = settings.objectESP.showPortals;
-                break;
-            default:
-                shouldRender = !settings.objectESP.onlyImportantGadgets;
-                break;
+        // Early distance culling using squared distance (faster than sqrt)
+        const glm::vec3 deltaPos = gadget.position - cameraPos;
+        const float distanceSquared = glm::dot(deltaPos, deltaPos);
+        if (distanceSquared > maxDistanceSquared) {
+            continue;
         }
         
-        if (!shouldRender) continue;
-
-        // Use the gadget type-based color system
-        unsigned int color = kx::ESPHelpers::GetGadgetTypeColor(gadgetType);
+        const float distance = std::sqrt(distanceSquared);  // Only calculate sqrt when needed
         
-        // Make important gadgets more visible
-        if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
-            color = (color & 0x00FFFFFF) | 0xFF000000;
-        }
+        unsigned int color = IM_COL32(255, 255, 0, 220); // Yellow for gadgets
 
         std::vector<std::string> details;
+        details.reserve(1); // Pre-allocate to avoid reallocations
         if (settings.objectESP.renderDetails) {
-            std::string gadgetTypeName = GadgetTypeToString(gadgetType);
-            details.push_back("Type: " + gadgetTypeName);
-            
-            int priority = Filtering::EntityFilter::GetRenderPriority(gadgetType);
-            if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
-                details.push_back("Priority: HIGH (" + std::to_string(priority) + ")");
-            } else {
-                details.push_back("Priority: " + std::to_string(priority));
-            }
-            
-            if (!gadget.name.empty()) {
-                details.push_back("Name: " + gadget.name);
-            }
+            details.emplace_back("Type: " + std::to_string(gadget.type));
         }
 
         RenderEntity(drawList, gadget.position, distance, screenWidth, screenHeight, color, details, -1.0f, 
@@ -195,94 +175,105 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& world
                                    bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, bool renderHealthBar, 
                                    ESPEntityType entityType, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
-    if (settings.espUseDistanceLimit && distance > settings.espRenderDistanceLimit) {
-        return;
+    
+    // Early frustum culling - check if position projects to valid screen coordinates
+    glm::vec2 screenPos;
+    if (!kx::ESP_Helpers::WorldToScreen(worldPos, camera, screenWidth, screenHeight, screenPos)) {
+        return; // Entity is behind camera or outside frustum
+    }
+    
+    // Screen bounds culling with small margin for partially visible entities
+    const float margin = 50.0f;
+    if (screenPos.x < -margin || screenPos.x > screenWidth + margin || 
+        screenPos.y < -margin || screenPos.y > screenHeight + margin) {
+        return; // Entity is off-screen
     }
 
-    // Get ESP data based on entity type
-    ESPEntityData* entityData = nullptr;
-    GadgetESPData gadgetData;
-    PlayerESPData playerData;
+    // Skip entity type check since we already checked enabled status in the caller functions
+
+    // Calculate bounding box for entity
+    const float boxHeight = 50.0f;
+    const float boxWidth = 30.0f;
     
-    if (entityType == ESPEntityType::Gadget) {
-        gadgetData = kx::ESP_Helpers::GetGadgetESPData(worldPos, camera, screenWidth, screenHeight);
-        entityData = &gadgetData;
-    } else {
-        if (entityType == ESPEntityType::Player) {
-            playerData = kx::ESP_Helpers::GetPlayerESPData(worldPos, camera, screenWidth, screenHeight);
-        } else { // NPC
-            playerData = kx::ESP_Helpers::GetNpcESPData(worldPos, camera, screenWidth, screenHeight);
-        }
-        entityData = &playerData;
-    }
-    
-    if (!entityData->valid) return;
-    
-    // Calculate universal box bounds
-    ImVec2 boxMin(entityData->min.x, entityData->min.y);
-    ImVec2 boxMax(entityData->max.x, entityData->max.y);
-    ImVec2 center((boxMin.x + boxMax.x) * 0.5f, (boxMin.y + boxMax.y) * 0.5f);
-    
-    // Render health bar (only for entities with health and if enabled)
-    if (healthPercent >= 0.0f && renderHealthBar) {
+    ImVec2 boxMin(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
+    ImVec2 boxMax(screenPos.x + boxWidth / 2, screenPos.y);
+    ImVec2 center(screenPos.x, screenPos.y - boxHeight / 2);
+
+    // Render health bar
+    if (renderHealthBar && healthPercent >= 0.0f) {
         RenderHealthBar(drawList, boxMin, boxMax, healthPercent);
     }
-    
+
     // Render bounding box
     if (renderBox) {
         RenderBoundingBox(drawList, boxMin, boxMax, color);
     }
-    
+
     // Render distance text
     if (renderDistance) {
         RenderDistanceText(drawList, center, boxMin, distance);
     }
-    
+
     // Render center dot
     if (renderDot) {
-        RenderCenterDot(drawList, entityData->feet);
+        RenderCenterDot(drawList, glm::vec2(screenPos.x, screenPos.y));
     }
-    
-    // Render details
+
+    // Render details text
     if (renderDetails && !details.empty()) {
         RenderDetailsText(drawList, center, boxMax, details);
     }
 }
 
-// Helper rendering functions
 void ESPStageRenderer::RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, float healthPercent) {
-    const float barWidth = 3.0f;
-    const float barOffset = 2.0f;
+    if (healthPercent < 0.0f || healthPercent > 1.0f) return;
+
+    const float barWidth = 4.0f;
+    const float barHeight = boxMax.y - boxMin.y;
     
-    ImVec2 healthBarMin(boxMin.x - barWidth - barOffset, boxMin.y);
-    ImVec2 healthBarMax(boxMin.x - barOffset, boxMax.y);
-    
-    float barHeight = healthBarMax.y - healthBarMin.y;
-    float healthHeight = barHeight * healthPercent;
+    ImVec2 barMin(boxMin.x - barWidth - 2.0f, boxMin.y);
+    ImVec2 barMax(boxMin.x - 2.0f, boxMax.y);
     
     // Background
-    drawList->AddRectFilled(healthBarMin, healthBarMax, IM_COL32(20, 20, 20, 200));
+    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, 150));
     
-    // Health color
-    ImU32 healthColor = IM_COL32(255, 0, 0, 255); // Red
-    if (healthPercent > 0.6f) healthColor = IM_COL32(0, 255, 0, 255); // Green
-    else if (healthPercent > 0.3f) healthColor = IM_COL32(255, 255, 0, 255); // Yellow
-    
-    // Health fill
-    drawList->AddRectFilled(ImVec2(healthBarMin.x, healthBarMax.y - healthHeight), 
-                          ImVec2(healthBarMax.x, healthBarMax.y), healthColor);
+    // Health bar - fill from bottom to top
+    ImVec2 healthBarMin(barMin.x, barMax.y - (barHeight * healthPercent));
+    ImVec2 healthBarMax(barMax.x, barMax.y);
+    unsigned int healthColor = IM_COL32(
+        static_cast<int>(255 * (1.0f - healthPercent)),
+        static_cast<int>(255 * healthPercent),
+        0, 255
+    );
+    drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor);
     
     // Border
-    drawList->AddRect(healthBarMin, healthBarMax, IM_COL32(0, 0, 0, 255), 0.0f, 0, 1.0f);
+    drawList->AddRect(barMin, barMax, IM_COL32(255, 255, 255, 100));
 }
 
 void ESPStageRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color) {
-    // Shadow
-    drawList->AddRect(ImVec2(boxMin.x + 1, boxMin.y + 1), ImVec2(boxMax.x + 1, boxMax.y + 1), 
-                    IM_COL32(0, 0, 0, 80), 0.0f, 0, 1.5f);
-    
     // Main box
-    drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, 1.5f);
+    drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, 2.0f);
+    
+    // Corner indicators for better visibility
+    const float cornerSize = 8.0f;
+    const float thickness = 2.0f;
+    
+    // Top-left corner
+    drawList->AddLine(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMin.x + cornerSize, boxMin.y), color, thickness);
+    drawList->AddLine(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMin.x, boxMin.y + cornerSize), color, thickness);
+    
+    // Top-right corner
+    drawList->AddLine(ImVec2(boxMax.x, boxMin.y), ImVec2(boxMax.x - cornerSize, boxMin.y), color, thickness);
+    drawList->AddLine(ImVec2(boxMax.x, boxMin.y), ImVec2(boxMax.x, boxMin.y + cornerSize), color, thickness);
+    
+    // Bottom-left corner
+    drawList->AddLine(ImVec2(boxMin.x, boxMax.y), ImVec2(boxMin.x + cornerSize, boxMax.y), color, thickness);
+    drawList->AddLine(ImVec2(boxMin.x, boxMax.y), ImVec2(boxMin.x, boxMax.y - cornerSize), color, thickness);
+    
+    // Bottom-right corner
+    drawList->AddLine(ImVec2(boxMax.x, boxMax.y), ImVec2(boxMax.x - cornerSize, boxMax.y), color, thickness);
+    drawList->AddLine(ImVec2(boxMax.x, boxMax.y), ImVec2(boxMax.x, boxMax.y - cornerSize), color, thickness);
 }
 
 void ESPStageRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, float distance) {
@@ -290,36 +281,39 @@ void ESPStageRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& ce
     snprintf(distText, sizeof(distText), "%.1fm", distance);
     
     ImVec2 textSize = ImGui::CalcTextSize(distText);
-    ImVec2 textPos(center.x - textSize.x * 0.5f, boxMin.y - textSize.y - 3);
+    ImVec2 textPos(center.x - textSize.x / 2, boxMin.y - textSize.y - 5);
     
     // Background
     drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1), 
                           ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1), 
-                          IM_COL32(0, 0, 0, 150), 1.0f);
+                          IM_COL32(0, 0, 0, 150), 2.0f);
     
     // Text with shadow
-    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), distText);
+    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 255), distText);
     drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
 }
 
 void ESPStageRenderer::RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos) {
-    ImVec2 pos(feetPos.x, feetPos.y);
+    const float dotRadius = 3.0f;
     
-    // Shadow
-    drawList->AddCircleFilled(ImVec2(pos.x + 1, pos.y + 1), 2.0f, IM_COL32(0, 0, 0, 120));
+    // Outer glow
+    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), dotRadius + 1.0f, IM_COL32(0, 0, 0, 100));
     
-    // Dot
-    drawList->AddCircleFilled(pos, 1.5f, IM_COL32(255, 255, 255, 255));
+    // Main dot
+    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), dotRadius, IM_COL32(255, 255, 255, 255));
+    
+    // Inner highlight
+    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), dotRadius - 1.0f, IM_COL32(255, 255, 0, 200));
 }
 
 void ESPStageRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details) {
-    float textY = boxMax.y + 3;
+    if (details.empty()) return;
+
+    float textY = boxMax.y + 5.0f;
     
-    for (const auto& detailText : details) {
-        if (detailText.empty()) continue;
-        
-        ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
-        ImVec2 textPos(center.x - textSize.x * 0.5f, textY);
+    for (const auto& detail : details) {
+        ImVec2 textSize = ImGui::CalcTextSize(detail.c_str());
+        ImVec2 textPos(center.x - textSize.x / 2, textY);
         
         // Background
         drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
@@ -327,8 +321,8 @@ void ESPStageRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& cen
                               IM_COL32(0, 0, 0, 160), 1.0f);
         
         // Text with shadow
-        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detailText.c_str());
-        drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detailText.c_str());
+        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detail.c_str());
+        drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detail.c_str());
         
         textY += textSize.y + 3;
     }
