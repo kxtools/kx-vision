@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <gtc/type_ptr.hpp>
+#include <Windows.h>
 
 #include "../Core/Config.h"
 #include "ESP_Helpers.h"
@@ -48,6 +49,9 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
         // First, handle Characters (Players and NPCs) from the ChCliContext
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (pContextCollection) {
+            // Debug: Log the ContextCollection pointer
+            printf("DEBUG: ContextCollection ptr = 0x%p\n", pContextCollection);
+            
             kx::ReClass::ContextCollection ctxCollection(pContextCollection);
             kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
             if (charContext) {
@@ -56,6 +60,17 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
                 uint32_t playerCount = charContext.GetPlayerListSize();
                 if (playerList && playerCount < 2000) {
                     for (uint32_t i = 0; i < playerCount; ++i) {
+                        // Validate the pointer before constructing the object
+                        uintptr_t ptrAddr = reinterpret_cast<uintptr_t>(playerList[i]);
+                        if (!playerList[i] || ptrAddr < 0x1000 || ptrAddr > 0x7FFFFFFFFFFF) continue;
+                        
+                        MEMORY_BASIC_INFORMATION mbi = {};
+                        if (VirtualQuery(playerList[i], &mbi, sizeof(mbi)) == 0 || 
+                            mbi.State != MEM_COMMIT || 
+                            !(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) {
+                            continue;
+                        }
+                        
                         kx::ReClass::ChCliPlayer player(playerList[i]);
                         if (!player) continue;
                         kx::ReClass::ChCliCharacter character = player.GetCharacter();
@@ -70,6 +85,17 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
                 uint32_t characterCapacity = charContext.GetCharacterListCapacity();
                 if (characterList && characterCapacity < 0x10000) {
                     for (uint32_t i = 0; i < characterCapacity; ++i) {
+                        // Validate the pointer before constructing the object
+                        uintptr_t ptrAddr = reinterpret_cast<uintptr_t>(characterList[i]);
+                        if (!characterList[i] || ptrAddr < 0x1000 || ptrAddr > 0x7FFFFFFFFFFF) continue;
+                        
+                        MEMORY_BASIC_INFORMATION mbi = {};
+                        if (VirtualQuery(characterList[i], &mbi, sizeof(mbi)) == 0 || 
+                            mbi.State != MEM_COMMIT || 
+                            !(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) {
+                            continue;
+                        }
+                        
                         kx::ReClass::ChCliCharacter character(characterList[i]);
                         if (!character) continue;
 

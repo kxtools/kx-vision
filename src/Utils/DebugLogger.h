@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <Windows.h>
 
 namespace kx {
 namespace Debug {
@@ -86,22 +87,85 @@ static bool SafeReadImpl(uintptr_t address, T& result) {
     }
 }
 
-// Safe memory access helper
+// Check if memory address is readable
+static bool IsMemoryReadable(void* ptr, size_t size = sizeof(void*)) {
+    if (!ptr) return false;
+    
+    uintptr_t address = reinterpret_cast<uintptr_t>(ptr);
+    
+    // Quick validation for obviously invalid addresses
+    // Valid user-mode addresses on x64 are typically < 0x7FFFFFFFFFFF
+    if (address < 0x1000 || address > 0x7FFFFFFFFFFF) {
+        return false;
+    }
+    
+    MEMORY_BASIC_INFORMATION mbi = {};
+    SIZE_T result = VirtualQuery(ptr, &mbi, sizeof(mbi));
+    
+    if (result == 0) return false;
+    
+    // Check if memory is committed and readable
+    if (mbi.State != MEM_COMMIT) return false;
+    if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) return false;
+    if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) return false;
+    
+    return true;
+}
+
+// Safe memory access helper (silent version for frequent operations)
 template<typename T>
 bool SafeRead(void* basePtr, uintptr_t offset, T& result) {
     if (!basePtr) {
-        LOG_ERROR("SafeRead: base pointer is null");
+        return false; // Don't log null pointers, they're common
+    }
+    
+    uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
+    
+    // Check for obviously invalid addresses
+    if (address == 0xFFFFFFFFFFFFFFFF || address < 0x1000 || address > 0x7FFFFFFFFFFF) {
+        return false; // Don't log obviously invalid addresses
+    }
+    
+    // Check if the memory is actually readable
+    if (!IsMemoryReadable(reinterpret_cast<void*>(address), sizeof(T))) {
+        return false; // Don't log unreadable memory, it's common in scanning
+    }
+    
+    // Use a separate function for the __try block to avoid object unwinding issues
+    return SafeReadImpl(address, result);
+}
+
+// Safe memory access helper with logging (for critical reads)
+template<typename T>
+bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result, const std::string& context = "") {
+    if (!basePtr) {
+        if (!context.empty()) {
+            LOG_ERROR("SafeRead: base pointer is null in " + context);
+        }
         return false;
     }
     
     uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
     
     // Check for obviously invalid addresses
-    if (address == 0xFFFFFFFFFFFFFFFF || address < 0x1000) {
-        std::string errorMsg = "SafeRead: Invalid address 0x" + std::to_string(address) + 
-                              " (base: 0x" + std::to_string(reinterpret_cast<uintptr_t>(basePtr)) + 
-                              " + offset: 0x" + std::to_string(offset) + ")";
-        LOG_ERROR(errorMsg);
+    if (address == 0xFFFFFFFFFFFFFFFF || address < 0x1000 || address > 0x7FFFFFFFFFFF) {
+        if (!context.empty()) {
+            std::string errorMsg = "SafeRead: Invalid address 0x" + std::to_string(address) + 
+                                  " (base: 0x" + std::to_string(reinterpret_cast<uintptr_t>(basePtr)) + 
+                                  " + offset: 0x" + std::to_string(offset) + ") in " + context;
+            LOG_ERROR(errorMsg);
+        }
+        return false;
+    }
+    
+    // Check if the memory is actually readable
+    if (!IsMemoryReadable(reinterpret_cast<void*>(address), sizeof(T))) {
+        if (!context.empty()) {
+            std::string errorMsg = "SafeRead: Memory not readable at 0x" + std::to_string(address) + 
+                                  " (base: 0x" + std::to_string(reinterpret_cast<uintptr_t>(basePtr)) + 
+                                  " + offset: 0x" + std::to_string(offset) + ") in " + context;
+            LOG_ERROR(errorMsg);
+        }
         return false;
     }
     
