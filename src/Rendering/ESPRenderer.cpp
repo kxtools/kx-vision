@@ -21,9 +21,6 @@
 #include "../Game/ReClassStructs.h"
 #include "../Utils/EntityFilter.h" // Include for advanced filtering functions
 
-using namespace kx::CombatRanges;
-using namespace kx::InteractionRanges;
-
 namespace kx {
 
 // Initialize the static camera pointer
@@ -248,7 +245,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         }
 
         // Enhanced attitude display with threat assessment
-        std::string attitudeText = "Attitude: " + kx::ESPHelpers::AttitudeToString(attitude);
+        std::string attitudeText = "Attitude: " + AttitudeToString(attitude);
         details.push_back(attitudeText);
         
         // Threat level calculation
@@ -412,7 +409,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     std::vector<std::string> details;
     if (g_settings.objectESP.renderDetails) {
         // Primary identification
-        std::string gadgetTypeName = kx::ESPHelpers::GadgetTypeToString(gadgetType);
+        std::string gadgetTypeName = GadgetTypeToString(gadgetType);
         details.push_back("Type: " + gadgetTypeName);
         
         // Priority and importance indicators

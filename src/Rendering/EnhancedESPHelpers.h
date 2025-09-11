@@ -16,23 +16,6 @@ namespace kx {
 // Enhanced helper functions using the new enums
 class ESPHelpers {
 public:
-    // Convert attitude enum to display string
-    static std::string AttitudeToString(Game::Attitude attitude) {
-        const char* name = Game::EnumHelpers::GetAttitudeName(attitude);
-        if (name != nullptr) {
-            return std::string(name);
-        }
-        return "Attitude ID: " + std::to_string(static_cast<uint32_t>(attitude));
-    }
-
-    // Convert gadget type enum to display string
-    static std::string GadgetTypeToString(Game::GadgetType type) {
-        const char* name = Game::EnumHelpers::GetGadgetTypeName(type);
-        if (name != nullptr) {
-            return std::string(name);
-        }
-        return "Gadget ID: " + std::to_string(static_cast<uint32_t>(type));
-    }
 
     // Get color based on attitude
     static unsigned int GetAttitudeColor(Game::Attitude attitude) {
