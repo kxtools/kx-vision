@@ -82,6 +82,8 @@ void ImGuiManager::RenderESPWindow() {
                 ImGui::Checkbox("Distance##Player", &kx::g_settings.playerESP.renderDistance);
                 ImGui::SameLine();
                 ImGui::Checkbox("Dot##Player", &kx::g_settings.playerESP.renderDot);
+                ImGui::Checkbox("Health Bar##Player", &kx::g_settings.playerESP.renderHealthBar);
+                ImGui::SameLine();
                 ImGui::Checkbox("Render Details##Player", &kx::g_settings.playerESP.renderDetails);
             }
             ImGui::EndTabItem();
@@ -96,6 +98,8 @@ void ImGuiManager::RenderESPWindow() {
                 ImGui::Checkbox("Distance##NPC", &kx::g_settings.npcESP.renderDistance);
                 ImGui::SameLine();
                 ImGui::Checkbox("Dot##NPC", &kx::g_settings.npcESP.renderDot);
+                ImGui::Checkbox("Health Bar##NPC", &kx::g_settings.npcESP.renderHealthBar);
+                ImGui::SameLine();
                 ImGui::Checkbox("Render Details##NPC", &kx::g_settings.npcESP.renderDetails);
                 
                 ImGui::Separator();

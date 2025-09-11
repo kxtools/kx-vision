@@ -36,7 +36,7 @@ private:
     static void RenderNpc(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character);
     static void RenderObject(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::GdCliGadget& gadget);
 
-    static void RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, ESPEntityType entityType = ESPEntityType::Player);
+    static void RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, bool renderHealthBar, ESPEntityType entityType = ESPEntityType::Player);
     static bool ShouldHideESP(const MumbleLinkData* mumbleData);
 
     // Universal ESP rendering helpers

@@ -171,7 +171,7 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails, ESPEntityType::Player);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails, g_settings.playerESP.renderHealthBar, ESPEntityType::Player);
 }
 
 void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character) {
@@ -293,7 +293,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails, ESPEntityType::NPC);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails, g_settings.npcESP.renderHealthBar, ESPEntityType::NPC);
 }
 
 void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight) {
@@ -455,7 +455,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails, ESPEntityType::Gadget);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails, false, ESPEntityType::Gadget);
 }
 
 // Universal ESP rendering helper functions
@@ -543,7 +543,7 @@ void ESPRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, 
     }
 }
 
-void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, ESPEntityType entityType) {
+void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, bool renderHealthBar, ESPEntityType entityType) {
     if (g_settings.espUseDistanceLimit && distance > g_settings.espRenderDistanceLimit) {
         return;
     }
@@ -572,8 +572,8 @@ void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, 
     ImVec2 boxMax(entityData->max.x, entityData->max.y);
     ImVec2 center((boxMin.x + boxMax.x) * 0.5f, (boxMin.y + boxMax.y) * 0.5f);
     
-    // Render health bar (only for entities with health)
-    if (healthPercent >= 0.0f) {
+    // Render health bar (only for entities with health and if enabled)
+    if (healthPercent >= 0.0f && renderHealthBar) {
         RenderHealthBar(drawList, boxMin, boxMax, healthPercent);
     }
     

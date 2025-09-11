@@ -12,6 +12,7 @@ namespace kx {
         bool renderDistance = true;
         bool renderDot = true;
         bool renderDetails = false;
+        bool renderHealthBar = true;
         bool showProfession = true;
         bool showRace = true;
         bool showArmorWeight = true;
@@ -25,6 +26,7 @@ namespace kx {
         bool renderDistance = true;
         bool renderDot = true;
         bool renderDetails = false;
+        bool renderHealthBar = true;
         // Enhanced attitude filtering using the new enum
         bool showFriendly = true;
         bool showHostile = true;
