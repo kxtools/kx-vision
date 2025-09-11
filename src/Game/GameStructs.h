@@ -4,13 +4,14 @@
 #include <windows.h> // Required for EXCEPTION_EXECUTE_HANDLER
 
 #include "ForeignClass.h"
+#include "GameEnums.h"
 #include "offsets.h"
 
 namespace kx {
 
-// Agent Type Constants
-constexpr int AGENT_TYPE_CHARACTER = 0;
-constexpr int AGENT_TYPE_ERROR = -1;
+// Legacy constants for backward compatibility
+constexpr int AGENT_TYPE_CHARACTER = static_cast<int>(Game::AgentType::Character);
+constexpr int AGENT_TYPE_ERROR = static_cast<int>(Game::AgentType::Error);
 
 struct Coordinates3D {
     float X;
@@ -68,25 +69,32 @@ public:
         }
     }
 
-    // We don't have the AgentType enum defined yet, so we'll return an int
-    int GetType() {
+    // We use the new AgentType enum but return int for compatibility
+    Game::AgentType GetAgentType() {
         __try {
             kx::ForeignClass pAgentBase = GetBaseAgent();
-            if (!pAgentBase) return AGENT_TYPE_ERROR; // Return -1 for error
-            return pAgentBase.get<int>(Offsets::AGENT_BASE_TYPE);
+            if (!pAgentBase) return Game::AgentType::Error;
+            int typeValue = pAgentBase.get<int>(Offsets::AGENT_BASE_TYPE);
+            return static_cast<Game::AgentType>(typeValue);
         } __except (EXCEPTION_EXECUTE_HANDLER) {
-            return AGENT_TYPE_ERROR;
+            return Game::AgentType::Error;
         }
     }
 
-    // We don't have the GadgetType enum, so we'll return an int
-    int GetGadgetType() {
+    // Legacy method for backward compatibility
+    int GetType() {
+        return static_cast<int>(GetAgentType());
+    }
+
+    // We use the new GadgetType enum but return int for compatibility
+    Game::GadgetType GetGadgetType() {
         __try {
             kx::ForeignClass pAgentBase = GetBaseAgent();
-            if (!pAgentBase) return AGENT_TYPE_ERROR; // Return -1 for error
-            return pAgentBase.get<int>(Offsets::AGENT_BASE_GADGET_TYPE);
+            if (!pAgentBase) return Game::GadgetType::None;
+            int typeValue = pAgentBase.get<int>(Offsets::AGENT_BASE_GADGET_TYPE);
+            return static_cast<Game::GadgetType>(typeValue);
         } __except (EXCEPTION_EXECUTE_HANDLER) {
-            return AGENT_TYPE_ERROR;
+            return Game::GadgetType::None;
         }
     }
 

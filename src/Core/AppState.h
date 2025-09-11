@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include "../Game/GameEnums.h"
 
 namespace kx {
 
@@ -11,6 +12,10 @@ namespace kx {
         bool renderDistance = true;
         bool renderDot = true;
         bool renderDetails = false;
+        bool renderHealthBar = true;
+        bool showProfession = true;
+        bool showRace = true;
+        bool showArmorWeight = true;
         // Future features from zenith can be added here:
         // SnaplineType snaplineType = SnaplineType::Disabled;
     };
@@ -21,8 +26,12 @@ namespace kx {
         bool renderDistance = true;
         bool renderDot = true;
         bool renderDetails = false;
-        // Add attitude filtering like in zenith
-        int ignoredAttitude = 0; // Bitmask for NPC attitude types (e.g., hostile, friendly, neutral)
+        bool renderHealthBar = true;
+        // Enhanced attitude filtering using the new enum
+        bool showFriendly = true;
+        bool showHostile = true;
+        bool showNeutral = true;
+        bool showIndifferent = true;
         // Add specific colors
         // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
         // etc.
@@ -34,8 +43,18 @@ namespace kx {
         bool renderDistance = true;
         bool renderDot = true;
         bool renderDetails = false;
-        // Add gadget type filtering like in zenith
-        int ignoredGadgets = 0; // Bitmask for gadget types
+        
+        // Enhanced gadget filtering using the new enum
+        bool showResourceNodes = true;
+        bool showWaypoints = true;
+        bool showVistas = true;
+        bool showCraftingStations = true;
+        bool showAttackTargets = true;
+        bool showPlayerCreated = true;
+        bool showInteractables = true;
+        bool showDoors = false;
+        bool showPortals = true;
+        bool onlyImportantGadgets = false; // Only show important gadget types
     };
 
 
@@ -51,6 +70,11 @@ namespace kx {
         // Keep global settings
         bool espUseDistanceLimit = true;
         float espRenderDistanceLimit = 250.0f;
+        
+        // New enhanced filtering options
+        bool enableSmartFiltering = true; // Use the enhanced enum-based filtering
+        bool hideDepletedNodes = true;    // Hide depleted resource nodes
+        bool prioritizeImportant = true;  // Give priority to important objects
     };
 
     extern Settings g_settings;

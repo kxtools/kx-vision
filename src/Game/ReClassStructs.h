@@ -2,6 +2,7 @@
 
 #include "../Utils/ForeignClass.h"
 #include "GameStructs.h" // Re-use Coordinates3D
+#include "GameEnums.h"   // Include the new enums
 
 namespace kx {
     namespace ReClass {
@@ -76,9 +77,29 @@ namespace kx {
         class ChCliCoreStats : public ForeignClass {
         public:
             ChCliCoreStats(void* ptr) : ForeignClass(ptr) {}
-            uint8_t GetRace() { __try { return data() ? get<uint8_t>(0x33) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
-            uint32_t GetLevel() { __try { return data() ? get<uint32_t>(0xAC) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
-            uint32_t GetProfession() { __try { return data() ? get<uint32_t>(0x12C) : 0; } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } }
+            
+            Game::Race GetRace() { 
+                __try { 
+                    uint8_t raceValue = data() ? get<uint8_t>(0x33) : 0; 
+                    return static_cast<Game::Race>(raceValue);
+                } __except (EXCEPTION_EXECUTE_HANDLER) { 
+                    return Game::Race::None; 
+                } 
+            }
+            
+            uint32_t GetLevel() { 
+                __try { return data() ? get<uint32_t>(0xAC) : 0; } 
+                __except (EXCEPTION_EXECUTE_HANDLER) { return 0; } 
+            }
+            
+            Game::Profession GetProfession() { 
+                __try { 
+                    uint32_t profValue = data() ? get<uint32_t>(0x12C) : 0; 
+                    return static_cast<Game::Profession>(profValue);
+                } __except (EXCEPTION_EXECUTE_HANDLER) { 
+                    return Game::Profession::None; 
+                } 
+            }
         };
 
         class ChCliCharacter : public ForeignClass {
@@ -103,8 +124,13 @@ namespace kx {
                 __try { return ChCliCoreStats(data() ? get<void*>(0x0388) : nullptr); } __except (EXCEPTION_EXECUTE_HANDLER) { return ChCliCoreStats(nullptr); } 
             }
 
-            uint32_t GetAttitude() { 
-                __try { return data() ? get<uint32_t>(0x00C0) : 1; } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; } // Default to Neutral
+            Game::Attitude GetAttitude() { 
+                __try { 
+                    uint32_t attitudeValue = data() ? get<uint32_t>(0x00C0) : 1; 
+                    return static_cast<Game::Attitude>(attitudeValue);
+                } __except (EXCEPTION_EXECUTE_HANDLER) { 
+                    return Game::Attitude::Neutral; // Default to Neutral
+                } 
             }
 
             ChCliEnergies GetEnergies() { 
@@ -209,9 +235,13 @@ namespace kx {
         public:
             GdCliGadget(void* ptr) : ForeignClass(ptr) {}
 
-            uint32_t GetGadgetType() {
-                __try { return data() ? get<uint32_t>(0x0200) : 0; }
-                __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
+            Game::GadgetType GetGadgetType() {
+                __try { 
+                    uint32_t typeValue = data() ? get<uint32_t>(0x0200) : 0; 
+                    return static_cast<Game::GadgetType>(typeValue);
+                } __except (EXCEPTION_EXECUTE_HANDLER) { 
+                    return Game::GadgetType::None; 
+                }
             }
 
             // This is the key for filtering depleted resource nodes.

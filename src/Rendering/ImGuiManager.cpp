@@ -82,6 +82,8 @@ void ImGuiManager::RenderESPWindow() {
                 ImGui::Checkbox("Distance##Player", &kx::g_settings.playerESP.renderDistance);
                 ImGui::SameLine();
                 ImGui::Checkbox("Dot##Player", &kx::g_settings.playerESP.renderDot);
+                ImGui::Checkbox("Health Bar##Player", &kx::g_settings.playerESP.renderHealthBar);
+                ImGui::SameLine();
                 ImGui::Checkbox("Render Details##Player", &kx::g_settings.playerESP.renderDetails);
             }
             ImGui::EndTabItem();
@@ -96,28 +98,19 @@ void ImGuiManager::RenderESPWindow() {
                 ImGui::Checkbox("Distance##NPC", &kx::g_settings.npcESP.renderDistance);
                 ImGui::SameLine();
                 ImGui::Checkbox("Dot##NPC", &kx::g_settings.npcESP.renderDot);
+                ImGui::Checkbox("Health Bar##NPC", &kx::g_settings.npcESP.renderHealthBar);
+                ImGui::SameLine();
                 ImGui::Checkbox("Render Details##NPC", &kx::g_settings.npcESP.renderDetails);
                 
                 ImGui::Separator();
                 ImGui::Text("Attitude Filter");
                 
-                bool show_friendly = !(kx::g_settings.npcESP.ignoredAttitude & (1 << 0));
-                if (ImGui::Checkbox("Show Friendly", &show_friendly)) {
-                    if (show_friendly) kx::g_settings.npcESP.ignoredAttitude &= ~(1 << 0);
-                    else kx::g_settings.npcESP.ignoredAttitude |= (1 << 0);
-                }
+                ImGui::Checkbox("Show Friendly", &kx::g_settings.npcESP.showFriendly);
                 ImGui::SameLine();
-                bool show_hostile = !(kx::g_settings.npcESP.ignoredAttitude & (1 << 2));
-                if (ImGui::Checkbox("Show Hostile", &show_hostile)) {
-                    if (show_hostile) kx::g_settings.npcESP.ignoredAttitude &= ~(1 << 2);
-                    else kx::g_settings.npcESP.ignoredAttitude |= (1 << 2);
-                }
+                ImGui::Checkbox("Show Hostile", &kx::g_settings.npcESP.showHostile);
                 ImGui::SameLine();
-                bool show_neutral = !(kx::g_settings.npcESP.ignoredAttitude & (1 << 1));
-                if (ImGui::Checkbox("Show Neutral", &show_neutral)) {
-                    if (show_neutral) kx::g_settings.npcESP.ignoredAttitude &= ~(1 << 1);
-                    else kx::g_settings.npcESP.ignoredAttitude |= (1 << 1);
-                }
+                ImGui::Checkbox("Show Neutral", &kx::g_settings.npcESP.showNeutral);
+                ImGui::Checkbox("Show Indifferent", &kx::g_settings.npcESP.showIndifferent);
             }
             ImGui::EndTabItem();
         }

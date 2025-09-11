@@ -11,12 +11,15 @@
 
 #include "../Core/Config.h"
 #include "ESP_Helpers.h"
+#include "ESPData.h"
+#include "EnhancedESPHelpers.h"
 #include "StringHelpers.h" // New include
 #include "../../libs/ImGui/imgui.h"
 #include "../Core/AppState.h"
 #include "../Game/AddressManager.h"
 #include "../Game/GameStructs.h"
 #include "../Game/ReClassStructs.h"
+#include "../Utils/EntityFilter.h" // Include for advanced filtering functions
 
 namespace kx {
 
@@ -115,47 +118,84 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
 
     std::vector<std::string> details;
     if (g_settings.playerESP.renderDetails) {
+        // Player name (highest priority)
         auto it = characterNameToPlayerName.find(character.data());
         if (it != characterNameToPlayerName.end()) {
-            details.push_back(WStringToString(it->second));
+            std::string playerName = WStringToString(it->second);
+            details.push_back("Player: " + playerName);
         }
 
         kx::ReClass::ChCliCoreStats stats = character.GetCoreStats();
         if (stats) {
-            char levelText[32];
-            snprintf(levelText, sizeof(levelText), "Lvl: %u", stats.GetLevel());
-            std::string prof = ProfessionToString(stats.GetProfession());
-            std::string race = RaceToString(stats.GetRace());
-            details.push_back(std::string(levelText) + " " + race + " " + prof);
+            // Enhanced character information using new enums
+            Game::Profession profession = stats.GetProfession();
+            Game::Race race = stats.GetRace();
+            uint32_t level = stats.GetLevel();
+            
+            // Create compact character description
+            std::string characterDesc = "Lvl " + std::to_string(level);
+            
+            if (g_settings.playerESP.showRace) {
+                characterDesc += " " + RaceToString(race);
+            }
+            
+            if (g_settings.playerESP.showProfession) {
+                characterDesc += " " + ProfessionToString(profession);
+            }
+            
+            if (g_settings.playerESP.showArmorWeight) {
+                std::string armorWeight = kx::ESPHelpers::GetArmorWeight(profession);
+                characterDesc += " (" + armorWeight + ")";
+            }
+            
+            details.push_back(characterDesc);
         }
 
+        // Agent rank information (for special player states)
         uint32_t agentType = agent.GetType();
-        if (agentType != AGENT_TYPE_CHARACTER) { // AGENT_TYPE_CHARACTER is the standard character type; only show for other types
-            char typeText[64];
-            snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
-            details.push_back(typeText);
+        if (agentType != AGENT_TYPE_CHARACTER) {
+            details.push_back("Agent Type ID: " + std::to_string(agentType));
         }
 
+        // Energy information
         kx::ReClass::ChCliEnergies energies = character.GetEnergies();
         if (energies) {
             float maxEnergy = energies.GetMax();
+            float currentEnergy = energies.GetCurrent();
             if (maxEnergy > 0) {
+                float energyPercent = (currentEnergy / maxEnergy) * 100.0f;
                 char energyText[64];
-                snprintf(energyText, sizeof(energyText), "E: %.0f/%.0f", energies.GetCurrent(), maxEnergy);
+                snprintf(energyText, sizeof(energyText), "Energy: %.0f/%.0f (%.0f%%)", currentEnergy, maxEnergy, energyPercent);
                 details.push_back(energyText);
             }
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails, g_settings.playerESP.renderHealthBar, ESPEntityType::Player);
 }
 
 void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character) {
     if (!g_settings.npcESP.enabled) return;
     
-    uint32_t attitude = character.GetAttitude();
-    if (g_settings.npcESP.ignoredAttitude & (1 << attitude)) {
-        return;
+    Game::Attitude attitude = character.GetAttitude();
+    
+    // Use the new boolean flags for attitude filtering
+    switch (attitude) {
+        case Game::Attitude::Friendly:
+            if (!g_settings.npcESP.showFriendly) return;
+            break;
+        case Game::Attitude::Hostile:
+            if (!g_settings.npcESP.showHostile) return;
+            break;
+        case Game::Attitude::Neutral:
+            if (!g_settings.npcESP.showNeutral) return;
+            break;
+        case Game::Attitude::Indifferent:
+            if (!g_settings.npcESP.showIndifferent) return;
+            break;
+        default:
+            // Show unknown attitudes by default
+            break;
     }
 
     const float scaleFactor = 1.23f;
@@ -171,12 +211,8 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     glm::vec3 worldPos(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
     float distance = glm::length(worldPos - s_camera->GetPlayerPosition());
 
-    unsigned int color;
-    switch (attitude) {
-        case 0: color = IM_COL32(0, 255, 100, 220); break; // Friendly
-        case 2: color = IM_COL32(255, 50, 50, 220); break;  // Hostile
-        default: color = IM_COL32(255, 255, 100, 220); break; // Neutral
-    }
+    // Use the new attitude-based color system
+    unsigned int color = kx::ESPHelpers::GetAttitudeColor(attitude);
 
     kx::ReClass::ChCliHealth health = character.GetHealth();
     float healthPercent = -1.0f;
@@ -189,36 +225,90 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     if (g_settings.npcESP.renderDetails) {
         kx::ReClass::ChCliCoreStats stats = character.GetCoreStats();
         if (stats) {
-            char levelText[32];
-            snprintf(levelText, sizeof(levelText), "Lvl: %u", stats.GetLevel());
-            std::string prof = ProfessionToString(stats.GetProfession());
-            std::string race = RaceToString(stats.GetRace());
-            details.push_back(std::string(levelText) + " " + race + " " + prof);
+            // Enhanced NPC information using new enums
+            Game::Profession profession = stats.GetProfession();
+            Game::Race race = stats.GetRace();
+            uint32_t level = stats.GetLevel();
+            
+            // Comprehensive character description
+            std::string characterDesc = GetCharacterDescription(profession, race, level);
+            details.push_back(characterDesc);
+            
+            // Combat role analysis
+            if (kx::Filtering::EntityFilter::IsSupportProfession(profession)) {
+                details.push_back("Role: Support");
+            } else if (kx::Filtering::EntityFilter::IsDpsProfession(profession)) {
+                details.push_back("Role: DPS");
+            } else {
+                details.push_back("Role: Hybrid");
+            }
         }
 
-        char attitudeText[32];
-        snprintf(attitudeText, sizeof(attitudeText), "Attitude: %u", attitude);
+        // Enhanced attitude display with threat assessment
+        std::string attitudeText = "Attitude: " + AttitudeToString(attitude);
         details.push_back(attitudeText);
-
-        uint32_t agentType = agent.GetType();
-        if (agentType != AGENT_TYPE_CHARACTER) { // Only show for agent types other than AGENT_TYPE_CHARACTER (standard character type)
-            char typeText[64];
-            snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
-            details.push_back(typeText);
+        
+        // Threat level calculation
+        kx::ReClass::ChCliCoreStats stats2 = character.GetCoreStats();
+        if (stats2) {
+            int threatLevel = kx::Filtering::EntityFilter::GetThreatLevel(attitude, stats2.GetProfession());
+            if (threatLevel > 75) {
+                details.push_back("Threat: HIGH");
+            } else if (threatLevel > 50) {
+                details.push_back("Threat: Medium");
+            } else if (threatLevel > 25) {
+                details.push_back("Threat: Low");
+            } else {
+                details.push_back("Threat: Minimal");
+            }
         }
 
+        // Agent rank/type information with better descriptions
+        uint32_t agentType = agent.GetType();
+        if (agentType != AGENT_TYPE_CHARACTER) {
+            // Try to interpret special agent types
+            const char* rankName = nullptr;
+            switch (static_cast<Game::CharacterRank>(agentType)) {
+                case Game::CharacterRank::Veteran: rankName = "Veteran"; break;
+                case Game::CharacterRank::Elite: rankName = "Elite"; break;
+                case Game::CharacterRank::Champion: rankName = "Champion"; break;
+                case Game::CharacterRank::Legendary: rankName = "Legendary"; break;
+                default: 
+                    // Show the actual ID instead of "Unknown"
+                    details.push_back("Agent Type ID: " + std::to_string(agentType));
+                    break;
+            }
+            if (rankName) {
+                details.push_back(std::string("Rank: ") + rankName);
+            }
+        }
+
+        // Enhanced energy display with percentage
         kx::ReClass::ChCliEnergies energies = character.GetEnergies();
         if (energies) {
             float maxEnergy = energies.GetMax();
+            float currentEnergy = energies.GetCurrent();
             if (maxEnergy > 0) {
+                float energyPercent = (currentEnergy / maxEnergy) * 100.0f;
                 char energyText[64];
-                snprintf(energyText, sizeof(energyText), "E: %.0f/%.0f", energies.GetCurrent(), maxEnergy);
+                snprintf(energyText, sizeof(energyText), "Energy: %.0f/%.0f (%.0f%%)", currentEnergy, maxEnergy, energyPercent);
                 details.push_back(energyText);
             }
         }
+
+        // Tactical range assessment
+        if (distance <= kx::CombatRanges::MELEE_RANGE) { // Melee range
+            details.push_back("Range: Melee");
+        } else if (distance <= kx::CombatRanges::RANGED_COMBAT_RANGE) { // Ranged combat range
+            details.push_back("Range: Ranged");
+        } else if (distance <= kx::CombatRanges::LONG_RANGE) { // Long range
+            details.push_back("Range: Long");
+        } else {
+            details.push_back("Range: Very Long");
+        }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails, g_settings.npcESP.renderHealthBar, ESPEntityType::NPC);
 }
 
 void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight) {
@@ -247,14 +337,49 @@ void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float s
 void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::GdCliGadget& gadget) {
     if (!g_settings.objectESP.enabled) return;
 
-    // Filter by gadget type using the direct data
-    uint32_t gadgetType = gadget.GetGadgetType();
-    if (g_settings.objectESP.ignoredGadgets & (1 << gadgetType)) {
-        return;
+    // Use the new enum for type-safe gadget type checking
+    Game::GadgetType gadgetType = gadget.GetGadgetType();
+    
+    // Use the new boolean flags for gadget filtering
+    bool shouldRender = false;
+    switch (gadgetType) {
+        case Game::GadgetType::ResourceNode:
+            shouldRender = g_settings.objectESP.showResourceNodes;
+            break;
+        case Game::GadgetType::Waypoint:
+            shouldRender = g_settings.objectESP.showWaypoints;
+            break;
+        case Game::GadgetType::Vista:
+            shouldRender = g_settings.objectESP.showVistas;
+            break;
+        case Game::GadgetType::Crafting:
+            shouldRender = g_settings.objectESP.showCraftingStations;
+            break;
+        case Game::GadgetType::AttackTarget:
+            shouldRender = g_settings.objectESP.showAttackTargets;
+            break;
+        case Game::GadgetType::PlayerCreated:
+            shouldRender = g_settings.objectESP.showPlayerCreated;
+            break;
+        case Game::GadgetType::Interact:
+            shouldRender = g_settings.objectESP.showInteractables;
+            break;
+        case Game::GadgetType::Door:
+            shouldRender = g_settings.objectESP.showDoors;
+            break;
+        case Game::GadgetType::MapPortal:
+            shouldRender = g_settings.objectESP.showPortals;
+            break;
+        default:
+            // For unknown types, check if we're in important-only mode
+            shouldRender = !g_settings.objectESP.onlyImportantGadgets;
+            break;
     }
+    
+    if (!shouldRender) return;
 
-    // The best feature! Filter out depleted resource nodes.
-    if (gadgetType == kx::GADGET_TYPE_RESOURCE_NODE) {
+    // The best feature! Filter out depleted resource nodes using enum comparison
+    if (gadgetType == Game::GadgetType::ResourceNode) {
         if (!gadget.IsGatherable()) {
             return;
         }
@@ -272,69 +397,252 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     glm::vec3 worldPos(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
     float distance = glm::length(worldPos - s_camera->GetPlayerPosition());
 
-    unsigned int color = IM_COL32(200, 200, 200, 200);
+    // Use the new gadget type-based color system
+    unsigned int color = kx::ESPHelpers::GetGadgetTypeColor(gadgetType);
+    
+    // Make important gadgets more visible at distance
+    if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
+        // Increase opacity for important gadgets
+        color = (color & 0x00FFFFFF) | 0xFF000000;
+    }
 
     std::vector<std::string> details;
     if (g_settings.objectESP.renderDetails) {
-        char gadgetText[64];
-        snprintf(gadgetText, sizeof(gadgetText), "Gadget Type: %u", gadgetType);
-        details.push_back(gadgetText);
+        // Primary identification
+        std::string gadgetTypeName = GadgetTypeToString(gadgetType);
+        details.push_back("Type: " + gadgetTypeName);
+        
+        // Priority and importance indicators
+        int priority = Filtering::EntityFilter::GetRenderPriority(gadgetType);
+        if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
+            details.push_back("Priority: HIGH (" + std::to_string(priority) + ")");
+        } else {
+            details.push_back("Priority: " + std::to_string(priority));
+        }
+        
+        // Enhanced status information for different gadget types
+        switch (gadgetType) {
+            case Game::GadgetType::ResourceNode:
+                details.push_back(gadget.IsGatherable() ? "Status: Gatherable ✓" : "Status: Depleted ✗");
+                details.push_back("Category: Resource");
+                break;
+                
+            case Game::GadgetType::Waypoint:
+                details.push_back("Category: Travel");
+                details.push_back("Function: Fast Travel");
+                break;
+                
+            case Game::GadgetType::Vista:
+                details.push_back("Category: Exploration");
+                details.push_back("Reward: Experience + Achievement");
+                break;
+                
+            case Game::GadgetType::Crafting:
+                details.push_back("Category: Crafting");
+                details.push_back("Function: Equipment Creation");
+                break;
+                
+            case Game::GadgetType::AttackTarget:
+                details.push_back("Category: Combat");
+                details.push_back("Type: Boss/Elite Target");
+                break;
+                
+            case Game::GadgetType::PlayerCreated:
+                details.push_back("Category: Player Object");
+                details.push_back("Examples: Siege, Turrets, Banners");
+                break;
+                
+            case Game::GadgetType::Interact:
+                details.push_back("Category: Interactive");
+                details.push_back("Function: General Interaction");
+                break;
+                
+            case Game::GadgetType::Door:
+                details.push_back("Category: Environment");
+                details.push_back("Function: Passage/Barrier");
+                break;
+                
+            case Game::GadgetType::MapPortal:
+                details.push_back("Category: Travel");
+                details.push_back("Function: Map Transition");
+                break;
+                
+            default:
+                details.push_back("Category: Unknown");
+                details.push_back("Gadget ID: " + std::to_string(static_cast<uint32_t>(gadgetType)));
+                break;
+        }
+        
+        // Interaction range assessment
+        if (distance <= kx::InteractionRanges::STANDARD_INTERACTION_RANGE) { // Standard interaction range
+            details.push_back("Range: In Range");
+        } else if (distance <= kx::InteractionRanges::MEDIUM_INTERACTION_RANGE) { // Medium range
+            details.push_back("Range: Approaching");
+        } else {
+            details.push_back("Range: Far");
+        }
+        
+        // Additional context based on object importance
+        if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
+            details.push_back("⭐ Important Object");
+            
+            // Add helpful tips for important objects
+            switch (gadgetType) {
+                case Game::GadgetType::ResourceNode:
+                    if (gadget.IsGatherable()) {
+                        details.push_back("💡 Tip: Use appropriate gathering tool");
+                    }
+                    break;
+                case Game::GadgetType::Vista:
+                    details.push_back("💡 Tip: Look for climbing path");
+                    break;
+                case Game::GadgetType::AttackTarget:
+                    details.push_back("💡 Tip: High-value target");
+                    break;
+            }
+        }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails, false, ESPEntityType::Gadget);
 }
 
-void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails) {
+// Universal ESP rendering helper functions
+void ESPRenderer::RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, float healthPercent) {
+    const float barWidth = 3.0f;
+    const float barOffset = 2.0f;
+    
+    ImVec2 healthBarMin(boxMin.x - barWidth - barOffset, boxMin.y);
+    ImVec2 healthBarMax(boxMin.x - barOffset, boxMax.y);
+    
+    float barHeight = healthBarMax.y - healthBarMin.y;
+    float healthHeight = barHeight * healthPercent;
+    
+    // Background
+    drawList->AddRectFilled(healthBarMin, healthBarMax, IM_COL32(20, 20, 20, 200));
+    
+    // Health color
+    ImU32 healthColor = IM_COL32(255, 0, 0, 255); // Red
+    if (healthPercent > 0.6f) healthColor = IM_COL32(0, 255, 0, 255); // Green
+    else if (healthPercent > 0.3f) healthColor = IM_COL32(255, 255, 0, 255); // Yellow
+    
+    // Health fill
+    drawList->AddRectFilled(ImVec2(healthBarMin.x, healthBarMax.y - healthHeight), 
+                          ImVec2(healthBarMax.x, healthBarMax.y), healthColor);
+    
+    // Border
+    drawList->AddRect(healthBarMin, healthBarMax, IM_COL32(0, 0, 0, 255), 0.0f, 0, 1.0f);
+}
+
+void ESPRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color) {
+    // Shadow
+    drawList->AddRect(ImVec2(boxMin.x + 1, boxMin.y + 1), ImVec2(boxMax.x + 1, boxMax.y + 1), 
+                    IM_COL32(0, 0, 0, 80), 0.0f, 0, 1.5f);
+    
+    // Main box
+    drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, 1.5f);
+}
+
+void ESPRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, float distance) {
+    char distText[32];
+    snprintf(distText, sizeof(distText), "%.1fm", distance);
+    
+    ImVec2 textSize = ImGui::CalcTextSize(distText);
+    ImVec2 textPos(center.x - textSize.x * 0.5f, boxMin.y - textSize.y - 3);
+    
+    // Background
+    drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1), 
+                          ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1), 
+                          IM_COL32(0, 0, 0, 150), 1.0f);
+    
+    // Text with shadow
+    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), distText);
+    drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
+}
+
+void ESPRenderer::RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos) {
+    ImVec2 pos(feetPos.x, feetPos.y);
+    
+    // Shadow
+    drawList->AddCircleFilled(ImVec2(pos.x + 1, pos.y + 1), 2.0f, IM_COL32(0, 0, 0, 120));
+    
+    // Dot
+    drawList->AddCircleFilled(pos, 1.5f, IM_COL32(255, 255, 255, 255));
+}
+
+void ESPRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details) {
+    float textY = boxMax.y + 3;
+    
+    for (const auto& detailText : details) {
+        if (detailText.empty()) continue;
+        
+        ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
+        ImVec2 textPos(center.x - textSize.x * 0.5f, textY);
+        
+        // Background
+        drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
+                              ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 1), 
+                              IM_COL32(0, 0, 0, 160), 1.0f);
+        
+        // Text with shadow
+        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detailText.c_str());
+        drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detailText.c_str());
+        
+        textY += textSize.y + 3;
+    }
+}
+
+void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, bool renderHealthBar, ESPEntityType entityType) {
     if (g_settings.espUseDistanceLimit && distance > g_settings.espRenderDistanceLimit) {
         return;
     }
 
-    glm::vec2 screenPos;
-    if (ESP_Helpers::WorldToScreen(worldPos, *s_camera, screenWidth, screenHeight, screenPos)) {
-        float boxSize = std::max(4.0f, 15.0f * (50.0f / (distance + 20.0f)));
-        float boxTop = screenPos.y - boxSize / 2;
-        float boxBottom = screenPos.y + boxSize / 2;
-        float boxLeft = screenPos.x - boxSize / 2;
-        float boxRight = screenPos.x + boxSize / 2;
-
-        if (healthPercent >= 0.0f) {
-            float barHeight = std::max(2.0f, boxSize);
-            float barWidth = 3.0f;
-            float healthHeight = barHeight * healthPercent;
-
-            drawList->AddRectFilled(ImVec2(boxLeft - barWidth - 2, boxTop), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 0, 0, 180));
-            drawList->AddRectFilled(ImVec2(boxLeft - barWidth - 2, boxBottom - healthHeight), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 200, 0, 255));
-            drawList->AddRect(ImVec2(boxLeft - barWidth - 2, boxTop), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 0, 0, 255));
+    // Get ESP data based on entity type
+    ESPEntityData* entityData = nullptr;
+    GadgetESPData gadgetData;
+    PlayerESPData playerData;
+    
+    if (entityType == ESPEntityType::Gadget) {
+        gadgetData = kx::ESP_Helpers::GetGadgetESPData(worldPos, *s_camera, screenWidth, screenHeight);
+        entityData = &gadgetData;
+    } else {
+        if (entityType == ESPEntityType::Player) {
+            playerData = kx::ESP_Helpers::GetPlayerESPData(worldPos, *s_camera, screenWidth, screenHeight);
+        } else { // NPC
+            playerData = kx::ESP_Helpers::GetNpcESPData(worldPos, *s_camera, screenWidth, screenHeight);
         }
-
-        if (renderBox) {
-            drawList->AddRect(ImVec2(boxLeft, boxTop), ImVec2(boxRight, boxBottom), color, 1.0f, ImDrawFlags_RoundCornersAll, 1.5f);
-        }
-
-        float textY = boxTop;
-
-        if (renderDistance) {
-            char distText[32];
-            snprintf(distText, sizeof(distText), "%.1fm", distance);
-            ::ImVec2 textSize = ImGui::CalcTextSize(distText);
-            drawList->AddRectFilled(ImVec2(screenPos.x - textSize.x / 2 - 2, textY - textSize.y - 4), ImVec2(screenPos.x + textSize.x / 2 + 2, textY), IM_COL32(0, 0, 0, 180));
-            drawList->AddText(ImVec2(screenPos.x - textSize.x / 2, textY - textSize.y - 2), IM_COL32(255, 255, 255, 255), distText);
-        }
-
-        if (renderDot) {
-            drawList->AddCircleFilled(::ImVec2(screenPos.x, screenPos.y), 2.0f, IM_COL32(255, 255, 255, 255));
-        }
-
-        if (renderDetails && !details.empty()) {
-            float textYDetails = boxBottom + 2;
-            for (const auto& detailText : details) {
-                if (detailText.empty()) continue;
-                ::ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
-                drawList->AddRectFilled(ImVec2(screenPos.x - textSize.x / 2 - 2, textYDetails), ImVec2(screenPos.x + textSize.x / 2 + 2, textYDetails + textSize.y + 4), IM_COL32(0, 0, 0, 180));
-                drawList->AddText(ImVec2(screenPos.x - textSize.x / 2, textYDetails + 2), IM_COL32(255, 255, 255, 255), detailText.c_str());
-                textYDetails += textSize.y + 6;
-            }
-        }
+        entityData = &playerData;
+    }
+    
+    if (!entityData->valid) return;
+    
+    // Calculate universal box bounds
+    ImVec2 boxMin(entityData->min.x, entityData->min.y);
+    ImVec2 boxMax(entityData->max.x, entityData->max.y);
+    ImVec2 center((boxMin.x + boxMax.x) * 0.5f, (boxMin.y + boxMax.y) * 0.5f);
+    
+    // Render health bar (only for entities with health and if enabled)
+    if (healthPercent >= 0.0f && renderHealthBar) {
+        RenderHealthBar(drawList, boxMin, boxMax, healthPercent);
+    }
+    
+    // Render bounding box
+    if (renderBox) {
+        RenderBoundingBox(drawList, boxMin, boxMax, color);
+    }
+    
+    // Render distance text
+    if (renderDistance) {
+        RenderDistanceText(drawList, center, boxMin, distance);
+    }
+    
+    // Render center dot
+    if (renderDot) {
+        RenderCenterDot(drawList, entityData->feet);
+    }
+    
+    // Render details
+    if (renderDetails && !details.empty()) {
+        RenderDetailsText(drawList, center, boxMax, details);
     }
 }
 
