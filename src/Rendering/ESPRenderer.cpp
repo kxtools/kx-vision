@@ -11,6 +11,7 @@
 #include <Windows.h>
 
 #include "../Core/Config.h"
+#include "../Core/AppState.h"  // For IsDebugLoggingEnabled
 #include "ESP_Helpers.h"
 #include "ESPData.h"
 #include "EnhancedESPHelpers.h"
@@ -50,7 +51,9 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (pContextCollection) {
             // Debug: Log the ContextCollection pointer
-            printf("DEBUG: ContextCollection ptr = 0x%p\n", pContextCollection);
+            if (kx::IsDebugLoggingEnabled()) {
+                printf("DEBUG: ContextCollection ptr = 0x%p\n", pContextCollection);
+            }
             
             kx::ReClass::ContextCollection ctxCollection(pContextCollection);
             kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();

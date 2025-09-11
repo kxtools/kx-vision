@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Utils/DebugLogger.h"
+#include "../Core/AppState.h"  // For IsDebugLoggingEnabled
 
 #include "../Utils/ForeignClass.h"
 #include "GameStructs.h" // Re-use Coordinates3D
@@ -608,7 +609,7 @@ namespace kx {
         public:
             ContextCollection(void* ptr) : ForeignClass(ptr) {
                 // Debug: Log the ContextCollection base address
-                if (ptr) {
+                if (ptr && kx::IsDebugLoggingEnabled()) {
                     printf("DEBUG: ContextCollection base = 0x%p\n", ptr);
                 }
             }

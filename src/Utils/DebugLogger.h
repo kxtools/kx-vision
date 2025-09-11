@@ -6,6 +6,11 @@
 #include <sstream>
 #include <Windows.h>
 
+// Forward declaration
+namespace kx {
+    bool IsDebugLoggingEnabled();
+}
+
 namespace kx {
 namespace Debug {
 
@@ -19,7 +24,10 @@ public:
     };
 
     static void Log(Level level, const std::string& message) {
-        // Only log warnings and errors, skip INFO messages
+        // Check if debug logging is enabled
+        if (!IsDebugLoggingEnabled()) return;
+        
+        // Skip INFO messages even when debug logging is enabled (too verbose)
         if (level == INFO) return;
         
         std::string levelStr;
