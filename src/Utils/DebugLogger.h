@@ -17,21 +17,20 @@ namespace Debug {
 class Logger {
 public:
     enum Level {
-        INFO,
-        WARNING,
-        ERR,
-        CRITICAL
+        DEBUG,      // Most verbose - detailed debugging info
+        INFO,       // General information
+        WARNING,    // Warnings
+        ERR,        // Errors
+        CRITICAL    // Critical errors
     };
 
     static void Log(Level level, const std::string& message) {
         // Check if debug logging is enabled
         if (!IsDebugLoggingEnabled()) return;
         
-        // Skip INFO messages even when debug logging is enabled (too verbose)
-        if (level == INFO) return;
-        
         std::string levelStr;
         switch (level) {
+            case DEBUG: levelStr = "[DEBUG]"; break;
             case INFO: levelStr = "[INFO]"; break;
             case WARNING: levelStr = "[WARN]"; break;
             case ERR: levelStr = "[ERROR]"; break;
@@ -43,25 +42,30 @@ public:
         // Log to console
         std::cout << logMsg << std::endl;
         
-        // Log to file (optional)
-        static std::ofstream logFile("kx_debug.log", std::ios::app);
-        if (logFile.is_open()) {
-            logFile << logMsg << std::endl;
-            logFile.flush();
+        // Log to file with thread safety
+        try {
+            std::ofstream logFile("kx_debug.log", std::ios::app);
+            if (logFile.is_open()) {
+                logFile << logMsg << std::endl;
+                logFile.flush();
+                logFile.close();
+            }
+        } catch (...) {
+            // Ignore file logging errors to prevent crashes
         }
     }
 
     static void LogPointer(const std::string& name, void* ptr) {
         std::stringstream ss;
         ss << name << " = 0x" << std::hex << reinterpret_cast<uintptr_t>(ptr);
-        Log(INFO, ss.str());
+        Log(WARNING, ss.str()); // Changed from INFO to WARNING so it's visible
     }
 
     static void LogMemoryAccess(const std::string& className, const std::string& method, void* ptr, uintptr_t offset) {
         std::stringstream ss;
         ss << className << "::" << method << " accessing 0x" << std::hex << reinterpret_cast<uintptr_t>(ptr) 
            << " + 0x" << offset << " = 0x" << (reinterpret_cast<uintptr_t>(ptr) + offset);
-        Log(INFO, ss.str());
+        Log(WARNING, ss.str()); // Changed from INFO to WARNING so it's visible
     }
 
     static void LogException(const std::string& className, const std::string& method, const std::string& details = "") {
@@ -74,6 +78,7 @@ public:
 };
 
 // Macros for easier usage
+#define LOG_DEBUG(msg) kx::Debug::Logger::Log(kx::Debug::Logger::DEBUG, msg)
 #define LOG_INFO(msg) kx::Debug::Logger::Log(kx::Debug::Logger::INFO, msg)
 #define LOG_WARN(msg) kx::Debug::Logger::Log(kx::Debug::Logger::WARNING, msg)
 #define LOG_ERROR(msg) kx::Debug::Logger::Log(kx::Debug::Logger::ERR, msg)
@@ -158,10 +163,11 @@ bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result, const std::
     // Check for obviously invalid addresses
     if (address == 0xFFFFFFFFFFFFFFFF || address < 0x1000 || address > 0x7FFFFFFFFFFF) {
         if (!context.empty()) {
-            std::string errorMsg = "SafeRead: Invalid address 0x" + std::to_string(address) + 
-                                  " (base: 0x" + std::to_string(reinterpret_cast<uintptr_t>(basePtr)) + 
-                                  " + offset: 0x" + std::to_string(offset) + ") in " + context;
-            LOG_ERROR(errorMsg);
+            std::stringstream ss;
+            ss << "SafeRead: Invalid address 0x" << std::hex << address 
+               << " (base: 0x" << std::hex << reinterpret_cast<uintptr_t>(basePtr) 
+               << " + offset: 0x" << std::hex << offset << ") in " << context;
+            LOG_ERROR(ss.str());
         }
         return false;
     }
@@ -169,10 +175,11 @@ bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result, const std::
     // Check if the memory is actually readable
     if (!IsMemoryReadable(reinterpret_cast<void*>(address), sizeof(T))) {
         if (!context.empty()) {
-            std::string errorMsg = "SafeRead: Memory not readable at 0x" + std::to_string(address) + 
-                                  " (base: 0x" + std::to_string(reinterpret_cast<uintptr_t>(basePtr)) + 
-                                  " + offset: 0x" + std::to_string(offset) + ") in " + context;
-            LOG_ERROR(errorMsg);
+            std::stringstream ss;
+            ss << "SafeRead: Memory not readable at 0x" << std::hex << address 
+               << " (base: 0x" << std::hex << reinterpret_cast<uintptr_t>(basePtr) 
+               << " + offset: 0x" << std::hex << offset << ") in " << context;
+            LOG_ERROR(ss.str());
         }
         return false;
     }

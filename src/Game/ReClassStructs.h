@@ -77,7 +77,7 @@ namespace kx {
                     return 0;
                 }
                 
-                LOG_INFO("AgChar::GetType - Type: %u", type);
+                LOG_DEBUG("AgChar::GetType - Type: %u", type);
                 return type;
             }
         };
@@ -100,7 +100,7 @@ namespace kx {
                     return 0.0f;
                 }
                 
-                LOG_INFO("ChCliEnergies::GetCurrent - Current: %.2f", current);
+                LOG_DEBUG("ChCliEnergies::GetCurrent - Current: %.2f", current);
                 return current;
             }
             
@@ -118,7 +118,7 @@ namespace kx {
                     return 0.0f;
                 }
                 
-                LOG_INFO("ChCliEnergies::GetMax - Max: %.2f", max);
+                LOG_DEBUG("ChCliEnergies::GetMax - Max: %.2f", max);
                 return max;
             }
         };
@@ -141,7 +141,7 @@ namespace kx {
                     return 0.0f;
                 }
                 
-                LOG_INFO("ChCliHealth::GetCurrent - Current: %.2f", current);
+                LOG_DEBUG("ChCliHealth::GetCurrent - Current: %.2f", current);
                 return current;
             }
             
@@ -159,7 +159,7 @@ namespace kx {
                     return 0.0f;
                 }
                 
-                LOG_INFO("ChCliHealth::GetMax - Max: %.2f", max);
+                LOG_DEBUG("ChCliHealth::GetMax - Max: %.2f", max);
                 return max;
             }
         };
@@ -183,7 +183,7 @@ namespace kx {
                 }
                 
                 Game::Race race = static_cast<Game::Race>(raceValue);
-                LOG_INFO("ChCliCoreStats::GetRace - Race: %u", static_cast<uint8_t>(race));
+                LOG_DEBUG("ChCliCoreStats::GetRace - Race: %u", static_cast<uint8_t>(race));
                 return race;
             }
             
@@ -201,7 +201,7 @@ namespace kx {
                     return 0;
                 }
                 
-                LOG_INFO("ChCliCoreStats::GetLevel - Level: %u", level);
+                LOG_DEBUG("ChCliCoreStats::GetLevel - Level: %u", level);
                 return level;
             }
             
@@ -220,7 +220,7 @@ namespace kx {
                 }
                 
                 Game::Profession profession = static_cast<Game::Profession>(profValue);
-                LOG_INFO("ChCliCoreStats::GetProfession - Profession: %u", static_cast<uint32_t>(profession));
+                LOG_DEBUG("ChCliCoreStats::GetProfession - Profession: %u", static_cast<uint32_t>(profession));
                 return profession;
             }
         };
@@ -378,7 +378,7 @@ namespace kx {
                     return 0;
                 }
                 
-                LOG_INFO("ChCliContext::GetCharacterListCapacity - Capacity: %u", capacity);
+                LOG_DEBUG("ChCliContext::GetCharacterListCapacity - Capacity: %u", capacity);
                 return capacity;
             }
 
@@ -414,7 +414,7 @@ namespace kx {
                     return 0;
                 }
                 
-                LOG_INFO("ChCliContext::GetPlayerListSize - Size: %u", size);
+                LOG_DEBUG("ChCliContext::GetPlayerListSize - Size: %u", size);
                 return size;
             }
 
@@ -472,7 +472,7 @@ namespace kx {
                     return 0;
                 }
                 
-                LOG_INFO("GdCliContext::GetGadgetListCapacity - Capacity: %u", capacity);
+                LOG_DEBUG("GdCliContext::GetGadgetListCapacity - Capacity: %u", capacity);
                 return capacity;
             }
 
@@ -490,7 +490,7 @@ namespace kx {
                     return 0;
                 }
                 
-                LOG_INFO("GdCliContext::GetGadgetListCount - Count: %u", count);
+                LOG_DEBUG("GdCliContext::GetGadgetListCount - Count: %u", count);
                 return count;
             }
         };
@@ -513,7 +513,7 @@ namespace kx {
                     return Coordinates3D{ 0,0,0 };
                 }
                 
-                LOG_INFO("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", 
+                LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", 
                          position.x, position.y, position.z);
                 return position;
             }
@@ -561,7 +561,7 @@ namespace kx {
                 }
                 
                 Game::GadgetType gadgetType = static_cast<Game::GadgetType>(typeValue);
-                LOG_INFO("GdCliGadget::GetGadgetType - Type: %u", static_cast<uint32_t>(gadgetType));
+                LOG_DEBUG("GdCliGadget::GetGadgetType - Type: %u", static_cast<uint32_t>(gadgetType));
                 return gadgetType;
             }
 
@@ -582,7 +582,7 @@ namespace kx {
                 }
                 
                 bool gatherable = (flags & 0x2) != 0;
-                LOG_INFO("GdCliGadget::IsGatherable - Flags: 0x%X, Gatherable: %s", flags, gatherable ? "true" : "false");
+                LOG_DEBUG("GdCliGadget::IsGatherable - Flags: 0x%X, Gatherable: %s", flags, gatherable ? "true" : "false");
                 return gatherable;
             }
 
