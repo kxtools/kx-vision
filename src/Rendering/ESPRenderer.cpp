@@ -12,7 +12,7 @@
 #include "../Core/Config.h"
 #include "ESP_Helpers.h"
 #include "ESPData.h"
-#include "EnhancedESPHelpers.h" // Include the new enhanced helpers
+#include "EnhancedESPHelpers.h"
 #include "StringHelpers.h" // New include
 #include "../../libs/ImGui/imgui.h"
 #include "../Core/AppState.h"
@@ -144,7 +144,7 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
             }
             
             if (g_settings.playerESP.showArmorWeight) {
-                std::string armorWeight = ESPHelpers::GetArmorWeight(profession);
+                std::string armorWeight = kx::ESPHelpers::GetArmorWeight(profession);
                 characterDesc += " (" + armorWeight + ")";
             }
             
@@ -197,7 +197,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     float distance = glm::length(worldPos - s_camera->GetPlayerPosition());
 
     // Use the new attitude-based color system
-    unsigned int color = ESPHelpers::GetAttitudeColor(attitude);
+    unsigned int color = kx::ESPHelpers::GetAttitudeColor(attitude);
 
     kx::ReClass::ChCliHealth health = character.GetHealth();
     float healthPercent = -1.0f;
@@ -220,9 +220,9 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
             details.push_back(characterDesc);
             
             // Combat role analysis
-            if (ESPHelpers::IsSupportProfession(profession)) {
+            if (kx::ESPHelpers::IsSupportProfession(profession)) {
                 details.push_back("Role: Support");
-            } else if (ESPHelpers::IsDpsProfession(profession)) {
+            } else if (kx::ESPHelpers::IsDpsProfession(profession)) {
                 details.push_back("Role: DPS");
             } else {
                 details.push_back("Role: Hybrid");
@@ -230,13 +230,13 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         }
 
         // Enhanced attitude display with threat assessment
-        std::string attitudeText = "Attitude: " + ESPHelpers::AttitudeToString(attitude);
+        std::string attitudeText = "Attitude: " + kx::ESPHelpers::AttitudeToString(attitude);
         details.push_back(attitudeText);
         
         // Threat level calculation
         kx::ReClass::ChCliCoreStats stats2 = character.GetCoreStats();
         if (stats2) {
-            int threatLevel = ESPHelpers::GetThreatLevel(attitude, stats2.GetProfession());
+            int threatLevel = kx::ESPHelpers::GetThreatLevel(attitude, stats2.GetProfession());
             if (threatLevel > 75) {
                 details.push_back("Threat: HIGH");
             } else if (threatLevel > 50) {
@@ -350,10 +350,10 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     float distance = glm::length(worldPos - s_camera->GetPlayerPosition());
 
     // Use the new gadget type-based color system
-    unsigned int color = ESPHelpers::GetGadgetTypeColor(gadgetType);
+    unsigned int color = kx::ESPHelpers::GetGadgetTypeColor(gadgetType);
     
     // Make important gadgets more visible at distance
-    if (ESPHelpers::IsImportantGadgetType(gadgetType)) {
+    if (kx::ESPHelpers::IsImportantGadgetType(gadgetType)) {
         // Increase opacity for important gadgets
         color = (color & 0x00FFFFFF) | 0xFF000000;
     }
@@ -361,12 +361,12 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     std::vector<std::string> details;
     if (g_settings.objectESP.renderDetails) {
         // Primary identification
-        std::string gadgetTypeName = ESPHelpers::GadgetTypeToString(gadgetType);
+        std::string gadgetTypeName = kx::ESPHelpers::GadgetTypeToString(gadgetType);
         details.push_back("Type: " + gadgetTypeName);
         
         // Priority and importance indicators
         int priority = Filtering::EntityFilter::GetRenderPriority(gadgetType);
-        if (ESPHelpers::IsImportantGadgetType(gadgetType)) {
+        if (kx::ESPHelpers::IsImportantGadgetType(gadgetType)) {
             details.push_back("Priority: HIGH (" + std::to_string(priority) + ")");
         } else {
             details.push_back("Priority: " + std::to_string(priority));
@@ -435,7 +435,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
         }
         
         // Additional context based on object importance
-        if (ESPHelpers::IsImportantGadgetType(gadgetType)) {
+        if (kx::ESPHelpers::IsImportantGadgetType(gadgetType)) {
             details.push_back("⭐ Important Object");
             
             // Add helpful tips for important objects
@@ -458,192 +458,143 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails, ESPEntityType::Gadget);
 }
 
+// Universal ESP rendering helper functions
+void ESPRenderer::RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, float healthPercent) {
+    const float barWidth = 3.0f;
+    const float barOffset = 2.0f;
+    
+    ImVec2 healthBarMin(boxMin.x - barWidth - barOffset, boxMin.y);
+    ImVec2 healthBarMax(boxMin.x - barOffset, boxMax.y);
+    
+    float barHeight = healthBarMax.y - healthBarMin.y;
+    float healthHeight = barHeight * healthPercent;
+    
+    // Background
+    drawList->AddRectFilled(healthBarMin, healthBarMax, IM_COL32(20, 20, 20, 200));
+    
+    // Health color
+    ImU32 healthColor = IM_COL32(255, 0, 0, 255); // Red
+    if (healthPercent > 0.6f) healthColor = IM_COL32(0, 255, 0, 255); // Green
+    else if (healthPercent > 0.3f) healthColor = IM_COL32(255, 255, 0, 255); // Yellow
+    
+    // Health fill
+    drawList->AddRectFilled(ImVec2(healthBarMin.x, healthBarMax.y - healthHeight), 
+                          ImVec2(healthBarMax.x, healthBarMax.y), healthColor);
+    
+    // Border
+    drawList->AddRect(healthBarMin, healthBarMax, IM_COL32(0, 0, 0, 255), 0.0f, 0, 1.0f);
+}
+
+void ESPRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color) {
+    // Shadow
+    drawList->AddRect(ImVec2(boxMin.x + 1, boxMin.y + 1), ImVec2(boxMax.x + 1, boxMax.y + 1), 
+                    IM_COL32(0, 0, 0, 80), 0.0f, 0, 1.5f);
+    
+    // Main box
+    drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, 1.5f);
+}
+
+void ESPRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, float distance) {
+    char distText[32];
+    snprintf(distText, sizeof(distText), "%.1fm", distance);
+    
+    ImVec2 textSize = ImGui::CalcTextSize(distText);
+    ImVec2 textPos(center.x - textSize.x * 0.5f, boxMin.y - textSize.y - 3);
+    
+    // Background
+    drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1), 
+                          ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1), 
+                          IM_COL32(0, 0, 0, 150), 1.0f);
+    
+    // Text with shadow
+    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), distText);
+    drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
+}
+
+void ESPRenderer::RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos) {
+    ImVec2 pos(feetPos.x, feetPos.y);
+    
+    // Shadow
+    drawList->AddCircleFilled(ImVec2(pos.x + 1, pos.y + 1), 2.0f, IM_COL32(0, 0, 0, 120));
+    
+    // Dot
+    drawList->AddCircleFilled(pos, 1.5f, IM_COL32(255, 255, 255, 255));
+}
+
+void ESPRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details) {
+    float textY = boxMax.y + 3;
+    
+    for (const auto& detailText : details) {
+        if (detailText.empty()) continue;
+        
+        ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
+        ImVec2 textPos(center.x - textSize.x * 0.5f, textY);
+        
+        // Background
+        drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
+                              ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 1), 
+                              IM_COL32(0, 0, 0, 160), 1.0f);
+        
+        // Text with shadow
+        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detailText.c_str());
+        drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detailText.c_str());
+        
+        textY += textSize.y + 3;
+    }
+}
+
 void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, ESPEntityType entityType) {
     if (g_settings.espUseDistanceLimit && distance > g_settings.espRenderDistanceLimit) {
         return;
     }
 
-    // Determine entity type and get proper ESP data
+    // Get ESP data based on entity type
+    ESPEntityData* entityData = nullptr;
+    GadgetESPData gadgetData;
+    PlayerESPData playerData;
+    
     if (entityType == ESPEntityType::Gadget) {
-        // Handle gadgets using KX ESP approach
-        GadgetESPData gadgetData = kx::ESP_Helpers::GetGadgetESPData(worldPos, *s_camera, screenWidth, screenHeight);
-        if (!gadgetData.valid) return;
-        
-        // Use the pre-calculated min/max bounds like KX ESP
-        ImVec2 boxMin(gadgetData.min.x, gadgetData.min.y);
-        ImVec2 boxMax(gadgetData.max.x, gadgetData.max.y);
-        
-        // Render small square box for gadgets with shadow
-        if (renderBox) {
-            // Shadow
-            drawList->AddRect(ImVec2(boxMin.x + 1, boxMin.y + 1), ImVec2(boxMax.x + 1, boxMax.y + 1), 
-                            IM_COL32(0, 0, 0, 80), 0.0f, 0, 1.2f);
-            // Main box
-            drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, 1.5f);
+        gadgetData = kx::ESP_Helpers::GetGadgetESPData(worldPos, *s_camera, screenWidth, screenHeight);
+        entityData = &gadgetData;
+    } else {
+        if (entityType == ESPEntityType::Player) {
+            playerData = kx::ESP_Helpers::GetPlayerESPData(worldPos, *s_camera, screenWidth, screenHeight);
+        } else { // NPC
+            playerData = kx::ESP_Helpers::GetNpcESPData(worldPos, *s_camera, screenWidth, screenHeight);
         }
-
-        // Center dot for gadgets
-        if (renderDot) {
-            ImVec2 center((gadgetData.min.x + gadgetData.max.x) * 0.5f, (gadgetData.min.y + gadgetData.max.y) * 0.5f);
-            drawList->AddCircleFilled(ImVec2(center.x + 1, center.y + 1), 1.5f, IM_COL32(0, 0, 0, 120)); // Shadow
-            drawList->AddCircleFilled(center, 1.2f, IM_COL32(255, 255, 255, 255)); // Dot
-        }
-
-        // Distance display for gadgets
-        if (renderDistance) {
-            char distText[32];
-            snprintf(distText, sizeof(distText), "%.1fm", distance);
-            ImVec2 textSize = ImGui::CalcTextSize(distText);
-            ImVec2 textPos((gadgetData.min.x + gadgetData.max.x) * 0.5f - textSize.x * 0.5f, gadgetData.min.y - textSize.y - 3);
-            
-            // Text background with shadow
-            drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1), 
-                                  ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1), 
-                                  IM_COL32(0, 0, 0, 150), 1.5f);
-            
-            // Text with shadow
-            drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), distText);
-            drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
-        }
-
-        // Details for gadgets
-        if (renderDetails && !details.empty()) {
-            float textYDetails = gadgetData.max.y + 3;
-            for (const auto& detailText : details) {
-                if (detailText.empty()) continue;
-                
-                ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
-                ImVec2 textPos((gadgetData.min.x + gadgetData.max.x) * 0.5f - textSize.x * 0.5f, textYDetails);
-                
-                // Background with shadow
-                drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
-                                      ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 2), 
-                                      IM_COL32(0, 0, 0, 160), 1.5f);
-                
-                // Text with shadow
-                drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detailText.c_str());
-                drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detailText.c_str());
-                
-                textYDetails += textSize.y + 4;
-            }
-        }
-        
-        return; // Early return for gadgets
-    }
-
-    // Handle players and NPCs
-    PlayerESPData entityData;
-    if (entityType == ESPEntityType::Player) {
-        entityData = kx::ESP_Helpers::GetPlayerESPData(worldPos, *s_camera, screenWidth, screenHeight);
-    } else if (entityType == ESPEntityType::NPC) {
-        entityData = kx::ESP_Helpers::GetNpcESPData(worldPos, *s_camera, screenWidth, screenHeight);
+        entityData = &playerData;
     }
     
-    if (!entityData.valid) return;
+    if (!entityData->valid) return;
     
-    // Use the pre-calculated min/max bounds like KX ESP
-    ImVec2 boxMin(entityData.min.x, entityData.min.y);
-    ImVec2 boxMax(entityData.max.x, entityData.max.y);
+    // Calculate universal box bounds
+    ImVec2 boxMin(entityData->min.x, entityData->min.y);
+    ImVec2 boxMax(entityData->max.x, entityData->max.y);
+    ImVec2 center((boxMin.x + boxMax.x) * 0.5f, (boxMin.y + boxMax.y) * 0.5f);
     
-    // Enhanced health bar rendering using calculated dimensions
+    // Render health bar (only for entities with health)
     if (healthPercent >= 0.0f) {
-        float barWidth = 3.0f;
-        float barHeight = entityData.height;
-        float healthHeight = barHeight * healthPercent;
-        
-        // Health bar position (left side of entity box like KX ESP)
-        ImVec2 healthBarMin(boxMin.x - barWidth - 2, boxMin.y);
-        ImVec2 healthBarMax(boxMin.x - 2, boxMax.y);
-        
-        // Health bar background with shadow
-        drawList->AddRectFilled(ImVec2(healthBarMin.x - 1, healthBarMin.y + 1), 
-                              ImVec2(healthBarMax.x + 1, healthBarMax.y + 1), IM_COL32(0, 0, 0, 120));
-        drawList->AddRectFilled(healthBarMin, healthBarMax, IM_COL32(20, 20, 20, 200));
-        
-        // Health color based on percentage
-        ImU32 healthColor = IM_COL32(255, 0, 0, 255); // Red
-        if (healthPercent > 0.6f) healthColor = IM_COL32(0, 255, 0, 255); // Green
-        else if (healthPercent > 0.3f) healthColor = IM_COL32(255, 255, 0, 255); // Yellow
-        
-        // Health fill
-        drawList->AddRectFilled(ImVec2(healthBarMin.x, healthBarMax.y - healthHeight), 
-                              ImVec2(healthBarMax.x, healthBarMax.y), healthColor);
-        
-        // Health bar border
-        drawList->AddRect(healthBarMin, healthBarMax, IM_COL32(0, 0, 0, 255), 0.0f, 0, 1.0f);
+        RenderHealthBar(drawList, boxMin, boxMax, healthPercent);
     }
-
-    // Character box with proper proportions using KX ESP bounds
+    
+    // Render bounding box
     if (renderBox) {
-        // Shadow for depth
-        drawList->AddRect(ImVec2(boxMin.x + 1, boxMin.y + 1), ImVec2(boxMax.x + 1, boxMax.y + 1), 
-                        IM_COL32(0, 0, 0, 80), 1.0f, ImDrawFlags_RoundCornersAll, 1.8f);
-        
-        // Main box with subtle rounding
-        drawList->AddRect(boxMin, boxMax, color, 1.0f, ImDrawFlags_RoundCornersAll, 1.5f);
-        
-        // Optional corner markers for better visibility at distance
-        if (distance > 50.0f) {
-            float cornerSize = 3.0f;
-            // Top-left corner
-            drawList->AddLine(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMin.x + cornerSize, boxMin.y), color, 2.0f);
-            drawList->AddLine(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMin.x, boxMin.y + cornerSize), color, 2.0f);
-            // Top-right corner
-            drawList->AddLine(ImVec2(boxMax.x, boxMin.y), ImVec2(boxMax.x - cornerSize, boxMin.y), color, 2.0f);
-            drawList->AddLine(ImVec2(boxMax.x, boxMin.y), ImVec2(boxMax.x, boxMin.y + cornerSize), color, 2.0f);
-            // Bottom-left corner
-            drawList->AddLine(ImVec2(boxMin.x, boxMax.y), ImVec2(boxMin.x + cornerSize, boxMax.y), color, 2.0f);
-            drawList->AddLine(ImVec2(boxMin.x, boxMax.y), ImVec2(boxMin.x, boxMax.y - cornerSize), color, 2.0f);
-            // Bottom-right corner
-            drawList->AddLine(ImVec2(boxMax.x, boxMax.y), ImVec2(boxMax.x - cornerSize, boxMax.y), color, 2.0f);
-            drawList->AddLine(ImVec2(boxMax.x, boxMax.y), ImVec2(boxMax.x, boxMax.y - cornerSize), color, 2.0f);
-        }
+        RenderBoundingBox(drawList, boxMin, boxMax, color);
     }
-
-    // Distance display like KX ESP
+    
+    // Render distance text
     if (renderDistance) {
-        char distText[32];
-        snprintf(distText, sizeof(distText), "%.1fm", distance);
-        ImVec2 textSize = ImGui::CalcTextSize(distText);
-        ImVec2 textPos((entityData.min.x + entityData.max.x) * 0.5f - textSize.x * 0.5f, entityData.min.y - textSize.y - 4);
-        
-        // Text background with shadow
-        drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
-                              ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 1), 
-                              IM_COL32(0, 0, 0, 150), 2.0f);
-        
-        // Text with subtle shadow
-        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), distText);
-        drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
+        RenderDistanceText(drawList, center, boxMin, distance);
     }
-
-    // Center dot for precise targeting (at feet position like KX ESP)
+    
+    // Render center dot
     if (renderDot) {
-        ImVec2 feetPos(entityData.feet.x, entityData.feet.y);
-        drawList->AddCircleFilled(ImVec2(feetPos.x + 1, feetPos.y + 1), 2.5f, IM_COL32(0, 0, 0, 120)); // Shadow
-        drawList->AddCircleFilled(feetPos, 2.0f, IM_COL32(255, 255, 255, 255)); // Dot
+        RenderCenterDot(drawList, entityData->feet);
     }
-
-    // Enhanced details rendering like KX ESP
+    
+    // Render details
     if (renderDetails && !details.empty()) {
-        float textYDetails = entityData.max.y + 4;
-        for (const auto& detailText : details) {
-            if (detailText.empty()) continue;
-            
-            ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
-            ImVec2 textPos((entityData.min.x + entityData.max.x) * 0.5f - textSize.x * 0.5f, textYDetails);
-            
-            // Background with shadow and subtle rounding
-            drawList->AddRectFilled(ImVec2(textPos.x - 4, textPos.y - 1), 
-                                  ImVec2(textPos.x + textSize.x + 4, textPos.y + textSize.y + 3), 
-                                  IM_COL32(0, 0, 0, 160), 1.5f);
-            
-            // Text with shadow for better readability
-            drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detailText.c_str());
-            drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detailText.c_str());
-            
-            textYDetails += textSize.y + 5;
-        }
+        RenderDetailsText(drawList, center, boxMax, details);
     }
 }
 
