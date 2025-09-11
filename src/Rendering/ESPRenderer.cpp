@@ -21,6 +21,9 @@
 #include "../Game/ReClassStructs.h"
 #include "../Utils/EntityFilter.h" // Include for advanced filtering functions
 
+using namespace kx::CombatRanges;
+using namespace kx::InteractionRanges;
+
 namespace kx {
 
 // Initialize the static camera pointer
@@ -220,9 +223,9 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
             details.push_back(characterDesc);
             
             // Combat role analysis
-            if (kx::ESPHelpers::IsSupportProfession(profession)) {
+            if (kx::Filtering::EntityFilter::IsSupportProfession(profession)) {
                 details.push_back("Role: Support");
-            } else if (kx::ESPHelpers::IsDpsProfession(profession)) {
+            } else if (kx::Filtering::EntityFilter::IsDpsProfession(profession)) {
                 details.push_back("Role: DPS");
             } else {
                 details.push_back("Role: Hybrid");
@@ -236,7 +239,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         // Threat level calculation
         kx::ReClass::ChCliCoreStats stats2 = character.GetCoreStats();
         if (stats2) {
-            int threatLevel = kx::ESPHelpers::GetThreatLevel(attitude, stats2.GetProfession());
+            int threatLevel = kx::Filtering::EntityFilter::GetThreatLevel(attitude, stats2.GetProfession());
             if (threatLevel > 75) {
                 details.push_back("Threat: HIGH");
             } else if (threatLevel > 50) {
@@ -253,11 +256,11 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         if (agentType != AGENT_TYPE_CHARACTER) {
             // Try to interpret special agent types
             const char* rankName = nullptr;
-            switch (agentType) {
-                case 1: rankName = "Veteran"; break;
-                case 2: rankName = "Elite"; break;
-                case 3: rankName = "Champion"; break;
-                case 4: rankName = "Legendary"; break;
+            switch (static_cast<Game::CharacterRank>(agentType)) {
+                case Game::CharacterRank::Veteran: rankName = "Veteran"; break;
+                case Game::CharacterRank::Elite: rankName = "Elite"; break;
+                case Game::CharacterRank::Champion: rankName = "Champion"; break;
+                case Game::CharacterRank::Legendary: rankName = "Legendary"; break;
                 default: 
                     // Show the actual ID instead of "Unknown"
                     details.push_back("Agent Type ID: " + std::to_string(agentType));
@@ -282,11 +285,11 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         }
 
         // Tactical range assessment
-        if (distance <= 130.0f) { // Melee range
+        if (distance <= kx::CombatRanges::MELEE_RANGE) { // Melee range
             details.push_back("Range: Melee");
-        } else if (distance <= 300.0f) { // Ranged combat range
+        } else if (distance <= kx::CombatRanges::RANGED_COMBAT_RANGE) { // Ranged combat range
             details.push_back("Range: Ranged");
-        } else if (distance <= 900.0f) { // Long range
+        } else if (distance <= kx::CombatRanges::LONG_RANGE) { // Long range
             details.push_back("Range: Long");
         } else {
             details.push_back("Range: Very Long");
@@ -353,7 +356,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     unsigned int color = kx::ESPHelpers::GetGadgetTypeColor(gadgetType);
     
     // Make important gadgets more visible at distance
-    if (kx::ESPHelpers::IsImportantGadgetType(gadgetType)) {
+    if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
         // Increase opacity for important gadgets
         color = (color & 0x00FFFFFF) | 0xFF000000;
     }
@@ -366,7 +369,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
         
         // Priority and importance indicators
         int priority = Filtering::EntityFilter::GetRenderPriority(gadgetType);
-        if (kx::ESPHelpers::IsImportantGadgetType(gadgetType)) {
+        if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
             details.push_back("Priority: HIGH (" + std::to_string(priority) + ")");
         } else {
             details.push_back("Priority: " + std::to_string(priority));
@@ -426,16 +429,16 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
         }
         
         // Interaction range assessment
-        if (distance <= 300.0f) { // Standard interaction range
+        if (distance <= kx::InteractionRanges::STANDARD_INTERACTION_RANGE) { // Standard interaction range
             details.push_back("Range: In Range");
-        } else if (distance <= 600.0f) { // Medium range
+        } else if (distance <= kx::InteractionRanges::MEDIUM_INTERACTION_RANGE) { // Medium range
             details.push_back("Range: Approaching");
         } else {
             details.push_back("Range: Far");
         }
         
         // Additional context based on object importance
-        if (kx::ESPHelpers::IsImportantGadgetType(gadgetType)) {
+        if (Game::EnumHelpers::IsImportantGadgetType(gadgetType)) {
             details.push_back("⭐ Important Object");
             
             // Add helpful tips for important objects
