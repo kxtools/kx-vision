@@ -14,6 +14,7 @@
 #include "../Core/Config.h"
 #include "../Game/AddressManager.h"
 #include "../Game/GameStructs.h"
+#include "../Game/ReClassStructs.h"
 #include "../Hooking/D3DRenderHook.h"
 
 // Define static members
@@ -185,64 +186,73 @@ void ImGuiManager::RenderInfoSection() {
 void ImGuiManager::RenderDebugSection() {
 #ifdef _DEBUG
     if (ImGui::CollapsingHeader("Debug Info")) {
-        uintptr_t agentArrayAddr = kx::AddressManager::GetAgentArray();
-        uintptr_t worldViewCtxAddr = kx::AddressManager::GetWorldViewContextPtr();
-
-        char addrStr1[32];
-        char addrStr2[32];
-        snprintf(addrStr1, sizeof(addrStr1), "0x%p", (void*)agentArrayAddr);
-        snprintf(addrStr2, sizeof(addrStr2), "0x%p", (void*)worldViewCtxAddr);
-
-        ImGui::Text("AgentArray:");
+        // Context Collection
+        void* pContextCollection = kx::AddressManager::GetContextCollectionPtr();
+        char ctxCollectionAddrStr[32];
+        snprintf(ctxCollectionAddrStr, sizeof(ctxCollectionAddrStr), "0x%p", pContextCollection);
+        ImGui::Text("ContextCollection:");
         ImGui::PushItemWidth(-1.0f);
-        ImGui::InputText("##AgentArrayAddr", addrStr1, sizeof(addrStr1), ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputText("##ContextCollectionAddr", ctxCollectionAddrStr, sizeof(ctxCollectionAddrStr), ImGuiInputTextFlags_ReadOnly);
         ImGui::PopItemWidth();
 
-        ImGui::Text("WorldViewContext:");
-        ImGui::PushItemWidth(-1.0f);
-        ImGui::InputText("##WorldViewContextAddr", addrStr2, sizeof(addrStr2), ImGuiInputTextFlags_ReadOnly);
-        ImGui::PopItemWidth();
+        if (pContextCollection) {
+            kx::ReClass::ContextCollection ctxCollection(pContextCollection);
 
-        uint32_t agentCount = 0;
-        uint32_t agentCapacity = 0;
-        kx::Agent firstAgent(nullptr);
-        int firstAgentIndex = -1; // Variable to store the index
-
-        if (agentArrayAddr) {
-            kx::AgentArray agentArray(reinterpret_cast<void*>(agentArrayAddr));
-            agentCount = agentArray.Count();
-            agentCapacity = agentArray.Capacity();
-
-            // Find the first valid agent to display its info
-            for (uint32_t i = 0; i < agentCount; ++i) {
-                kx::Agent agent = agentArray.GetAgent(i);
-                if (agent) {
-                    firstAgent = agent;
-                    firstAgentIndex = i; // Store the index
-                    break;
-                }
-            }
-        }
-        ImGui::Text("Agents: %u / %u", agentCount, agentCapacity);
-
-        ImGui::Separator();
-        ImGui::Text("First Valid Agent Details:");
-        if (firstAgent) {
-            ImGui::Text("Index: %d (0x%X)", firstAgentIndex, firstAgentIndex);
-            ImGui::Text("ID: %u (0x%X)", firstAgent.GetId(), firstAgent.GetId());
-
-            // Display memory address of the first agent
-            char agentAddrStr[32];
-            snprintf(agentAddrStr, sizeof(agentAddrStr), "0x%p", (void*)firstAgent.GetAddress());
-            ImGui::Text("Address:");
+            // Character Context
+            kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+            char charCtxAddrStr[32];
+            snprintf(charCtxAddrStr, sizeof(charCtxAddrStr), "0x%p", charContext.data());
+            ImGui::Text("ChCliContext:");
             ImGui::PushItemWidth(-1.0f);
-            ImGui::InputText("##AgentAddress", agentAddrStr, sizeof(agentAddrStr), ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputText("##CharContextAddr", charCtxAddrStr, sizeof(charCtxAddrStr), ImGuiInputTextFlags_ReadOnly);
             ImGui::PopItemWidth();
 
-            ImGui::Text("Type: %d", firstAgent.GetType());
-            ImGui::Text("Gadget Type: %d", firstAgent.GetGadgetType());
+            if (charContext) {
+                // Character List
+                kx::ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
+                uint32_t characterCapacity = charContext.GetCharacterListCapacity();
+                char charListAddrStr[32];
+                snprintf(charListAddrStr, sizeof(charListAddrStr), "0x%p", (void*)characterList);
+                ImGui::Text("CharacterList (Capacity: %u):", characterCapacity);
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::InputText("##CharListAddr", charListAddrStr, sizeof(charListAddrStr), ImGuiInputTextFlags_ReadOnly);
+                ImGui::PopItemWidth();
+
+                // Player List
+                kx::ReClass::ChCliPlayer** playerList = charContext.GetPlayerList();
+                uint32_t playerListSize = charContext.GetPlayerListSize();
+                char playerListAddrStr[32];
+                snprintf(playerListAddrStr, sizeof(playerListAddrStr), "0x%p", (void*)playerList);
+                ImGui::Text("PlayerList (Size: %u):", playerListSize);
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::InputText("##PlayerListAddr", playerListAddrStr, sizeof(playerListAddrStr), ImGuiInputTextFlags_ReadOnly);
+                ImGui::PopItemWidth();
+            }
+
+            ImGui::Separator();
+
+            // Gadget Context
+            kx::ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();
+            char gadgetCtxAddrStr[32];
+            snprintf(gadgetCtxAddrStr, sizeof(gadgetCtxAddrStr), "0x%p", gadgetCtx.data());
+            ImGui::Text("GdCliContext:");
+            ImGui::PushItemWidth(-1.0f);
+            ImGui::InputText("##GadgetContextAddr", gadgetCtxAddrStr, sizeof(gadgetCtxAddrStr), ImGuiInputTextFlags_ReadOnly);
+            ImGui::PopItemWidth();
+
+            if (gadgetCtx) {
+                // Gadget List
+                kx::ReClass::GdCliGadget** gadgetList = gadgetCtx.GetGadgetList();
+                uint32_t gadgetCapacity = gadgetCtx.GetGadgetListCapacity();
+                char gadgetListAddrStr[32];
+                snprintf(gadgetListAddrStr, sizeof(gadgetListAddrStr), "0x%p", (void*)gadgetList);
+                ImGui::Text("GadgetList (Capacity: %u):", gadgetCapacity);
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::InputText("##GadgetListAddr", gadgetListAddrStr, sizeof(gadgetListAddrStr), ImGuiInputTextFlags_ReadOnly);
+                ImGui::PopItemWidth();
+            }
         } else {
-            ImGui::Text("No valid agents found in array.");
+            ImGui::Text("ContextCollection not available.");
         }
     }
 #endif
