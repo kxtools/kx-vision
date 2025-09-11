@@ -94,6 +94,10 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
 void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character, const std::map<void*, const wchar_t*>& characterNameToPlayerName) {
     if (!g_settings.playerESP.enabled) return;
 
+    // Skip local player unless specifically enabled
+    void* localPlayer = AddressManager::GetLocalPlayer();
+    if (localPlayer && character.data() == localPlayer && !g_settings.playerESP.showLocalPlayer) return;
+
     const float scaleFactor = 1.23f;
 
     kx::ReClass::AgChar agent = character.GetAgent();
@@ -176,6 +180,10 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
 
 void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character) {
     if (!g_settings.npcESP.enabled) return;
+    
+    // Skip local player (though unlikely for NPCs)
+    void* localPlayer = AddressManager::GetLocalPlayer();
+    if (localPlayer && character.data() == localPlayer) return;
     
     Game::Attitude attitude = character.GetAttitude();
     

@@ -182,6 +182,13 @@ namespace kx {
                     return get<uint32_t>(0x88);
                 } __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
             }
+
+            ChCliCharacter* GetLocalPlayer() {
+                __try {
+                    if (!data()) return nullptr;
+                    return get<ChCliCharacter*>(0x98);
+                } __except (EXCEPTION_EXECUTE_HANDLER) { return nullptr; }
+            }
         };
 
         class GdCliContext : public ForeignClass {

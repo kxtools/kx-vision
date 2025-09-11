@@ -4,6 +4,7 @@
 
 #include "../Core/Config.h" // For TARGET_PROCESS_NAME
 #include "../Utils/PatternScanner.h"
+#include "ReClassStructs.h" // For ContextCollection and ChCliContext
 
 namespace kx {
 
@@ -184,8 +185,18 @@ void AddressManager::Initialize() {
     Scan();
 }
 
-void AddressManager::Refresh() {
-    Scan();
+void* AddressManager::GetLocalPlayer() {
+    if (!s_pointers.pContextCollection) return nullptr;
+    
+    __try {
+        ReClass::ContextCollection contextCollection(s_pointers.pContextCollection);
+        ReClass::ChCliContext chContext = contextCollection.GetChCliContext();
+        if (!chContext.data()) return nullptr;
+        
+        return chContext.GetLocalPlayer();
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return nullptr;
+    }
 }
 
 } // namespace kx

@@ -85,6 +85,9 @@ void ImGuiManager::RenderESPWindow() {
                 ImGui::Checkbox("Health Bar##Player", &kx::g_settings.playerESP.renderHealthBar);
                 ImGui::SameLine();
                 ImGui::Checkbox("Render Details##Player", &kx::g_settings.playerESP.renderDetails);
+                
+                ImGui::Separator();
+                ImGui::Checkbox("Show Local Player", &kx::g_settings.playerESP.showLocalPlayer);
             }
             ImGui::EndTabItem();
         }

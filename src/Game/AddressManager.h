@@ -17,7 +17,6 @@ struct GamePointers {
 class AddressManager {
 public:
     static void Initialize();
-    static void Refresh();
 
     // Public setter for the hook to store the captured pointer.
     static void SetContextCollectionPtr(void* ptr);
@@ -29,6 +28,9 @@ public:
     static uintptr_t GetContextCollectionFunc() { return s_pointers.contextCollectionFunc; }
     static uintptr_t GetGameThreadUpdateFunc() { return s_pointers.gameThreadUpdateFunc; }
     static void* GetContextCollectionPtr() { return s_pointers.pContextCollection; }
+
+    // Local player detection
+    static void* GetLocalPlayer();
 
 private:
     static void Scan();
