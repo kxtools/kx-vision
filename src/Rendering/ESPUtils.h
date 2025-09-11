@@ -6,7 +6,7 @@
 
 namespace kx {
 
-namespace ESP_Helpers {
+namespace ESPUtils {
 
     /**
      * @brief Projects a 3D world coordinate to 2D screen coordinates.
@@ -57,6 +57,6 @@ namespace ESP_Helpers {
      */
     float CalculateScreenDistance(const glm::vec2& p1, const glm::vec2& p2);
 
-} // namespace ESP_Helpers
+} // namespace ESPUtils
 
 } // namespace kx

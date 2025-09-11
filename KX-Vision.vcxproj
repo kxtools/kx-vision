@@ -96,7 +96,7 @@
     <ClCompile Include="src\Rendering\ESPDataExtractor.cpp" />
     <ClCompile Include="src\Rendering\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESPStageRenderer.cpp" />
-    <ClCompile Include="src\Rendering\ESP_Helpers.cpp" />
+    <ClCompile Include="src\Rendering\ESPUtils.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
     <ClCompile Include="src\Utils\Console.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook.cpp" />
@@ -137,7 +137,7 @@
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Rendering\ESPRenderer.h" />
-    <ClInclude Include="src\Rendering\ESP_Helpers.h" />
+    <ClInclude Include="src\Rendering\ESPUtils.h" />
     <ClInclude Include="src\Utils\DebugLogger.h" />
     <ClInclude Include="src\Utils\EntityFilter.h" />
     <ClInclude Include="src\Utils\ForeignClass.h" />
