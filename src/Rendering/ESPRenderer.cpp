@@ -31,6 +31,10 @@ namespace kx {
 // Initialize the static camera pointer
 Camera* ESPRenderer::s_camera = nullptr;
 
+// Static variables for frame rate limiting
+static FrameRenderData s_cachedFrameData;
+static float s_lastUpdateTime = 0.0f;
+
 void ESPRenderer::Initialize(Camera& camera) {
     s_camera = &camera;
 }
@@ -42,14 +46,22 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
 
     ::ImDrawList* drawList = ImGui::GetBackgroundDrawList();
 
-    // Two-stage rendering pipeline for improved stability
-    FrameRenderData frameData;
+    // Get current time in seconds
+    float currentTime = GetTickCount64() / 1000.0f;
     
-    // Stage 1: Extract all data from game memory (unsafe operations)
-    ESPDataExtractor::ExtractFrameData(frameData);
+    // Get ESP update interval from settings (default 60 FPS)
+    const auto& settings = AppState::Get().GetSettings();
+    float espUpdateInterval = 1.0f / std::max(1.0f, settings.espUpdateRate);
     
-    // Stage 2: Render using safe local data (no game memory access)
-    ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, frameData, *s_camera);
+    // Only update ESP data at limited frame rate
+    if (currentTime - s_lastUpdateTime >= espUpdateInterval) {
+        // Stage 1: Extract all data from game memory (unsafe operations) - only when needed
+        ESPDataExtractor::ExtractFrameData(s_cachedFrameData);
+        s_lastUpdateTime = currentTime;
+    }
+    
+    // Stage 2: Always render using cached data (safe, fast operation)
+    ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFrameData, *s_camera);
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

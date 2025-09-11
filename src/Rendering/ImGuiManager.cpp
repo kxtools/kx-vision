@@ -151,8 +151,17 @@ void ImGuiManager::RenderESPWindow() {
     if (settings.espUseDistanceLimit) {
         ImGui::SliderFloat("Render Distance Limit", &settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
     }
-
+    
     ImGui::Separator();
+    if (ImGui::CollapsingHeader("Performance Settings")) {
+        ImGui::SliderFloat("ESP Update Rate", &settings.espUpdateRate, 15.0f, 120.0f, "%.0f FPS");
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Lower values improve performance but make ESP less responsive.\nRecommended: 30-60 FPS for good balance.");
+        }
+    }
+
     RenderInfoSection();
     RenderDebugSection();
 

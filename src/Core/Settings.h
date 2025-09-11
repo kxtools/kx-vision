@@ -68,6 +68,9 @@ namespace kx {
         bool espUseDistanceLimit = true;
         float espRenderDistanceLimit = 250.0f;
         
+        // Performance settings
+        float espUpdateRate = 60.0f; // ESP updates per second (lower = better performance)
+        
         // New enhanced filtering options
         bool enableSmartFiltering = true; // Use the enhanced enum-based filtering
         bool hideDepletedNodes = true;    // Hide depleted resource nodes
