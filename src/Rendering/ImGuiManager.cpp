@@ -66,6 +66,11 @@ void ImGuiManager::RenderESPWindow() {
 
     RenderHints();
 
+    // Connection status
+    ImGui::Text("MumbleLink Status: %s", 
+        m_mumbleLinkManager.IsInitialized() ? "Connected" : "Disconnected");
+    ImGui::Separator(); // Add a separator for visual clarity
+
     if (ImGui::BeginTabBar("##ESPCategories")) {
         // --- Players Tab ---
         if (ImGui::BeginTabItem("Players")) {
@@ -142,7 +147,10 @@ void ImGuiManager::RenderESPWindow() {
     if (kx::g_settings.espUseDistanceLimit) {
         ImGui::SliderFloat("Render Distance Limit", &kx::g_settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
     }
-    
+
+    ImGui::Separator();
+    RenderDebugSection();
+
     ImGui::End();
 }
 
