@@ -124,6 +124,10 @@
     <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
     <ClInclude Include="src\Game\ReClassStructs.h" />
+    <ClInclude Include="src\Game\ReClass\AgentStructs.h" />
+    <ClInclude Include="src\Game\ReClass\CharacterStructs.h" />
+    <ClInclude Include="src\Game\ReClass\ContextStructs.h" />
+    <ClInclude Include="src\Game\ReClass\GadgetStructs.h" />
     <ClInclude Include="src\Rendering\EnhancedESPHelpers.h" />
     <ClInclude Include="src\Rendering\ESPData.h" />
     <ClInclude Include="src\Rendering\ESPDataExtractor.h" />
