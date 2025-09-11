@@ -12,6 +12,7 @@
 
 #include "../Core/Config.h"
 #include "../Core/AppState.h"  // For IsDebugLoggingEnabled
+#include "../Utils/SafeIterators.h"  // For safe memory access
 #include "ESP_Helpers.h"
 #include "ESPData.h"
 #include "EnhancedESPHelpers.h"
@@ -50,66 +51,31 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
         // First, handle Characters (Players and NPCs) from the ChCliContext
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (pContextCollection) {
-            // Debug: Log the ContextCollection pointer
-            if (kx::AppState::Get().IsDebugLoggingEnabled()) {
-                printf("DEBUG: ContextCollection ptr = 0x%p\n", pContextCollection);
-            }
-            
             kx::ReClass::ContextCollection ctxCollection(pContextCollection);
             kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
             if (charContext) {
+                // Build character to player name mapping using safe iterators
                 std::map<void*, const wchar_t*> characterNameToPlayerName;
-                kx::ReClass::ChCliPlayer** playerList = charContext.GetPlayerList();
-                uint32_t playerCount = charContext.GetPlayerListSize();
-                if (playerList && playerCount < 2000) {
-                    for (uint32_t i = 0; i < playerCount; ++i) {
-                        // Validate the pointer before constructing the object
-                        uintptr_t ptrAddr = reinterpret_cast<uintptr_t>(playerList[i]);
-                        if (!playerList[i] || ptrAddr < 0x1000 || ptrAddr > 0x7FFFFFFFFFFF) continue;
-                        
-                        MEMORY_BASIC_INFORMATION mbi = {};
-                        if (VirtualQuery(playerList[i], &mbi, sizeof(mbi)) == 0 || 
-                            mbi.State != MEM_COMMIT || 
-                            !(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) {
-                            continue;
-                        }
-                        
-                        kx::ReClass::ChCliPlayer player(playerList[i]);
-                        if (!player) continue;
-                        kx::ReClass::ChCliCharacter character = player.GetCharacter();
-                        const wchar_t* name = player.GetName();
-                        if (character.data() && name) {
-                            characterNameToPlayerName[character.data()] = name;
-                        }
+                
+                // Safely iterate through player list
+                kx::SafeAccess::PlayerList playerList(charContext);
+                for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
+                    if (playerIt.IsValid()) {
+                        characterNameToPlayerName[playerIt.GetCharacterDataPtr()] = playerIt.GetName();
                     }
                 }
 
-                kx::ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
-                uint32_t characterCapacity = charContext.GetCharacterListCapacity();
-                if (characterList && characterCapacity < 0x10000) {
-                    for (uint32_t i = 0; i < characterCapacity; ++i) {
-                        // Validate the pointer before constructing the object
-                        uintptr_t ptrAddr = reinterpret_cast<uintptr_t>(characterList[i]);
-                        if (!characterList[i] || ptrAddr < 0x1000 || ptrAddr > 0x7FFFFFFFFFFF) continue;
-                        
-                        MEMORY_BASIC_INFORMATION mbi = {};
-                        if (VirtualQuery(characterList[i], &mbi, sizeof(mbi)) == 0 || 
-                            mbi.State != MEM_COMMIT || 
-                            !(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) {
-                            continue;
-                        }
-                        
-                        kx::ReClass::ChCliCharacter character(characterList[i]);
-                        if (!character) continue;
-
-                        // --- CATEGORIZATION LOGIC ---
-                        if (characterNameToPlayerName.count(character.data())) {
-                            // It's a Player
-                            RenderPlayer(drawList, screenWidth, screenHeight, character, characterNameToPlayerName);
-                        } else {
-                            // It's an NPC
-                            RenderNpc(drawList, screenWidth, screenHeight, character);
-                        }
+                // Safely iterate through character list for rendering
+                kx::SafeAccess::CharacterList characterList(charContext);
+                for (const auto& character : characterList) {
+                    // --- CATEGORIZATION LOGIC ---
+                    void* characterDataPtr = const_cast<void*>(character.data());
+                    if (characterNameToPlayerName.count(characterDataPtr)) {
+                        // It's a Player
+                        RenderPlayer(drawList, screenWidth, screenHeight, const_cast<kx::ReClass::ChCliCharacter&>(character), characterNameToPlayerName);
+                    } else {
+                        // It's an NPC
+                        RenderNpc(drawList, screenWidth, screenHeight, const_cast<kx::ReClass::ChCliCharacter&>(character));
                     }
                 }
             }
@@ -360,15 +326,10 @@ void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float s
         kx::ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();
         if (!gadgetCtx) return;
 
-        kx::ReClass::GdCliGadget** gadgetList = gadgetCtx.GetGadgetList();
-        uint32_t gadgetCapacity = gadgetCtx.GetGadgetListCapacity();
-        if (!gadgetList || gadgetCapacity > 0x10000) return;
-
-        for (uint32_t i = 0; i < gadgetCapacity; ++i) {
-            kx::ReClass::GdCliGadget gadget(gadgetList[i]);
-            if (!gadget) continue;
-
-            RenderObject(drawList, screenWidth, screenHeight, gadget);
+        // Safely iterate through gadget list
+        kx::SafeAccess::GadgetList gadgetList(gadgetCtx);
+        for (const auto& gadget : gadgetList) {
+            RenderObject(drawList, screenWidth, screenHeight, const_cast<kx::ReClass::GdCliGadget&>(gadget));
         }
     }
     catch (...) { /* Prevent crash */ }

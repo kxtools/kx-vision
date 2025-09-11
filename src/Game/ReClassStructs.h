@@ -55,7 +55,7 @@ namespace kx {
                 
                 void* coCharPtr = nullptr;
                 if (!Debug::SafeRead<void*>(data(), 0x50, coCharPtr)) {
-                    LOG_ERROR("AgChar::GetCoChar - Failed to read CoChar pointer at offset 0x50");
+                    LOG_WARN("AgChar::GetCoChar - Failed to read CoChar pointer at offset 0x50");
                     return CoChar(nullptr);
                 }
                 
@@ -608,9 +608,9 @@ namespace kx {
         class ContextCollection : public ForeignClass {
         public:
             ContextCollection(void* ptr) : ForeignClass(ptr) {
-                // Debug: Log the ContextCollection base address
-                if (ptr && kx::AppState::Get().IsDebugLoggingEnabled()) {
-                    printf("DEBUG: ContextCollection base = 0x%p\n", ptr);
+                // Debug: Log the ContextCollection base address using proper logging system
+                if (ptr) {
+                    LOG_DEBUG("ContextCollection base = 0x" + std::to_string(reinterpret_cast<uintptr_t>(ptr)));
                 }
             }
 

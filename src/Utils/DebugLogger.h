@@ -4,8 +4,11 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
+#include <chrono>
 #include <Windows.h>
 #include "../Core/AppState.h"
+#include "MemorySafety.h"
 
 namespace kx {
 namespace Debug {
@@ -20,9 +23,45 @@ public:
         CRITICAL    // Critical errors
     };
 
+private:
+    // Default minimum log level (only show errors and critical by default)
+    static Level s_minLogLevel;
+    
+    // Rate limiting for repetitive messages
+    static std::unordered_map<std::string, std::chrono::steady_clock::time_point> s_lastLogTime;
+    static constexpr std::chrono::milliseconds RATE_LIMIT_INTERVAL{1000}; // 1 second between identical messages
+
+public:
+    // Set the minimum log level
+    static void SetMinLogLevel(Level level) {
+        s_minLogLevel = level;
+    }
+
+    // Get the current minimum log level
+    static Level GetMinLogLevel() {
+        return s_minLogLevel;
+    }
+
+    // Convenience methods for setting common log levels
+    static void SetLogLevelDebug() { SetMinLogLevel(DEBUG); }    // Show all logs
+    static void SetLogLevelInfo() { SetMinLogLevel(INFO); }      // Show info and above
+    static void SetLogLevelWarning() { SetMinLogLevel(WARNING); } // Show warnings and above
+    static void SetLogLevelError() { SetMinLogLevel(ERR); }      // Show only errors and critical (default)
+    static void SetLogLevelCritical() { SetMinLogLevel(CRITICAL); } // Show only critical
+
     static void Log(Level level, const std::string& message) {
-        // Check if debug logging is enabled
-        if (!kx::AppState::Get().IsDebugLoggingEnabled()) return;
+        // Check if debug logging is enabled and level meets minimum threshold
+        if (!kx::AppState::Get().IsDebugLoggingEnabled() || level < s_minLogLevel) return;
+        
+        // Rate limiting for repetitive messages
+        auto now = std::chrono::steady_clock::now();
+        auto it = s_lastLogTime.find(message);
+        if (it != s_lastLogTime.end()) {
+            if (now - it->second < RATE_LIMIT_INTERVAL) {
+                return; // Skip this message due to rate limiting
+            }
+        }
+        s_lastLogTime[message] = now;
         
         std::string levelStr;
         switch (level) {
@@ -83,6 +122,13 @@ public:
 #define LOG_MEMORY(cls, method, ptr, offset) kx::Debug::Logger::LogMemoryAccess(cls, method, ptr, offset)
 #define LOG_EXCEPTION(cls, method, details) kx::Debug::Logger::LogException(cls, method, details)
 
+// Convenience macros for setting log levels
+#define LOG_SET_LEVEL_DEBUG() kx::Debug::Logger::SetLogLevelDebug()
+#define LOG_SET_LEVEL_INFO() kx::Debug::Logger::SetLogLevelInfo()
+#define LOG_SET_LEVEL_WARNING() kx::Debug::Logger::SetLogLevelWarning()
+#define LOG_SET_LEVEL_ERROR() kx::Debug::Logger::SetLogLevelError()
+#define LOG_SET_LEVEL_CRITICAL() kx::Debug::Logger::SetLogLevelCritical()
+
 // Implementation function without C++ objects that need unwinding
 template<typename T>
 static bool SafeReadImpl(uintptr_t address, T& result) {
@@ -96,31 +142,6 @@ static bool SafeReadImpl(uintptr_t address, T& result) {
     }
 }
 
-// Check if memory address is readable
-static bool IsMemoryReadable(void* ptr, size_t size = sizeof(void*)) {
-    if (!ptr) return false;
-    
-    uintptr_t address = reinterpret_cast<uintptr_t>(ptr);
-    
-    // Quick validation for obviously invalid addresses
-    // Valid user-mode addresses on x64 are typically < 0x7FFFFFFFFFFF
-    if (address < 0x1000 || address > 0x7FFFFFFFFFFF) {
-        return false;
-    }
-    
-    MEMORY_BASIC_INFORMATION mbi = {};
-    SIZE_T result = VirtualQuery(ptr, &mbi, sizeof(mbi));
-    
-    if (result == 0) return false;
-    
-    // Check if memory is committed and readable
-    if (mbi.State != MEM_COMMIT) return false;
-    if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) return false;
-    if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) return false;
-    
-    return true;
-}
-
 // Safe memory access helper (silent version for frequent operations)
 template<typename T>
 bool SafeRead(void* basePtr, uintptr_t offset, T& result) {
@@ -130,13 +151,15 @@ bool SafeRead(void* basePtr, uintptr_t offset, T& result) {
     
     uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
     
-    // Check for obviously invalid addresses
-    if (address == 0xFFFFFFFFFFFFFFFF || address < 0x1000 || address > 0x7FFFFFFFFFFF) {
+    // Use centralized address validation from SafeAccess
+    if (address == 0xFFFFFFFFFFFFFFFF || 
+        address < SafeAccess::MIN_VALID_MEMORY_ADDRESS || 
+        address > SafeAccess::MAX_VALID_MEMORY_ADDRESS) {
         return false; // Don't log obviously invalid addresses
     }
     
-    // Check if the memory is actually readable
-    if (!IsMemoryReadable(reinterpret_cast<void*>(address), sizeof(T))) {
+    // Use centralized memory safety check
+    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address), sizeof(T))) {
         return false; // Don't log unreadable memory, it's common in scanning
     }
     
@@ -156,8 +179,10 @@ bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result, const std::
     
     uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
     
-    // Check for obviously invalid addresses
-    if (address == 0xFFFFFFFFFFFFFFFF || address < 0x1000 || address > 0x7FFFFFFFFFFF) {
+    // Use centralized address validation from SafeAccess
+    if (address == 0xFFFFFFFFFFFFFFFF || 
+        address < SafeAccess::MIN_VALID_MEMORY_ADDRESS || 
+        address > SafeAccess::MAX_VALID_MEMORY_ADDRESS) {
         if (!context.empty()) {
             std::stringstream ss;
             ss << "SafeRead: Invalid address 0x" << std::hex << address 
@@ -168,8 +193,8 @@ bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result, const std::
         return false;
     }
     
-    // Check if the memory is actually readable
-    if (!IsMemoryReadable(reinterpret_cast<void*>(address), sizeof(T))) {
+    // Use centralized memory safety check
+    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address), sizeof(T))) {
         if (!context.empty()) {
             std::stringstream ss;
             ss << "SafeRead: Memory not readable at 0x" << std::hex << address 

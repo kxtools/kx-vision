@@ -16,6 +16,7 @@
 #include "../Game/GameStructs.h"
 #include "../Game/ReClassStructs.h"
 #include "../Hooking/D3DRenderHook.h"
+#include "../Utils/DebugLogger.h"
 
 // Define static members
 kx::Camera ImGuiManager::m_camera;
@@ -194,6 +195,28 @@ void ImGuiManager::RenderDebugSection() {
         ImGui::Checkbox("Enable Debug Logging", &settings.enableDebugLogging);
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Enable detailed logging to console and kx_debug.log file.\nHelps diagnose crashes and memory access issues.");
+        }
+
+        // Log level selection
+        if (settings.enableDebugLogging) {
+            ImGui::Separator();
+            ImGui::Text("Log Level:");
+            
+            static int currentLogLevel = 3; // Default to ERROR (index 3)
+            const char* logLevels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" };
+            
+            if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
+                // Update log level when changed
+                kx::Debug::Logger::SetMinLogLevel(static_cast<kx::Debug::Logger::Level>(currentLogLevel));
+            }
+            
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("DEBUG: Show all logs (very verbose)\n"
+                                "INFO: Show info and above\n"
+                                "WARNING: Show warnings and above\n"
+                                "ERROR: Show only errors and critical (recommended)\n"
+                                "CRITICAL: Show only critical errors");
+            }
         }
     }
 

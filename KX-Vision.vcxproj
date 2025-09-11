@@ -110,6 +110,7 @@
     <ClCompile Include="libs\ImGui\imgui_tables.cpp" />
     <ClCompile Include="libs\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\Core\Main.cpp" />
+    <ClCompile Include="src\Utils\DebugLogger.cpp" />
     <ClCompile Include="src\Utils\PatternScanner.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -145,7 +146,9 @@
     <ClInclude Include="libs\MinHook\MinHook.h" />
     <ClInclude Include="src\Game\MumbleLink.h" />
     <ClInclude Include="src\Game\offsets.h" />
+    <ClInclude Include="src\Utils\MemorySafety.h" />
     <ClInclude Include="src\Utils\PatternScanner.h" />
+    <ClInclude Include="src\Utils\SafeIterators.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
