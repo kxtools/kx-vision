@@ -60,19 +60,16 @@ void ImGuiManager::RenderESPWindow() {
     // Use AppState singleton instead of global variable
     if (!kx::AppState::Get().IsVisionWindowOpen()) return;
 
+    // Get settings reference once for the entire function
+    auto& settings = kx::AppState::Get().GetSettings();
+
     std::string windowTitle = "KX Vision v";
     windowTitle += kx::APP_VERSION.data();
 
     ImGui::SetNextWindowSize(ImVec2(300, 250), ImGuiCond_FirstUseEver);
     
-    // Pass a reference to the singleton's vision window state
-    bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
-    ImGui::Begin(windowTitle.c_str(), &isOpen);
-    
-    // Update the singleton state if the window was closed via the X button
-    if (!isOpen) {
-        kx::AppState::Get().SetVisionWindowOpen(false);
-    }
+    // Pass a direct pointer to the singleton's vision window state
+    ImGui::Begin(windowTitle.c_str(), kx::AppState::Get().GetVisionWindowOpenRef());
 
     RenderHints();
 
@@ -84,8 +81,6 @@ void ImGuiManager::RenderESPWindow() {
     if (ImGui::BeginTabBar("##ESPCategories")) {
         // --- Players Tab ---
         if (ImGui::BeginTabItem("Players")) {
-            // Access settings through AppState singleton
-            auto& settings = kx::AppState::Get().GetSettings();
             ImGui::Checkbox("Enable Player ESP", &settings.playerESP.enabled);
             if (settings.playerESP.enabled) {
                 ImGui::Checkbox("Render Box##Player", &settings.playerESP.renderBox);
@@ -105,8 +100,6 @@ void ImGuiManager::RenderESPWindow() {
 
         // --- NPCs Tab ---
         if (ImGui::BeginTabItem("NPCs")) {
-            // Access settings through AppState singleton
-            auto& settings = kx::AppState::Get().GetSettings();
             ImGui::Checkbox("Enable NPC ESP", &settings.npcESP.enabled);
             if (settings.npcESP.enabled) {
                 ImGui::Checkbox("Render Box##NPC", &settings.npcESP.renderBox);
@@ -133,8 +126,6 @@ void ImGuiManager::RenderESPWindow() {
 
         // --- Objects Tab ---
         if (ImGui::BeginTabItem("Objects")) {
-            // Access settings through AppState singleton  
-            auto& settings = kx::AppState::Get().GetSettings();
             ImGui::Checkbox("Enable Object ESP", &settings.objectESP.enabled);
             if (settings.objectESP.enabled) {
                 ImGui::Checkbox("Render Box##Object", &settings.objectESP.renderBox);
@@ -155,8 +146,6 @@ void ImGuiManager::RenderESPWindow() {
     ImGui::Separator();
     
     // Global settings can remain outside the tabs
-    // Access settings through AppState singleton  
-    auto& settings = kx::AppState::Get().GetSettings();
     ImGui::Checkbox("Use Distance Limit", &settings.espUseDistanceLimit);
     if (settings.espUseDistanceLimit) {
         ImGui::SliderFloat("Render Distance Limit", &settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");

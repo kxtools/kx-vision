@@ -41,6 +41,7 @@ namespace kx {
         // --- Vision Window State ---
         bool IsVisionWindowOpen() const { return m_isVisionWindowOpen; }
         void SetVisionWindowOpen(bool open) { m_isVisionWindowOpen = open; }
+        bool* GetVisionWindowOpenRef() { return &m_isVisionWindowOpen; }
 
         // --- Shutdown Synchronization ---
         bool IsShuttingDown() const { return m_isShuttingDown.load(std::memory_order_acquire); }
