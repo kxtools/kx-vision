@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.2-green.svg)
 
-![KX-Vision GUI](images/gui.jpg)
+![KX-Vision GUI](images/gui_v2.jpg)
 
 [➡️ Download the Latest Release](https://github.com/kxtools/kx-vision/releases/latest)
 
