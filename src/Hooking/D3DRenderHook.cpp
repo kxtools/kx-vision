@@ -210,7 +210,8 @@ namespace kx::Hooking {
             static bool lastToggleKeyState = false;
             bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
             if (currentToggleKeyState && !lastToggleKeyState) {
-                kx::AppState::Get().GetSettings().showVisionWindow = !kx::AppState::Get().GetSettings().showVisionWindow;
+                auto& settings = kx::AppState::Get().GetSettings();
+                settings.showVisionWindow = !settings.showVisionWindow;
             }
             lastToggleKeyState = currentToggleKeyState;
 
