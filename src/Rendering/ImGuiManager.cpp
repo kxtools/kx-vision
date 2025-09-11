@@ -13,7 +13,6 @@
 #include "../Core/AppState.h"
 #include "../Core/Config.h"
 #include "../Game/AddressManager.h"
-#include "../Game/GameStructs.h"
 #include "../Game/ReClassStructs.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"

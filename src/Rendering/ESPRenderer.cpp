@@ -22,7 +22,6 @@
 #include "ESPStageRenderer.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../Game/AddressManager.h"
-#include "../Game/GameStructs.h"
 #include "../Game/ReClassStructs.h"
 #include "../Utils/EntityFilter.h"
 

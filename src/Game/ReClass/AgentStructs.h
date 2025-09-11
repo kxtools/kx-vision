@@ -3,7 +3,7 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
 #include "../../Utils/SafeForeignClass.h"
-#include "../GameStructs.h"
+#include "../Coordinates.h"
 
 namespace kx {
     namespace ReClass {
