@@ -26,49 +26,67 @@ inline std::string WStringToString(const wchar_t* wstr) {
 inline std::string ProfessionToString(uint32_t profId) {
     Game::Profession profession = static_cast<Game::Profession>(profId);
     const char* name = Game::EnumHelpers::GetProfessionName(profession);
-    if (strcmp(name, "Unknown") == 0) {
-        return "Prof ID: " + std::to_string(profId);
+    if (name != nullptr) {
+        return std::string(name);
     }
-    return std::string(name);
+    return "Prof ID: " + std::to_string(profId);
 }
 
 // Helper to convert profession enum to string (new type-safe version)
 inline std::string ProfessionToString(Game::Profession profession) {
-    return std::string(Game::EnumHelpers::GetProfessionName(profession));
+    const char* name = Game::EnumHelpers::GetProfessionName(profession);
+    if (name != nullptr) {
+        return std::string(name);
+    }
+    return "Prof ID: " + std::to_string(static_cast<uint32_t>(profession));
 }
 
 // Helper to convert race ID to string (legacy uint8_t version)
 inline std::string RaceToString(uint8_t raceId) {
     Game::Race race = static_cast<Game::Race>(raceId);
     const char* name = Game::EnumHelpers::GetRaceName(race);
-    if (strcmp(name, "Unknown") == 0) {
-        return "Race ID: " + std::to_string(raceId);
+    if (name != nullptr) {
+        return std::string(name);
     }
-    return std::string(name);
+    return "Race ID: " + std::to_string(raceId);
 }
 
 // Helper to convert race enum to string (new type-safe version)
 inline std::string RaceToString(Game::Race race) {
-    return std::string(Game::EnumHelpers::GetRaceName(race));
+    const char* name = Game::EnumHelpers::GetRaceName(race);
+    if (name != nullptr) {
+        return std::string(name);
+    }
+    return "Race ID: " + std::to_string(static_cast<uint8_t>(race));
 }
 
 // New helpers for the enhanced enum system
 
 // Helper to convert attitude to string
 inline std::string AttitudeToString(Game::Attitude attitude) {
-    return std::string(Game::EnumHelpers::GetAttitudeName(attitude));
+    const char* name = Game::EnumHelpers::GetAttitudeName(attitude);
+    if (name != nullptr) {
+        return std::string(name);
+    }
+    return "Attitude ID: " + std::to_string(static_cast<uint32_t>(attitude));
 }
 
 // Helper to convert gadget type to string
 inline std::string GadgetTypeToString(Game::GadgetType type) {
-    return std::string(Game::EnumHelpers::GetGadgetTypeName(type));
+    const char* name = Game::EnumHelpers::GetGadgetTypeName(type);
+    if (name != nullptr) {
+        return std::string(name);
+    }
+    return "Gadget ID: " + std::to_string(static_cast<uint32_t>(type));
 }
 
 // Helper to get full character description
 inline std::string GetCharacterDescription(Game::Profession profession, Game::Race race, uint32_t level) {
     std::string prof = ProfessionToString(profession);
     std::string raceStr = RaceToString(race);
-    std::string armor = Game::EnumHelpers::GetArmorWeight(profession);
+    
+    const char* armorName = Game::EnumHelpers::GetArmorWeight(profession);
+    std::string armor = (armorName != nullptr) ? std::string(armorName) : "Armor ID: " + std::to_string(static_cast<uint32_t>(profession));
     
     return "Lvl " + std::to_string(level) + " " + raceStr + " " + prof + " (" + armor + ")";
 }

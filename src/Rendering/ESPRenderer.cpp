@@ -131,34 +131,29 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
             Game::Race race = stats.GetRace();
             uint32_t level = stats.GetLevel();
             
-            if (g_settings.playerESP.showProfession && g_settings.playerESP.showRace) {
-                std::string characterDesc = GetCharacterDescription(profession, race, level);
-                details.push_back(characterDesc);
-            } else {
-                // Show individual components if not showing full description
-                if (level > 0) {
-                    details.push_back("Level " + std::to_string(level));
-                }
-                if (g_settings.playerESP.showProfession) {
-                    details.push_back("Profession: " + ProfessionToString(profession));
-                }
-                if (g_settings.playerESP.showRace) {
-                    details.push_back("Race: " + RaceToString(race));
-                }
+            // Create compact character description
+            std::string characterDesc = "Lvl " + std::to_string(level);
+            
+            if (g_settings.playerESP.showRace) {
+                characterDesc += " " + RaceToString(race);
+            }
+            
+            if (g_settings.playerESP.showProfession) {
+                characterDesc += " " + ProfessionToString(profession);
             }
             
             if (g_settings.playerESP.showArmorWeight) {
                 std::string armorWeight = ESPHelpers::GetArmorWeight(profession);
-                details.push_back("Armor: " + armorWeight);
+                characterDesc += " (" + armorWeight + ")";
             }
+            
+            details.push_back(characterDesc);
         }
 
         // Agent rank information (for special player states)
         uint32_t agentType = agent.GetType();
         if (agentType != AGENT_TYPE_CHARACTER) {
-            char typeText[64];
-            snprintf(typeText, sizeof(typeText), "Special State: %u", agentType);
-            details.push_back(typeText);
+            details.push_back("Agent Type ID: " + std::to_string(agentType));
         }
 
         // Energy information
@@ -173,11 +168,6 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
                 details.push_back(energyText);
             }
         }
-
-        // Distance information for players
-        char distText[32];
-        snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
-        details.push_back(distText);
     }
 
     RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails);
@@ -268,9 +258,8 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
                 case 3: rankName = "Champion"; break;
                 case 4: rankName = "Legendary"; break;
                 default: 
-                    char typeText[64];
-                    snprintf(typeText, sizeof(typeText), "Special Rank: %u", agentType);
-                    details.push_back(typeText);
+                    // Show the actual ID instead of "Unknown"
+                    details.push_back("Agent Type ID: " + std::to_string(agentType));
                     break;
             }
             if (rankName) {
@@ -291,11 +280,6 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
             }
         }
 
-        // Distance and tactical information
-        char distText[32];
-        snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
-        details.push_back(distText);
-        
         // Tactical range assessment
         if (distance <= 130.0f) { // Melee range
             details.push_back("Range: Melee");
@@ -436,16 +420,9 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
                 
             default:
                 details.push_back("Category: Unknown");
-                char typeText[32];
-                snprintf(typeText, sizeof(typeText), "ID: %u", static_cast<uint32_t>(gadgetType));
-                details.push_back(typeText);
+                details.push_back("Gadget ID: " + std::to_string(static_cast<uint32_t>(gadgetType)));
                 break;
         }
-        
-        // Distance and tactical information
-        char distText[32];
-        snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
-        details.push_back(distText);
         
         // Interaction range assessment
         if (distance <= 300.0f) { // Standard interaction range

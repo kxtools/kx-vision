@@ -17,22 +17,38 @@ class ESPHelpers {
 public:
     // Convert profession enum to display string
     static std::string ProfessionToString(Game::Profession profession) {
-        return std::string(Game::EnumHelpers::GetProfessionName(profession));
+        const char* name = Game::EnumHelpers::GetProfessionName(profession);
+        if (name != nullptr) {
+            return std::string(name);
+        }
+        return "Prof ID: " + std::to_string(static_cast<uint32_t>(profession));
     }
 
     // Convert race enum to display string  
     static std::string RaceToString(Game::Race race) {
-        return std::string(Game::EnumHelpers::GetRaceName(race));
+        const char* name = Game::EnumHelpers::GetRaceName(race);
+        if (name != nullptr) {
+            return std::string(name);
+        }
+        return "Race ID: " + std::to_string(static_cast<uint8_t>(race));
     }
 
     // Convert attitude enum to display string
     static std::string AttitudeToString(Game::Attitude attitude) {
-        return std::string(Game::EnumHelpers::GetAttitudeName(attitude));
+        const char* name = Game::EnumHelpers::GetAttitudeName(attitude);
+        if (name != nullptr) {
+            return std::string(name);
+        }
+        return "Attitude ID: " + std::to_string(static_cast<uint32_t>(attitude));
     }
 
     // Convert gadget type enum to display string
     static std::string GadgetTypeToString(Game::GadgetType type) {
-        return std::string(Game::EnumHelpers::GetGadgetTypeName(type));
+        const char* name = Game::EnumHelpers::GetGadgetTypeName(type);
+        if (name != nullptr) {
+            return std::string(name);
+        }
+        return "Gadget ID: " + std::to_string(static_cast<uint32_t>(type));
     }
 
     // Get color based on attitude
@@ -102,7 +118,11 @@ public:
 
     // Get armor weight description
     static std::string GetArmorWeight(Game::Profession profession) {
-        return std::string(Game::EnumHelpers::GetArmorWeight(profession));
+        const char* name = Game::EnumHelpers::GetArmorWeight(profession);
+        if (name != nullptr) {
+            return std::string(name);
+        }
+        return "Armor ID: " + std::to_string(static_cast<uint32_t>(profession));
     }
 
     // Enhanced threat assessment helper

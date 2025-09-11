@@ -203,7 +203,7 @@ namespace EnumHelpers {
             case Profession::Mesmer: return "Mesmer";
             case Profession::Necromancer: return "Necromancer";
             case Profession::Revenant: return "Revenant";
-            default: return "Unknown";
+            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
         }
     }
 
@@ -214,7 +214,7 @@ namespace EnumHelpers {
             case Race::Human: return "Human";
             case Race::Norn: return "Norn";
             case Race::Sylvari: return "Sylvari";
-            default: return "Unknown";
+            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
         }
     }
 
@@ -229,7 +229,7 @@ namespace EnumHelpers {
             case GadgetType::Interact: return "Interactive";
             case GadgetType::Door: return "Door";
             case GadgetType::MapPortal: return "Portal";
-            default: return "Unknown";
+            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
         }
     }
 
@@ -241,7 +241,7 @@ namespace EnumHelpers {
             case CharacterRank::Elite: return "Elite";
             case CharacterRank::Champion: return "Champion";
             case CharacterRank::Legendary: return "Legendary";
-            default: return "Unknown";
+            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
         }
     }
 
@@ -251,7 +251,7 @@ namespace EnumHelpers {
             case Attitude::Hostile: return "Hostile";
             case Attitude::Indifferent: return "Indifferent";
             case Attitude::Neutral: return "Neutral";
-            default: return "Unknown";
+            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
         }
     }
 
@@ -294,7 +294,7 @@ namespace EnumHelpers {
         if (IsHeavyArmorProfession(profession)) return "Heavy";
         if (IsMediumArmorProfession(profession)) return "Medium";
         if (IsLightArmorProfession(profession)) return "Light";
-        return "Unknown";
+        return nullptr; // Return nullptr for unknown, caller should handle ID display
     }
 
     // Check if a gadget type should be considered important
