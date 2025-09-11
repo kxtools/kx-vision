@@ -144,8 +144,9 @@ void ImGuiManager::RenderESPWindow() {
     if (kx::g_settings.espUseDistanceLimit) {
         ImGui::SliderFloat("Render Distance Limit", &kx::g_settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
     }
-    
+
     ImGui::Separator();
+    RenderInfoSection();
     RenderDebugSection();
 
     ImGui::End();
