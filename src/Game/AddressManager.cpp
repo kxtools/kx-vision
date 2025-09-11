@@ -171,13 +171,13 @@ void AddressManager::ScanGameThreadUpdateFunc() {
 
 void AddressManager::Scan() {
     std::cout << "[AddressManager] Scanning for memory addresses..." << std::endl;
-    ScanAgentArray();
     ScanContextCollectionFunc();
     ScanGameThreadUpdateFunc();
 
     // currently unused
-    /*ScanWorldViewContextPtr();
-    ScanBgfxContextFunc();*/
+    //ScanAgentArray();
+    //ScanWorldViewContextPtr();
+    //ScanBgfxContextFunc();
 }
 
 void AddressManager::Initialize() {
