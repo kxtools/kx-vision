@@ -3,9 +3,6 @@
 #include "gtc/type_ptr.hpp" // Required for glm::value_ptr
 #include <algorithm> // For std::max, std::min
 
-using std::max;
-using std::min;
-
 namespace kx {
 
     namespace ESP_Helpers {
@@ -61,7 +58,9 @@ namespace kx {
             
             // Use distance-based sizing for stability (like many professional ESP systems)
             float baseHeight = 40.0f; // Base height in pixels for players
-            float scaleFactor = max(0.3f, min(2.0f, 100.0f / (distance + 10.0f)));
+            float rawScale = 100.0f / (distance + 10.0f);
+            float minScale = (rawScale > 0.3f) ? rawScale : 0.3f;
+            float scaleFactor = (minScale < 2.0f) ? minScale : 2.0f;
             data.height = baseHeight * scaleFactor;
             data.width = data.height * 0.5f; // 0.5 ratio for human-like entities
             
@@ -98,7 +97,9 @@ namespace kx {
             
             // Use distance-based sizing for NPCs (square boxes for various creature types)
             float baseSize = 30.0f; // Base size in pixels for NPCs (between player height and gadget size)
-            float scaleFactor = max(0.3f, min(2.0f, 80.0f / (distance + 10.0f)));
+            float rawScale = 80.0f / (distance + 10.0f);
+            float minScale = (rawScale > 0.3f) ? rawScale : 0.3f;
+            float scaleFactor = (minScale < 2.0f) ? minScale : 2.0f;
             float size = baseSize * scaleFactor;
             
             // Square boxes for NPCs (works for humanoids, animals, monsters, etc.)
@@ -139,7 +140,9 @@ namespace kx {
             
             // Use distance-based sizing for stability (common in professional ESP systems)
             float baseSize = 8.0f; // Base size in pixels
-            float scaleFactor = max(0.5f, min(2.0f, 50.0f / (distance + 10.0f)));
+            float rawScale = 50.0f / (distance + 10.0f);
+            float minScale = (rawScale > 0.5f) ? rawScale : 0.5f;
+            float scaleFactor = (minScale < 2.0f) ? minScale : 2.0f;
             data.height = baseSize * scaleFactor;
             data.width = data.height; // Square for gadgets
             

@@ -32,7 +32,6 @@ namespace kx {
         bool showHostile = true;
         bool showNeutral = true;
         bool showIndifferent = true;
-        int ignoredAttitude = 0; // Bitmask for NPC attitude types (legacy support)
         // Add specific colors
         // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
         // etc.
@@ -56,8 +55,6 @@ namespace kx {
         bool showDoors = false;
         bool showPortals = true;
         bool onlyImportantGadgets = false; // Only show important gadget types
-        
-        int ignoredGadgets = 0; // Bitmask for gadget types (legacy support)
     };
 
 

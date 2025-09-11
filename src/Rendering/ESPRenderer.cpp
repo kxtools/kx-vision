@@ -181,9 +181,24 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     if (!g_settings.npcESP.enabled) return;
     
     Game::Attitude attitude = character.GetAttitude();
-    uint32_t attitudeValue = static_cast<uint32_t>(attitude);
-    if (g_settings.npcESP.ignoredAttitude & (1 << attitudeValue)) {
-        return;
+    
+    // Use the new boolean flags for attitude filtering
+    switch (attitude) {
+        case Game::Attitude::Friendly:
+            if (!g_settings.npcESP.showFriendly) return;
+            break;
+        case Game::Attitude::Hostile:
+            if (!g_settings.npcESP.showHostile) return;
+            break;
+        case Game::Attitude::Neutral:
+            if (!g_settings.npcESP.showNeutral) return;
+            break;
+        case Game::Attitude::Indifferent:
+            if (!g_settings.npcESP.showIndifferent) return;
+            break;
+        default:
+            // Show unknown attitudes by default
+            break;
     }
 
     const float scaleFactor = 1.23f;
@@ -327,11 +342,44 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
 
     // Use the new enum for type-safe gadget type checking
     Game::GadgetType gadgetType = gadget.GetGadgetType();
-    uint32_t gadgetTypeValue = static_cast<uint32_t>(gadgetType);
     
-    if (g_settings.objectESP.ignoredGadgets & (1 << gadgetTypeValue)) {
-        return;
+    // Use the new boolean flags for gadget filtering
+    bool shouldRender = false;
+    switch (gadgetType) {
+        case Game::GadgetType::ResourceNode:
+            shouldRender = g_settings.objectESP.showResourceNodes;
+            break;
+        case Game::GadgetType::Waypoint:
+            shouldRender = g_settings.objectESP.showWaypoints;
+            break;
+        case Game::GadgetType::Vista:
+            shouldRender = g_settings.objectESP.showVistas;
+            break;
+        case Game::GadgetType::Crafting:
+            shouldRender = g_settings.objectESP.showCraftingStations;
+            break;
+        case Game::GadgetType::AttackTarget:
+            shouldRender = g_settings.objectESP.showAttackTargets;
+            break;
+        case Game::GadgetType::PlayerCreated:
+            shouldRender = g_settings.objectESP.showPlayerCreated;
+            break;
+        case Game::GadgetType::Interact:
+            shouldRender = g_settings.objectESP.showInteractables;
+            break;
+        case Game::GadgetType::Door:
+            shouldRender = g_settings.objectESP.showDoors;
+            break;
+        case Game::GadgetType::MapPortal:
+            shouldRender = g_settings.objectESP.showPortals;
+            break;
+        default:
+            // For unknown types, check if we're in important-only mode
+            shouldRender = !g_settings.objectESP.onlyImportantGadgets;
+            break;
     }
+    
+    if (!shouldRender) return;
 
     // The best feature! Filter out depleted resource nodes using enum comparison
     if (gadgetType == Game::GadgetType::ResourceNode) {

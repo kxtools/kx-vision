@@ -41,16 +41,6 @@ inline std::string ProfessionToString(Game::Profession profession) {
     return "Prof ID: " + std::to_string(static_cast<uint32_t>(profession));
 }
 
-// Helper to convert race ID to string (legacy uint8_t version)
-inline std::string RaceToString(uint8_t raceId) {
-    Game::Race race = static_cast<Game::Race>(raceId);
-    const char* name = Game::EnumHelpers::GetRaceName(race);
-    if (name != nullptr) {
-        return std::string(name);
-    }
-    return "Race ID: " + std::to_string(raceId);
-}
-
 // Helper to convert race enum to string (new type-safe version)
 inline std::string RaceToString(Game::Race race) {
     const char* name = Game::EnumHelpers::GetRaceName(race);
@@ -58,6 +48,11 @@ inline std::string RaceToString(Game::Race race) {
         return std::string(name);
     }
     return "Race ID: " + std::to_string(static_cast<uint8_t>(race));
+}
+
+// Helper to convert race ID to string (legacy uint8_t version)
+inline std::string RaceToString(uint8_t raceId) {
+    return RaceToString(static_cast<Game::Race>(raceId));
 }
 
 // New helpers for the enhanced enum system

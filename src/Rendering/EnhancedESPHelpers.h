@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Game/GameEnums.h"
+#include "StringHelpers.h"
 #include <string>
 
 // Forward declaration to avoid circular dependency
@@ -15,24 +16,6 @@ namespace kx {
 // Enhanced helper functions using the new enums
 class ESPHelpers {
 public:
-    // Convert profession enum to display string
-    static std::string ProfessionToString(Game::Profession profession) {
-        const char* name = Game::EnumHelpers::GetProfessionName(profession);
-        if (name != nullptr) {
-            return std::string(name);
-        }
-        return "Prof ID: " + std::to_string(static_cast<uint32_t>(profession));
-    }
-
-    // Convert race enum to display string  
-    static std::string RaceToString(Game::Race race) {
-        const char* name = Game::EnumHelpers::GetRaceName(race);
-        if (name != nullptr) {
-            return std::string(name);
-        }
-        return "Race ID: " + std::to_string(static_cast<uint8_t>(race));
-    }
-
     // Convert attitude enum to display string
     static std::string AttitudeToString(Game::Attitude attitude) {
         const char* name = Game::EnumHelpers::GetAttitudeName(attitude);
