@@ -2,8 +2,8 @@
 #include "../Core/AppState.h"
 #include "../Game/AddressManager.h"
 #include "../Game/Camera.h"
-#include "ESPUtils.h"
-#include "EnhancedESPHelpers.h"
+#include "ESPMath.h"
+#include "ESPStyling.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../Utils/EntityFilter.h"
 #include <limits>
@@ -188,7 +188,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& world
     
     // Early frustum culling - check if position projects to valid screen coordinates
     glm::vec2 screenPos;
-    if (!kx::ESPUtils::WorldToScreen(worldPos, camera, screenWidth, screenHeight, screenPos)) {
+    if (!kx::ESPMath::WorldToScreen(worldPos, camera, screenWidth, screenHeight, screenPos)) {
         return; // Entity is behind camera or outside frustum
     }
     

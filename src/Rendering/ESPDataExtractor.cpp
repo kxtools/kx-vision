@@ -3,7 +3,7 @@
 #include "../Game/AddressManager.h"
 #include "../Game/ReClassStructs.h"
 #include "../Utils/SafeIterators.h"
-#include "StringHelpers.h"
+#include "ESPFormatting.h"
 
 namespace kx {
 

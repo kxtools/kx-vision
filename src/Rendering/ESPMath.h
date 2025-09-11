@@ -6,7 +6,7 @@
 
 namespace kx {
 
-namespace ESPUtils {
+namespace ESPMath {
 
     /**
      * @brief Projects a 3D world coordinate to 2D screen coordinates.
