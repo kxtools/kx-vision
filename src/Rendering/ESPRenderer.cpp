@@ -11,6 +11,7 @@
 
 #include "../Core/Config.h"
 #include "ESP_Helpers.h"
+#include "EnhancedESPHelpers.h" // Include the new enhanced helpers
 #include "StringHelpers.h" // New include
 #include "../../libs/ImGui/imgui.h"
 #include "../Core/AppState.h"
@@ -153,8 +154,9 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
 void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character) {
     if (!g_settings.npcESP.enabled) return;
     
-    uint32_t attitude = character.GetAttitude();
-    if (g_settings.npcESP.ignoredAttitude & (1 << attitude)) {
+    Game::Attitude attitude = character.GetAttitude();
+    uint32_t attitudeValue = static_cast<uint32_t>(attitude);
+    if (g_settings.npcESP.ignoredAttitude & (1 << attitudeValue)) {
         return;
     }
 
@@ -171,12 +173,8 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     glm::vec3 worldPos(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
     float distance = glm::length(worldPos - s_camera->GetPlayerPosition());
 
-    unsigned int color;
-    switch (attitude) {
-        case 0: color = IM_COL32(0, 255, 100, 220); break; // Friendly
-        case 2: color = IM_COL32(255, 50, 50, 220); break;  // Hostile
-        default: color = IM_COL32(255, 255, 100, 220); break; // Neutral
-    }
+    // Use the new attitude-based color system
+    unsigned int color = ESPHelpers::GetAttitudeColor(attitude);
 
     kx::ReClass::ChCliHealth health = character.GetHealth();
     float healthPercent = -1.0f;
@@ -191,13 +189,17 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         if (stats) {
             char levelText[32];
             snprintf(levelText, sizeof(levelText), "Lvl: %u", stats.GetLevel());
-            std::string prof = ProfessionToString(stats.GetProfession());
-            std::string race = RaceToString(stats.GetRace());
-            details.push_back(std::string(levelText) + " " + race + " " + prof);
+            
+            // Use the new enum-based helpers for better display
+            std::string prof = ESPHelpers::ProfessionToString(stats.GetProfession());
+            std::string race = ESPHelpers::RaceToString(stats.GetRace());
+            std::string armorWeight = ESPHelpers::GetArmorWeight(stats.GetProfession());
+            
+            details.push_back(std::string(levelText) + " " + race + " " + prof + " (" + armorWeight + ")");
         }
 
-        char attitudeText[32];
-        snprintf(attitudeText, sizeof(attitudeText), "Attitude: %u", attitude);
+        // Use the new attitude helper
+        std::string attitudeText = "Attitude: " + ESPHelpers::AttitudeToString(attitude);
         details.push_back(attitudeText);
 
         uint32_t agentType = agent.GetType();
@@ -247,14 +249,16 @@ void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float s
 void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::GdCliGadget& gadget) {
     if (!g_settings.objectESP.enabled) return;
 
-    // Filter by gadget type using the direct data
-    uint32_t gadgetType = gadget.GetGadgetType();
-    if (g_settings.objectESP.ignoredGadgets & (1 << gadgetType)) {
+    // Use the new enum for type-safe gadget type checking
+    Game::GadgetType gadgetType = gadget.GetGadgetType();
+    uint32_t gadgetTypeValue = static_cast<uint32_t>(gadgetType);
+    
+    if (g_settings.objectESP.ignoredGadgets & (1 << gadgetTypeValue)) {
         return;
     }
 
-    // The best feature! Filter out depleted resource nodes.
-    if (gadgetType == kx::GADGET_TYPE_RESOURCE_NODE) {
+    // The best feature! Filter out depleted resource nodes using enum comparison
+    if (gadgetType == Game::GadgetType::ResourceNode) {
         if (!gadget.IsGatherable()) {
             return;
         }
@@ -272,13 +276,32 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     glm::vec3 worldPos(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
     float distance = glm::length(worldPos - s_camera->GetPlayerPosition());
 
-    unsigned int color = IM_COL32(200, 200, 200, 200);
+    // Use the new gadget type-based color system
+    unsigned int color = ESPHelpers::GetGadgetTypeColor(gadgetType);
+    
+    // Make important gadgets more visible at distance
+    if (ESPHelpers::IsImportantGadgetType(gadgetType)) {
+        // Increase opacity for important gadgets
+        color = (color & 0x00FFFFFF) | 0xFF000000;
+    }
 
     std::vector<std::string> details;
     if (g_settings.objectESP.renderDetails) {
-        char gadgetText[64];
-        snprintf(gadgetText, sizeof(gadgetText), "Gadget Type: %u", gadgetType);
-        details.push_back(gadgetText);
+        // Use the new enum-based helper for better display
+        std::string gadgetTypeName = ESPHelpers::GadgetTypeToString(gadgetType);
+        details.push_back("Type: " + gadgetTypeName);
+        
+        // Add additional context for resource nodes
+        if (gadgetType == Game::GadgetType::ResourceNode) {
+            details.push_back(gadget.IsGatherable() ? "Status: Gatherable" : "Status: Depleted");
+        }
+        
+        // Add distance for important objects
+        if (ESPHelpers::IsImportantGadgetType(gadgetType)) {
+            char distText[32];
+            snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
+            details.push_back(distText);
+        }
     }
 
     RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails);

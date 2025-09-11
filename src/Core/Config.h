@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view> // For std::string_view
+#include "../Game/GameEnums.h"
 
 namespace kx {
     constexpr std::string_view APP_VERSION = "0.2";
@@ -18,5 +19,7 @@ namespace kx {
 
     constexpr int MAX_GADGET_TYPES = 32;
 
-    constexpr uint32_t GADGET_TYPE_RESOURCE_NODE = 19;
+    // Use the new enum for type safety
+    constexpr Game::GadgetType RESOURCE_NODE_TYPE = Game::GadgetType::ResourceNode;
+    constexpr uint32_t GADGET_TYPE_RESOURCE_NODE = static_cast<uint32_t>(Game::GadgetType::ResourceNode);
 } // namespace kx
