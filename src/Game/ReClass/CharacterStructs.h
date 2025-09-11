@@ -2,7 +2,7 @@
 
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
-#include "../../Utils/ForeignClass.h"
+#include "../../Utils/SafeForeignClass.h"
 #include "../GameStructs.h"
 #include "../GameEnums.h"
 #include "AgentStructs.h"
@@ -13,9 +13,9 @@ namespace kx {
         /**
          * @brief Character health management wrapper
          */
-        class ChCliHealth : public ForeignClass {
+        class ChCliHealth : public SafeForeignClass {
         public:
-            ChCliHealth(void* ptr) : ForeignClass(ptr) {}
+            ChCliHealth(void* ptr) : SafeForeignClass(ptr) {}
             
             float GetCurrent() { 
                 LOG_MEMORY("ChCliHealth", "GetCurrent", data(), 0x0C);
@@ -57,9 +57,9 @@ namespace kx {
         /**
          * @brief Character energy management wrapper
          */
-        class ChCliEnergies : public ForeignClass {
+        class ChCliEnergies : public SafeForeignClass {
         public:
-            ChCliEnergies(void* ptr) : ForeignClass(ptr) {}
+            ChCliEnergies(void* ptr) : SafeForeignClass(ptr) {}
             
             float GetCurrent() { 
                 LOG_MEMORY("ChCliEnergies", "GetCurrent", data(), 0x0C);
@@ -101,9 +101,9 @@ namespace kx {
         /**
          * @brief Character core statistics wrapper
          */
-        class ChCliCoreStats : public ForeignClass {
+        class ChCliCoreStats : public SafeForeignClass {
         public:
-            ChCliCoreStats(void* ptr) : ForeignClass(ptr) {}
+            ChCliCoreStats(void* ptr) : SafeForeignClass(ptr) {}
             
             Game::Race GetRace() { 
                 LOG_MEMORY("ChCliCoreStats", "GetRace", data(), 0x33);
@@ -165,9 +165,9 @@ namespace kx {
         /**
          * @brief Main character wrapper with access to all character subsystems
          */
-        class ChCliCharacter : public ForeignClass {
+        class ChCliCharacter : public SafeForeignClass {
         public:
-            ChCliCharacter(void* ptr) : ForeignClass(ptr) {}
+            ChCliCharacter(void* ptr) : SafeForeignClass(ptr) {}
 
             AgChar GetAgent() {
                 if (!data()) {
@@ -254,9 +254,9 @@ namespace kx {
         /**
          * @brief Player wrapper that contains character data and player name
          */
-        class ChCliPlayer : public ForeignClass {
+        class ChCliPlayer : public SafeForeignClass {
         public:
-            ChCliPlayer(void* ptr) : ForeignClass(ptr) {}
+            ChCliPlayer(void* ptr) : SafeForeignClass(ptr) {}
             
             ChCliCharacter GetCharacter() { 
                 if (!data()) {

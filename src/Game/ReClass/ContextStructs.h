@@ -2,7 +2,7 @@
 
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
-#include "../../Utils/ForeignClass.h"
+#include "../../Utils/SafeForeignClass.h"
 #include "CharacterStructs.h"
 #include "GadgetStructs.h"
 
@@ -12,9 +12,9 @@ namespace kx {
         /**
          * @brief Character context manager - handles character and player lists
          */
-        class ChCliContext : public ForeignClass {
+        class ChCliContext : public SafeForeignClass {
         public:
-            ChCliContext(void* ptr) : ForeignClass(ptr) {}
+            ChCliContext(void* ptr) : SafeForeignClass(ptr) {}
 
             ChCliCharacter** GetCharacterList() {
                 LOG_MEMORY("ChCliContext", "GetCharacterList", data(), 0x60);
@@ -109,9 +109,9 @@ namespace kx {
         /**
          * @brief Gadget context manager - handles gadget lists
          */
-        class GdCliContext : public ForeignClass {
+        class GdCliContext : public SafeForeignClass {
         public:
-            GdCliContext(void* ptr) : ForeignClass(ptr) {}
+            GdCliContext(void* ptr) : SafeForeignClass(ptr) {}
 
             GdCliGadget** GetGadgetList() {
                 LOG_MEMORY("GdCliContext", "GetGadgetList", data(), 0x0030);
@@ -171,9 +171,9 @@ namespace kx {
         /**
          * @brief Root context collection - entry point for all game context access
          */
-        class ContextCollection : public ForeignClass {
+        class ContextCollection : public SafeForeignClass {
         public:
-            ContextCollection(void* ptr) : ForeignClass(ptr) {
+            ContextCollection(void* ptr) : SafeForeignClass(ptr) {
                 // Debug: Log the ContextCollection base address using proper logging system
                 if (ptr) {
                     LOG_DEBUG("ContextCollection base = 0x" + std::to_string(reinterpret_cast<uintptr_t>(ptr)));

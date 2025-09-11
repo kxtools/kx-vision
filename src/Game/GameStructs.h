@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <windows.h> // Required for EXCEPTION_EXECUTE_HANDLER
 
-#include "../Utils/ForeignClass.h"
+#include "../Utils/SafeForeignClass.h"
 #include "GameEnums.h"
 #include "offsets.h"
 
@@ -22,16 +22,16 @@ struct Coordinates3D {
 class Agent {
 private:
     // This pointer is to a CAvAgent, the wrapper object in the agent array.
-    kx::ForeignClass pAvAgent;
+    kx::SafeForeignClass pAvAgent;
 
     // Helper to get the pAgentBase from the pAvAgent.
     // The pointer chain is confirmed by the C# reference code.
-    kx::ForeignClass GetBaseAgent() {
+    kx::SafeForeignClass GetBaseAgent() {
         const uintptr_t MIN_VALID_POINTER = 0x10000;
-        if (!pAvAgent || (uintptr_t)pAvAgent.data() < MIN_VALID_POINTER) return ForeignClass(nullptr);
+        if (!pAvAgent || (uintptr_t)pAvAgent.data() < MIN_VALID_POINTER) return SafeForeignClass(nullptr);
 
-        kx::ForeignClass p1 = pAvAgent.get<void*>(Offsets::AGENT_PTR_CHAIN_1);
-        if (!p1 || (uintptr_t)p1.data() < MIN_VALID_POINTER) return ForeignClass(nullptr);
+        kx::SafeForeignClass p1 = pAvAgent.get<void*>(Offsets::AGENT_PTR_CHAIN_1);
+        if (!p1 || (uintptr_t)p1.data() < MIN_VALID_POINTER) return SafeForeignClass(nullptr);
 
         return p1.get<void*>(Offsets::AGENT_PTR_CHAIN_2);
     }
@@ -43,10 +43,10 @@ public:
         Coordinates3D pos = { 0, 0, 0 };
         const uintptr_t MIN_VALID_POINTER = 0x10000;
         __try {
-            kx::ForeignClass pAgentBase = GetBaseAgent();
+            kx::SafeForeignClass pAgentBase = GetBaseAgent();
             if (!pAgentBase) return pos;
 
-            kx::ForeignClass pAgentTransform = pAgentBase.get<void*>(Offsets::AGENT_BASE_TRANSFORM);
+            kx::SafeForeignClass pAgentTransform = pAgentBase.get<void*>(Offsets::AGENT_BASE_TRANSFORM);
             if (!pAgentTransform || (uintptr_t)pAgentTransform.data() < MIN_VALID_POINTER) return pos;
 
             pos.X = pAgentTransform.get<float>(Offsets::AGENT_TRANSFORM_X);
@@ -61,7 +61,7 @@ public:
 
     uint32_t GetId() {
         __try {
-            kx::ForeignClass pAgentBase = GetBaseAgent();
+            kx::SafeForeignClass pAgentBase = GetBaseAgent();
             if (!pAgentBase) return 0;
             return pAgentBase.get<uint32_t>(Offsets::AGENT_BASE_ID);
         } __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -72,7 +72,7 @@ public:
     // We use the new AgentType enum but return int for compatibility
     Game::AgentType GetAgentType() {
         __try {
-            kx::ForeignClass pAgentBase = GetBaseAgent();
+            kx::SafeForeignClass pAgentBase = GetBaseAgent();
             if (!pAgentBase) return Game::AgentType::Error;
             int typeValue = pAgentBase.get<int>(Offsets::AGENT_BASE_TYPE);
             return static_cast<Game::AgentType>(typeValue);
@@ -89,7 +89,7 @@ public:
     // We use the new GadgetType enum but return int for compatibility
     Game::GadgetType GetGadgetType() {
         __try {
-            kx::ForeignClass pAgentBase = GetBaseAgent();
+            kx::SafeForeignClass pAgentBase = GetBaseAgent();
             if (!pAgentBase) return Game::GadgetType::None;
             int typeValue = pAgentBase.get<int>(Offsets::AGENT_BASE_GADGET_TYPE);
             return static_cast<Game::GadgetType>(typeValue);
@@ -111,7 +111,7 @@ public:
         if (!ppArray) return Agent(nullptr);
         void* pArray = ppArray.get<void*>(Offsets::AGENT_ARRAY_POINTER);
         if (!pArray) return Agent(nullptr);
-        kx::ForeignClass arrayWrapper(pArray);
+        kx::SafeForeignClass arrayWrapper(pArray);
         return Agent(arrayWrapper.get<void*>(index * sizeof(void*)));
     }
 
@@ -126,7 +126,7 @@ public:
     }
 
 private:
-    kx::ForeignClass ppArray;
+    kx::SafeForeignClass ppArray;
 };
 
 } // namespace kx

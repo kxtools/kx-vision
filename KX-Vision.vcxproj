@@ -140,7 +140,6 @@
     <ClInclude Include="src\Rendering\ESPUtils.h" />
     <ClInclude Include="src\Utils\DebugLogger.h" />
     <ClInclude Include="src\Utils\EntityFilter.h" />
-    <ClInclude Include="src\Utils\ForeignClass.h" />
     <ClInclude Include="src\Game\GameStructs.h" />
     <ClInclude Include="src\Rendering\GuiStyle.h" />
     <ClInclude Include="src\Hooking\HookManager.h" />
@@ -159,6 +158,7 @@
     <ClInclude Include="src\Game\offsets.h" />
     <ClInclude Include="src\Utils\MemorySafety.h" />
     <ClInclude Include="src\Utils\PatternScanner.h" />
+    <ClInclude Include="src\Utils\SafeForeignClass.h" />
     <ClInclude Include="src\Utils\SafeIterators.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -2,7 +2,7 @@
 
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
-#include "../../Utils/ForeignClass.h"
+#include "../../Utils/SafeForeignClass.h"
 #include "../GameStructs.h"
 
 namespace kx {
@@ -14,9 +14,9 @@ namespace kx {
         /**
          * @brief Coordinate/Object wrapper for character positioning
          */
-        class CoChar : public ForeignClass {
+        class CoChar : public SafeForeignClass {
         public:
-            CoChar(void* ptr) : ForeignClass(ptr) {}
+            CoChar(void* ptr) : SafeForeignClass(ptr) {}
 
             Coordinates3D GetVisualPosition() {
                 // Only log memory access for successful reads to reduce spam
@@ -37,9 +37,9 @@ namespace kx {
         /**
          * @brief Agent wrapper for character entities
          */
-        class AgChar : public ForeignClass {
+        class AgChar : public SafeForeignClass {
         public:
-            AgChar(void* ptr) : ForeignClass(ptr) {}
+            AgChar(void* ptr) : SafeForeignClass(ptr) {}
 
             CoChar GetCoChar() {
                 LOG_MEMORY("AgChar", "GetCoChar", data(), 0x50);

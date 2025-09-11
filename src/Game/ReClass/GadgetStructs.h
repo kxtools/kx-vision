@@ -2,7 +2,7 @@
 
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
-#include "../../Utils/ForeignClass.h"
+#include "../../Utils/SafeForeignClass.h"
 #include "../GameStructs.h"
 #include "../GameEnums.h"
 
@@ -12,9 +12,9 @@ namespace kx {
         /**
          * @brief Coordinate/Object wrapper for gadget positioning
          */
-        class CoKeyFramed : public ForeignClass {
+        class CoKeyFramed : public SafeForeignClass {
         public:
-            CoKeyFramed(void* ptr) : ForeignClass(ptr) {}
+            CoKeyFramed(void* ptr) : SafeForeignClass(ptr) {}
             
             Coordinates3D GetPosition() {
                 LOG_MEMORY("CoKeyFramed", "GetPosition", data(), 0x0030);
@@ -39,9 +39,9 @@ namespace kx {
         /**
          * @brief Agent wrapper for gadget entities
          */
-        class AgKeyFramed : public ForeignClass {
+        class AgKeyFramed : public SafeForeignClass {
         public:
-            AgKeyFramed(void* ptr) : ForeignClass(ptr) {}
+            AgKeyFramed(void* ptr) : SafeForeignClass(ptr) {}
             
             CoKeyFramed GetCoKeyFramed() {
                 LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), 0x0050);
@@ -65,9 +65,9 @@ namespace kx {
         /**
          * @brief Main gadget wrapper for interactive objects in the world
          */
-        class GdCliGadget : public ForeignClass {
+        class GdCliGadget : public SafeForeignClass {
         public:
-            GdCliGadget(void* ptr) : ForeignClass(ptr) {}
+            GdCliGadget(void* ptr) : SafeForeignClass(ptr) {}
 
             Game::GadgetType GetGadgetType() {
                 LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), 0x0200);
