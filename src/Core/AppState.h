@@ -76,6 +76,9 @@ namespace kx {
         bool enableSmartFiltering = true; // Use the enhanced enum-based filtering
         bool hideDepletedNodes = true;    // Hide depleted resource nodes
         bool prioritizeImportant = true;  // Give priority to important objects
+        
+        // Debug options
+        bool enableDebugLogging = false;  // Enable detailed debug logging
     };
 
     extern Settings g_settings;

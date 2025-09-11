@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <windows.h> // Required for EXCEPTION_EXECUTE_HANDLER
 
-#include "ForeignClass.h"
+#include "../Utils/ForeignClass.h"
 #include "GameEnums.h"
 #include "offsets.h"
 

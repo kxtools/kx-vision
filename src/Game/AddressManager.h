@@ -33,6 +33,7 @@ public:
     static void* GetLocalPlayer();
 
 private:
+    static void* GetLocalPlayerImpl(void* pContextCollection); // Helper to avoid object unwinding issues
     static void Scan();
     static void ScanAgentArray();
     static void ScanWorldViewContextPtr();

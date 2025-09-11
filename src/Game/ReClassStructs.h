@@ -1,5 +1,7 @@
 #pragma once
 
+#include <DebugLogger.h>
+
 #include "../Utils/ForeignClass.h"
 #include "GameStructs.h" // Re-use Coordinates3D
 #include "GameEnums.h"   // Include the new enums
@@ -184,10 +186,21 @@ namespace kx {
             }
 
             ChCliCharacter* GetLocalPlayer() {
-                __try {
-                    if (!data()) return nullptr;
-                    return get<ChCliCharacter*>(0x98);
-                } __except (EXCEPTION_EXECUTE_HANDLER) { return nullptr; }
+                LOG_MEMORY("ChCliContext", "GetLocalPlayer", data(), 0x98);
+                
+                if (!data()) {
+                    LOG_ERROR("ChCliContext::GetLocalPlayer - Context data is null");
+                    return nullptr;
+                }
+                
+                ChCliCharacter* result = nullptr;
+                if (!Debug::SafeRead<ChCliCharacter*>(data(), 0x98, result)) {
+                    LOG_ERROR("ChCliContext::GetLocalPlayer - Failed to read local player pointer");
+                    return nullptr;
+                }
+                
+                LOG_PTR("LocalPlayer", result);
+                return result;
             }
         };
 
@@ -269,13 +282,21 @@ namespace kx {
             ContextCollection(void* ptr) : ForeignClass(ptr) {}
 
             ChCliContext GetChCliContext() {
-                __try {
-                    if (!data()) return ChCliContext(nullptr);
-                    return ChCliContext(get<void*>(0x98));
-                }
-                __except (EXCEPTION_EXECUTE_HANDLER) {
+                LOG_MEMORY("ContextCollection", "GetChCliContext", data(), 0x98);
+                
+                if (!data()) {
+                    LOG_ERROR("ContextCollection::GetChCliContext - ContextCollection data is null");
                     return ChCliContext(nullptr);
                 }
+                
+                void* contextPtr = nullptr;
+                if (!Debug::SafeRead<void*>(data(), 0x98, contextPtr)) {
+                    LOG_ERROR("ContextCollection::GetChCliContext - Failed to read ChCliContext pointer");
+                    return ChCliContext(nullptr);
+                }
+                
+                LOG_PTR("ChCliContext", contextPtr);
+                return ChCliContext(contextPtr);
             }
 
             GdCliContext GetGdCliContext() {

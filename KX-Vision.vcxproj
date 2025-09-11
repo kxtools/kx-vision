@@ -125,6 +125,7 @@
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Rendering\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\ESP_Helpers.h" />
+    <ClInclude Include="src\Utils\DebugLogger.h" />
     <ClInclude Include="src\Utils\EntityFilter.h" />
     <ClInclude Include="src\Utils\ForeignClass.h" />
     <ClInclude Include="src\Game\GameStructs.h" />

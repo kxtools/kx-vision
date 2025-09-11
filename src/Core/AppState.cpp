@@ -16,4 +16,9 @@ namespace kx {
 	// --- Shutdown Synchronization ---
 	std::atomic<bool> g_isShuttingDown = false;
 
+	// --- Debug Logging Helper ---
+	bool IsDebugLoggingEnabled() {
+		return g_settings.enableDebugLogging;
+	}
+
 } // namespace kx

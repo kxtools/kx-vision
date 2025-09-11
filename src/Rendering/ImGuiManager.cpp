@@ -144,6 +144,13 @@ void ImGuiManager::RenderESPWindow() {
     if (kx::g_settings.espUseDistanceLimit) {
         ImGui::SliderFloat("Render Distance Limit", &kx::g_settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
     }
+    
+    ImGui::Separator();
+    ImGui::Text("Debug Options");
+    ImGui::Checkbox("Enable Debug Logging", &kx::g_settings.enableDebugLogging);
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Enable detailed logging to console and kx_debug.log file.\nHelps diagnose crashes and memory access issues.");
+    }
 
     ImGui::Separator();
     RenderDebugSection();
