@@ -18,5 +18,5 @@ namespace kx {
 
     constexpr int MAX_GADGET_TYPES = 32;
 
-    constexpr uint32_t GADGET_TYPE_RESOURCE_NODE = 18;
+    constexpr uint32_t GADGET_TYPE_RESOURCE_NODE = 19;
 } // namespace kx

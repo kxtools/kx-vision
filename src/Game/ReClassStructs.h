@@ -177,6 +177,14 @@ namespace kx {
                 }
                 __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
             }
+
+            uint32_t GetGadgetListCount() {
+                __try {
+                    if (!data()) return 0;
+                    return get<uint32_t>(0x003C); // Offset of dwGadgetListCount
+                }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
+            }
         };
 
         class CoKeyFramed : public ForeignClass {
