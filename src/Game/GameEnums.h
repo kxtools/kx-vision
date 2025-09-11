@@ -297,6 +297,20 @@ namespace EnumHelpers {
         return "Unknown";
     }
 
+    // Check if a gadget type should be considered important
+    inline bool IsImportantGadgetType(GadgetType type) {
+        switch (type) {
+            case GadgetType::ResourceNode:
+            case GadgetType::Waypoint:
+            case GadgetType::Vista:
+            case GadgetType::AttackTarget:
+            case GadgetType::Interact:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     inline bool IsDebuff(EffectType effect) {
         switch (effect) {
             case EffectType::Blind:

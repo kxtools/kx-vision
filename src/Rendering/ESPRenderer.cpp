@@ -18,6 +18,7 @@
 #include "../Game/AddressManager.h"
 #include "../Game/GameStructs.h"
 #include "../Game/ReClassStructs.h"
+#include "../Utils/EntityFilter.h" // Include for advanced filtering functions
 
 namespace kx {
 
@@ -116,36 +117,67 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
 
     std::vector<std::string> details;
     if (g_settings.playerESP.renderDetails) {
+        // Player name (highest priority)
         auto it = characterNameToPlayerName.find(character.data());
         if (it != characterNameToPlayerName.end()) {
-            details.push_back(WStringToString(it->second));
+            std::string playerName = WStringToString(it->second);
+            details.push_back("Player: " + playerName);
         }
 
         kx::ReClass::ChCliCoreStats stats = character.GetCoreStats();
         if (stats) {
-            char levelText[32];
-            snprintf(levelText, sizeof(levelText), "Lvl: %u", stats.GetLevel());
-            std::string prof = ProfessionToString(stats.GetProfession());
-            std::string race = RaceToString(stats.GetRace());
-            details.push_back(std::string(levelText) + " " + race + " " + prof);
+            // Enhanced character information using new enums
+            Game::Profession profession = stats.GetProfession();
+            Game::Race race = stats.GetRace();
+            uint32_t level = stats.GetLevel();
+            
+            if (g_settings.playerESP.showProfession && g_settings.playerESP.showRace) {
+                std::string characterDesc = GetCharacterDescription(profession, race, level);
+                details.push_back(characterDesc);
+            } else {
+                // Show individual components if not showing full description
+                if (level > 0) {
+                    details.push_back("Level " + std::to_string(level));
+                }
+                if (g_settings.playerESP.showProfession) {
+                    details.push_back("Profession: " + ProfessionToString(profession));
+                }
+                if (g_settings.playerESP.showRace) {
+                    details.push_back("Race: " + RaceToString(race));
+                }
+            }
+            
+            if (g_settings.playerESP.showArmorWeight) {
+                std::string armorWeight = ESPHelpers::GetArmorWeight(profession);
+                details.push_back("Armor: " + armorWeight);
+            }
         }
 
+        // Agent rank information (for special player states)
         uint32_t agentType = agent.GetType();
-        if (agentType != AGENT_TYPE_CHARACTER) { // AGENT_TYPE_CHARACTER is the standard character type; only show for other types
+        if (agentType != AGENT_TYPE_CHARACTER) {
             char typeText[64];
-            snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
+            snprintf(typeText, sizeof(typeText), "Special State: %u", agentType);
             details.push_back(typeText);
         }
 
+        // Energy information
         kx::ReClass::ChCliEnergies energies = character.GetEnergies();
         if (energies) {
             float maxEnergy = energies.GetMax();
+            float currentEnergy = energies.GetCurrent();
             if (maxEnergy > 0) {
+                float energyPercent = (currentEnergy / maxEnergy) * 100.0f;
                 char energyText[64];
-                snprintf(energyText, sizeof(energyText), "E: %.0f/%.0f", energies.GetCurrent(), maxEnergy);
+                snprintf(energyText, sizeof(energyText), "Energy: %.0f/%.0f (%.0f%%)", currentEnergy, maxEnergy, energyPercent);
                 details.push_back(energyText);
             }
         }
+
+        // Distance information for players
+        char distText[32];
+        snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
+        details.push_back(distText);
     }
 
     RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails);
@@ -187,36 +219,92 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     if (g_settings.npcESP.renderDetails) {
         kx::ReClass::ChCliCoreStats stats = character.GetCoreStats();
         if (stats) {
-            char levelText[32];
-            snprintf(levelText, sizeof(levelText), "Lvl: %u", stats.GetLevel());
+            // Enhanced NPC information using new enums
+            Game::Profession profession = stats.GetProfession();
+            Game::Race race = stats.GetRace();
+            uint32_t level = stats.GetLevel();
             
-            // Use the new enum-based helpers for better display
-            std::string prof = ESPHelpers::ProfessionToString(stats.GetProfession());
-            std::string race = ESPHelpers::RaceToString(stats.GetRace());
-            std::string armorWeight = ESPHelpers::GetArmorWeight(stats.GetProfession());
+            // Comprehensive character description
+            std::string characterDesc = GetCharacterDescription(profession, race, level);
+            details.push_back(characterDesc);
             
-            details.push_back(std::string(levelText) + " " + race + " " + prof + " (" + armorWeight + ")");
+            // Combat role analysis
+            if (ESPHelpers::IsSupportProfession(profession)) {
+                details.push_back("Role: Support");
+            } else if (ESPHelpers::IsDpsProfession(profession)) {
+                details.push_back("Role: DPS");
+            } else {
+                details.push_back("Role: Hybrid");
+            }
         }
 
-        // Use the new attitude helper
+        // Enhanced attitude display with threat assessment
         std::string attitudeText = "Attitude: " + ESPHelpers::AttitudeToString(attitude);
         details.push_back(attitudeText);
-
-        uint32_t agentType = agent.GetType();
-        if (agentType != AGENT_TYPE_CHARACTER) { // Only show for agent types other than AGENT_TYPE_CHARACTER (standard character type)
-            char typeText[64];
-            snprintf(typeText, sizeof(typeText), "RankID: %u", agentType);
-            details.push_back(typeText);
+        
+        // Threat level calculation
+        kx::ReClass::ChCliCoreStats stats2 = character.GetCoreStats();
+        if (stats2) {
+            int threatLevel = ESPHelpers::GetThreatLevel(attitude, stats2.GetProfession());
+            if (threatLevel > 75) {
+                details.push_back("Threat: HIGH");
+            } else if (threatLevel > 50) {
+                details.push_back("Threat: Medium");
+            } else if (threatLevel > 25) {
+                details.push_back("Threat: Low");
+            } else {
+                details.push_back("Threat: Minimal");
+            }
         }
 
+        // Agent rank/type information with better descriptions
+        uint32_t agentType = agent.GetType();
+        if (agentType != AGENT_TYPE_CHARACTER) {
+            // Try to interpret special agent types
+            const char* rankName = nullptr;
+            switch (agentType) {
+                case 1: rankName = "Veteran"; break;
+                case 2: rankName = "Elite"; break;
+                case 3: rankName = "Champion"; break;
+                case 4: rankName = "Legendary"; break;
+                default: 
+                    char typeText[64];
+                    snprintf(typeText, sizeof(typeText), "Special Rank: %u", agentType);
+                    details.push_back(typeText);
+                    break;
+            }
+            if (rankName) {
+                details.push_back(std::string("Rank: ") + rankName);
+            }
+        }
+
+        // Enhanced energy display with percentage
         kx::ReClass::ChCliEnergies energies = character.GetEnergies();
         if (energies) {
             float maxEnergy = energies.GetMax();
+            float currentEnergy = energies.GetCurrent();
             if (maxEnergy > 0) {
+                float energyPercent = (currentEnergy / maxEnergy) * 100.0f;
                 char energyText[64];
-                snprintf(energyText, sizeof(energyText), "E: %.0f/%.0f", energies.GetCurrent(), maxEnergy);
+                snprintf(energyText, sizeof(energyText), "Energy: %.0f/%.0f (%.0f%%)", currentEnergy, maxEnergy, energyPercent);
                 details.push_back(energyText);
             }
+        }
+
+        // Distance and tactical information
+        char distText[32];
+        snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
+        details.push_back(distText);
+        
+        // Tactical range assessment
+        if (distance <= 130.0f) { // Melee range
+            details.push_back("Range: Melee");
+        } else if (distance <= 300.0f) { // Ranged combat range
+            details.push_back("Range: Ranged");
+        } else if (distance <= 900.0f) { // Long range
+            details.push_back("Range: Long");
+        } else {
+            details.push_back("Range: Very Long");
         }
     }
 
@@ -287,20 +375,105 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
 
     std::vector<std::string> details;
     if (g_settings.objectESP.renderDetails) {
-        // Use the new enum-based helper for better display
+        // Primary identification
         std::string gadgetTypeName = ESPHelpers::GadgetTypeToString(gadgetType);
         details.push_back("Type: " + gadgetTypeName);
         
-        // Add additional context for resource nodes
-        if (gadgetType == Game::GadgetType::ResourceNode) {
-            details.push_back(gadget.IsGatherable() ? "Status: Gatherable" : "Status: Depleted");
+        // Priority and importance indicators
+        int priority = Filtering::EntityFilter::GetRenderPriority(gadgetType);
+        if (ESPHelpers::IsImportantGadgetType(gadgetType)) {
+            details.push_back("Priority: HIGH (" + std::to_string(priority) + ")");
+        } else {
+            details.push_back("Priority: " + std::to_string(priority));
         }
         
-        // Add distance for important objects
+        // Enhanced status information for different gadget types
+        switch (gadgetType) {
+            case Game::GadgetType::ResourceNode:
+                details.push_back(gadget.IsGatherable() ? "Status: Gatherable ✓" : "Status: Depleted ✗");
+                details.push_back("Category: Resource");
+                break;
+                
+            case Game::GadgetType::Waypoint:
+                details.push_back("Category: Travel");
+                details.push_back("Function: Fast Travel");
+                break;
+                
+            case Game::GadgetType::Vista:
+                details.push_back("Category: Exploration");
+                details.push_back("Reward: Experience + Achievement");
+                break;
+                
+            case Game::GadgetType::Crafting:
+                details.push_back("Category: Crafting");
+                details.push_back("Function: Equipment Creation");
+                break;
+                
+            case Game::GadgetType::AttackTarget:
+                details.push_back("Category: Combat");
+                details.push_back("Type: Boss/Elite Target");
+                break;
+                
+            case Game::GadgetType::PlayerCreated:
+                details.push_back("Category: Player Object");
+                details.push_back("Examples: Siege, Turrets, Banners");
+                break;
+                
+            case Game::GadgetType::Interact:
+                details.push_back("Category: Interactive");
+                details.push_back("Function: General Interaction");
+                break;
+                
+            case Game::GadgetType::Door:
+                details.push_back("Category: Environment");
+                details.push_back("Function: Passage/Barrier");
+                break;
+                
+            case Game::GadgetType::MapPortal:
+                details.push_back("Category: Travel");
+                details.push_back("Function: Map Transition");
+                break;
+                
+            default:
+                details.push_back("Category: Unknown");
+                char typeText[32];
+                snprintf(typeText, sizeof(typeText), "ID: %u", static_cast<uint32_t>(gadgetType));
+                details.push_back(typeText);
+                break;
+        }
+        
+        // Distance and tactical information
+        char distText[32];
+        snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
+        details.push_back(distText);
+        
+        // Interaction range assessment
+        if (distance <= 300.0f) { // Standard interaction range
+            details.push_back("Range: In Range");
+        } else if (distance <= 600.0f) { // Medium range
+            details.push_back("Range: Approaching");
+        } else {
+            details.push_back("Range: Far");
+        }
+        
+        // Additional context based on object importance
         if (ESPHelpers::IsImportantGadgetType(gadgetType)) {
-            char distText[32];
-            snprintf(distText, sizeof(distText), "Distance: %.1fm", distance);
-            details.push_back(distText);
+            details.push_back("⭐ Important Object");
+            
+            // Add helpful tips for important objects
+            switch (gadgetType) {
+                case Game::GadgetType::ResourceNode:
+                    if (gadget.IsGatherable()) {
+                        details.push_back("💡 Tip: Use appropriate gathering tool");
+                    }
+                    break;
+                case Game::GadgetType::Vista:
+                    details.push_back("💡 Tip: Look for climbing path");
+                    break;
+                case Game::GadgetType::AttackTarget:
+                    details.push_back("💡 Tip: High-value target");
+                    break;
+            }
         }
     }
 

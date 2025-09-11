@@ -3,6 +3,13 @@
 #include "../Game/GameEnums.h"
 #include <string>
 
+// Forward declaration to avoid circular dependency
+namespace kx {
+namespace Filtering {
+    class EntityFilter;
+}
+}
+
 namespace kx {
 
 // Enhanced helper functions using the new enums
@@ -69,16 +76,7 @@ public:
 
     // Check if a gadget type should be considered important
     static bool IsImportantGadgetType(Game::GadgetType type) {
-        switch (type) {
-            case Game::GadgetType::ResourceNode:
-            case Game::GadgetType::Waypoint:
-            case Game::GadgetType::Vista:
-            case Game::GadgetType::AttackTarget:
-            case Game::GadgetType::Interact:
-                return true;
-            default:
-                return false;
-        }
+        return Game::EnumHelpers::IsImportantGadgetType(type);
     }
 
     // Check if a profession is a heavy armor class
@@ -104,10 +102,60 @@ public:
 
     // Get armor weight description
     static std::string GetArmorWeight(Game::Profession profession) {
-        if (IsHeavyArmorProfession(profession)) return "Heavy";
-        if (IsMediumArmorProfession(profession)) return "Medium";
-        if (IsLightArmorProfession(profession)) return "Light";
-        return "Unknown";
+        return std::string(Game::EnumHelpers::GetArmorWeight(profession));
+    }
+
+    // Enhanced threat assessment helper
+    static int GetThreatLevel(Game::Attitude attitude, Game::Profession profession) {
+        int baseThreat = 0;
+        
+        switch (attitude) {
+            case Game::Attitude::Hostile:
+                baseThreat = 100;
+                break;
+            case Game::Attitude::Indifferent:
+                baseThreat = 50;
+                break;
+            case Game::Attitude::Neutral:
+                baseThreat = 25;
+                break;
+            case Game::Attitude::Friendly:
+                baseThreat = 0;
+                break;
+        }
+
+        // Modify based on profession capabilities
+        if (IsDpsProfession(profession)) {
+            baseThreat += 20;
+        } else if (IsSupportProfession(profession)) {
+            baseThreat += 10; // Support can be dangerous too
+        }
+
+        return baseThreat;
+    }
+
+    // Check if a profession indicates a support role
+    static bool IsSupportProfession(Game::Profession profession) {
+        switch (profession) {
+            case Game::Profession::Guardian:
+            case Game::Profession::Engineer: // Has healing/support builds
+            case Game::Profession::Ranger:   // Druid healing
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // Check if a profession is primarily DPS focused
+    static bool IsDpsProfession(Game::Profession profession) {
+        switch (profession) {
+            case Game::Profession::Thief:
+            case Game::Profession::Elementalist:
+            case Game::Profession::Necromancer:
+                return true;
+            default:
+                return false;
+        }
     }
 };
 
