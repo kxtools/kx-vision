@@ -5,11 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <Windows.h>
-
-// Forward declaration
-namespace kx {
-    bool IsDebugLoggingEnabled();
-}
+#include "../Core/AppState.h"
 
 namespace kx {
 namespace Debug {
@@ -26,7 +22,7 @@ public:
 
     static void Log(Level level, const std::string& message) {
         // Check if debug logging is enabled
-        if (!IsDebugLoggingEnabled()) return;
+        if (!kx::AppState::Get().IsDebugLoggingEnabled()) return;
         
         std::string levelStr;
         switch (level) {

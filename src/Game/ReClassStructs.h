@@ -609,7 +609,7 @@ namespace kx {
         public:
             ContextCollection(void* ptr) : ForeignClass(ptr) {
                 // Debug: Log the ContextCollection base address
-                if (ptr && kx::IsDebugLoggingEnabled()) {
+                if (ptr && kx::AppState::Get().IsDebugLoggingEnabled()) {
                     printf("DEBUG: ContextCollection base = 0x%p\n", ptr);
                 }
             }

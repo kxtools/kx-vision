@@ -2,7 +2,7 @@
 
 #include <iostream>           // Replace with logging
 
-#include "AppState.h"         // For UI visibility state (g_showVisionWindow, g_isShuttingDown)
+#include "../Core/AppState.h"         // For UI visibility state and shutdown coordination
 #include "HookManager.h"      // To create/remove the hook
 #include "ImGuiManager.h"     // To initialize and render ImGui
 #include "../../libs/ImGui/imgui.h"
@@ -42,7 +42,7 @@ namespace kx::Hooking {
         }
 
         std::cout << "[D3DRenderHook] Present hook created and enabled." << std::endl;
-        kx::g_presentHookStatus = kx::HookStatus::OK; // Update global status
+        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK); // Update hook status via singleton
         return true;
     }
 
@@ -73,7 +73,7 @@ namespace kx::Hooking {
         m_isInit = false;
         m_hWindow = NULL;
         m_pOriginalPresent = nullptr;
-        kx::g_presentHookStatus = kx::HookStatus::Unknown; // Reset status
+        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::Unknown); // Reset status via singleton
     }
 
     bool D3DRenderHook::IsInitialized() {
@@ -142,7 +142,7 @@ namespace kx::Hooking {
     HRESULT __stdcall D3DRenderHook::DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
 		// Check the shutdown flag FIRST. If set, immediately call original and exit.
 		// This prevents accessing potentially destroyed resources (ImGui context, etc.)
-        if (kx::g_isShuttingDown.load(std::memory_order_acquire)) { // Use acquire load
+        if (kx::AppState::Get().IsShuttingDown()) { // Use AppState singleton method
             return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
         }
 
@@ -210,14 +210,15 @@ namespace kx::Hooking {
             static bool lastToggleKeyState = false;
             bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
             if (currentToggleKeyState && !lastToggleKeyState) {
-                kx::g_settings.showVisionWindow = !kx::g_settings.showVisionWindow;
+                auto& settings = kx::AppState::Get().GetSettings();
+                settings.showVisionWindow = !settings.showVisionWindow;
             }
             lastToggleKeyState = currentToggleKeyState;
 
             // --- Render ImGui overlay ---
             // Add ANOTHER check for shutdown flag right before ImGui calls
             // AND ensure ImGui context still exists (check GImGui != nullptr)
-            if (!kx::g_isShuttingDown.load(std::memory_order_acquire) && ImGui::GetCurrentContext() != nullptr)
+            if (!kx::AppState::Get().IsShuttingDown() && ImGui::GetCurrentContext() != nullptr)
             {
                 try { // Optional: Add try-catch around ImGui calls during shutdown race possibility
                     ImGuiManager::NewFrame();
@@ -250,7 +251,7 @@ namespace kx::Hooking {
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
         // If ImGui is initialized and visible, let it process the message first.
-        if (m_isInit && kx::g_settings.showVisionWindow) {
+        if (m_isInit && kx::AppState::Get().GetSettings().showVisionWindow) {
 
             // Pass messages to ImGui handler to update its state and capture flags.
             ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);

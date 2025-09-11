@@ -51,7 +51,7 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (pContextCollection) {
             // Debug: Log the ContextCollection pointer
-            if (kx::IsDebugLoggingEnabled()) {
+            if (kx::AppState::Get().IsDebugLoggingEnabled()) {
                 printf("DEBUG: ContextCollection ptr = 0x%p\n", pContextCollection);
             }
             
@@ -121,11 +121,13 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
 }
 
 void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character, const std::map<void*, const wchar_t*>& characterNameToPlayerName) {
-    if (!g_settings.playerESP.enabled) return;
+    // Access settings through AppState singleton
+    const auto& settings = kx::AppState::Get().GetSettings();
+    if (!settings.playerESP.enabled) return;
 
     // Skip local player unless specifically enabled
     void* localPlayer = AddressManager::GetLocalPlayer();
-    if (localPlayer && character.data() == localPlayer && !g_settings.playerESP.showLocalPlayer) return;
+    if (localPlayer && character.data() == localPlayer && !settings.playerESP.showLocalPlayer) return;
 
     const float scaleFactor = 1.23f;
 
@@ -150,7 +152,7 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
     }
 
     std::vector<std::string> details;
-    if (g_settings.playerESP.renderDetails) {
+    if (settings.playerESP.renderDetails) {
         // Player name (highest priority)
         auto it = characterNameToPlayerName.find(character.data());
         if (it != characterNameToPlayerName.end()) {
@@ -168,15 +170,15 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
             // Create compact character description
             std::string characterDesc = "Lvl " + std::to_string(level);
             
-            if (g_settings.playerESP.showRace) {
+            if (settings.playerESP.showRace) {
                 characterDesc += " " + RaceToString(race);
             }
             
-            if (g_settings.playerESP.showProfession) {
+            if (settings.playerESP.showProfession) {
                 characterDesc += " " + ProfessionToString(profession);
             }
             
-            if (g_settings.playerESP.showArmorWeight) {
+            if (settings.playerESP.showArmorWeight) {
                 std::string armorWeight = kx::ESPHelpers::GetArmorWeight(profession);
                 characterDesc += " (" + armorWeight + ")";
             }
@@ -204,11 +206,12 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails, g_settings.playerESP.renderHealthBar, ESPEntityType::Player);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, settings.playerESP.renderBox, settings.playerESP.renderDistance, settings.playerESP.renderDot, settings.playerESP.renderDetails, settings.playerESP.renderHealthBar, ESPEntityType::Player);
 }
 
 void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character) {
-    if (!g_settings.npcESP.enabled) return;
+    const auto& settings = kx::AppState::Get().GetSettings();
+    if (!settings.npcESP.enabled) return;
     
     // Skip local player (though unlikely for NPCs)
     void* localPlayer = AddressManager::GetLocalPlayer();
@@ -219,16 +222,16 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     // Use the new boolean flags for attitude filtering
     switch (attitude) {
         case Game::Attitude::Friendly:
-            if (!g_settings.npcESP.showFriendly) return;
+            if (!settings.npcESP.showFriendly) return;
             break;
         case Game::Attitude::Hostile:
-            if (!g_settings.npcESP.showHostile) return;
+            if (!settings.npcESP.showHostile) return;
             break;
         case Game::Attitude::Neutral:
-            if (!g_settings.npcESP.showNeutral) return;
+            if (!settings.npcESP.showNeutral) return;
             break;
         case Game::Attitude::Indifferent:
-            if (!g_settings.npcESP.showIndifferent) return;
+            if (!settings.npcESP.showIndifferent) return;
             break;
         default:
             // Show unknown attitudes by default
@@ -259,7 +262,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     }
 
     std::vector<std::string> details;
-    if (g_settings.npcESP.renderDetails) {
+    if (settings.npcESP.renderDetails) {
         kx::ReClass::ChCliCoreStats stats = character.GetCoreStats();
         if (stats) {
             // Enhanced NPC information using new enums
@@ -345,7 +348,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails, g_settings.npcESP.renderHealthBar, ESPEntityType::NPC);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, settings.npcESP.renderBox, settings.npcESP.renderDistance, settings.npcESP.renderDot, settings.npcESP.renderDetails, settings.npcESP.renderHealthBar, ESPEntityType::NPC);
 }
 
 void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight) {
@@ -372,7 +375,8 @@ void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float s
 }
 
 void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::GdCliGadget& gadget) {
-    if (!g_settings.objectESP.enabled) return;
+    const auto& settings = kx::AppState::Get().GetSettings();
+    if (!settings.objectESP.enabled) return;
 
     // Use the new enum for type-safe gadget type checking
     Game::GadgetType gadgetType = gadget.GetGadgetType();
@@ -381,35 +385,35 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     bool shouldRender = false;
     switch (gadgetType) {
         case Game::GadgetType::ResourceNode:
-            shouldRender = g_settings.objectESP.showResourceNodes;
+            shouldRender = settings.objectESP.showResourceNodes;
             break;
         case Game::GadgetType::Waypoint:
-            shouldRender = g_settings.objectESP.showWaypoints;
+            shouldRender = settings.objectESP.showWaypoints;
             break;
         case Game::GadgetType::Vista:
-            shouldRender = g_settings.objectESP.showVistas;
+            shouldRender = settings.objectESP.showVistas;
             break;
         case Game::GadgetType::Crafting:
-            shouldRender = g_settings.objectESP.showCraftingStations;
+            shouldRender = settings.objectESP.showCraftingStations;
             break;
         case Game::GadgetType::AttackTarget:
-            shouldRender = g_settings.objectESP.showAttackTargets;
+            shouldRender = settings.objectESP.showAttackTargets;
             break;
         case Game::GadgetType::PlayerCreated:
-            shouldRender = g_settings.objectESP.showPlayerCreated;
+            shouldRender = settings.objectESP.showPlayerCreated;
             break;
         case Game::GadgetType::Interact:
-            shouldRender = g_settings.objectESP.showInteractables;
+            shouldRender = settings.objectESP.showInteractables;
             break;
         case Game::GadgetType::Door:
-            shouldRender = g_settings.objectESP.showDoors;
+            shouldRender = settings.objectESP.showDoors;
             break;
         case Game::GadgetType::MapPortal:
-            shouldRender = g_settings.objectESP.showPortals;
+            shouldRender = settings.objectESP.showPortals;
             break;
         default:
             // For unknown types, check if we're in important-only mode
-            shouldRender = !g_settings.objectESP.onlyImportantGadgets;
+            shouldRender = !settings.objectESP.onlyImportantGadgets;
             break;
     }
     
@@ -444,7 +448,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     }
 
     std::vector<std::string> details;
-    if (g_settings.objectESP.renderDetails) {
+    if (settings.objectESP.renderDetails) {
         // Primary identification
         std::string gadgetTypeName = GadgetTypeToString(gadgetType);
         details.push_back("Type: " + gadgetTypeName);
@@ -540,7 +544,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails, false, ESPEntityType::Gadget);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, settings.objectESP.renderBox, settings.objectESP.renderDistance, settings.objectESP.renderDot, settings.objectESP.renderDetails, false, ESPEntityType::Gadget);
 }
 
 // Universal ESP rendering helper functions
@@ -629,7 +633,8 @@ void ESPRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, 
 }
 
 void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, bool renderHealthBar, ESPEntityType entityType) {
-    if (g_settings.espUseDistanceLimit && distance > g_settings.espRenderDistanceLimit) {
+    const auto& settings = kx::AppState::Get().GetSettings();
+    if (settings.espUseDistanceLimit && distance > settings.espRenderDistanceLimit) {
         return;
     }
 

@@ -57,13 +57,19 @@ void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* 
 }
 
 void ImGuiManager::RenderESPWindow() {
-    if (!kx::g_isVisionWindowOpen) return;
+    // Use AppState singleton instead of global variable
+    if (!kx::AppState::Get().IsVisionWindowOpen()) return;
+
+    // Get settings reference once for the entire function
+    auto& settings = kx::AppState::Get().GetSettings();
 
     std::string windowTitle = "KX Vision v";
     windowTitle += kx::APP_VERSION.data();
 
     ImGui::SetNextWindowSize(ImVec2(300, 250), ImGuiCond_FirstUseEver);
-    ImGui::Begin(windowTitle.c_str(), &kx::g_isVisionWindowOpen);
+    
+    // Pass a direct pointer to the singleton's vision window state
+    ImGui::Begin(windowTitle.c_str(), kx::AppState::Get().GetVisionWindowOpenRef());
 
     RenderHints();
 
@@ -75,59 +81,59 @@ void ImGuiManager::RenderESPWindow() {
     if (ImGui::BeginTabBar("##ESPCategories")) {
         // --- Players Tab ---
         if (ImGui::BeginTabItem("Players")) {
-            ImGui::Checkbox("Enable Player ESP", &kx::g_settings.playerESP.enabled);
-            if (kx::g_settings.playerESP.enabled) {
-                ImGui::Checkbox("Render Box##Player", &kx::g_settings.playerESP.renderBox);
+            ImGui::Checkbox("Enable Player ESP", &settings.playerESP.enabled);
+            if (settings.playerESP.enabled) {
+                ImGui::Checkbox("Render Box##Player", &settings.playerESP.renderBox);
                 ImGui::SameLine();
-                ImGui::Checkbox("Distance##Player", &kx::g_settings.playerESP.renderDistance);
+                ImGui::Checkbox("Distance##Player", &settings.playerESP.renderDistance);
                 ImGui::SameLine();
-                ImGui::Checkbox("Dot##Player", &kx::g_settings.playerESP.renderDot);
-                ImGui::Checkbox("Health Bar##Player", &kx::g_settings.playerESP.renderHealthBar);
+                ImGui::Checkbox("Dot##Player", &settings.playerESP.renderDot);
+                ImGui::Checkbox("Health Bar##Player", &settings.playerESP.renderHealthBar);
                 ImGui::SameLine();
-                ImGui::Checkbox("Render Details##Player", &kx::g_settings.playerESP.renderDetails);
+                ImGui::Checkbox("Render Details##Player", &settings.playerESP.renderDetails);
                 
                 ImGui::Separator();
-                ImGui::Checkbox("Show Local Player", &kx::g_settings.playerESP.showLocalPlayer);
+                ImGui::Checkbox("Show Local Player", &settings.playerESP.showLocalPlayer);
             }
             ImGui::EndTabItem();
         }
 
         // --- NPCs Tab ---
         if (ImGui::BeginTabItem("NPCs")) {
-            ImGui::Checkbox("Enable NPC ESP", &kx::g_settings.npcESP.enabled);
-            if (kx::g_settings.npcESP.enabled) {
-                ImGui::Checkbox("Render Box##NPC", &kx::g_settings.npcESP.renderBox);
+            ImGui::Checkbox("Enable NPC ESP", &settings.npcESP.enabled);
+            if (settings.npcESP.enabled) {
+                ImGui::Checkbox("Render Box##NPC", &settings.npcESP.renderBox);
                 ImGui::SameLine();
-                ImGui::Checkbox("Distance##NPC", &kx::g_settings.npcESP.renderDistance);
+                ImGui::Checkbox("Distance##NPC", &settings.npcESP.renderDistance);
                 ImGui::SameLine();
-                ImGui::Checkbox("Dot##NPC", &kx::g_settings.npcESP.renderDot);
-                ImGui::Checkbox("Health Bar##NPC", &kx::g_settings.npcESP.renderHealthBar);
+                ImGui::Checkbox("Dot##NPC", &settings.npcESP.renderDot);
+                ImGui::Checkbox("Health Bar##NPC", &settings.npcESP.renderHealthBar);
                 ImGui::SameLine();
-                ImGui::Checkbox("Render Details##NPC", &kx::g_settings.npcESP.renderDetails);
+                ImGui::Checkbox("Render Details##NPC", &settings.npcESP.renderDetails);
                 
                 ImGui::Separator();
                 ImGui::Text("Attitude Filter");
                 
-                ImGui::Checkbox("Show Friendly", &kx::g_settings.npcESP.showFriendly);
+                ImGui::Checkbox("Show Friendly", &settings.npcESP.showFriendly);
                 ImGui::SameLine();
-                ImGui::Checkbox("Show Hostile", &kx::g_settings.npcESP.showHostile);
+                ImGui::Checkbox("Show Hostile", &settings.npcESP.showHostile);
                 ImGui::SameLine();
-                ImGui::Checkbox("Show Neutral", &kx::g_settings.npcESP.showNeutral);
-                ImGui::Checkbox("Show Indifferent", &kx::g_settings.npcESP.showIndifferent);
+                ImGui::Checkbox("Show Neutral", &settings.npcESP.showNeutral);
+                ImGui::Checkbox("Show Indifferent", &settings.npcESP.showIndifferent);
             }
             ImGui::EndTabItem();
         }
 
         // --- Objects Tab ---
         if (ImGui::BeginTabItem("Objects")) {
-            ImGui::Checkbox("Enable Object ESP", &kx::g_settings.objectESP.enabled);
-            if (kx::g_settings.objectESP.enabled) {
-                ImGui::Checkbox("Render Box##Object", &kx::g_settings.objectESP.renderBox);
+            ImGui::Checkbox("Enable Object ESP", &settings.objectESP.enabled);
+            if (settings.objectESP.enabled) {
+                ImGui::Checkbox("Render Box##Object", &settings.objectESP.renderBox);
                 ImGui::SameLine();
-                ImGui::Checkbox("Distance##Object", &kx::g_settings.objectESP.renderDistance);
+                ImGui::Checkbox("Distance##Object", &settings.objectESP.renderDistance);
                 ImGui::SameLine();
-                ImGui::Checkbox("Dot##Object", &kx::g_settings.objectESP.renderDot);
-                ImGui::Checkbox("Render Details##Object", &kx::g_settings.objectESP.renderDetails);
+                ImGui::Checkbox("Dot##Object", &settings.objectESP.renderDot);
+                ImGui::Checkbox("Render Details##Object", &settings.objectESP.renderDetails);
 
                 // Add filters for gadget types here
             }
@@ -140,9 +146,9 @@ void ImGuiManager::RenderESPWindow() {
     ImGui::Separator();
     
     // Global settings can remain outside the tabs
-    ImGui::Checkbox("Use Distance Limit", &kx::g_settings.espUseDistanceLimit);
-    if (kx::g_settings.espUseDistanceLimit) {
-        ImGui::SliderFloat("Render Distance Limit", &kx::g_settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
+    ImGui::Checkbox("Use Distance Limit", &settings.espUseDistanceLimit);
+    if (settings.espUseDistanceLimit) {
+        ImGui::SliderFloat("Render Distance Limit", &settings.espRenderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
     }
 
     ImGui::Separator();
@@ -183,7 +189,9 @@ void ImGuiManager::RenderInfoSection() {
 void ImGuiManager::RenderDebugSection() {
     // Debug Options (always visible for easy access)
     if (ImGui::CollapsingHeader("Debug Options")) {
-        ImGui::Checkbox("Enable Debug Logging", &kx::g_settings.enableDebugLogging);
+        // Access debug logging through AppState singleton
+        auto& settings = kx::AppState::Get().GetSettings();
+        ImGui::Checkbox("Enable Debug Logging", &settings.enableDebugLogging);
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Enable detailed logging to console and kx_debug.log file.\nHelps diagnose crashes and memory access issues.");
         }
@@ -275,7 +283,7 @@ void ImGuiManager::RenderUI() {
     kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, m_mumbleLinkManager.GetData());
     
     // Render the UI window if it's shown
-    if (kx::g_settings.showVisionWindow) {
+    if (kx::AppState::Get().GetSettings().showVisionWindow) {
         RenderESPWindow();
     }
 }

@@ -113,6 +113,7 @@
     <ClCompile Include="src\Utils\PatternScanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Game\AddressManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
     <ClInclude Include="src\Game\Camera.h" />
