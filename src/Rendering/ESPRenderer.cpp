@@ -11,6 +11,7 @@
 
 #include "../Core/Config.h"
 #include "ESP_Helpers.h"
+#include "ESPData.h"
 #include "EnhancedESPHelpers.h" // Include the new enhanced helpers
 #include "StringHelpers.h" // New include
 #include "../../libs/ImGui/imgui.h"
@@ -170,7 +171,7 @@ void ESPRenderer::RenderPlayer(ImDrawList* drawList, float screenWidth, float sc
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.playerESP.renderBox, g_settings.playerESP.renderDistance, g_settings.playerESP.renderDot, g_settings.playerESP.renderDetails, ESPEntityType::Player);
 }
 
 void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::ChCliCharacter& character) {
@@ -292,7 +293,7 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails, ESPEntityType::NPC);
 }
 
 void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight) {
@@ -454,59 +455,194 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
         }
     }
 
-    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails);
+    RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, -1.0f, g_settings.objectESP.renderBox, g_settings.objectESP.renderDistance, g_settings.objectESP.renderDot, g_settings.objectESP.renderDetails, ESPEntityType::Gadget);
 }
 
-void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails) {
+void ESPRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, unsigned int color, const std::vector<std::string>& details, float healthPercent, bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, ESPEntityType entityType) {
     if (g_settings.espUseDistanceLimit && distance > g_settings.espRenderDistanceLimit) {
         return;
     }
 
-    glm::vec2 screenPos;
-    if (ESP_Helpers::WorldToScreen(worldPos, *s_camera, screenWidth, screenHeight, screenPos)) {
-        float boxSize = std::max(4.0f, 15.0f * (50.0f / (distance + 20.0f)));
-        float boxTop = screenPos.y - boxSize / 2;
-        float boxBottom = screenPos.y + boxSize / 2;
-        float boxLeft = screenPos.x - boxSize / 2;
-        float boxRight = screenPos.x + boxSize / 2;
-
-        if (healthPercent >= 0.0f) {
-            float barHeight = std::max(2.0f, boxSize);
-            float barWidth = 3.0f;
-            float healthHeight = barHeight * healthPercent;
-
-            drawList->AddRectFilled(ImVec2(boxLeft - barWidth - 2, boxTop), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 0, 0, 180));
-            drawList->AddRectFilled(ImVec2(boxLeft - barWidth - 2, boxBottom - healthHeight), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 200, 0, 255));
-            drawList->AddRect(ImVec2(boxLeft - barWidth - 2, boxTop), ImVec2(boxLeft - 2, boxBottom), IM_COL32(0, 0, 0, 255));
-        }
-
+    // Determine entity type and get proper ESP data
+    if (entityType == ESPEntityType::Gadget) {
+        // Handle gadgets using KX ESP approach
+        GadgetESPData gadgetData = kx::ESP_Helpers::GetGadgetESPData(worldPos, *s_camera, screenWidth, screenHeight);
+        if (!gadgetData.valid) return;
+        
+        // Use the pre-calculated min/max bounds like KX ESP
+        ImVec2 boxMin(gadgetData.min.x, gadgetData.min.y);
+        ImVec2 boxMax(gadgetData.max.x, gadgetData.max.y);
+        
+        // Render small square box for gadgets with shadow
         if (renderBox) {
-            drawList->AddRect(ImVec2(boxLeft, boxTop), ImVec2(boxRight, boxBottom), color, 1.0f, ImDrawFlags_RoundCornersAll, 1.5f);
+            // Shadow
+            drawList->AddRect(ImVec2(boxMin.x + 1, boxMin.y + 1), ImVec2(boxMax.x + 1, boxMax.y + 1), 
+                            IM_COL32(0, 0, 0, 80), 0.0f, 0, 1.2f);
+            // Main box
+            drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, 1.5f);
         }
 
-        float textY = boxTop;
+        // Center dot for gadgets
+        if (renderDot) {
+            ImVec2 center((gadgetData.min.x + gadgetData.max.x) * 0.5f, (gadgetData.min.y + gadgetData.max.y) * 0.5f);
+            drawList->AddCircleFilled(ImVec2(center.x + 1, center.y + 1), 1.5f, IM_COL32(0, 0, 0, 120)); // Shadow
+            drawList->AddCircleFilled(center, 1.2f, IM_COL32(255, 255, 255, 255)); // Dot
+        }
 
+        // Distance display for gadgets
         if (renderDistance) {
             char distText[32];
             snprintf(distText, sizeof(distText), "%.1fm", distance);
-            ::ImVec2 textSize = ImGui::CalcTextSize(distText);
-            drawList->AddRectFilled(ImVec2(screenPos.x - textSize.x / 2 - 2, textY - textSize.y - 4), ImVec2(screenPos.x + textSize.x / 2 + 2, textY), IM_COL32(0, 0, 0, 180));
-            drawList->AddText(ImVec2(screenPos.x - textSize.x / 2, textY - textSize.y - 2), IM_COL32(255, 255, 255, 255), distText);
+            ImVec2 textSize = ImGui::CalcTextSize(distText);
+            ImVec2 textPos((gadgetData.min.x + gadgetData.max.x) * 0.5f - textSize.x * 0.5f, gadgetData.min.y - textSize.y - 3);
+            
+            // Text background with shadow
+            drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1), 
+                                  ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1), 
+                                  IM_COL32(0, 0, 0, 150), 1.5f);
+            
+            // Text with shadow
+            drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), distText);
+            drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
         }
 
-        if (renderDot) {
-            drawList->AddCircleFilled(::ImVec2(screenPos.x, screenPos.y), 2.0f, IM_COL32(255, 255, 255, 255));
-        }
-
+        // Details for gadgets
         if (renderDetails && !details.empty()) {
-            float textYDetails = boxBottom + 2;
+            float textYDetails = gadgetData.max.y + 3;
             for (const auto& detailText : details) {
                 if (detailText.empty()) continue;
-                ::ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
-                drawList->AddRectFilled(ImVec2(screenPos.x - textSize.x / 2 - 2, textYDetails), ImVec2(screenPos.x + textSize.x / 2 + 2, textYDetails + textSize.y + 4), IM_COL32(0, 0, 0, 180));
-                drawList->AddText(ImVec2(screenPos.x - textSize.x / 2, textYDetails + 2), IM_COL32(255, 255, 255, 255), detailText.c_str());
-                textYDetails += textSize.y + 6;
+                
+                ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
+                ImVec2 textPos((gadgetData.min.x + gadgetData.max.x) * 0.5f - textSize.x * 0.5f, textYDetails);
+                
+                // Background with shadow
+                drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
+                                      ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 2), 
+                                      IM_COL32(0, 0, 0, 160), 1.5f);
+                
+                // Text with shadow
+                drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detailText.c_str());
+                drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detailText.c_str());
+                
+                textYDetails += textSize.y + 4;
             }
+        }
+        
+        return; // Early return for gadgets
+    }
+
+    // Handle players and NPCs
+    PlayerESPData entityData;
+    if (entityType == ESPEntityType::Player) {
+        entityData = kx::ESP_Helpers::GetPlayerESPData(worldPos, *s_camera, screenWidth, screenHeight);
+    } else if (entityType == ESPEntityType::NPC) {
+        entityData = kx::ESP_Helpers::GetNpcESPData(worldPos, *s_camera, screenWidth, screenHeight);
+    }
+    
+    if (!entityData.valid) return;
+    
+    // Use the pre-calculated min/max bounds like KX ESP
+    ImVec2 boxMin(entityData.min.x, entityData.min.y);
+    ImVec2 boxMax(entityData.max.x, entityData.max.y);
+    
+    // Enhanced health bar rendering using calculated dimensions
+    if (healthPercent >= 0.0f) {
+        float barWidth = 3.0f;
+        float barHeight = entityData.height;
+        float healthHeight = barHeight * healthPercent;
+        
+        // Health bar position (left side of entity box like KX ESP)
+        ImVec2 healthBarMin(boxMin.x - barWidth - 2, boxMin.y);
+        ImVec2 healthBarMax(boxMin.x - 2, boxMax.y);
+        
+        // Health bar background with shadow
+        drawList->AddRectFilled(ImVec2(healthBarMin.x - 1, healthBarMin.y + 1), 
+                              ImVec2(healthBarMax.x + 1, healthBarMax.y + 1), IM_COL32(0, 0, 0, 120));
+        drawList->AddRectFilled(healthBarMin, healthBarMax, IM_COL32(20, 20, 20, 200));
+        
+        // Health color based on percentage
+        ImU32 healthColor = IM_COL32(255, 0, 0, 255); // Red
+        if (healthPercent > 0.6f) healthColor = IM_COL32(0, 255, 0, 255); // Green
+        else if (healthPercent > 0.3f) healthColor = IM_COL32(255, 255, 0, 255); // Yellow
+        
+        // Health fill
+        drawList->AddRectFilled(ImVec2(healthBarMin.x, healthBarMax.y - healthHeight), 
+                              ImVec2(healthBarMax.x, healthBarMax.y), healthColor);
+        
+        // Health bar border
+        drawList->AddRect(healthBarMin, healthBarMax, IM_COL32(0, 0, 0, 255), 0.0f, 0, 1.0f);
+    }
+
+    // Character box with proper proportions using KX ESP bounds
+    if (renderBox) {
+        // Shadow for depth
+        drawList->AddRect(ImVec2(boxMin.x + 1, boxMin.y + 1), ImVec2(boxMax.x + 1, boxMax.y + 1), 
+                        IM_COL32(0, 0, 0, 80), 1.0f, ImDrawFlags_RoundCornersAll, 1.8f);
+        
+        // Main box with subtle rounding
+        drawList->AddRect(boxMin, boxMax, color, 1.0f, ImDrawFlags_RoundCornersAll, 1.5f);
+        
+        // Optional corner markers for better visibility at distance
+        if (distance > 50.0f) {
+            float cornerSize = 3.0f;
+            // Top-left corner
+            drawList->AddLine(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMin.x + cornerSize, boxMin.y), color, 2.0f);
+            drawList->AddLine(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMin.x, boxMin.y + cornerSize), color, 2.0f);
+            // Top-right corner
+            drawList->AddLine(ImVec2(boxMax.x, boxMin.y), ImVec2(boxMax.x - cornerSize, boxMin.y), color, 2.0f);
+            drawList->AddLine(ImVec2(boxMax.x, boxMin.y), ImVec2(boxMax.x, boxMin.y + cornerSize), color, 2.0f);
+            // Bottom-left corner
+            drawList->AddLine(ImVec2(boxMin.x, boxMax.y), ImVec2(boxMin.x + cornerSize, boxMax.y), color, 2.0f);
+            drawList->AddLine(ImVec2(boxMin.x, boxMax.y), ImVec2(boxMin.x, boxMax.y - cornerSize), color, 2.0f);
+            // Bottom-right corner
+            drawList->AddLine(ImVec2(boxMax.x, boxMax.y), ImVec2(boxMax.x - cornerSize, boxMax.y), color, 2.0f);
+            drawList->AddLine(ImVec2(boxMax.x, boxMax.y), ImVec2(boxMax.x, boxMax.y - cornerSize), color, 2.0f);
+        }
+    }
+
+    // Distance display like KX ESP
+    if (renderDistance) {
+        char distText[32];
+        snprintf(distText, sizeof(distText), "%.1fm", distance);
+        ImVec2 textSize = ImGui::CalcTextSize(distText);
+        ImVec2 textPos((entityData.min.x + entityData.max.x) * 0.5f - textSize.x * 0.5f, entityData.min.y - textSize.y - 4);
+        
+        // Text background with shadow
+        drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
+                              ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 1), 
+                              IM_COL32(0, 0, 0, 150), 2.0f);
+        
+        // Text with subtle shadow
+        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), distText);
+        drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
+    }
+
+    // Center dot for precise targeting (at feet position like KX ESP)
+    if (renderDot) {
+        ImVec2 feetPos(entityData.feet.x, entityData.feet.y);
+        drawList->AddCircleFilled(ImVec2(feetPos.x + 1, feetPos.y + 1), 2.5f, IM_COL32(0, 0, 0, 120)); // Shadow
+        drawList->AddCircleFilled(feetPos, 2.0f, IM_COL32(255, 255, 255, 255)); // Dot
+    }
+
+    // Enhanced details rendering like KX ESP
+    if (renderDetails && !details.empty()) {
+        float textYDetails = entityData.max.y + 4;
+        for (const auto& detailText : details) {
+            if (detailText.empty()) continue;
+            
+            ImVec2 textSize = ImGui::CalcTextSize(detailText.c_str());
+            ImVec2 textPos((entityData.min.x + entityData.max.x) * 0.5f - textSize.x * 0.5f, textYDetails);
+            
+            // Background with shadow and subtle rounding
+            drawList->AddRectFilled(ImVec2(textPos.x - 4, textPos.y - 1), 
+                                  ImVec2(textPos.x + textSize.x + 4, textPos.y + textSize.y + 3), 
+                                  IM_COL32(0, 0, 0, 160), 1.5f);
+            
+            // Text with shadow for better readability
+            drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 200), detailText.c_str());
+            drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detailText.c_str());
+            
+            textYDetails += textSize.y + 5;
         }
     }
 }
