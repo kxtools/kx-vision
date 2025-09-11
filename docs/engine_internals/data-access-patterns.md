@@ -1,36 +1,39 @@
 # Data Access Patterns
 
-There are multiple ways to access game data. This document compares the legacy `AgentArray` method with the superior `ContextCollection` method.
+This project prioritizes a clean, stable, and high-level approach to accessing game data. Our strategy is to interface with the game's structured data managers directly, rather than relying on low-level entity lists. This document outlines our recommended method and explains why it is superior to legacy alternatives.
 
-## Method 1: AgentArray (Legacy)
+## The Recommended Method: Direct Context Access via `ContextCollection`
 
-- **Entry Point:** A static pointer to the `AgentViewContext`, which contains an array of `CAvAgent` pointers.
-- **Pros:** Relatively simple to find. Provides access to all agents (players, NPCs, gadgets).
-- **Cons:**
-    - The data is less structured. It requires pointer chasing (`CAvAgent -> CAgentBase -> CCharacter`) to get detailed information.
-    - The coordinate system for agent positions (`Z-up`) is different from the MumbleLink and physics systems (`Y-up`), requiring conversion.
-    - It is a lower-level system and may not represent the "true" list of gameplay-relevant characters.
+Our primary and recommended strategy is to use the `ContextCollection`, a master structure that serves as the game's high-level directory for all major gameplay systems.
 
-## Method 2: ContextCollection (Current Method)
+-   **Entry Point:** A dedicated getter function, `GetContextCollection()`, provides a direct pointer to this master object.
+-   **What It Provides:** The `ContextCollection` gives us direct access to clean, pre-filtered, and organized lists of gameplay-relevant entities, including:
+    -   `ChCliContext` (at offset `0x98`): Manages the authoritative `CharacterList` and `PlayerList`.
+    -   `GdCliContext` (at offset `0x138`): Manages the authoritative `GadgetList`.
+-   **Why This is the Best Approach:**
+    -   **Architecturally Correct:** This is the game's intended "front door" for accessing gameplay state. By using it, we align our tool with the engine's design, which promotes stability.
+    -   **Direct & Structured:** We get pointers directly to the final, detailed data structures (`ChCliCharacter`, `GdCliGadget`). This eliminates the need for complex and brittle pointer-chasing from a generic base type.
+    -   **High Performance:** We iterate smaller, pre-filtered lists. To find all gadgets, we only need to loop through the `GadgetList`, not the entire world's entity list.
+    -   **Rich Information:** The pointers in these lists lead to structures containing specific, valuable data (e.g., a resource node's `IsGatherable` state) that is not easily accessible from lower-level objects.
+-   **Requirement:** This method requires a game thread hook to call `GetContextCollection()` successfully due to its reliance on Thread Local Storage (TLS). This is a one-time setup that is already implemented in this project.
 
-- **Entry Point:** A function, `GetContextCollection()`, that returns a pointer to a master object containing pointers to all major gameplay systems.
-- **Pros:**
-    - **Architecturally Correct:** This is the game's intended "front door" for accessing gameplay state, evidenced by over 6,000 internal cross-references to the getter function.
-    - **Direct and Structured:** Provides direct pointers to high-level managers like `ChCliContext` (Character Context), eliminating complex pointer chains.
-    - **Stable:** The entry point function is fundamental to the game's operation and is exceptionally unlikely to be removed or changed.
-    - **Consistent Data:** The position data found via this path (`CoChar->vec3PositionVisual`) is often more consistent with other systems and may not require coordinate system conversions.
-- **Cons:**
-    - Requires a game thread hook to call `GetContextCollection()` successfully due to its reliance on Thread Local Storage (TLS).
+## The Fallback Method: `AgentArray` (Low-Level Enumeration)
 
-## Conclusion
+An alternative method involves iterating the master `AgentArray`, which is found within the `AgentViewContext`.
 
-The **`ContextCollection` method is definitively superior.** While it requires the initial setup of a game thread hook, the resulting stability, clarity, and directness of data access make it the ideal foundation for this project. The `AgentArray` is retained as a fallback or for accessing non-character entities.
+-   **Entry Point:** A pointer to the `AgentViewContext`, which contains the `AgentArray`.
+-   **What It Is:** A low-level, flat list of every single entity the game is tracking in the world. This is the unfiltered "ground truth" of what exists.
+-   **Why This is a Fallback, Not the Primary Choice:**
+    -   **Unstructured Data:** The `AgentArray` is a mix of everything: players, NPCs, gadgets, invisible triggers, visual effects, and more. It requires significant manual filtering in our code to separate useful entities from noise.
+    -   **Low-Level Pointers:** The pointers in this array are to generic `CAvAgent` wrappers. To get useful gameplay data, one must perform complex and unstable pointer-chasing (`CAvAgent -> CAgentBase -> CCharacter/GdCliGadget`), a process that is highly susceptible to breaking after game updates.
+    -   **Inconsistent Data:** Data derived from this low-level source, such as agent coordinates, can sometimes be inconsistent with higher-level game systems.
+-   **Valid Use Case:** The `AgentArray` should be considered a powerful **debugging and fallback tool**. If it is ever discovered that a specific entity is visible in-game but missing from the high-level `CharacterList` or `GadgetList`, the `AgentArray` would be the place to find it. For all primary ESP features, however, it is less reliable and less efficient than using the `ContextCollection`.
 
 ---
 
 ### Finding the `GetContextCollection` Function
 
-There are at least two known function patterns that can be used to retrieve the `ContextCollection` pointer. While both can lead to the same result, they target different functions, and one is significantly more stable and reliable.
+There are at least two known function patterns that can be used to retrieve the `ContextCollection` pointer. We have chosen the one that targets a more stable, dedicated function.
 
 #### Signature 1: The Dedicated Getter (Recommended)
 
@@ -53,31 +56,15 @@ This is the method currently used by `kx-vision`.
 
 #### Signature 2: The Multi-Purpose Function (Legacy/Brittle)
 
-This method is used in other tools (like `kx-zenith`) and was considered for this project.
+This method is used in other tools and was considered for this project.
 
 -   **Pattern (`BGFX_CONTEXT_FUNC_PATTERN`):**
     `BA 10 00 00 00 48 8B 04 C8 81 3C 02 62 67 66 78`
 
 -   **Target Function:** This pattern resolves to a larger, more complex function that has dual responsibilities. It contains conditional logic to handle both BGFX rendering tasks and the same TLS lookup for the `ContextCollection`.
 
-    ```c
-    // Decompiled representation
-    int FUN_00b59ff0(int param_1)
-    {
-      // --- Rendering Path ---
-      if (DAT_027bec38 != 0) {
-        // ... BGFX rendering logic ...
-      }
-      
-      // --- Context Path ---
-      // This is the part the pattern targets, but it's inside a larger function.
-      *(..._tls_index...) = 0x8799989d; 
-      return 0;
-    }
-    ```
-
 -   **Analysis:** This is a less stable target. While it works, it's brittle. A game update that changes anything about the BGFX rendering logic could break this pattern, even if the context-retrieval part of the function remains identical.
 
 ### Final Recommendation
 
-The dedicated getter function targeted by **Signature 1 (`CONTEXT_COLLECTION_FUNC_PATTERN`) is the superior and officially recommended approach for this project.** It provides the most stable and reliable method for acquiring the `ContextCollection` pointer, which is the cornerstone of our data access strategy.
+The dedicated getter function targeted by **Signature 1 (`CONTEXT_COLLECTION_FUNC_PATTERN`) is the superior and officially recommended approach for this project.** It provides the most stable and reliable method for acquiring the `ContextCollection` pointer, which is the cornerstone of our high-level data access strategy.
