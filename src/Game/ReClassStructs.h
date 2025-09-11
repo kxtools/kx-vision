@@ -6,13 +6,14 @@
 namespace kx {
     namespace ReClass {
 
-        // Forward declarations
+	    // Forward declarations
         class ChCliCharacter;
         class AgChar;
         class ChCliHealth;
         class ChCliCoreStats;
         class ChCliPlayer;
         class ChCliEnergies;
+        class GdCliGadget;
 
         // --- Safe Wrappers for Game Structures ---
 
@@ -157,6 +158,67 @@ namespace kx {
             }
         };
 
+        class GdCliContext : public ForeignClass {
+        public:
+            GdCliContext(void* ptr) : ForeignClass(ptr) {}
+
+            GdCliGadget** GetGadgetList() {
+                __try {
+                    if (!data()) return nullptr;
+                    return get<GdCliGadget**>(0x0030); // Offset of pGadgetList
+                }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return nullptr; }
+            }
+
+            uint32_t GetGadgetListCapacity() {
+                __try {
+                    if (!data()) return 0;
+                    return get<uint32_t>(0x0038); // Offset of dwGadgetListCapacity
+                }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
+            }
+        };
+
+        class CoKeyFramed : public ForeignClass {
+        public:
+            CoKeyFramed(void* ptr) : ForeignClass(ptr) {}
+            Coordinates3D GetPosition() {
+                __try { return data() ? get<Coordinates3D>(0x0030) : Coordinates3D{ 0,0,0 }; }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return Coordinates3D{ 0,0,0 }; }
+            }
+        };
+
+        class AgKeyFramed : public ForeignClass {
+        public:
+            AgKeyFramed(void* ptr) : ForeignClass(ptr) {}
+            CoKeyFramed GetCoKeyFramed() {
+                __try { return CoKeyFramed(data() ? get<void*>(0x0050) : nullptr); }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return CoKeyFramed(nullptr); }
+            }
+        };
+
+        class GdCliGadget : public ForeignClass {
+        public:
+            GdCliGadget(void* ptr) : ForeignClass(ptr) {}
+
+            uint32_t GetGadgetType() {
+                __try { return data() ? get<uint32_t>(0x0200) : 0; }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
+            }
+
+            // This is the key for filtering depleted resource nodes.
+            // The flag 0x2 appears to mean "is active/gatherable".
+            bool IsGatherable() {
+                __try { return data() ? (get<uint32_t>(0x04E8) & 0x2) : false; }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return false; }
+            }
+
+            AgKeyFramed GetAgKeyFramed() {
+                __try { return AgKeyFramed(data() ? get<void*>(0x0038) : nullptr); }
+                __except (EXCEPTION_EXECUTE_HANDLER) { return AgKeyFramed(nullptr); }
+            }
+        };
+
         class ContextCollection : public ForeignClass {
         public:
             ContextCollection(void* ptr) : ForeignClass(ptr) {}
@@ -168,6 +230,16 @@ namespace kx {
                 }
                 __except (EXCEPTION_EXECUTE_HANDLER) {
                     return ChCliContext(nullptr);
+                }
+            }
+
+            GdCliContext GetGdCliContext() {
+                __try {
+                    if (!data()) return GdCliContext(nullptr);
+                    return GdCliContext(get<void*>(0x0138));
+                }
+                __except (EXCEPTION_EXECUTE_HANDLER) {
+                    return GdCliContext(nullptr);
                 }
             }
         };

@@ -83,24 +83,7 @@ void ESPRenderer::RenderAllEntities(ImDrawList* drawList, float screenWidth, flo
             }
         }
 
-        // Second, handle generic Agents to find Objects
-        uintptr_t agentArrayPtr = AddressManager::GetAgentArray();
-        if (agentArrayPtr) {
-            AgentArray agentArray(reinterpret_cast<void*>(agentArrayPtr));
-            uint32_t count = agentArray.Count();
-            for (uint32_t i = 0; i < count; ++i) {
-                Agent agent = agentArray.GetAgent(i);
-                if (!agent) continue;
-
-                // --- CATEGORIZATION LOGIC ---
-                // If it's a gadget and NOT a character, treat it as an object.
-                // (Characters are already handled above, this prevents double-rendering)
-                int agentType = agent.GetType();
-                if (agentType != AGENT_TYPE_CHARACTER && agentType != AGENT_TYPE_ERROR) {
-                     RenderObject(drawList, screenWidth, screenHeight, agent);
-                }
-            }
-        }
+        RenderGadgets(drawList, screenWidth, screenHeight);
     }
     catch (...) { /* Prevent crash */ }
 }
@@ -238,30 +221,63 @@ void ESPRenderer::RenderNpc(ImDrawList* drawList, float screenWidth, float scree
     RenderEntity(drawList, worldPos, distance, screenWidth, screenHeight, color, details, healthPercent, g_settings.npcESP.renderBox, g_settings.npcESP.renderDistance, g_settings.npcESP.renderDot, g_settings.npcESP.renderDetails);
 }
 
-void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float screenHeight, Agent& agent) {
+void ESPRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight) {
+    void* pContextCollection = AddressManager::GetContextCollectionPtr();
+    if (!pContextCollection) return;
+
+    try {
+        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+        kx::ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();
+        if (!gadgetCtx) return;
+
+        kx::ReClass::GdCliGadget** gadgetList = gadgetCtx.GetGadgetList();
+        uint32_t gadgetCapacity = gadgetCtx.GetGadgetListCapacity();
+        if (!gadgetList || gadgetCapacity > 0x10000) return;
+
+        for (uint32_t i = 0; i < gadgetCapacity; ++i) {
+            kx::ReClass::GdCliGadget gadget(gadgetList[i]);
+            if (!gadget) continue;
+
+            RenderObject(drawList, screenWidth, screenHeight, gadget);
+        }
+    }
+    catch (...) { /* Prevent crash */ }
+}
+
+void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float screenHeight, kx::ReClass::GdCliGadget& gadget) {
     if (!g_settings.objectESP.enabled) return;
 
-    int gadgetType = agent.GetGadgetType();
-    if (gadgetType >= 0 && gadgetType < kx::MAX_GADGET_TYPES && (g_settings.objectESP.ignoredGadgets & (1 << gadgetType))) {
+    // Filter by gadget type using the direct data
+    uint32_t gadgetType = gadget.GetGadgetType();
+    if (g_settings.objectESP.ignoredGadgets & (1 << gadgetType)) {
         return;
     }
 
-    const float scaleFactor = 1.23f;
+    // The best feature! Filter out depleted resource nodes.
+    if (gadgetType == 18) { // Gadget type for Resource Nodes
+        if (!gadget.IsGatherable()) {
+            return;
+        }
+    }
 
-    Coordinates3D gameWorldPos = agent.GetPosition();
+    // Get position from the new structures
+    kx::ReClass::AgKeyFramed agKeyFramed = gadget.GetAgKeyFramed();
+    kx::ReClass::CoKeyFramed coKeyFramed = agKeyFramed.GetCoKeyFramed();
+    if (!coKeyFramed) return;
+
+    Coordinates3D gameWorldPos = coKeyFramed.GetPosition();
     if (gameWorldPos.X == 0.0f && gameWorldPos.Y == 0.0f && gameWorldPos.Z == 0.0f) return;
 
+    const float scaleFactor = 1.23f;
     glm::vec3 worldPos(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
     float distance = glm::length(worldPos - s_camera->GetPlayerPosition());
 
-    unsigned int color = IM_COL32(200, 200, 200, 200); // Default object color
-    
+    unsigned int color = IM_COL32(200, 200, 200, 200);
+
     std::vector<std::string> details;
     if (g_settings.objectESP.renderDetails) {
-        char typeText[64], gadgetText[64];
-        snprintf(typeText, sizeof(typeText), "Type: %d", agent.GetType());
-        snprintf(gadgetText, sizeof(gadgetText), "Gadget: %d", agent.GetGadgetType());
-        details.push_back(typeText);
+        char gadgetText[64];
+        snprintf(gadgetText, sizeof(gadgetText), "Gadget Type: %u", gadgetType);
         details.push_back(gadgetText);
     }
 
