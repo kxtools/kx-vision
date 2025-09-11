@@ -1,9 +1,9 @@
 # KX-Vision for Guild Wars 2
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.1-green.svg)
+![Version](https://img.shields.io/badge/version-0.2-green.svg)
 
-![KX-Vision GUI](images/gui.jpg)
+![KX-Vision GUI](images/gui_v2.jpg)
 
 [➡️ Download the Latest Release](https://github.com/kxtools/kx-vision/releases/latest)
 
@@ -16,9 +16,11 @@ KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild War
 ## Features
 
 *   **MumbleLink Integration:** Utilizes GW2's MumbleLink API for player and game state data.
-*   **Dual-Source ESP:** Renders general agents (e.g., resource nodes) and provides a separate, highly reliable ESP for characters (players, NPCs) by hooking the game's main update loop.
-*   **Configurable Visuals:** ESP includes options for boxes, distance, and position dots.
-*   **Minimalist UI:** Simple, configurable ImGui interface.
+*   **Robust ESP System:** Renders characters (players, NPCs) and objects (resource nodes, waypoints) with comprehensive memory safety.
+*   **Crash Prevention:** Advanced memory validation and exception handling for stable operation.
+*   **Debug Logging:** Configurable debug output system for troubleshooting and development.
+*   **Configurable Visuals:** ESP includes options for boxes, distance, position dots, and health bars.
+*   **Minimalist UI:** Clean, organized ImGui interface with collapsible sections.
 *   **Patch-Resistant Scanning:** Uses pattern scanning to locate necessary game functions, increasing resilience to game updates.
 
 ## Building
@@ -46,7 +48,7 @@ KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild War
 1.  Launch Guild Wars 2.
 2.  Inject the DLL using a tool like Process Hacker or Xenos.
 3.  Use `INSERT` key to toggle the overlay window.
-4.  Configure ESP options through the UI.
+4.  Configure ESP options and debug settings through the UI.
 5.  Press `DELETE` to safely unload the DLL.
 
 ## Disclaimer

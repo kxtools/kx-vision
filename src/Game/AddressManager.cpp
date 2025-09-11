@@ -188,8 +188,13 @@ void AddressManager::Initialize() {
 void* AddressManager::GetLocalPlayer() {
     if (!s_pointers.pContextCollection) return nullptr;
     
+    return GetLocalPlayerImpl(s_pointers.pContextCollection);
+}
+
+// Implementation function to avoid object unwinding issues
+void* AddressManager::GetLocalPlayerImpl(void* pContextCollection) {
     __try {
-        ReClass::ContextCollection contextCollection(s_pointers.pContextCollection);
+        ReClass::ContextCollection contextCollection(pContextCollection);
         ReClass::ChCliContext chContext = contextCollection.GetChCliContext();
         if (!chContext.data()) return nullptr;
         

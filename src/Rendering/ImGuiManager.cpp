@@ -146,6 +146,7 @@ void ImGuiManager::RenderESPWindow() {
     }
 
     ImGui::Separator();
+    RenderInfoSection();
     RenderDebugSection();
 
     ImGui::End();
@@ -180,6 +181,14 @@ void ImGuiManager::RenderInfoSection() {
 }
 
 void ImGuiManager::RenderDebugSection() {
+    // Debug Options (always visible for easy access)
+    if (ImGui::CollapsingHeader("Debug Options")) {
+        ImGui::Checkbox("Enable Debug Logging", &kx::g_settings.enableDebugLogging);
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Enable detailed logging to console and kx_debug.log file.\nHelps diagnose crashes and memory access issues.");
+        }
+    }
+
 #ifdef _DEBUG
     if (ImGui::CollapsingHeader("Debug Info")) {
         // Context Collection
@@ -240,9 +249,10 @@ void ImGuiManager::RenderDebugSection() {
                 // Gadget List
                 kx::ReClass::GdCliGadget** gadgetList = gadgetCtx.GetGadgetList();
                 uint32_t gadgetCapacity = gadgetCtx.GetGadgetListCapacity();
+                uint32_t gadgetCount = gadgetCtx.GetGadgetListCount();
                 char gadgetListAddrStr[32];
                 snprintf(gadgetListAddrStr, sizeof(gadgetListAddrStr), "0x%p", (void*)gadgetList);
-                ImGui::Text("GadgetList (Capacity: %u):", gadgetCapacity);
+                ImGui::Text("GadgetList (Count: %u / Capacity: %u):", gadgetCount, gadgetCapacity);
                 ImGui::PushItemWidth(-1.0f);
                 ImGui::InputText("##GadgetListAddr", gadgetListAddrStr, sizeof(gadgetListAddrStr), ImGuiInputTextFlags_ReadOnly);
                 ImGui::PopItemWidth();
