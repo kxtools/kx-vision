@@ -42,6 +42,11 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
             continue;
         }
         
+        // Skip dead entities (0 HP)
+        if (player.currentHealth <= 0.0f) {
+            continue;
+        }
+        
         const float distance = std::sqrt(distanceSquared);  // Only calculate sqrt when needed
         
         unsigned int color = IM_COL32(0, 255, 100, 220); // Friendly player color
@@ -98,6 +103,11 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
         const glm::vec3 deltaPos = npc.position - cameraPos;
         const float distanceSquared = glm::dot(deltaPos, deltaPos);
         if (distanceSquared > maxDistanceSquared) {
+            continue;
+        }
+        
+        // Skip dead entities (0 HP)
+        if (npc.currentHealth <= 0.0f) {
             continue;
         }
         
