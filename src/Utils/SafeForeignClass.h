@@ -375,9 +375,21 @@ namespace kx {
         return nullptr != rhs.data();
     }
 
-    // --- Arithmetic operators ---
+    // --- Arithmetic operators with overflow protection ---
     inline SafeForeignClass operator+(const SafeForeignClass& base, uintptr_t offset) {
-        return SafeForeignClass((void*)((uintptr_t)base.data() + offset));
+        uintptr_t base_addr = reinterpret_cast<uintptr_t>(base.data());
+        
+        // Critical validation: Check for overflow
+        if (base_addr > UINTPTR_MAX - offset) {
+            return SafeForeignClass(nullptr); // Prevent overflow
+        }
+        
+        // Critical validation: Check for reasonable offset
+        if (offset > SafeForeignClassLimits::MAX_REASONABLE_OFFSET) {
+            return SafeForeignClass(nullptr); // Prevent unreasonable offsets
+        }
+        
+        return SafeForeignClass((void*)(base_addr + offset));
     }
 
     inline SafeForeignClass operator+(uintptr_t offset, const SafeForeignClass& base) {
@@ -385,7 +397,19 @@ namespace kx {
     }
 
     inline SafeForeignClass operator-(const SafeForeignClass& base, uintptr_t offset) {
-        return SafeForeignClass((void*)((uintptr_t)base.data() - offset));
+        uintptr_t base_addr = reinterpret_cast<uintptr_t>(base.data());
+        
+        // Critical validation: Check for underflow
+        if (base_addr < offset) {
+            return SafeForeignClass(nullptr); // Prevent underflow
+        }
+        
+        // Critical validation: Check for reasonable offset
+        if (offset > SafeForeignClassLimits::MAX_REASONABLE_OFFSET) {
+            return SafeForeignClass(nullptr); // Prevent unreasonable offsets
+        }
+        
+        return SafeForeignClass((void*)(base_addr - offset));
     }
 
 } // namespace kx
