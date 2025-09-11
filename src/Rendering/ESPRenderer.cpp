@@ -254,7 +254,7 @@ void ESPRenderer::RenderObject(ImDrawList* drawList, float screenWidth, float sc
     }
 
     // The best feature! Filter out depleted resource nodes.
-    if (gadgetType == 18) { // Gadget type for Resource Nodes
+    if (gadgetType == kx::GADGET_TYPE_RESOURCE_NODE) {
         if (!gadget.IsGatherable()) {
             return;
         }

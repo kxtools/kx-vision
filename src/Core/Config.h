@@ -17,4 +17,6 @@ namespace kx {
     constexpr std::string_view ALERT_CONTEXT_LOCATOR_PATTERN = "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 41 0F 28 CA 48 8B 08 48 8B 51 58"; // "ViewAdvanceAlert"
 
     constexpr int MAX_GADGET_TYPES = 32;
+
+    constexpr uint32_t GADGET_TYPE_RESOURCE_NODE = 18;
 } // namespace kx
