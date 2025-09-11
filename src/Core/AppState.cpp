@@ -1,24 +1,14 @@
 #include "AppState.h"
 
-#include <atomic>
-
 namespace kx {
 
-	// --- Global Settings Instance ---
-	Settings g_settings;
+    AppState::AppState() {
+        // Constructor initializes default values (already done in member initializer list)
+    }
 
-	// --- Status Information ---
-	HookStatus g_presentHookStatus = HookStatus::Unknown;
-
-	// --- App State ---
-	bool g_isVisionWindowOpen = true;
-
-	// --- Shutdown Synchronization ---
-	std::atomic<bool> g_isShuttingDown = false;
-
-	// --- Debug Logging Helper ---
-	bool IsDebugLoggingEnabled() {
-		return g_settings.enableDebugLogging;
-	}
+    AppState& AppState::Get() {
+        static AppState instance;
+        return instance;
+    }
 
 } // namespace kx

@@ -47,7 +47,7 @@ namespace kx {
     } // namespace Hooking
 
     bool InitializeHooks() {
-        g_presentHookStatus = HookStatus::Unknown;
+        AppState::Get().SetPresentHookStatus(HookStatus::Unknown);
 
         if (!kx::Hooking::HookManager::Initialize()) {
             return false;
@@ -55,7 +55,7 @@ namespace kx {
 
         if (!kx::Hooking::D3DRenderHook::Initialize()) {
             kx::Hooking::HookManager::Shutdown();
-            g_presentHookStatus = HookStatus::Failed;
+            AppState::Get().SetPresentHookStatus(HookStatus::Failed);
             return false;
         }
 

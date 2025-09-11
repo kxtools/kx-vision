@@ -1,88 +1,11 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
+#include "Settings.h"
 #include "../Game/GameEnums.h"
 
 namespace kx {
-
-    // --- NEW: Category-specific settings ---
-    struct PlayerEspSettings {
-        bool enabled = true;
-        bool renderBox = true;
-        bool renderDistance = true;
-        bool renderDot = true;
-        bool renderDetails = false;
-        bool renderHealthBar = true;
-        bool showProfession = true;
-        bool showRace = true;
-        bool showArmorWeight = true;
-        bool showLocalPlayer = false; // Hide local player by default
-        // Future features from zenith can be added here:
-        // SnaplineType snaplineType = SnaplineType::Disabled;
-    };
-
-    struct NpcEspSettings {
-        bool enabled = true;
-        bool renderBox = true;
-        bool renderDistance = true;
-        bool renderDot = true;
-        bool renderDetails = false;
-        bool renderHealthBar = true;
-        // Enhanced attitude filtering using the new enum
-        bool showFriendly = true;
-        bool showHostile = true;
-        bool showNeutral = true;
-        bool showIndifferent = true;
-        // Add specific colors
-        // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
-        // etc.
-    };
-
-    struct ObjectEspSettings {
-        bool enabled = true;
-        bool renderBox = true;
-        bool renderDistance = true;
-        bool renderDot = true;
-        bool renderDetails = false;
-        
-        // Enhanced gadget filtering using the new enum
-        bool showResourceNodes = true;
-        bool showWaypoints = true;
-        bool showVistas = true;
-        bool showCraftingStations = true;
-        bool showAttackTargets = true;
-        bool showPlayerCreated = true;
-        bool showInteractables = true;
-        bool showDoors = false;
-        bool showPortals = true;
-        bool onlyImportantGadgets = false; // Only show important gadget types
-    };
-
-
-    // --- User-configurable settings ---
-    struct Settings {
-        bool showVisionWindow = true;
-
-        // Replace old flat settings with new structs
-        PlayerEspSettings playerESP;
-        NpcEspSettings npcESP;
-        ObjectEspSettings objectESP;
-
-        // Keep global settings
-        bool espUseDistanceLimit = true;
-        float espRenderDistanceLimit = 250.0f;
-        
-        // New enhanced filtering options
-        bool enableSmartFiltering = true; // Use the enhanced enum-based filtering
-        bool hideDepletedNodes = true;    // Hide depleted resource nodes
-        bool prioritizeImportant = true;  // Give priority to important objects
-        
-        // Debug options
-        bool enableDebugLogging = false;  // Enable detailed debug logging
-    };
-
-    extern Settings g_settings;
-
 
     // --- Status Information ---
     enum class HookStatus {
@@ -91,12 +14,54 @@ namespace kx {
         Failed
     };
 
-    extern HookStatus g_presentHookStatus;
+    /**
+     * @brief Central application state manager using the singleton pattern.
+     * 
+     * This class encapsulates all global application state including settings,
+     * hook status, and shutdown synchronization. It provides thread-safe access
+     * to the application state and reduces global namespace pollution.
+     */
+    class AppState {
+    public:
+        // Get the singleton instance
+        static AppState& Get();
 
-    // --- App State ---
-    extern bool g_isVisionWindowOpen; // Controls GUI window visibility and main loop unload trigger
-    
-    // --- Shutdown Synchronization ---
-    extern std::atomic<bool> g_isShuttingDown; // Flag to signal shutdown to hooks
+        // Deleted copy constructor and assignment operator for singleton
+        AppState(const AppState&) = delete;
+        AppState& operator=(const AppState&) = delete;
+
+        // --- Settings Access ---
+        Settings& GetSettings() { return m_settings; }
+        const Settings& GetSettings() const { return m_settings; }
+
+        // --- Hook Status Management ---
+        HookStatus GetPresentHookStatus() const { return m_presentHookStatus; }
+        void SetPresentHookStatus(HookStatus status) { m_presentHookStatus = status; }
+
+        // --- Vision Window State ---
+        bool IsVisionWindowOpen() const { return m_isVisionWindowOpen; }
+        void SetVisionWindowOpen(bool open) { m_isVisionWindowOpen = open; }
+
+        // --- Shutdown Synchronization ---
+        bool IsShuttingDown() const { return m_isShuttingDown.load(std::memory_order_acquire); }
+        void SetShuttingDown(bool shutting_down) { m_isShuttingDown.store(shutting_down, std::memory_order_release); }
+
+        // --- Debug Logging Helper ---
+        bool IsDebugLoggingEnabled() const { return m_settings.enableDebugLogging; }
+
+    private:
+        // Private constructor for singleton
+        AppState();
+        ~AppState() = default;
+
+        // Application state members
+        Settings m_settings;
+        HookStatus m_presentHookStatus = HookStatus::Unknown;
+        bool m_isVisionWindowOpen = true;
+        std::atomic<bool> m_isShuttingDown = false;
+
+        // Mutex for thread-safe access (if needed for future extensions)
+        mutable std::mutex m_mutex;
+    };
 
 } // namespace kx
