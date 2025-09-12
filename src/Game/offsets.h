@@ -39,6 +39,13 @@ namespace Offsets {
     constexpr uintptr_t CH_CLI_CORE_STATS_LEVEL = 0xAC;
     constexpr uintptr_t CH_CLI_CORE_STATS_PROFESSION = 0x12C;
 
+    // Character Main Structure
+    constexpr uintptr_t CH_CLI_CHARACTER_AGENT = 0x98;
+    constexpr uintptr_t CH_CLI_CHARACTER_HEALTH = 0x03E8;
+    constexpr uintptr_t CH_CLI_CHARACTER_ENERGIES = 0x03F0;
+    constexpr uintptr_t CH_CLI_CHARACTER_CORE_STATS = 0x0388;
+    constexpr uintptr_t CH_CLI_CHARACTER_ATTITUDE = 0x03A0;
+
     // Character Wrapper (AgChar)
     constexpr uintptr_t AG_CHAR_CO_CHAR = 0x50;
     constexpr uintptr_t AG_CHAR_TYPE = 0x08;
@@ -60,6 +67,7 @@ namespace Offsets {
 
     // Context Collection
     constexpr uintptr_t CONTEXT_COLLECTION_CH_CLI_CONTEXT = 0x98;
+    constexpr uintptr_t CONTEXT_COLLECTION_GD_CLI_CONTEXT = 0x0138;
 
     // Gadget System - Position and Type
     constexpr uintptr_t CO_KEYFRAMED_POSITION = 0x0030;

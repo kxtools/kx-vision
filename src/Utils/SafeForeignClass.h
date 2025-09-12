@@ -4,6 +4,7 @@
 #include <cstdint>   // Required for UINTPTR_MAX
 #include <limits>    // Required for std::numeric_limits
 #include "MemorySafety.h"
+#include "DebugLogger.h"
 
 namespace kx {
 
@@ -80,24 +81,85 @@ namespace kx {
         }
 
         /**
-         * @brief Safely get a value from foreign memory with offset
+         * @brief Read a member variable from foreign memory with comprehensive validation
          * @tparam T Type to read
          * @param offset Offset from base pointer
-         * @return Value of type T, or default-constructed T if memory is unsafe
+         * @param defaultValue Value to return if read fails (defaults to default-constructed T)
+         * @return Value of type T, or defaultValue if memory is unsafe
          */
-        template <typename T>
-        [[nodiscard]] T get(uintptr_t offset) const {
-            if (!isValidAccess(offset, sizeof(T))) {
-                return T(); // Return default-constructed value for safety
+        template<typename T>
+        [[nodiscard]] T ReadMember(uintptr_t offset, const T& defaultValue = T{}) const {
+            if (!data()) {
+                return defaultValue;
             }
             
-            try {
-                return *(T*)((uintptr_t)m_ptr + offset);
+            T result;
+            if (!kx::Debug::SafeRead<T>(const_cast<void*>(data()), offset, result)) {
+                return defaultValue;
             }
-            catch (...) {
-                // In case of any exception, return default value
-                return T();
+            
+            return result;
+        }
+
+        /**
+         * @brief Read a pointer from foreign memory and return wrapped in specified ReClass type
+         * @tparam WrapperType The ReClass wrapper type to construct
+         * @param offset Offset from base pointer
+         * @return Instance of WrapperType wrapping the read pointer, or WrapperType(nullptr) if read fails
+         */
+        template<typename WrapperType>
+        [[nodiscard]] WrapperType ReadPointer(uintptr_t offset) const {
+            if (!data()) {
+                return WrapperType(nullptr);
             }
+            
+            void* ptr = nullptr;
+            if (!kx::Debug::SafeRead<void*>(const_cast<void*>(data()), offset, ptr)) {
+                return WrapperType(nullptr);
+            }
+            
+            return WrapperType(ptr);
+        }
+
+        /**
+         * @brief Read a typed pointer from foreign memory  
+         * @tparam PtrType The pointer type to read (e.g., ChCliCharacter*)
+         * @tparam WrapperType The ReClass wrapper type to construct
+         * @param offset Offset from base pointer
+         * @return Instance of WrapperType wrapping the read pointer, or WrapperType(nullptr) if read fails
+         */
+        template<typename PtrType, typename WrapperType>
+        [[nodiscard]] WrapperType ReadTypedPointer(uintptr_t offset) const {
+            if (!data()) {
+                return WrapperType(nullptr);
+            }
+            
+            PtrType ptr = nullptr;
+            if (!kx::Debug::SafeRead<PtrType>(const_cast<void*>(data()), offset, ptr)) {
+                return WrapperType(nullptr);
+            }
+            
+            return WrapperType(ptr);
+        }
+
+        /**
+         * @brief Read an array pointer from foreign memory
+         * @tparam ArrayType The array element type (e.g., ChCliCharacter*)
+         * @param offset Offset from base pointer
+         * @return Pointer to array, or nullptr if read fails
+         */
+        template<typename ArrayType>
+        [[nodiscard]] ArrayType* ReadArrayPointer(uintptr_t offset) const {
+            if (!data()) {
+                return nullptr;
+            }
+            
+            ArrayType* arrayPtr = nullptr;
+            if (!kx::Debug::SafeRead<ArrayType*>(const_cast<void*>(data()), offset, arrayPtr)) {
+                return nullptr;
+            }
+            
+            return arrayPtr;
         }
 
         /**

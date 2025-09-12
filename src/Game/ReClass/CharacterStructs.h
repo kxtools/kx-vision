@@ -14,23 +14,14 @@ namespace kx {
         /**
          * @brief Character health management wrapper
          */
-        class ChCliHealth : public SafeForeignClass {
+        class ChCliHealth : public kx::SafeForeignClass {
         public:
-            ChCliHealth(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliHealth(void* ptr) : kx::SafeForeignClass(ptr) {}
             
             float GetCurrent() { 
                 LOG_MEMORY("ChCliHealth", "GetCurrent", data(), Offsets::CH_CLI_HEALTH_CURRENT);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliHealth::GetCurrent - ChCliHealth data is null");
-                    return 0.0f;
-                }
-                
-                float current = 0.0f;
-                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_HEALTH_CURRENT, current)) {
-                    LOG_ERROR("ChCliHealth::GetCurrent - Failed to read current health at offset 0x0C");
-                    return 0.0f;
-                }
+                float current = ReadMember<float>(Offsets::CH_CLI_HEALTH_CURRENT, 0.0f);
                 
                 LOG_DEBUG("ChCliHealth::GetCurrent - Current: %.2f", current);
                 return current;
@@ -39,16 +30,7 @@ namespace kx {
             float GetMax() { 
                 LOG_MEMORY("ChCliHealth", "GetMax", data(), Offsets::CH_CLI_HEALTH_MAX);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliHealth::GetMax - ChCliHealth data is null");
-                    return 0.0f;
-                }
-                
-                float max = 0.0f;
-                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_HEALTH_MAX, max)) {
-                    LOG_ERROR("ChCliHealth::GetMax - Failed to read max health at offset 0x10");
-                    return 0.0f;
-                }
+                float max = ReadMember<float>(Offsets::CH_CLI_HEALTH_MAX, 0.0f);
                 
                 LOG_DEBUG("ChCliHealth::GetMax - Max: %.2f", max);
                 return max;
@@ -58,23 +40,14 @@ namespace kx {
         /**
          * @brief Character energy management wrapper
          */
-        class ChCliEnergies : public SafeForeignClass {
+        class ChCliEnergies : public kx::SafeForeignClass {
         public:
-            ChCliEnergies(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliEnergies(void* ptr) : kx::SafeForeignClass(ptr) {}
             
             float GetCurrent() { 
                 LOG_MEMORY("ChCliEnergies", "GetCurrent", data(), Offsets::CH_CLI_ENERGIES_CURRENT);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliEnergies::GetCurrent - ChCliEnergies data is null");
-                    return 0.0f;
-                }
-                
-                float current = 0.0f;
-                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_ENERGIES_CURRENT, current)) {
-                    LOG_ERROR("ChCliEnergies::GetCurrent - Failed to read current energy at offset 0x0C");
-                    return 0.0f;
-                }
+                float current = ReadMember<float>(Offsets::CH_CLI_ENERGIES_CURRENT, 0.0f);
                 
                 LOG_DEBUG("ChCliEnergies::GetCurrent - Current: %.2f", current);
                 return current;
@@ -83,16 +56,7 @@ namespace kx {
             float GetMax() { 
                 LOG_MEMORY("ChCliEnergies", "GetMax", data(), Offsets::CH_CLI_ENERGIES_MAX);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliEnergies::GetMax - ChCliEnergies data is null");
-                    return 0.0f;
-                }
-                
-                float max = 0.0f;
-                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_ENERGIES_MAX, max)) {
-                    LOG_ERROR("ChCliEnergies::GetMax - Failed to read max energy at offset 0x10");
-                    return 0.0f;
-                }
+                float max = ReadMember<float>(Offsets::CH_CLI_ENERGIES_MAX, 0.0f);
                 
                 LOG_DEBUG("ChCliEnergies::GetMax - Max: %.2f", max);
                 return max;
@@ -102,9 +66,9 @@ namespace kx {
         /**
          * @brief Character core statistics wrapper
          */
-        class ChCliCoreStats : public SafeForeignClass {
+        class ChCliCoreStats : public kx::SafeForeignClass {
         public:
-            ChCliCoreStats(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliCoreStats(void* ptr) : kx::SafeForeignClass(ptr) {}
             
             Game::Race GetRace() { 
                 LOG_MEMORY("ChCliCoreStats", "GetRace", data(), Offsets::CH_CLI_CORE_STATS_RACE);
@@ -128,16 +92,7 @@ namespace kx {
             uint32_t GetLevel() { 
                 LOG_MEMORY("ChCliCoreStats", "GetLevel", data(), Offsets::CH_CLI_CORE_STATS_LEVEL);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliCoreStats::GetLevel - ChCliCoreStats data is null");
-                    return 0;
-                }
-                
-                uint32_t level = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), Offsets::CH_CLI_CORE_STATS_LEVEL, level)) {
-                    LOG_ERROR("ChCliCoreStats::GetLevel - Failed to read level at offset 0xAC");
-                    return 0;
-                }
+                uint32_t level = ReadMember<uint32_t>(Offsets::CH_CLI_CORE_STATS_LEVEL, 0);
                 
                 LOG_DEBUG("ChCliCoreStats::GetLevel - Level: %u", level);
                 return level;
@@ -146,18 +101,9 @@ namespace kx {
             Game::Profession GetProfession() { 
                 LOG_MEMORY("ChCliCoreStats", "GetProfession", data(), Offsets::CH_CLI_CORE_STATS_PROFESSION);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliCoreStats::GetProfession - ChCliCoreStats data is null");
-                    return Game::Profession::None;
-                }
-                
-                uint32_t profValue = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), Offsets::CH_CLI_CORE_STATS_PROFESSION, profValue)) {
-                    LOG_ERROR("ChCliCoreStats::GetProfession - Failed to read profession at offset 0x12C");
-                    return Game::Profession::None;
-                }
-                
+                uint32_t profValue = ReadMember<uint32_t>(Offsets::CH_CLI_CORE_STATS_PROFESSION, 0);
                 Game::Profession profession = static_cast<Game::Profession>(profValue);
+                
                 LOG_DEBUG("ChCliCoreStats::GetProfession - Profession: %u", static_cast<uint32_t>(profession));
                 return profession;
             }
@@ -166,98 +112,58 @@ namespace kx {
         /**
          * @brief Main character wrapper with access to all character subsystems
          */
-        class ChCliCharacter : public SafeForeignClass {
+        class ChCliCharacter : public kx::SafeForeignClass {
         public:
-            ChCliCharacter(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliCharacter(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             AgChar GetAgent() {
-                if (!data()) {
-                    return AgChar(nullptr);
-                }
-                
-                void* agentPtr = nullptr;
-                if (!Debug::SafeRead<void*>(data(), 0x98, agentPtr)) {
-                    return AgChar(nullptr);
-                }
-                
-                return AgChar(agentPtr);
+                return ReadPointer<AgChar>(Offsets::CH_CLI_CHARACTER_AGENT);
             }
 
             ChCliHealth GetHealth() { 
-                LOG_MEMORY("ChCliCharacter", "GetHealth", data(), 0x03E8);
+                LOG_MEMORY("ChCliCharacter", "GetHealth", data(), Offsets::CH_CLI_CHARACTER_HEALTH);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliCharacter::GetHealth - ChCliCharacter data is null");
-                    return ChCliHealth(nullptr);
-                }
+                ChCliHealth result = ReadPointer<ChCliHealth>(Offsets::CH_CLI_CHARACTER_HEALTH);
                 
-                void* healthPtr = nullptr;
-                if (!Debug::SafeRead<void*>(data(), 0x03E8, healthPtr)) {
-                    LOG_ERROR("ChCliCharacter::GetHealth - Failed to read Health pointer at offset 0x03E8");
-                    return ChCliHealth(nullptr);
-                }
-                
-                LOG_PTR("Health", healthPtr);
-                return ChCliHealth(healthPtr);
-            }
-
-            ChCliCoreStats GetCoreStats() { 
-                LOG_MEMORY("ChCliCharacter", "GetCoreStats", data(), 0x0388);
-                
-                if (!data()) {
-                    LOG_ERROR("ChCliCharacter::GetCoreStats - ChCliCharacter data is null");
-                    return ChCliCoreStats(nullptr);
-                }
-                
-                void* coreStatsPtr = nullptr;
-                if (!Debug::SafeRead<void*>(data(), 0x0388, coreStatsPtr)) {
-                    LOG_ERROR("ChCliCharacter::GetCoreStats - Failed to read CoreStats pointer at offset 0x0388");
-                    return ChCliCoreStats(nullptr);
-                }
-                
-                LOG_PTR("CoreStats", coreStatsPtr);
-                return ChCliCoreStats(coreStatsPtr);
-            }
-
-            Game::Attitude GetAttitude() { 
-                if (!data()) {
-                    return Game::Attitude::Neutral;
-                }
-                
-                uint32_t attitudeValue = 1; // Default to Neutral
-                if (!Debug::SafeRead<uint32_t>(data(), 0x00C0, attitudeValue)) {
-                    return Game::Attitude::Neutral;
-                }
-                
-                Game::Attitude attitude = static_cast<Game::Attitude>(attitudeValue);
-                return attitude;
+                LOG_PTR("Health", result.data());
+                return result;
             }
 
             ChCliEnergies GetEnergies() { 
-                LOG_MEMORY("ChCliCharacter", "GetEnergies", data(), 0x03D8);
+                LOG_MEMORY("ChCliCharacter", "GetEnergies", data(), Offsets::CH_CLI_CHARACTER_ENERGIES);
                 
-                if (!data()) {
-                    LOG_ERROR("ChCliCharacter::GetEnergies - ChCliCharacter data is null");
-                    return ChCliEnergies(nullptr);
-                }
+                ChCliEnergies result = ReadPointer<ChCliEnergies>(Offsets::CH_CLI_CHARACTER_ENERGIES);
                 
-                void* energiesPtr = nullptr;
-                if (!Debug::SafeRead<void*>(data(), 0x03D8, energiesPtr)) {
-                    LOG_ERROR("ChCliCharacter::GetEnergies - Failed to read Energies pointer at offset 0x03D8");
-                    return ChCliEnergies(nullptr);
-                }
+                LOG_PTR("Energies", result.data());
+                return result;
+            }
+
+            ChCliCoreStats GetCoreStats() { 
+                LOG_MEMORY("ChCliCharacter", "GetCoreStats", data(), Offsets::CH_CLI_CHARACTER_CORE_STATS);
                 
-                LOG_PTR("Energies", energiesPtr);
-                return ChCliEnergies(energiesPtr);
+                ChCliCoreStats result = ReadPointer<ChCliCoreStats>(Offsets::CH_CLI_CHARACTER_CORE_STATS);
+                
+                LOG_PTR("CoreStats", result.data());
+                return result;
+            }
+
+            Game::Attitude GetAttitude() { 
+                LOG_MEMORY("ChCliCharacter", "GetAttitude", data(), Offsets::CH_CLI_CHARACTER_ATTITUDE);
+                
+                uint32_t attitudeValue = ReadMember<uint32_t>(Offsets::CH_CLI_CHARACTER_ATTITUDE, 0);
+                Game::Attitude attitude = static_cast<Game::Attitude>(attitudeValue);
+                
+                LOG_DEBUG("ChCliCharacter::GetAttitude - Attitude: %u", static_cast<uint32_t>(attitude));
+                return attitude;
             }
         };
 
         /**
          * @brief Player wrapper that contains character data and player name
          */
-        class ChCliPlayer : public SafeForeignClass {
+        class ChCliPlayer : public kx::SafeForeignClass {
         public:
-            ChCliPlayer(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliPlayer(void* ptr) : kx::SafeForeignClass(ptr) {}
             
             ChCliCharacter GetCharacter() { 
                 if (!data()) {
