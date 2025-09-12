@@ -9,6 +9,21 @@
 
 namespace kx {
 
+// Box dimension constants for different entity types
+namespace BoxDimensions {
+    // Player box - tall rectangle for humanoid shape
+    constexpr float PLAYER_HEIGHT = 50.0f;
+    constexpr float PLAYER_WIDTH = 30.0f;
+    
+    // NPC box - square for easy distinction
+    constexpr float NPC_HEIGHT = 40.0f;
+    constexpr float NPC_WIDTH = 40.0f;
+    
+    // Gadget box - very small square for minimal visual impact
+    constexpr float GADGET_HEIGHT = 15.0f;
+    constexpr float GADGET_WIDTH = 15.0f;
+}
+
 // Context struct for unified entity rendering
 struct EntityRenderContext {
     // Pre-calculated data from the Renderable object
@@ -204,23 +219,23 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     switch (context.entityType) {
         case ESPEntityType::Player:
             // Players: tall rectangle (humanoid)
-            boxHeight = 50.0f;
-            boxWidth = 30.0f;
+            boxHeight = BoxDimensions::PLAYER_HEIGHT;
+            boxWidth = BoxDimensions::PLAYER_WIDTH;
             break;
         case ESPEntityType::NPC:
             // NPCs: square box
-            boxHeight = 40.0f;
-            boxWidth = 40.0f;
+            boxHeight = BoxDimensions::NPC_HEIGHT;
+            boxWidth = BoxDimensions::NPC_WIDTH;
             break;
         case ESPEntityType::Gadget:
             // Gadgets: very small square
-            boxHeight = 15.0f;
-            boxWidth = 15.0f;
+            boxHeight = BoxDimensions::GADGET_HEIGHT;
+            boxWidth = BoxDimensions::GADGET_WIDTH;
             break;
         default:
-            // Fallback
-            boxHeight = 50.0f;
-            boxWidth = 30.0f;
+            // Fallback to player dimensions
+            boxHeight = BoxDimensions::PLAYER_HEIGHT;
+            boxWidth = BoxDimensions::PLAYER_WIDTH;
             break;
     }
     
