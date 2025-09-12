@@ -38,9 +38,9 @@ namespace kx {
 
     struct ObjectEspSettings {
         bool enabled = true;
-        bool renderBox = true;
+        bool renderBox = false;
         bool renderDistance = false;
-        bool renderDot = false;
+        bool renderDot = true;
         bool renderDetails = false;
         
         // Enhanced gadget filtering using the new enum

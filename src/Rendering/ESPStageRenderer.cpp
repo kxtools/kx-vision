@@ -294,7 +294,13 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
 
     // Render center dot
     if (context.renderDot) {
-        RenderCenterDot(drawList, screenPos, context.color);
+        if (context.entityType == ESPEntityType::Gadget) {
+            // Always render natural white dot for gadgets
+            RenderNaturalWhiteDot(drawList, screenPos);
+        } else {
+            // Use colored dots for players and NPCs
+            RenderCenterDot(drawList, screenPos, context.color);
+        }
     }
 
     // Render player name for natural identification (players only)
@@ -450,6 +456,16 @@ void ESPStageRenderer::RenderCenterDot(ImDrawList* drawList, const glm::vec2& fe
     drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), 2.5f, IM_COL32(0, 0, 0, 180));
     // Main dot using entity color
     drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), 2.0f, color);
+}
+
+void ESPStageRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos) {
+    ImVec2 pos(feetPos.x, feetPos.y);
+    
+    // Shadow
+    drawList->AddCircleFilled(ImVec2(pos.x + 1, pos.y + 1), 2.0f, IM_COL32(0, 0, 0, 120));
+    
+    // Dot
+    drawList->AddCircleFilled(pos, 1.5f, IM_COL32(255, 255, 255, 255));
 }
 
 void ESPStageRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details) {

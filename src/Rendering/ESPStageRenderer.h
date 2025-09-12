@@ -67,6 +67,7 @@ private:
     static void RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color);
     static void RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, float distance);
     static void RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos, unsigned int color);
+    static void RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos);
     static void RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details);
 };
 
