@@ -61,7 +61,7 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
     for (const auto& player : players) {
         // All filtering has been done - just render everything
         
-        unsigned int color = IM_COL32(100, 255, 100, 200); // Friendly player - bright green (like GW2 friendly indicators)
+        unsigned int color = IM_COL32(100, 200, 255, 220); // Players - bright cyan/blue (distinct from all NPC colors)
 
         float healthPercent = -1.0f;
         if (player.maxHealth > 0) {
@@ -196,7 +196,7 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
             continue;
         }
         
-        unsigned int color = IM_COL32(150, 150, 255, 190); // Gadgets - light blue (like GW2 interactable objects)
+        unsigned int color = IM_COL32(255, 165, 80, 200); // Gadgets - warm orange/amber (distinct and pleasant)
 
         std::vector<std::string> details;
         details.reserve(2); // Pre-allocate for type and gatherable status
