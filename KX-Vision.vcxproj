@@ -62,7 +62,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs\safetyhook;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -78,7 +78,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs\safetyhook;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -88,8 +88,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="libs\safetyhook\safetyhook.cpp" />
-    <ClCompile Include="libs\safetyhook\Zydis.c" />
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
