@@ -1,18 +1,16 @@
 #include "ESPStageRenderer.h"
 #include "../Core/AppState.h"
-#include "../Game/AddressManager.h"
 #include "../Game/Camera.h"
 #include "ESPMath.h"
 #include "ESPStyling.h"
 #include "../../libs/ImGui/imgui.h"
-#include "../Utils/EntityFilter.h"
-#include <limits>
 #include <cmath>
 
 namespace kx {
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                       const FrameRenderData& frameData, Camera& camera) {
+    // Simple rendering - no filtering logic, just draw everything that was passed in
     RenderPlayers(drawList, screenWidth, screenHeight, frameData.players, camera);
     RenderNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera);
     RenderGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera);
@@ -21,34 +19,11 @@ void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, 
 void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                     const std::vector<RenderablePlayer>& players, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
-    if (!settings.playerESP.enabled) return;
-
-    const glm::vec3 cameraPos = camera.GetPlayerPosition();
-    const float maxDistanceSquared = settings.espUseDistanceLimit ? 
-        (settings.espRenderDistanceLimit * settings.espRenderDistanceLimit) : (std::numeric_limits<float>::max)();
-
+    
     for (const auto& player : players) {
-        if (!player.isValid) continue;
+        // All filtering has been done - just render everything
         
-        // Skip local player if showLocalPlayer is disabled
-        if (player.isLocalPlayer && !settings.playerESP.showLocalPlayer) {
-            continue;
-        }
-        
-        // Early distance culling using squared distance (faster than sqrt)
-        const glm::vec3 deltaPos = player.position - cameraPos;
-        const float distanceSquared = glm::dot(deltaPos, deltaPos);
-        if (distanceSquared > maxDistanceSquared) {
-            continue;
-        }
-        
-        // Skip dead entities (0 HP)
-        if (player.currentHealth <= 0.0f) {
-            continue;
-        }
-        
-        const float distance = std::sqrt(distanceSquared);  // Only calculate sqrt when needed
-        
+        const float distance = glm::length(player.position - camera.GetPlayerPosition());
         unsigned int color = IM_COL32(0, 255, 100, 220); // Friendly player color
 
         float healthPercent = -1.0f;
@@ -90,28 +65,11 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
 void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                  const std::vector<RenderableNpc>& npcs, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
-    if (!settings.npcESP.enabled) return;
-
-    const glm::vec3 cameraPos = camera.GetPlayerPosition();
-    const float maxDistanceSquared = settings.espUseDistanceLimit ? 
-        (settings.espRenderDistanceLimit * settings.espRenderDistanceLimit) : (std::numeric_limits<float>::max)();
-
+    
     for (const auto& npc : npcs) {
-        if (!npc.isValid) continue;
+        // All filtering has been done - just render everything
         
-        // Early distance culling using squared distance (faster than sqrt)
-        const glm::vec3 deltaPos = npc.position - cameraPos;
-        const float distanceSquared = glm::dot(deltaPos, deltaPos);
-        if (distanceSquared > maxDistanceSquared) {
-            continue;
-        }
-        
-        // Skip dead entities (0 HP)
-        if (npc.currentHealth <= 0.0f) {
-            continue;
-        }
-        
-        const float distance = std::sqrt(distanceSquared);  // Only calculate sqrt when needed
+        const float distance = glm::length(npc.position - camera.GetPlayerPosition());
         
         // Use attitude-based coloring for NPCs
         unsigned int color = IM_COL32(255, 165, 0, 220); // Default orange for NPCs
@@ -148,24 +106,11 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
 void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                     const std::vector<RenderableGadget>& gadgets, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
-    if (!settings.objectESP.enabled) return;
-
-    const glm::vec3 cameraPos = camera.GetPlayerPosition();
-    const float maxDistanceSquared = settings.espUseDistanceLimit ? 
-        (settings.espRenderDistanceLimit * settings.espRenderDistanceLimit) : (std::numeric_limits<float>::max)();
-
+    
     for (const auto& gadget : gadgets) {
-        if (!gadget.isValid) continue;
+        // All filtering has been done - just render everything
         
-        // Early distance culling using squared distance (faster than sqrt)
-        const glm::vec3 deltaPos = gadget.position - cameraPos;
-        const float distanceSquared = glm::dot(deltaPos, deltaPos);
-        if (distanceSquared > maxDistanceSquared) {
-            continue;
-        }
-        
-        const float distance = std::sqrt(distanceSquared);  // Only calculate sqrt when needed
-        
+        const float distance = glm::length(gadget.position - camera.GetPlayerPosition());
         unsigned int color = IM_COL32(255, 255, 0, 220); // Yellow for gadgets
 
         std::vector<std::string> details;
@@ -184,8 +129,6 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& world
                                    unsigned int color, const std::vector<std::string>& details, float healthPercent, 
                                    bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, bool renderHealthBar, 
                                    ESPEntityType entityType, Camera& camera) {
-    const auto& settings = AppState::Get().GetSettings();
-    
     // Early frustum culling - check if position projects to valid screen coordinates
     glm::vec2 screenPos;
     if (!kx::ESPMath::WorldToScreen(worldPos, camera, screenWidth, screenHeight, screenPos)) {
@@ -198,8 +141,6 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& world
         screenPos.y < -margin || screenPos.y > screenHeight + margin) {
         return; // Entity is off-screen
     }
-
-    // Skip entity type check since we already checked enabled status in the caller functions
 
     // Calculate bounding box for entity
     const float boxHeight = 50.0f;

@@ -19,6 +19,7 @@
 #include "ESPFormatting.h"
 #include "RenderableData.h"
 #include "ESPDataExtractor.h"
+#include "ESPFilter.h"
 #include "ESPStageRenderer.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../Game/AddressManager.h"
@@ -30,8 +31,9 @@ namespace kx {
 // Initialize the static camera pointer
 Camera* ESPRenderer::s_camera = nullptr;
 
-// Static variables for frame rate limiting
-static FrameRenderData s_cachedFrameData;
+// Static variables for frame rate limiting and three-stage pipeline
+static FrameRenderData s_cachedRawData;     // Raw data from extraction stage
+static FrameRenderData s_cachedFilteredData; // Filtered data ready for rendering
 static float s_lastUpdateTime = 0.0f;
 
 void ESPRenderer::Initialize(Camera& camera) {
@@ -54,13 +56,17 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     
     // Only update ESP data at limited frame rate
     if (currentTime - s_lastUpdateTime >= espUpdateInterval) {
-        // Stage 1: Extract all data from game memory (unsafe operations) - only when needed
-        ESPDataExtractor::ExtractFrameData(s_cachedFrameData);
+        // Stage 1: Extract all data from game memory (unsafe operations)
+        ESPDataExtractor::ExtractFrameData(s_cachedRawData);
+        
+        // Stage 2: Filter the extracted data (safe, configurable operations)  
+        ESPFilter::FilterFrameData(s_cachedRawData, *s_camera, s_cachedFilteredData);
+        
         s_lastUpdateTime = currentTime;
     }
     
-    // Stage 2: Always render using cached data (safe, fast operation)
-    ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFrameData, *s_camera);
+    // Stage 3: Always render using cached filtered data (safe, fast operation)
+    ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFilteredData, *s_camera);
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {
