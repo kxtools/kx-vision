@@ -22,6 +22,21 @@ void ESPDataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool
 
     // Extract all data directly into object pools
     std::map<void*, const wchar_t*> characterNameToPlayerName;
+    
+    // Build character name to player name mapping first
+    {
+        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+        kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+        if (charContext.data()) {
+            kx::SafeAccess::PlayerList playerList(charContext);
+            for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
+                if (playerIt.IsValid()) {
+                    characterNameToPlayerName[playerIt.GetCharacterDataPtr()] = playerIt.GetName();
+                }
+            }
+        }
+    }
+    
     ExtractPlayerData(playerPool, pooledData.players, characterNameToPlayerName);
     ExtractNpcData(npcPool, pooledData.npcs);
     ExtractGadgetData(gadgetPool, pooledData.gadgets);

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include "DebugLogger.h"
 
 namespace kx {
 
@@ -31,8 +32,9 @@ public:
      */
     T* Get() {
         if (m_nextAvailable >= m_pool.size()) {
-            // Pool is exhausted. In a real-world scenario you might resize,
-            // but for ESP, we can just return nullptr and skip rendering extras.
+            // Pool is exhausted - log for debugging and capacity planning
+            LOG_WARN("ObjectPool<%s> exhausted: %zu objects requested, pool size: %zu", 
+                    typeid(T).name(), m_nextAvailable + 1, m_pool.size());
             return nullptr; 
         }
         return &m_pool[m_nextAvailable++];

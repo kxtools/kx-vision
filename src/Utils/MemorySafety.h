@@ -18,9 +18,17 @@ namespace SafeAccess {
     constexpr uint32_t MAX_REASONABLE_GADGET_COUNT = 0x10000;   // Maximum expected gadgets in memory
 
     // --- Pointer Cache for Performance ---
-    // Cache of validated pointers to avoid repeated VirtualQuery calls
-    static std::unordered_set<uintptr_t> s_validPointers;
-    static std::chrono::steady_clock::time_point s_lastCacheClear = std::chrono::steady_clock::now();
+    // Thread-safe cache accessors using function-local statics
+    inline std::unordered_set<uintptr_t>& GetValidPointersCache() {
+        thread_local std::unordered_set<uintptr_t> cache;
+        return cache;
+    }
+    
+    inline std::chrono::steady_clock::time_point& GetLastCacheClear() {
+        thread_local std::chrono::steady_clock::time_point lastClear = std::chrono::steady_clock::now();
+        return lastClear;
+    }
+    
     static constexpr auto CACHE_CLEAR_INTERVAL = std::chrono::seconds(5);
 
     /**
@@ -28,9 +36,10 @@ namespace SafeAccess {
      */
     inline void ClearCacheIfNeeded() {
         auto now = std::chrono::steady_clock::now();
-        if (now - s_lastCacheClear >= CACHE_CLEAR_INTERVAL) {
-            s_validPointers.clear();
-            s_lastCacheClear = now;
+        auto& lastClear = GetLastCacheClear();
+        if (now - lastClear >= CACHE_CLEAR_INTERVAL) {
+            GetValidPointersCache().clear();
+            lastClear = now;
         }
     }
 
@@ -54,7 +63,10 @@ namespace SafeAccess {
         ClearCacheIfNeeded();
         
         // Check cache first - avoid expensive VirtualQuery if already validated
-        if (s_validPointers.count(address)) {
+        // Use find() for single lookup instead of count() + insert()
+        auto& validPointers = GetValidPointersCache();
+        auto it = validPointers.find(address);
+        if (it != validPointers.end()) {
             return true;
         }
         
@@ -69,7 +81,7 @@ namespace SafeAccess {
         if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) return false;
         
         // Cache the valid pointer for future use
-        s_validPointers.insert(address);
+        validPointers.emplace(address);
         
         return true;
     }
