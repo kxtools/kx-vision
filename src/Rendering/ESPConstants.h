@@ -20,8 +20,8 @@ namespace BoxDimensions {
     constexpr float NPC_WIDTH = 40.0f;
     
     // Gadget box - very small square for minimal visual impact
-    constexpr float GADGET_HEIGHT = 15.0f;
-    constexpr float GADGET_WIDTH = 15.0f;
+    constexpr float GADGET_HEIGHT = 10.0f;
+    constexpr float GADGET_WIDTH = 10.0f;
 }
 
 /**
