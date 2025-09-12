@@ -16,17 +16,4 @@ namespace kx {
     constexpr std::string_view CONTEXT_COLLECTION_FUNC_PATTERN = "8B ? ? ? ? ? 65 ? ? ? ? ? ? ? ? BA ? ? ? ? 48 ? ? ? 48 ? ? ? C3";
     constexpr std::string_view ALERT_CONTEXT_LOCATOR_PATTERN = "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 41 0F 28 CA 48 8B 08 48 8B 51 58"; // "ViewAdvanceAlert"
 
-    constexpr int MAX_GADGET_TYPES = 32;
-
-    // Combat and interaction range constants
-    namespace CombatRanges {
-        constexpr float MELEE_RANGE = 130.0f;
-        constexpr float RANGED_COMBAT_RANGE = 300.0f;
-        constexpr float LONG_RANGE = 900.0f;
-    }
-
-    namespace InteractionRanges {
-        constexpr float STANDARD_INTERACTION_RANGE = 300.0f;
-        constexpr float MEDIUM_INTERACTION_RANGE = 600.0f;
-    }
 } // namespace kx
