@@ -58,7 +58,11 @@ namespace kx {
 
     // --- User-configurable settings ---
     struct Settings {
-        bool showVisionWindow = true;
+#ifdef _DEBUG
+        bool showVisionWindow = true;   // Show menu by default in debug builds
+#else
+        bool showVisionWindow = false;  // Hide menu by default in release builds
+#endif
 
         // Replace old flat settings with new structs
         PlayerEspSettings playerESP;
