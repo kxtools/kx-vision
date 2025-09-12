@@ -173,7 +173,10 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto& gadget : gadgets) {
-        // All filtering has been done - just render everything
+        // Skip resource nodes that are not gatherable
+        if (gadget.type == Game::GadgetType::ResourceNode && !gadget.isGatherable) {
+            continue;
+        }
         
         unsigned int color = IM_COL32(150, 150, 255, 190); // Gadgets - light blue (like GW2 interactable objects)
 
