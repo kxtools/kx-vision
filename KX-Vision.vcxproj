@@ -160,6 +160,7 @@
     <ClInclude Include="src\Game\MumbleLink.h" />
     <ClInclude Include="src\Game\offsets.h" />
     <ClInclude Include="src\Utils\MemorySafety.h" />
+    <ClInclude Include="src\Utils\ObjectPool.h" />
     <ClInclude Include="src\Utils\PatternScanner.h" />
     <ClInclude Include="src\Utils\SafeForeignClass.h" />
     <ClInclude Include="src\Utils\SafeIterators.h" />

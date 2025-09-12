@@ -1,8 +1,10 @@
 #pragma once
 
 #include "RenderableData.h"
+#include "ESPData.h"
 #include "../Core/AppState.h"
 #include "../Utils/EntityFilter.h"
+#include "../Utils/ObjectPool.h"
 #include "../Game/Camera.h"
 #include <glm.hpp>
 
@@ -11,7 +13,7 @@ namespace kx {
 /**
  * @brief Filtering stage for the ESP rendering pipeline
  * 
- * This class operates on raw FrameRenderData from ESPDataExtractor and applies
+ * This class operates on pooled data from ESPDataExtractor and applies
  * all user-configurable filters to produce a smaller, filtered dataset for rendering.
  * 
  * Responsibilities:
@@ -25,43 +27,15 @@ namespace kx {
 class ESPFilter {
 public:
     /**
-     * @brief Apply all filters to frame data
-     * @param rawData Input data from ESPDataExtractor
-     * @param camera Camera for distance calculations and projection
-     * @param screenWidth Screen width for projection calculations
-     * @param screenHeight Screen height for projection calculations
-     * @param filteredData Output filtered data ready for rendering
+     * @brief OPTIMIZED filter method - filters already pooled data (no object allocations)
+     * @param extractedData Input pooled data from extraction
+     * @param camera Camera for distance calculations
+     * @param filteredData Output filtered pooled data
      */
-    static void FilterFrameData(const FrameRenderData& rawData, Camera& camera, FrameRenderData& filteredData);
+    static void FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
+                                PooledFrameRenderData& filteredData);
 
 private:
-    /**
-     * @brief Filter player entities
-     * @param rawPlayers Input player data
-     * @param camera Camera for distance calculations
-     * @param filteredPlayers Output filtered player data
-     */
-    static void FilterPlayers(const std::vector<RenderablePlayer>& rawPlayers, Camera& camera, 
-                             std::vector<RenderablePlayer>& filteredPlayers);
-
-    /**
-     * @brief Filter NPC entities
-     * @param rawNpcs Input NPC data
-     * @param camera Camera for distance calculations
-     * @param filteredNpcs Output filtered NPC data
-     */
-    static void FilterNpcs(const std::vector<RenderableNpc>& rawNpcs, Camera& camera, 
-                          std::vector<RenderableNpc>& filteredNpcs);
-
-    /**
-     * @brief Filter gadget entities
-     * @param rawGadgets Input gadget data
-     * @param camera Camera for distance calculations
-     * @param filteredGadgets Output filtered gadget data
-     */
-    static void FilterGadgets(const std::vector<RenderableGadget>& rawGadgets, Camera& camera, 
-                             std::vector<RenderableGadget>& filteredGadgets);
-
     /**
      * @brief Check if entity is within distance limits
      * @param entityPos Entity position

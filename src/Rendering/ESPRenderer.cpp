@@ -1,6 +1,7 @@
 #define NOMINMAX
 
 #include "ESPRenderer.h"
+#include "ESPData.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -13,6 +14,7 @@
 #include "../Core/Config.h"
 #include "../Core/AppState.h"
 #include "../Utils/SafeIterators.h"
+#include "../Utils/ObjectPool.h"
 #include "ESPMath.h"
 #include "ESPData.h"
 #include "ESPStyling.h"
@@ -31,9 +33,13 @@ namespace kx {
 // Initialize the static camera pointer
 Camera* ESPRenderer::s_camera = nullptr;
 
+// Object pools to eliminate heap churn - pre-allocate reasonable number of entities
+static ObjectPool<RenderablePlayer> s_playerPool(500);
+static ObjectPool<RenderableNpc> s_npcPool(2000);
+static ObjectPool<RenderableGadget> s_gadgetPool(5000);
+
 // Static variables for frame rate limiting and three-stage pipeline
-static FrameRenderData s_cachedRawData;     // Raw data from extraction stage
-static FrameRenderData s_cachedFilteredData; // Filtered data ready for rendering
+static PooledFrameRenderData s_cachedFilteredData; // Filtered data ready for rendering
 static float s_lastUpdateTime = 0.0f;
 
 void ESPRenderer::Initialize(Camera& camera) {
@@ -56,11 +62,18 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     
     // Only update ESP data at limited frame rate
     if (currentTime - s_lastUpdateTime >= espUpdateInterval) {
-        // Stage 1: Extract all data from game memory (unsafe operations)
-        ESPDataExtractor::ExtractFrameData(s_cachedRawData);
+        // Reset object pools to reuse all objects for this frame
+        s_playerPool.Reset();
+        s_npcPool.Reset();
+        s_gadgetPool.Reset();
+        s_cachedFilteredData.Reset();
         
-        // Stage 2: Filter the extracted data (safe, configurable operations)  
-        ESPFilter::FilterFrameData(s_cachedRawData, *s_camera, s_cachedFilteredData);
+        // Stage 1: Extract all data directly into object pools (eliminates heap allocations)
+        PooledFrameRenderData extractedData;
+        ESPDataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, extractedData);
+        
+        // Stage 2: Filter the pooled data (safe, configurable operations)  
+        ESPFilter::FilterPooledData(extractedData, *s_camera, s_cachedFilteredData);
         
         s_lastUpdateTime = currentTime;
     }

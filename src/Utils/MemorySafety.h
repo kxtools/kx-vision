@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Windows.h>
+#include <unordered_set>
+#include <chrono>
 #include "../Game/AddressManager.h"
 
 namespace kx {
@@ -15,8 +17,34 @@ namespace SafeAccess {
     constexpr uint32_t MAX_REASONABLE_CHARACTER_COUNT = 0x10000; // Maximum expected characters in memory
     constexpr uint32_t MAX_REASONABLE_GADGET_COUNT = 0x10000;   // Maximum expected gadgets in memory
 
+    // --- Pointer Cache for Performance ---
+    // Thread-safe cache accessors using function-local statics
+    inline std::unordered_set<uintptr_t>& GetValidPointersCache() {
+        thread_local std::unordered_set<uintptr_t> cache;
+        return cache;
+    }
+    
+    inline std::chrono::steady_clock::time_point& GetLastCacheClear() {
+        thread_local std::chrono::steady_clock::time_point lastClear = std::chrono::steady_clock::now();
+        return lastClear;
+    }
+    
+    static constexpr auto CACHE_CLEAR_INTERVAL = std::chrono::seconds(5);
+
     /**
-     * @brief Validates if a memory address is safe to read
+     * @brief Clears the pointer cache periodically to handle entity despawning
+     */
+    inline void ClearCacheIfNeeded() {
+        auto now = std::chrono::steady_clock::now();
+        auto& lastClear = GetLastCacheClear();
+        if (now - lastClear >= CACHE_CLEAR_INTERVAL) {
+            GetValidPointersCache().clear();
+            lastClear = now;
+        }
+    }
+
+    /**
+     * @brief Validates if a memory address is safe to read (with caching for performance)
      * @param ptr Pointer to validate
      * @param size Size of data to read (default: pointer size)
      * @return true if memory is safe to read, false otherwise
@@ -30,6 +58,17 @@ namespace SafeAccess {
         if (address < MIN_VALID_MEMORY_ADDRESS || address > MAX_VALID_MEMORY_ADDRESS) {
             return false;
         }
+
+        // Clear cache periodically to handle entity despawning
+        ClearCacheIfNeeded();
+        
+        // Check cache first - avoid expensive VirtualQuery if already validated
+        // Use find() for single lookup instead of count() + insert()
+        auto& validPointers = GetValidPointersCache();
+        auto it = validPointers.find(address);
+        if (it != validPointers.end()) {
+            return true;
+        }
         
         MEMORY_BASIC_INFORMATION mbi = {};
         SIZE_T result = VirtualQuery(ptr, &mbi, sizeof(mbi));
@@ -40,6 +79,9 @@ namespace SafeAccess {
         if (mbi.State != MEM_COMMIT) return false;
         if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) return false;
         if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) return false;
+        
+        // Cache the valid pointer for future use
+        validPointers.emplace(address);
         
         return true;
     }

@@ -1,8 +1,14 @@
 #pragma once
 
 #include "glm.hpp"
+#include <vector>
 
 namespace kx {
+
+// Forward declarations for objects
+struct RenderablePlayer;
+struct RenderableNpc;
+struct RenderableGadget;
 
 // ESP Entity Types for rendering differentiation
 enum class ESPEntityType {
@@ -30,6 +36,19 @@ struct PlayerESPData : public ESPEntityData {
 // Gadget/Object data (square boxes for objects)
 struct GadgetESPData : public ESPEntityData {
     GadgetESPData() = default;
+};
+
+// Pooled frame data for object pool pattern (uses pointers instead of objects)
+struct PooledFrameRenderData {
+    std::vector<RenderablePlayer*> players;    // Pointers to pooled players
+    std::vector<RenderableNpc*> npcs;          // Pointers to pooled NPCs  
+    std::vector<RenderableGadget*> gadgets;    // Pointers to pooled gadgets
+    
+    void Reset() {
+        players.clear();
+        npcs.clear();
+        gadgets.clear();
+    }
 };
 
 } // namespace kx

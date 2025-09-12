@@ -66,17 +66,4 @@ struct RenderableGadget {
                         isGatherable(false), isValid(false) {}
 };
 
-// Container for all renderable data for one frame
-struct FrameRenderData {
-    std::vector<RenderablePlayer> players;
-    std::vector<RenderableNpc> npcs;
-    std::vector<RenderableGadget> gadgets;
-    
-    void Clear() {
-        players.clear();
-        npcs.clear();
-        gadgets.clear();
-    }
-};
-
 } // namespace kx

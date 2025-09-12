@@ -26,34 +26,26 @@ struct EntityRenderContext;
 class ESPStageRenderer {
 public:
     /**
-     * @brief Main rendering method - renders all extracted data for one frame
+     * @brief Main rendering method - renders pooled data for one frame (OPTIMIZED)
      * @param drawList ImGui draw list for rendering
      * @param screenWidth Screen width in pixels
      * @param screenHeight Screen height in pixels
-     * @param frameData All extracted data for this frame
+     * @param frameData Pooled extracted data for this frame (contains pointers)
      * @param camera Camera reference for world-to-screen calculations
      */
     static void RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                               const FrameRenderData& frameData, Camera& camera);
+                               const PooledFrameRenderData& frameData, Camera& camera);
 
 private:
-    /**
-     * @brief Render all players from extracted data
-     */
-    static void RenderPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                             const std::vector<RenderablePlayer>& players, Camera& camera);
+    // Pooled rendering functions for optimized performance
+    static void RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
+                                   const std::vector<RenderablePlayer*>& players, Camera& camera);
 
-    /**
-     * @brief Render all NPCs from extracted data
-     */
-    static void RenderNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                          const std::vector<RenderableNpc>& npcs, Camera& camera);
+    static void RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
+                                const std::vector<RenderableNpc*>& npcs, Camera& camera);
 
-    /**
-     * @brief Render all gadgets from extracted data
-     */
-    static void RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                             const std::vector<RenderableGadget>& gadgets, Camera& camera);
+    static void RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
+                                   const std::vector<RenderableGadget*>& gadgets, Camera& camera);
 
     /**
      * @brief Universal entity rendering function using context struct

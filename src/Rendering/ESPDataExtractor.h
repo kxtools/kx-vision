@@ -3,6 +3,8 @@
 #include <vector>
 #include <map>
 #include "RenderableData.h"
+#include "ESPData.h"
+#include "../Utils/ObjectPool.h"
 
 namespace kx {
 
@@ -20,31 +22,30 @@ namespace kx {
 class ESPDataExtractor {
 public:
     /**
-     * @brief Main extraction method - extracts all entity data for one frame
-     * @param frameData Output container for all extracted data
+     * @brief OPTIMIZED extraction method - extracts directly into object pools (eliminates heap allocations)
+     * @param playerPool Object pool for players
+     * @param npcPool Object pool for NPCs  
+     * @param gadgetPool Object pool for gadgets
+     * @param pooledData Output container for pooled data pointers
      */
-    static void ExtractFrameData(FrameRenderData& frameData);
+    static void ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
+                                ObjectPool<RenderableNpc>& npcPool, 
+                                ObjectPool<RenderableGadget>& gadgetPool,
+                                PooledFrameRenderData& pooledData);
 
 private:
     /**
-     * @brief Extract player data from character list
-     * @param players Output vector for player data
-     * @param characterNameToPlayerName Mapping of character pointers to player names
+     * @brief OPTIMIZED extraction methods - write directly into object pools
      */
-    static void ExtractPlayerData(std::vector<RenderablePlayer>& players, 
+    static void ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPool,
+                                 std::vector<RenderablePlayer*>& players,
                                  const std::map<void*, const wchar_t*>& characterNameToPlayerName);
-
-    /**
-     * @brief Extract NPC data from character list (excludes players)
-     * @param npcs Output vector for NPC data
-     */
-    static void ExtractNpcData(std::vector<RenderableNpc>& npcs);
-
-    /**
-     * @brief Extract gadget/object data from gadget list
-     * @param gadgets Output vector for gadget data
-     */
-    static void ExtractGadgetData(std::vector<RenderableGadget>& gadgets);
+    
+    static void ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
+                              std::vector<RenderableNpc*>& npcs);
+    
+    static void ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
+                                 std::vector<RenderableGadget*>& gadgets);
 };
 
 } // namespace kx
