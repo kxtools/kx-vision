@@ -62,8 +62,8 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     // For players and NPCs, prioritize natural health bars over artificial boxes
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
     
-    // Always show standalone health bars for living entities when health is available
-    if (isLivingEntity && context.healthPercent >= 0.0f) {
+    // Show standalone health bars for living entities when health is available AND setting is enabled
+    if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
         RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, context.color);
     }
 
