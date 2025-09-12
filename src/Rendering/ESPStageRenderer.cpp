@@ -26,8 +26,8 @@ namespace BoxDimensions {
 
 // Context struct for unified entity rendering
 struct EntityRenderContext {
-    // Pre-calculated data from the Renderable object
-    const glm::vec2& screenPos;
+    // Entity data
+    const glm::vec3& position;    // World position for real-time screen projection
     float distance;
     unsigned int color;
     const std::vector<std::string>& details;
@@ -49,13 +49,13 @@ struct EntityRenderContext {
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                       const FrameRenderData& frameData, Camera& camera) {
     // Simple rendering - no filtering logic, just draw everything that was passed in
-    RenderPlayers(drawList, screenWidth, screenHeight, frameData.players);
-    RenderNpcs(drawList, screenWidth, screenHeight, frameData.npcs);
-    RenderGadgets(drawList, screenWidth, screenHeight, frameData.gadgets);
+    RenderPlayers(drawList, screenWidth, screenHeight, frameData.players, camera);
+    RenderNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera);
+    RenderGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera);
 }
 
 void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                    const std::vector<RenderablePlayer>& players) {
+                                    const std::vector<RenderablePlayer>& players, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto& player : players) {
@@ -98,7 +98,7 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
         }
 
         EntityRenderContext context{
-            player.screenPos,
+            player.position,  // Use position instead of screenPos for real-time projection
             player.distance,
             color,
             details,
@@ -112,12 +112,12 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
             screenWidth,
             screenHeight
         };
-        RenderEntity(drawList, context);
+        RenderEntity(drawList, context, camera);
     }
 }
 
 void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                 const std::vector<RenderableNpc>& npcs) {
+                                 const std::vector<RenderableNpc>& npcs, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto& npc : npcs) {
@@ -150,7 +150,7 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
         }
 
         EntityRenderContext context{
-            npc.screenPos,
+            npc.position,  // Use position instead of screenPos for real-time projection
             npc.distance,
             color,
             details,
@@ -164,12 +164,12 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
             screenWidth,
             screenHeight
         };
-        RenderEntity(drawList, context);
+        RenderEntity(drawList, context, camera);
     }
 }
 
 void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                    const std::vector<RenderableGadget>& gadgets) {
+                                    const std::vector<RenderableGadget>& gadgets, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto& gadget : gadgets) {
@@ -187,7 +187,7 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
         }
 
         EntityRenderContext context{
-            gadget.screenPos,
+            gadget.position,  // Use position instead of screenPos for real-time projection
             gadget.distance,
             color,
             details,
@@ -201,15 +201,22 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
             screenWidth,
             screenHeight
         };
-        RenderEntity(drawList, context);
+        RenderEntity(drawList, context, camera);
     }
 }
 
-void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context) {
+void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera) {
+    // Calculate screen position every frame for smooth movement
+    glm::vec2 screenPos;
+    if (!ESPMath::WorldToScreen(context.position, camera, context.screenWidth, context.screenHeight, screenPos)) {
+        // Entity is off-screen, skip it
+        return;
+    }
+    
     // Screen bounds culling with small margin for partially visible entities
     const float margin = 50.0f;
-    if (context.screenPos.x < -margin || context.screenPos.x > context.screenWidth + margin || 
-        context.screenPos.y < -margin || context.screenPos.y > context.screenHeight + margin) {
+    if (screenPos.x < -margin || screenPos.x > context.screenWidth + margin || 
+        screenPos.y < -margin || screenPos.y > context.screenHeight + margin) {
         return; // Entity is off-screen
     }
 
@@ -239,9 +246,9 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
             break;
     }
     
-    ImVec2 boxMin(context.screenPos.x - boxWidth / 2, context.screenPos.y - boxHeight);
-    ImVec2 boxMax(context.screenPos.x + boxWidth / 2, context.screenPos.y);
-    ImVec2 center(context.screenPos.x, context.screenPos.y - boxHeight / 2);
+    ImVec2 boxMin(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
+    ImVec2 boxMax(screenPos.x + boxWidth / 2, screenPos.y);
+    ImVec2 center(screenPos.x, screenPos.y - boxHeight / 2);
 
     // Render health bar
     if (context.renderHealthBar && context.healthPercent >= 0.0f) {
@@ -260,7 +267,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
 
     // Render center dot
     if (context.renderDot) {
-        RenderCenterDot(drawList, glm::vec2(context.screenPos.x, context.screenPos.y), context.color);
+        RenderCenterDot(drawList, screenPos, context.color);
     }
 
     // Render details text

@@ -41,24 +41,24 @@ private:
      * @brief Render all players from extracted data
      */
     static void RenderPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                             const std::vector<RenderablePlayer>& players);
+                             const std::vector<RenderablePlayer>& players, Camera& camera);
 
     /**
      * @brief Render all NPCs from extracted data
      */
     static void RenderNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                          const std::vector<RenderableNpc>& npcs);
+                          const std::vector<RenderableNpc>& npcs, Camera& camera);
 
     /**
      * @brief Render all gadgets from extracted data
      */
     static void RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                             const std::vector<RenderableGadget>& gadgets);
+                             const std::vector<RenderableGadget>& gadgets, Camera& camera);
 
     /**
      * @brief Universal entity rendering function using context struct
      */
-    static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context);
+    static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera);
 
     // Helper rendering functions
     static void RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, float healthPercent);

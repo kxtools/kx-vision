@@ -5,19 +5,18 @@
 
 namespace kx {
 
-void ESPFilter::FilterFrameData(const FrameRenderData& rawData, Camera& camera, 
-                               float screenWidth, float screenHeight, FrameRenderData& filteredData) {
+void ESPFilter::FilterFrameData(const FrameRenderData& rawData, Camera& camera, FrameRenderData& filteredData) {
     // Clear output data
     filteredData.Clear();
     
     // Filter each entity type
-    FilterPlayers(rawData.players, camera, screenWidth, screenHeight, filteredData.players);
-    FilterNpcs(rawData.npcs, camera, screenWidth, screenHeight, filteredData.npcs);
-    FilterGadgets(rawData.gadgets, camera, screenWidth, screenHeight, filteredData.gadgets);
+    FilterPlayers(rawData.players, camera, filteredData.players);
+    FilterNpcs(rawData.npcs, camera, filteredData.npcs);
+    FilterGadgets(rawData.gadgets, camera, filteredData.gadgets);
 }
 
 void ESPFilter::FilterPlayers(const std::vector<RenderablePlayer>& rawPlayers, Camera& camera, 
-                             float screenWidth, float screenHeight, std::vector<RenderablePlayer>& filteredPlayers) {
+                             std::vector<RenderablePlayer>& filteredPlayers) {
     const auto& settings = AppState::Get().GetSettings();
     
     // Early exit if player ESP is disabled
@@ -50,26 +49,20 @@ void ESPFilter::FilterPlayers(const std::vector<RenderablePlayer>& rawPlayers, C
             continue;
         }
         
-        // Perform world-to-screen projection
-        glm::vec2 screenPos;
-        if (!ESPMath::WorldToScreen(player.position, camera, screenWidth, screenHeight, screenPos)) {
-            // Entity is off-screen, skip it
-            continue;
-        }
-        
-        // Calculate distance to camera
+        // Calculate distance to camera for filtering
         float distance = glm::length(player.position - cameraPos);
         
-        // Entity passed all filters - add to output with pre-calculated values
+        // Entity passed all filters - add to output with pre-calculated distance
         RenderablePlayer filteredPlayer = player;
-        filteredPlayer.screenPos = screenPos;
+        filteredPlayer.distance = distance;
+        filteredPlayers.push_back(filteredPlayer);
         filteredPlayer.distance = distance;
         filteredPlayers.push_back(filteredPlayer);
     }
 }
 
 void ESPFilter::FilterNpcs(const std::vector<RenderableNpc>& rawNpcs, Camera& camera, 
-                          float screenWidth, float screenHeight, std::vector<RenderableNpc>& filteredNpcs) {
+                          std::vector<RenderableNpc>& filteredNpcs) {
     const auto& settings = AppState::Get().GetSettings();
     
     // Early exit if NPC ESP is disabled
@@ -102,26 +95,18 @@ void ESPFilter::FilterNpcs(const std::vector<RenderableNpc>& rawNpcs, Camera& ca
             continue;
         }
         
-        // Perform world-to-screen projection
-        glm::vec2 screenPos;
-        if (!ESPMath::WorldToScreen(npc.position, camera, screenWidth, screenHeight, screenPos)) {
-            // Entity is off-screen, skip it
-            continue;
-        }
-        
-        // Calculate distance to camera
+        // Calculate distance to camera for filtering
         float distance = glm::length(npc.position - cameraPos);
         
-        // Entity passed all filters - add to output with pre-calculated values
+        // Entity passed all filters - add to output with pre-calculated distance
         RenderableNpc filteredNpc = npc;
-        filteredNpc.screenPos = screenPos;
         filteredNpc.distance = distance;
         filteredNpcs.push_back(filteredNpc);
     }
 }
 
 void ESPFilter::FilterGadgets(const std::vector<RenderableGadget>& rawGadgets, Camera& camera, 
-                             float screenWidth, float screenHeight, std::vector<RenderableGadget>& filteredGadgets) {
+                             std::vector<RenderableGadget>& filteredGadgets) {
     const auto& settings = AppState::Get().GetSettings();
     
     // Early exit if object ESP is disabled
@@ -149,19 +134,13 @@ void ESPFilter::FilterGadgets(const std::vector<RenderableGadget>& rawGadgets, C
             continue;
         }
         
-        // Perform world-to-screen projection
-        glm::vec2 screenPos;
-        if (!ESPMath::WorldToScreen(gadget.position, camera, screenWidth, screenHeight, screenPos)) {
-            // Entity is off-screen, skip it
-            continue;
-        }
-        
-        // Calculate distance to camera
+        // Calculate distance to camera for filtering
         float distance = glm::length(gadget.position - cameraPos);
         
-        // Entity passed all filters - add to output with pre-calculated values
+        // Entity passed all filters - add to output with pre-calculated distance
         RenderableGadget filteredGadget = gadget;
-        filteredGadget.screenPos = screenPos;
+        filteredGadget.distance = distance;
+        filteredGadgets.push_back(filteredGadget);
         filteredGadget.distance = distance;
         filteredGadgets.push_back(filteredGadget);
     }
