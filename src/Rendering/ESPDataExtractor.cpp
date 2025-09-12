@@ -8,46 +8,31 @@
 
 namespace kx {
 
-void ESPDataExtractor::ExtractFrameData(FrameRenderData& frameData) {
-    frameData.Clear();
+void ESPDataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
+                                        ObjectPool<RenderableNpc>& npcPool, 
+                                        ObjectPool<RenderableGadget>& gadgetPool,
+                                        PooledFrameRenderData& pooledData) {
+    pooledData.Reset();
 
     // FAIL-FAST: Proactive validation of root context collection
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
     if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) {
-        // The root of all game data is invalid. Don't even try to extract anything.
-        // This prevents hundreds/thousands of failed SafeRead calls every frame during
-        // loading screens, character select, or when the game hook is not available.
         return;
     }
 
-    // Build character name to player name mapping
+    // Extract all data directly into object pools
     std::map<void*, const wchar_t*> characterNameToPlayerName;
-    kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-    kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
-
-    if (charContext.data()) {
-        // Safely iterate through player list
-        kx::SafeAccess::PlayerList playerList(charContext);
-
-        for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
-            if (playerIt.IsValid()) {
-                void* charDataPtr = playerIt.GetCharacterDataPtr();
-                const wchar_t* playerName = playerIt.GetName();
-
-                if (charDataPtr && playerName) {
-                    characterNameToPlayerName[charDataPtr] = playerName;
-                }
-            }
-        }
-    }
-    
-    // Extract data for all entity types
-    ExtractPlayerData(frameData.players, characterNameToPlayerName);
-    ExtractNpcData(frameData.npcs);
-    ExtractGadgetData(frameData.gadgets);
+    ExtractPlayerData(playerPool, pooledData.players, characterNameToPlayerName);
+    ExtractNpcData(npcPool, pooledData.npcs);
+    ExtractGadgetData(gadgetPool, pooledData.gadgets);
 }
 
-void ESPDataExtractor::ExtractPlayerData(std::vector<RenderablePlayer>& players, const std::map<void*, const wchar_t*>& characterNameToPlayerName) {
+void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPool,
+                                        std::vector<RenderablePlayer*>& players,
+                                        const std::map<void*, const wchar_t*>& characterNameToPlayerName) {
+    players.clear();
+    players.reserve(100); // Reserve reasonable space
+
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
     if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
     
@@ -63,7 +48,12 @@ void ESPDataExtractor::ExtractPlayerData(std::vector<RenderablePlayer>& players,
         
         // Check if this character is a player
         if (characterNameToPlayerName.count(characterDataPtr)) {
-            RenderablePlayer player;
+            // Get an object from the pool instead of creating a new one
+            RenderablePlayer* renderablePlayer = playerPool.Get();
+            if (!renderablePlayer) {
+                // Pool exhausted, skip remaining players
+                break;
+            }
             
             // Extract position
             kx::ReClass::ChCliCharacter& nonConstCharacter = const_cast<kx::ReClass::ChCliCharacter&>(character);
@@ -77,49 +67,53 @@ void ESPDataExtractor::ExtractPlayerData(std::vector<RenderablePlayer>& players,
             if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
 
             const float scaleFactor = 1.23f;
-            player.position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
-            player.isValid = true;
+            renderablePlayer->position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
+            renderablePlayer->isValid = true;
 
             // Extract player name
             auto playerNameIt = characterNameToPlayerName.find(characterDataPtr);
             if (playerNameIt != characterNameToPlayerName.end() && playerNameIt->second) {
-                player.playerName = ESPFormatting::WStringToString(playerNameIt->second);
+                renderablePlayer->playerName = ESPFormatting::WStringToString(playerNameIt->second);
             }
 
             // Check if this is the local player
             void* localPlayer = AddressManager::GetLocalPlayer();
-            player.isLocalPlayer = (characterDataPtr == localPlayer);
+            renderablePlayer->isLocalPlayer = (characterDataPtr == localPlayer);
 
             // Extract health
             kx::ReClass::ChCliHealth health = nonConstCharacter.GetHealth();
             if (health.data()) {
-                player.currentHealth = health.GetCurrent();
-                player.maxHealth = health.GetMax();
+                renderablePlayer->currentHealth = health.GetCurrent();
+                renderablePlayer->maxHealth = health.GetMax();
             }
 
             // Extract energy
             kx::ReClass::ChCliEnergies energies = nonConstCharacter.GetEnergies();
             if (energies.data()) {
-                player.currentEnergy = energies.GetCurrent();
-                player.maxEnergy = energies.GetMax();
+                renderablePlayer->currentEnergy = energies.GetCurrent();
+                renderablePlayer->maxEnergy = energies.GetMax();
             }
 
             // Extract core stats with type-safe enum assignments
             kx::ReClass::ChCliCoreStats coreStats = nonConstCharacter.GetCoreStats();
             if (coreStats.data()) {
-                player.level = coreStats.GetLevel();
+                renderablePlayer->level = coreStats.GetLevel();
                 // Direct enum assignment instead of casting to uint32_t
-                player.profession = coreStats.GetProfession();
-                player.attitude = nonConstCharacter.GetAttitude();
-                player.race = coreStats.GetRace();
+                renderablePlayer->profession = coreStats.GetProfession();
+                renderablePlayer->attitude = nonConstCharacter.GetAttitude();
+                renderablePlayer->race = coreStats.GetRace();
             }
 
-        	players.push_back(player);
+            players.push_back(renderablePlayer);
         }
     }
 }
 
-void ESPDataExtractor::ExtractNpcData(std::vector<RenderableNpc>& npcs) {
+void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
+                                     std::vector<RenderableNpc*>& npcs) {
+    npcs.clear();
+    npcs.reserve(500); // Reserve reasonable space
+
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
     if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
     
@@ -143,7 +137,12 @@ void ESPDataExtractor::ExtractNpcData(std::vector<RenderableNpc>& npcs) {
         
         // Check if this character is NOT a player (i.e., it's an NPC)
         if (!characterNameToPlayerName.count(characterDataPtr)) {
-            RenderableNpc npc;
+            // Get an object from the pool instead of creating a new one
+            RenderableNpc* renderableNpc = npcPool.Get();
+            if (!renderableNpc) {
+                // Pool exhausted, skip remaining NPCs
+                break;
+            }
             
             // Extract position
             kx::ReClass::ChCliCharacter& nonConstCharacter = const_cast<kx::ReClass::ChCliCharacter&>(character);
@@ -157,30 +156,34 @@ void ESPDataExtractor::ExtractNpcData(std::vector<RenderableNpc>& npcs) {
             if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
             
             const float scaleFactor = 1.23f;
-            npc.position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
-            npc.isValid = true;
+            renderableNpc->position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
+            renderableNpc->isValid = true;
             
             // Extract health
             kx::ReClass::ChCliHealth health = nonConstCharacter.GetHealth();
             if (health.data()) {
-                npc.currentHealth = health.GetCurrent();
-                npc.maxHealth = health.GetMax();
+                renderableNpc->currentHealth = health.GetCurrent();
+                renderableNpc->maxHealth = health.GetMax();
             }
             
             // Extract basic stats with type-safe enum assignment
             kx::ReClass::ChCliCoreStats coreStats = nonConstCharacter.GetCoreStats();
             if (coreStats.data()) {
-                npc.level = coreStats.GetLevel();
+                renderableNpc->level = coreStats.GetLevel();
             }
             // Direct enum assignment instead of casting to uint32_t
-            npc.attitude = nonConstCharacter.GetAttitude();
+            renderableNpc->attitude = nonConstCharacter.GetAttitude();
             
-            npcs.push_back(npc);
+            npcs.push_back(renderableNpc);
         }
     }
 }
 
-void ESPDataExtractor::ExtractGadgetData(std::vector<RenderableGadget>& gadgets) {
+void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
+                                        std::vector<RenderableGadget*>& gadgets) {
+    gadgets.clear();
+    gadgets.reserve(1000); // Reserve reasonable space
+
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
     if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
     
@@ -191,7 +194,12 @@ void ESPDataExtractor::ExtractGadgetData(std::vector<RenderableGadget>& gadgets)
     // Safely iterate through gadget list
     kx::SafeAccess::GadgetList gadgetList(gadgetCtx);
     for (const auto& gadget : gadgetList) {
-        RenderableGadget renderableGadget;
+        // Get an object from the pool instead of creating a new one
+        RenderableGadget* renderableGadget = gadgetPool.Get();
+        if (!renderableGadget) {
+            // Pool exhausted, skip remaining gadgets
+            break;
+        }
         
         // Extract position
         kx::ReClass::GdCliGadget& nonConstGadget = const_cast<kx::ReClass::GdCliGadget&>(gadget);
@@ -203,16 +211,16 @@ void ESPDataExtractor::ExtractGadgetData(std::vector<RenderableGadget>& gadgets)
         if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
         
         const float scaleFactor = 1.23f;
-        renderableGadget.position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
-        renderableGadget.isValid = true;
+        renderableGadget->position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
+        renderableGadget->isValid = true;
 
         // Extract type with type-safe enum assignment
-        renderableGadget.type = nonConstGadget.GetGadgetType();
+        renderableGadget->type = nonConstGadget.GetGadgetType();
         
         // Extract gatherable status
-        renderableGadget.isGatherable = nonConstGadget.IsGatherable();
+        renderableGadget->isGatherable = nonConstGadget.IsGatherable();
 
-    	gadgets.push_back(renderableGadget);
+        gadgets.push_back(renderableGadget);
     }
 }
 

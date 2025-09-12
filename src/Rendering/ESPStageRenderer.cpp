@@ -37,191 +37,11 @@ struct EntityRenderContext {
 };
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                      const FrameRenderData& frameData, Camera& camera) {
+                                      const PooledFrameRenderData& frameData, Camera& camera) {
     // Simple rendering - no filtering logic, just draw everything that was passed in
-    RenderPlayers(drawList, screenWidth, screenHeight, frameData.players, camera);
-    RenderNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera);
-    RenderGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera);
-}
-
-void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                    const std::vector<RenderablePlayer>& players, Camera& camera) {
-    const auto& settings = AppState::Get().GetSettings();
-    
-    for (const auto& player : players) {
-        // All filtering has been done - just render everything
-        
-        unsigned int color = ESPColors::PLAYER;
-
-        float healthPercent = -1.0f;
-        if (player.maxHealth > 0) {
-            healthPercent = player.currentHealth / player.maxHealth;
-        }
-
-        std::vector<std::string> details;
-        details.reserve(5); // Pre-allocate to avoid reallocations
-        if (settings.playerESP.renderDetails) {
-            if (!player.playerName.empty()) {
-                details.emplace_back("Player: " + player.playerName);
-            }
-            
-            if (player.level > 0) {
-                details.emplace_back("Level: " + std::to_string(player.level));
-            }
-            
-            if (player.profession != Game::Profession::None) {
-                details.emplace_back("Prof: " + ESPFormatting::ProfessionToString(player.profession));
-            }
-            
-            if (player.race != Game::Race::None) {
-                details.emplace_back("Race: " + ESPFormatting::RaceToString(player.race));
-            }
-            
-            if (player.maxHealth > 0) {
-                details.emplace_back("HP: " + std::to_string(static_cast<int>(player.currentHealth)) + "/" + std::to_string(static_cast<int>(player.maxHealth)));
-            }
-            
-            if (player.maxEnergy > 0) {
-                const int energyPercent = static_cast<int>((player.currentEnergy / player.maxEnergy) * 100.0f);
-                details.emplace_back("Energy: " + std::to_string(static_cast<int>(player.currentEnergy)) + "/" + std::to_string(static_cast<int>(player.maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
-            }
-        }
-
-        EntityRenderContext context{
-            player.position,  // Use position instead of screenPos for real-time projection
-            player.distance,
-            color,
-            details,
-            healthPercent,
-            settings.playerESP.renderBox,
-            settings.playerESP.renderDistance,
-            settings.playerESP.renderDot,
-            settings.playerESP.renderDetails,
-            settings.playerESP.renderHealthBar,
-            settings.playerESP.renderPlayerName,  // Use new player name setting
-            ESPEntityType::Player,
-            screenWidth,
-            screenHeight,
-            player.playerName  // Pass player name to context
-        };
-        RenderEntity(drawList, context, camera);
-    }
-}
-
-void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                 const std::vector<RenderableNpc>& npcs, Camera& camera) {
-    const auto& settings = AppState::Get().GetSettings();
-    
-    for (const auto& npc : npcs) {
-        // All filtering has been done - just render everything
-        
-        // Use attitude-based coloring for NPCs (minimalistic GW2-style)
-        unsigned int color;
-        switch (npc.attitude) {
-            case Game::Attitude::Hostile:
-                color = ESPColors::NPC_HOSTILE;
-                break;
-            case Game::Attitude::Friendly:
-                color = ESPColors::NPC_FRIENDLY;
-                break;
-            case Game::Attitude::Neutral:
-                color = ESPColors::NPC_NEUTRAL;
-                break;
-            case Game::Attitude::Indifferent:
-                color = ESPColors::NPC_INDIFFERENT;
-                break;
-            default:
-                // Debug: Force a very obvious color for unknown attitudes
-                color = ESPColors::NPC_UNKNOWN;
-                break;
-        }
-        
-        float healthPercent = -1.0f;
-        if (npc.maxHealth > 0) {
-            healthPercent = npc.currentHealth / npc.maxHealth;
-        }
-
-        std::vector<std::string> details;
-        details.reserve(4); // Pre-allocate to avoid reallocations
-        if (settings.npcESP.renderDetails) {
-            if (!npc.name.empty()) {
-                details.emplace_back("NPC: " + npc.name);
-            }
-            
-            if (npc.level > 0) {
-                details.emplace_back("Level: " + std::to_string(npc.level));
-            }
-            
-            if (npc.maxHealth > 0) {
-                details.emplace_back("HP: " + std::to_string(static_cast<int>(npc.currentHealth)) + "/" + std::to_string(static_cast<int>(npc.maxHealth)));
-            }
-            
-            details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc.attitude));
-        }
-
-        static const std::string emptyPlayerName = "";
-        EntityRenderContext context{
-            npc.position,  // Use position instead of screenPos for real-time projection
-            npc.distance,
-            color,
-            details,
-            healthPercent,
-            settings.npcESP.renderBox,
-            settings.npcESP.renderDistance,
-            settings.npcESP.renderDot,
-            settings.npcESP.renderDetails,
-            settings.npcESP.renderHealthBar,
-            false,  // NPCs don't have player names
-            ESPEntityType::NPC,
-            screenWidth,
-            screenHeight,
-            emptyPlayerName  // Empty string for NPCs (no player name)
-        };
-        RenderEntity(drawList, context, camera);
-    }
-}
-
-void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                    const std::vector<RenderableGadget>& gadgets, Camera& camera) {
-    const auto& settings = AppState::Get().GetSettings();
-    
-    for (const auto& gadget : gadgets) {
-        // Skip resource nodes that are not gatherable
-        if (gadget.type == Game::GadgetType::ResourceNode && !gadget.isGatherable) {
-            continue;
-        }
-        
-        unsigned int color = ESPColors::GADGET;
-
-        std::vector<std::string> details;
-        details.reserve(2); // Pre-allocate for type and gatherable status
-        if (settings.objectESP.renderDetails) {
-            details.emplace_back("Type: " + ESPFormatting::GadgetTypeToString(gadget.type));
-            if (gadget.isGatherable) {
-                details.emplace_back("Status: Gatherable");
-            }
-        }
-
-        static const std::string emptyPlayerName = "";
-        EntityRenderContext context{
-            gadget.position,  // Use position instead of screenPos for real-time projection
-            gadget.distance,
-            color,
-            details,
-            -1.0f,  // healthPercent
-            settings.objectESP.renderBox,
-            settings.objectESP.renderDistance,
-            settings.objectESP.renderDot,
-            settings.objectESP.renderDetails,
-            false,  // renderHealthBar - gadgets don't have health bars
-            false,  // renderPlayerName - gadgets don't have player names
-            ESPEntityType::Gadget,
-            screenWidth,
-            screenHeight,
-            emptyPlayerName  // Empty string for gadgets (no player name)
-        };
-        RenderEntity(drawList, context, camera);
-    }
+    RenderPooledPlayers(drawList, screenWidth, screenHeight, frameData.players, camera);
+    RenderPooledNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera);
+    RenderPooledGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera);
 }
 
 void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera) {
@@ -487,6 +307,188 @@ void ESPStageRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& cen
         drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), detail.c_str());
         
         textY += textSize.y + 3;
+    }
+}
+
+void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
+                                          const std::vector<RenderablePlayer*>& players, Camera& camera) {
+    const auto& settings = AppState::Get().GetSettings();
+    
+    for (const auto* player : players) {
+        if (!player) continue; // Safety check
+        
+        // All filtering has been done - just render everything
+        unsigned int color = ESPColors::PLAYER;
+
+        float healthPercent = -1.0f;
+        if (player->maxHealth > 0) {
+            healthPercent = player->currentHealth / player->maxHealth;
+        }
+
+        std::vector<std::string> details;
+        details.reserve(5); // Pre-allocate to avoid reallocations
+        if (settings.playerESP.renderDetails) {
+            if (!player->playerName.empty()) {
+                details.emplace_back("Player: " + player->playerName);
+            }
+            
+            if (player->level > 0) {
+                details.emplace_back("Level: " + std::to_string(player->level));
+            }
+            
+            if (player->profession != Game::Profession::None) {
+                details.emplace_back("Prof: " + ESPFormatting::ProfessionToString(player->profession));
+            }
+            
+            if (player->race != Game::Race::None) {
+                details.emplace_back("Race: " + ESPFormatting::RaceToString(player->race));
+            }
+            
+            if (player->maxHealth > 0) {
+                details.emplace_back("HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)));
+            }
+            
+            if (player->maxEnergy > 0) {
+                const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
+                details.emplace_back("Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
+            }
+        }
+
+        EntityRenderContext context{
+            player->position,  // Use position instead of screenPos for real-time projection
+            player->distance,
+            color,
+            details,
+            healthPercent,
+            settings.playerESP.renderBox,
+            settings.playerESP.renderDistance,
+            settings.playerESP.renderDot,
+            settings.playerESP.renderDetails,
+            settings.playerESP.renderHealthBar,
+            settings.playerESP.renderPlayerName,  // Use new player name setting
+            ESPEntityType::Player,
+            screenWidth,
+            screenHeight,
+            player->playerName  // Pass player name to context
+        };
+        RenderEntity(drawList, context, camera);
+    }
+}
+
+void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
+                                       const std::vector<RenderableNpc*>& npcs, Camera& camera) {
+    const auto& settings = AppState::Get().GetSettings();
+    
+    for (const auto* npc : npcs) {
+        if (!npc) continue; // Safety check
+        
+        // Use attitude-based coloring for NPCs (minimalistic GW2-style)
+        unsigned int color;
+        switch (npc->attitude) {
+            case Game::Attitude::Hostile:
+                color = ESPColors::NPC_HOSTILE;
+                break;
+            case Game::Attitude::Friendly:
+                color = ESPColors::NPC_FRIENDLY;
+                break;
+            case Game::Attitude::Neutral:
+                color = ESPColors::NPC_NEUTRAL;
+                break;
+            case Game::Attitude::Indifferent:
+                color = ESPColors::NPC_INDIFFERENT;
+                break;
+            default:
+                color = ESPColors::NPC_UNKNOWN;
+                break;
+        }
+        
+        float healthPercent = -1.0f;
+        if (npc->maxHealth > 0) {
+            healthPercent = npc->currentHealth / npc->maxHealth;
+        }
+
+        std::vector<std::string> details;
+        details.reserve(4); // Pre-allocate to avoid reallocations
+        if (settings.npcESP.renderDetails) {
+            if (!npc->name.empty()) {
+                details.emplace_back("NPC: " + npc->name);
+            }
+            
+            if (npc->level > 0) {
+                details.emplace_back("Level: " + std::to_string(npc->level));
+            }
+            
+            if (npc->maxHealth > 0) {
+                details.emplace_back("HP: " + std::to_string(static_cast<int>(npc->currentHealth)) + "/" + std::to_string(static_cast<int>(npc->maxHealth)));
+            }
+            
+            details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc->attitude));
+        }
+
+        static const std::string emptyPlayerName = "";
+        EntityRenderContext context{
+            npc->position,  // Use position instead of screenPos for real-time projection
+            npc->distance,
+            color,
+            details,
+            healthPercent,
+            settings.npcESP.renderBox,
+            settings.npcESP.renderDistance,
+            settings.npcESP.renderDot,
+            settings.npcESP.renderDetails,
+            settings.npcESP.renderHealthBar,
+            false,  // NPCs don't have player names
+            ESPEntityType::NPC,
+            screenWidth,
+            screenHeight,
+            emptyPlayerName  // Empty string for NPCs (no player name)
+        };
+        RenderEntity(drawList, context, camera);
+    }
+}
+
+void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
+                                          const std::vector<RenderableGadget*>& gadgets, Camera& camera) {
+    const auto& settings = AppState::Get().GetSettings();
+    
+    for (const auto* gadget : gadgets) {
+        if (!gadget) continue; // Safety check
+        
+        // Skip resource nodes that are not gatherable
+        if (gadget->type == Game::GadgetType::ResourceNode && !gadget->isGatherable) {
+            continue;
+        }
+        
+        unsigned int color = ESPColors::GADGET;
+
+        std::vector<std::string> details;
+        details.reserve(2); // Pre-allocate for type and gatherable status
+        if (settings.objectESP.renderDetails) {
+            details.emplace_back("Type: " + ESPFormatting::GadgetTypeToString(gadget->type));
+            if (gadget->isGatherable) {
+                details.emplace_back("Status: Gatherable");
+            }
+        }
+
+        static const std::string emptyPlayerName = "";
+        EntityRenderContext context{
+            gadget->position,  // Use position instead of screenPos for real-time projection
+            gadget->distance,
+            color,
+            details,
+            -1.0f,  // healthPercent
+            settings.objectESP.renderBox,
+            settings.objectESP.renderDistance,
+            settings.objectESP.renderDot,
+            settings.objectESP.renderDetails,
+            false,  // renderHealthBar - gadgets don't have health bars
+            false,  // renderPlayerName - gadgets don't have player names
+            ESPEntityType::Gadget,
+            screenWidth,
+            screenHeight,
+            emptyPlayerName  // Empty string for gadgets (no player name)
+        };
+        RenderEntity(drawList, context, camera);
     }
 }
 
