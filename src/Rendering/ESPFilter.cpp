@@ -56,8 +56,6 @@ void ESPFilter::FilterPlayers(const std::vector<RenderablePlayer>& rawPlayers, C
         RenderablePlayer filteredPlayer = player;
         filteredPlayer.distance = distance;
         filteredPlayers.push_back(filteredPlayer);
-        filteredPlayer.distance = distance;
-        filteredPlayers.push_back(filteredPlayer);
     }
 }
 
@@ -139,8 +137,6 @@ void ESPFilter::FilterGadgets(const std::vector<RenderableGadget>& rawGadgets, C
         
         // Entity passed all filters - add to output with pre-calculated distance
         RenderableGadget filteredGadget = gadget;
-        filteredGadget.distance = distance;
-        filteredGadgets.push_back(filteredGadget);
         filteredGadget.distance = distance;
         filteredGadgets.push_back(filteredGadget);
     }
