@@ -5,46 +5,46 @@
 #include "../../Utils/SafeForeignClass.h"
 #include "../Coordinates.h"
 #include "../GameEnums.h"
+#include "../offsets.h"
 
 namespace kx {
     namespace ReClass {
 
         /**
-         * @brief Coordinate/Object wrapper for gadget positioning
+         * @brief Coordinate/Object wrapper for keyframed entities (gadgets)
          */
-        class CoKeyFramed : public SafeForeignClass {
+        class CoKeyFramed : public kx::SafeForeignClass {
         public:
-            CoKeyFramed(void* ptr) : SafeForeignClass(ptr) {}
-            
-            Coordinates3D GetPosition() {
-                LOG_MEMORY("CoKeyFramed", "GetPosition", data(), 0x0030);
+            CoKeyFramed(void* ptr) : kx::SafeForeignClass(ptr) {}
+
+            kx::Coordinates3D GetPosition() {
+                LOG_MEMORY("CoKeyFramed", "GetPosition", data(), Offsets::CO_KEYFRAMED_POSITION);
                 
                 if (!data()) {
                     LOG_ERROR("CoKeyFramed::GetPosition - CoKeyFramed data is null");
-                    return Coordinates3D{ 0,0,0 };
+                    return kx::Coordinates3D{ 0,0,0 };
                 }
                 
-                Coordinates3D position;
-                if (!Debug::SafeRead<Coordinates3D>(data(), 0x0030, position)) {
-                    LOG_ERROR("CoKeyFramed::GetPosition - Failed to read position at offset 0x0030");
-                    return Coordinates3D{ 0,0,0 };
+                kx::Coordinates3D position;
+                if (!Debug::SafeRead<kx::Coordinates3D>(data(), Offsets::CO_KEYFRAMED_POSITION, position)) {
+                    LOG_ERROR("CoKeyFramed::GetPosition - Failed to read position at offset CO_KEYFRAMED_POSITION");
+                    return kx::Coordinates3D{ 0,0,0 };
                 }
                 
-                LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", 
-                         position.x, position.y, position.z);
+                LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", position.X, position.Y, position.Z);
                 return position;
             }
         };
 
         /**
-         * @brief Agent wrapper for gadget entities
+         * @brief Agent wrapper for keyframed entities
          */
-        class AgKeyFramed : public SafeForeignClass {
+        class AgKeyFramed : public kx::SafeForeignClass {
         public:
-            AgKeyFramed(void* ptr) : SafeForeignClass(ptr) {}
-            
+            AgKeyFramed(void* ptr) : kx::SafeForeignClass(ptr) {}
+
             CoKeyFramed GetCoKeyFramed() {
-                LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), 0x0050);
+                LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), Offsets::AG_KEYFRAMED_CO_KEYFRAMED);
                 
                 if (!data()) {
                     LOG_ERROR("AgKeyFramed::GetCoKeyFramed - AgKeyFramed data is null");
@@ -52,8 +52,8 @@ namespace kx {
                 }
                 
                 void* coKeyFramedPtr = nullptr;
-                if (!Debug::SafeRead<void*>(data(), 0x0050, coKeyFramedPtr)) {
-                    LOG_ERROR("AgKeyFramed::GetCoKeyFramed - Failed to read CoKeyFramed pointer at offset 0x0050");
+                if (!Debug::SafeRead<void*>(data(), Offsets::AG_KEYFRAMED_CO_KEYFRAMED, coKeyFramedPtr)) {
+                    LOG_ERROR("AgKeyFramed::GetCoKeyFramed - Failed to read CoKeyFramed pointer at offset AG_KEYFRAMED_CO_KEYFRAMED");
                     return CoKeyFramed(nullptr);
                 }
                 
@@ -63,14 +63,14 @@ namespace kx {
         };
 
         /**
-         * @brief Main gadget wrapper for interactive objects in the world
+         * @brief Client gadget wrapper
          */
-        class GdCliGadget : public SafeForeignClass {
+        class GdCliGadget : public kx::SafeForeignClass {
         public:
-            GdCliGadget(void* ptr) : SafeForeignClass(ptr) {}
+            GdCliGadget(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             Game::GadgetType GetGadgetType() {
-                LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), 0x0200);
+                LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), Offsets::GD_CLI_GADGET_TYPE);
                 
                 if (!data()) {
                     LOG_ERROR("GdCliGadget::GetGadgetType - GdCliGadget data is null");
@@ -78,8 +78,8 @@ namespace kx {
                 }
                 
                 uint32_t typeValue = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x0200, typeValue)) {
-                    LOG_ERROR("GdCliGadget::GetGadgetType - Failed to read gadget type at offset 0x0200");
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::GD_CLI_GADGET_TYPE, typeValue)) {
+                    LOG_ERROR("GdCliGadget::GetGadgetType - Failed to read gadget type at offset GD_CLI_GADGET_TYPE");
                     return Game::GadgetType::None;
                 }
                 
@@ -88,10 +88,9 @@ namespace kx {
                 return gadgetType;
             }
 
-            // This is the key for filtering depleted resource nodes.
-            // The flag 0x2 appears to mean "is active/gatherable".
+            // The flag GADGET_FLAG_GATHERABLE appears to mean "is active/gatherable".
             bool IsGatherable() {
-                LOG_MEMORY("GdCliGadget", "IsGatherable", data(), 0x04E8);
+                LOG_MEMORY("GdCliGadget", "IsGatherable", data(), Offsets::GD_CLI_GADGET_FLAGS);
                 
                 if (!data()) {
                     LOG_ERROR("GdCliGadget::IsGatherable - GdCliGadget data is null");
@@ -99,18 +98,18 @@ namespace kx {
                 }
                 
                 uint32_t flags = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x04E8, flags)) {
-                    LOG_ERROR("GdCliGadget::IsGatherable - Failed to read flags at offset 0x04E8");
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::GD_CLI_GADGET_FLAGS, flags)) {
+                    LOG_ERROR("GdCliGadget::IsGatherable - Failed to read flags at offset GD_CLI_GADGET_FLAGS");
                     return false;
                 }
                 
-                bool gatherable = (flags & 0x2) != 0;
+                bool gatherable = (flags & Offsets::GADGET_FLAG_GATHERABLE) != 0;
                 LOG_DEBUG("GdCliGadget::IsGatherable - Flags: 0x%X, Gatherable: %s", flags, gatherable ? "true" : "false");
                 return gatherable;
             }
 
             AgKeyFramed GetAgKeyFramed() {
-                LOG_MEMORY("GdCliGadget", "GetAgKeyFramed", data(), 0x0038);
+                LOG_MEMORY("GdCliGadget", "GetAgKeyFramed", data(), Offsets::GD_CLI_GADGET_AG_KEYFRAMED);
                 
                 if (!data()) {
                     LOG_ERROR("GdCliGadget::GetAgKeyFramed - GdCliGadget data is null");
@@ -118,8 +117,8 @@ namespace kx {
                 }
                 
                 void* agKeyFramedPtr = nullptr;
-                if (!Debug::SafeRead<void*>(data(), 0x0038, agKeyFramedPtr)) {
-                    LOG_ERROR("GdCliGadget::GetAgKeyFramed - Failed to read AgKeyFramed pointer at offset 0x0038");
+                if (!Debug::SafeRead<void*>(data(), Offsets::GD_CLI_GADGET_AG_KEYFRAMED, agKeyFramedPtr)) {
+                    LOG_ERROR("GdCliGadget::GetAgKeyFramed - Failed to read AgKeyFramed pointer at offset GD_CLI_GADGET_AG_KEYFRAMED");
                     return AgKeyFramed(nullptr);
                 }
                 

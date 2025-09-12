@@ -3,6 +3,7 @@
 #include "../Game/Camera.h"
 #include "ESPMath.h"
 #include "ESPStyling.h"
+#include "ESPFormatting.h"
 #include "../../libs/ImGui/imgui.h"
 #include <cmath>
 
@@ -42,8 +43,12 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
                 details.emplace_back("Level: " + std::to_string(player.level));
             }
             
-            if (player.profession > 0) {
-                details.emplace_back("Prof: " + std::to_string(player.profession));
+            if (player.profession != Game::Profession::None) {
+                details.emplace_back("Prof: " + ESPFormatting::ProfessionToString(player.profession));
+            }
+            
+            if (player.race != Game::Race::None) {
+                details.emplace_back("Race: " + ESPFormatting::RaceToString(player.race));
             }
             
             if (player.maxHealth > 0) {
@@ -94,7 +99,7 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
                 details.emplace_back("HP: " + std::to_string(static_cast<int>(npc.currentHealth)) + "/" + std::to_string(static_cast<int>(npc.maxHealth)));
             }
             
-            details.emplace_back("Attitude: " + std::to_string(npc.attitude));
+            details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc.attitude));
         }
 
         RenderEntity(drawList, npc.position, distance, screenWidth, screenHeight, color, details, healthPercent, 
@@ -114,9 +119,12 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
         unsigned int color = IM_COL32(255, 255, 0, 220); // Yellow for gadgets
 
         std::vector<std::string> details;
-        details.reserve(1); // Pre-allocate to avoid reallocations
+        details.reserve(2); // Pre-allocate for type and gatherable status
         if (settings.objectESP.renderDetails) {
-            details.emplace_back("Type: " + std::to_string(gadget.type));
+            details.emplace_back("Type: " + ESPFormatting::GadgetTypeToString(gadget.type));
+            if (gadget.isGatherable) {
+                details.emplace_back("Status: Gatherable");
+            }
         }
 
         RenderEntity(drawList, gadget.position, distance, screenWidth, screenHeight, color, details, -1.0f, 

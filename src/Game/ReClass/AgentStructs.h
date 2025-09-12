@@ -4,6 +4,7 @@
 #include "../../Core/AppState.h"
 #include "../../Utils/SafeForeignClass.h"
 #include "../Coordinates.h"
+#include "../offsets.h"
 
 namespace kx {
     namespace ReClass {
@@ -25,7 +26,7 @@ namespace kx {
                 }
                 
                 Coordinates3D result;
-                if (!Debug::SafeRead<Coordinates3D>(data(), 0x30, result)) {
+                if (!Debug::SafeRead<Coordinates3D>(data(), Offsets::CO_CHAR_VISUAL_POSITION, result)) {
                     // Reduce log spam for position failures
                     return { 0, 0, 0 };
                 }
@@ -42,7 +43,7 @@ namespace kx {
             AgChar(void* ptr) : SafeForeignClass(ptr) {}
 
             CoChar GetCoChar() {
-                LOG_MEMORY("AgChar", "GetCoChar", data(), 0x50);
+                LOG_MEMORY("AgChar", "GetCoChar", data(), Offsets::AG_CHAR_CO_CHAR);
                 
                 if (!data()) {
                     LOG_ERROR("AgChar::GetCoChar - AgChar data is null");
@@ -60,7 +61,7 @@ namespace kx {
             }
 
             uint32_t GetType() {
-                LOG_MEMORY("AgChar", "GetType", data(), 0x08);
+                LOG_MEMORY("AgChar", "GetType", data(), Offsets::AG_CHAR_TYPE);
                 
                 if (!data()) {
                     LOG_ERROR("AgChar::GetType - AgChar data is null");
@@ -68,7 +69,7 @@ namespace kx {
                 }
                 
                 uint32_t type = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x08, type)) {
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::AG_CHAR_TYPE, type)) {
                     LOG_ERROR("AgChar::GetType - Failed to read type at offset 0x08");
                     return 0;
                 }

@@ -121,6 +121,7 @@
     <ClInclude Include="src\Game\AddressManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
     <ClInclude Include="src\Game\Camera.h" />
+    <ClInclude Include="src\Game\Coordinates.h" />
     <ClInclude Include="src\Game\GameEnums.h" />
     <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />

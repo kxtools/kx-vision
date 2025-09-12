@@ -3,6 +3,7 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
 #include "../../Utils/SafeForeignClass.h"
+#include "../offsets.h"
 #include "CharacterStructs.h"
 #include "GadgetStructs.h"
 
@@ -17,7 +18,7 @@ namespace kx {
             ChCliContext(void* ptr) : SafeForeignClass(ptr) {}
 
             ChCliCharacter** GetCharacterList() {
-                LOG_MEMORY("ChCliContext", "GetCharacterList", data(), 0x60);
+                LOG_MEMORY("ChCliContext", "GetCharacterList", data(), Offsets::CH_CLI_CONTEXT_CHARACTER_LIST);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliContext::GetCharacterList - ChCliContext data is null");
@@ -25,7 +26,7 @@ namespace kx {
                 }
                 
                 ChCliCharacter** characterList = nullptr;
-                if (!Debug::SafeRead<ChCliCharacter**>(data(), 0x60, characterList)) {
+                if (!Debug::SafeRead<ChCliCharacter**>(data(), Offsets::CH_CLI_CONTEXT_CHARACTER_LIST, characterList)) {
                     LOG_ERROR("ChCliContext::GetCharacterList - Failed to read CharacterList pointer at offset 0x60");
                     return nullptr;
                 }
@@ -35,7 +36,7 @@ namespace kx {
             }
 
             uint32_t GetCharacterListCapacity() {
-                LOG_MEMORY("ChCliContext", "GetCharacterListCapacity", data(), 0x68);
+                LOG_MEMORY("ChCliContext", "GetCharacterListCapacity", data(), Offsets::CH_CLI_CONTEXT_CHARACTER_LIST_CAPACITY);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliContext::GetCharacterListCapacity - ChCliContext data is null");
@@ -43,8 +44,8 @@ namespace kx {
                 }
                 
                 uint32_t capacity = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x68, capacity)) {
-                    LOG_ERROR("ChCliContext::GetCharacterListCapacity - Failed to read capacity at offset 0x68");
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::CH_CLI_CONTEXT_CHARACTER_LIST_CAPACITY, capacity)) {
+                    LOG_ERROR("ChCliContext::GetCharacterListCapacity - Failed to read capacity at offset Offsets::CH_CLI_CONTEXT_CHARACTER_LIST_CAPACITY");
                     return 0;
                 }
                 
@@ -53,7 +54,7 @@ namespace kx {
             }
 
             ChCliPlayer** GetPlayerList() {
-                LOG_MEMORY("ChCliContext", "GetPlayerList", data(), 0x80);
+                LOG_MEMORY("ChCliContext", "GetPlayerList", data(), Offsets::CH_CLI_CONTEXT_PLAYER_LIST);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliContext::GetPlayerList - ChCliContext data is null");
@@ -61,8 +62,8 @@ namespace kx {
                 }
                 
                 ChCliPlayer** playerList = nullptr;
-                if (!Debug::SafeRead<ChCliPlayer**>(data(), 0x80, playerList)) {
-                    LOG_ERROR("ChCliContext::GetPlayerList - Failed to read PlayerList pointer at offset 0x80");
+                if (!Debug::SafeRead<ChCliPlayer**>(data(), Offsets::CH_CLI_CONTEXT_PLAYER_LIST, playerList)) {
+                    LOG_ERROR("ChCliContext::GetPlayerList - Failed to read PlayerList pointer at offset Offsets::CH_CLI_CONTEXT_PLAYER_LIST");
                     return nullptr;
                 }
                 
@@ -71,7 +72,7 @@ namespace kx {
             }
 
             uint32_t GetPlayerListSize() {
-                LOG_MEMORY("ChCliContext", "GetPlayerListSize", data(), 0x88);
+                LOG_MEMORY("ChCliContext", "GetPlayerListSize", data(), Offsets::CH_CLI_CONTEXT_PLAYER_LIST_SIZE);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliContext::GetPlayerListSize - ChCliContext data is null");
@@ -79,8 +80,8 @@ namespace kx {
                 }
                 
                 uint32_t size = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x88, size)) {
-                    LOG_ERROR("ChCliContext::GetPlayerListSize - Failed to read size at offset 0x88");
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::CH_CLI_CONTEXT_PLAYER_LIST_SIZE, size)) {
+                    LOG_ERROR("ChCliContext::GetPlayerListSize - Failed to read size at offset Offsets::CH_CLI_CONTEXT_PLAYER_LIST_SIZE");
                     return 0;
                 }
                 
@@ -89,7 +90,7 @@ namespace kx {
             }
 
             ChCliCharacter* GetLocalPlayer() {
-                LOG_MEMORY("ChCliContext", "GetLocalPlayer", data(), 0x98);
+                LOG_MEMORY("ChCliContext", "GetLocalPlayer", data(), Offsets::CH_CLI_CONTEXT_LOCAL_PLAYER);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliContext::GetLocalPlayer - Context data is null");
@@ -97,7 +98,7 @@ namespace kx {
                 }
                 
                 ChCliCharacter* result = nullptr;
-                if (!Debug::SafeReadWithLogging<ChCliCharacter*>(data(), 0x98, result, "ChCliContext::GetLocalPlayer")) {
+                if (!Debug::SafeReadWithLogging<ChCliCharacter*>(data(), Offsets::CH_CLI_CONTEXT_LOCAL_PLAYER, result, "ChCliContext::GetLocalPlayer")) {
                     return nullptr;
                 }
                 
@@ -114,7 +115,7 @@ namespace kx {
             GdCliContext(void* ptr) : SafeForeignClass(ptr) {}
 
             GdCliGadget** GetGadgetList() {
-                LOG_MEMORY("GdCliContext", "GetGadgetList", data(), 0x0030);
+                LOG_MEMORY("GdCliContext", "GetGadgetList", data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST);
                 
                 if (!data()) {
                     LOG_ERROR("GdCliContext::GetGadgetList - GdCliContext data is null");
@@ -122,8 +123,8 @@ namespace kx {
                 }
                 
                 GdCliGadget** gadgetList = nullptr;
-                if (!Debug::SafeRead<GdCliGadget**>(data(), 0x0030, gadgetList)) {
-                    LOG_ERROR("GdCliContext::GetGadgetList - Failed to read GadgetList pointer at offset 0x0030");
+                if (!Debug::SafeRead<GdCliGadget**>(data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST, gadgetList)) {
+                    LOG_ERROR("GdCliContext::GetGadgetList - Failed to read GadgetList pointer at offset Offsets::GD_CLI_CONTEXT_GADGET_LIST");
                     return nullptr;
                 }
                 
@@ -132,7 +133,7 @@ namespace kx {
             }
 
             uint32_t GetGadgetListCapacity() {
-                LOG_MEMORY("GdCliContext", "GetGadgetListCapacity", data(), 0x0038);
+                LOG_MEMORY("GdCliContext", "GetGadgetListCapacity", data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST_CAPACITY);
                 
                 if (!data()) {
                     LOG_ERROR("GdCliContext::GetGadgetListCapacity - GdCliContext data is null");
@@ -140,8 +141,8 @@ namespace kx {
                 }
                 
                 uint32_t capacity = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x0038, capacity)) {
-                    LOG_ERROR("GdCliContext::GetGadgetListCapacity - Failed to read capacity at offset 0x0038");
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST_CAPACITY, capacity)) {
+                    LOG_ERROR("GdCliContext::GetGadgetListCapacity - Failed to read capacity at offset Offsets::GD_CLI_CONTEXT_GADGET_LIST_CAPACITY");
                     return 0;
                 }
                 
@@ -150,7 +151,7 @@ namespace kx {
             }
 
             uint32_t GetGadgetListCount() {
-                LOG_MEMORY("GdCliContext", "GetGadgetListCount", data(), 0x003C);
+                LOG_MEMORY("GdCliContext", "GetGadgetListCount", data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST_COUNT);
                 
                 if (!data()) {
                     LOG_ERROR("GdCliContext::GetGadgetListCount - GdCliContext data is null");
@@ -158,8 +159,8 @@ namespace kx {
                 }
                 
                 uint32_t count = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x003C, count)) {
-                    LOG_ERROR("GdCliContext::GetGadgetListCount - Failed to read count at offset 0x003C");
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST_COUNT, count)) {
+                    LOG_ERROR("GdCliContext::GetGadgetListCount - Failed to read count at offset Offsets::GD_CLI_CONTEXT_GADGET_LIST_COUNT");
                     return 0;
                 }
                 
@@ -181,7 +182,7 @@ namespace kx {
             }
 
             ChCliContext GetChCliContext() {
-                LOG_MEMORY("ContextCollection", "GetChCliContext", data(), 0x98);
+                LOG_MEMORY("ContextCollection", "GetChCliContext", data(), Offsets::CH_CLI_CONTEXT_LOCAL_PLAYER);
                 
                 if (!data()) {
                     LOG_ERROR("ContextCollection::GetChCliContext - ContextCollection data is null");
@@ -189,7 +190,7 @@ namespace kx {
                 }
                 
                 void* contextPtr = nullptr;
-                if (!Debug::SafeReadWithLogging<void*>(data(), 0x98, contextPtr, "ContextCollection::GetChCliContext")) {
+                if (!Debug::SafeReadWithLogging<void*>(data(), Offsets::CH_CLI_CONTEXT_LOCAL_PLAYER, contextPtr, "ContextCollection::GetChCliContext")) {
                     return ChCliContext(nullptr);
                 }
                 

@@ -5,6 +5,7 @@
 #include "../../Utils/SafeForeignClass.h"
 #include "../Coordinates.h"
 #include "../GameEnums.h"
+#include "../offsets.h"
 #include "AgentStructs.h"
 
 namespace kx {
@@ -18,7 +19,7 @@ namespace kx {
             ChCliHealth(void* ptr) : SafeForeignClass(ptr) {}
             
             float GetCurrent() { 
-                LOG_MEMORY("ChCliHealth", "GetCurrent", data(), 0x0C);
+                LOG_MEMORY("ChCliHealth", "GetCurrent", data(), Offsets::CH_CLI_HEALTH_CURRENT);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliHealth::GetCurrent - ChCliHealth data is null");
@@ -26,7 +27,7 @@ namespace kx {
                 }
                 
                 float current = 0.0f;
-                if (!Debug::SafeRead<float>(data(), 0x0C, current)) {
+                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_HEALTH_CURRENT, current)) {
                     LOG_ERROR("ChCliHealth::GetCurrent - Failed to read current health at offset 0x0C");
                     return 0.0f;
                 }
@@ -36,7 +37,7 @@ namespace kx {
             }
             
             float GetMax() { 
-                LOG_MEMORY("ChCliHealth", "GetMax", data(), 0x10);
+                LOG_MEMORY("ChCliHealth", "GetMax", data(), Offsets::CH_CLI_HEALTH_MAX);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliHealth::GetMax - ChCliHealth data is null");
@@ -44,7 +45,7 @@ namespace kx {
                 }
                 
                 float max = 0.0f;
-                if (!Debug::SafeRead<float>(data(), 0x10, max)) {
+                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_HEALTH_MAX, max)) {
                     LOG_ERROR("ChCliHealth::GetMax - Failed to read max health at offset 0x10");
                     return 0.0f;
                 }
@@ -62,7 +63,7 @@ namespace kx {
             ChCliEnergies(void* ptr) : SafeForeignClass(ptr) {}
             
             float GetCurrent() { 
-                LOG_MEMORY("ChCliEnergies", "GetCurrent", data(), 0x0C);
+                LOG_MEMORY("ChCliEnergies", "GetCurrent", data(), Offsets::CH_CLI_ENERGIES_CURRENT);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliEnergies::GetCurrent - ChCliEnergies data is null");
@@ -70,7 +71,7 @@ namespace kx {
                 }
                 
                 float current = 0.0f;
-                if (!Debug::SafeRead<float>(data(), 0x0C, current)) {
+                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_ENERGIES_CURRENT, current)) {
                     LOG_ERROR("ChCliEnergies::GetCurrent - Failed to read current energy at offset 0x0C");
                     return 0.0f;
                 }
@@ -80,7 +81,7 @@ namespace kx {
             }
             
             float GetMax() { 
-                LOG_MEMORY("ChCliEnergies", "GetMax", data(), 0x10);
+                LOG_MEMORY("ChCliEnergies", "GetMax", data(), Offsets::CH_CLI_ENERGIES_MAX);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliEnergies::GetMax - ChCliEnergies data is null");
@@ -88,7 +89,7 @@ namespace kx {
                 }
                 
                 float max = 0.0f;
-                if (!Debug::SafeRead<float>(data(), 0x10, max)) {
+                if (!Debug::SafeRead<float>(data(), Offsets::CH_CLI_ENERGIES_MAX, max)) {
                     LOG_ERROR("ChCliEnergies::GetMax - Failed to read max energy at offset 0x10");
                     return 0.0f;
                 }
@@ -106,7 +107,7 @@ namespace kx {
             ChCliCoreStats(void* ptr) : SafeForeignClass(ptr) {}
             
             Game::Race GetRace() { 
-                LOG_MEMORY("ChCliCoreStats", "GetRace", data(), 0x33);
+                LOG_MEMORY("ChCliCoreStats", "GetRace", data(), Offsets::CH_CLI_CORE_STATS_RACE);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliCoreStats::GetRace - ChCliCoreStats data is null");
@@ -114,7 +115,7 @@ namespace kx {
                 }
                 
                 uint8_t raceValue = 0;
-                if (!Debug::SafeRead<uint8_t>(data(), 0x33, raceValue)) {
+                if (!Debug::SafeRead<uint8_t>(data(), Offsets::CH_CLI_CORE_STATS_RACE, raceValue)) {
                     LOG_ERROR("ChCliCoreStats::GetRace - Failed to read race at offset 0x33");
                     return Game::Race::None;
                 }
@@ -125,7 +126,7 @@ namespace kx {
             }
             
             uint32_t GetLevel() { 
-                LOG_MEMORY("ChCliCoreStats", "GetLevel", data(), 0xAC);
+                LOG_MEMORY("ChCliCoreStats", "GetLevel", data(), Offsets::CH_CLI_CORE_STATS_LEVEL);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliCoreStats::GetLevel - ChCliCoreStats data is null");
@@ -133,7 +134,7 @@ namespace kx {
                 }
                 
                 uint32_t level = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0xAC, level)) {
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::CH_CLI_CORE_STATS_LEVEL, level)) {
                     LOG_ERROR("ChCliCoreStats::GetLevel - Failed to read level at offset 0xAC");
                     return 0;
                 }
@@ -143,7 +144,7 @@ namespace kx {
             }
             
             Game::Profession GetProfession() { 
-                LOG_MEMORY("ChCliCoreStats", "GetProfession", data(), 0x12C);
+                LOG_MEMORY("ChCliCoreStats", "GetProfession", data(), Offsets::CH_CLI_CORE_STATS_PROFESSION);
                 
                 if (!data()) {
                     LOG_ERROR("ChCliCoreStats::GetProfession - ChCliCoreStats data is null");
@@ -151,7 +152,7 @@ namespace kx {
                 }
                 
                 uint32_t profValue = 0;
-                if (!Debug::SafeRead<uint32_t>(data(), 0x12C, profValue)) {
+                if (!Debug::SafeRead<uint32_t>(data(), Offsets::CH_CLI_CORE_STATS_PROFESSION, profValue)) {
                     LOG_ERROR("ChCliCoreStats::GetProfession - Failed to read profession at offset 0x12C");
                     return Game::Profession::None;
                 }

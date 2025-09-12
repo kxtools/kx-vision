@@ -68,44 +68,46 @@ void ESPDataExtractor::ExtractPlayerData(std::vector<RenderablePlayer>& players,
             
             Coordinates3D gameWorldPos = coChar.GetVisualPosition();
             if (gameWorldPos.X == 0.0f && gameWorldPos.Y == 0.0f && gameWorldPos.Z == 0.0f) continue;
-            
+
             const float scaleFactor = 1.23f;
             player.position = glm::vec3(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
             player.isValid = true;
-            
+
             // Extract player name
             auto playerNameIt = characterNameToPlayerName.find(characterDataPtr);
             if (playerNameIt != characterNameToPlayerName.end() && playerNameIt->second) {
-                player.playerName = WStringToString(playerNameIt->second);
+                player.playerName = ESPFormatting::WStringToString(playerNameIt->second);
             }
-            
+
             // Check if this is the local player
             void* localPlayer = AddressManager::GetLocalPlayer();
             player.isLocalPlayer = (characterDataPtr == localPlayer);
-            
+
             // Extract health
             kx::ReClass::ChCliHealth health = nonConstCharacter.GetHealth();
             if (health.data()) {
                 player.currentHealth = health.GetCurrent();
                 player.maxHealth = health.GetMax();
             }
-            
+
             // Extract energy
             kx::ReClass::ChCliEnergies energies = nonConstCharacter.GetEnergies();
             if (energies.data()) {
                 player.currentEnergy = energies.GetCurrent();
                 player.maxEnergy = energies.GetMax();
             }
-            
-            // Extract core stats
+
+            // Extract core stats with type-safe enum assignments
             kx::ReClass::ChCliCoreStats coreStats = nonConstCharacter.GetCoreStats();
             if (coreStats.data()) {
                 player.level = coreStats.GetLevel();
-                player.profession = static_cast<uint32_t>(coreStats.GetProfession());
-                player.attitude = static_cast<uint32_t>(nonConstCharacter.GetAttitude());
+                // Direct enum assignment instead of casting to uint32_t
+                player.profession = coreStats.GetProfession();
+                player.attitude = nonConstCharacter.GetAttitude();
+                player.race = coreStats.GetRace();
             }
-            
-            players.push_back(player);
+
+        	players.push_back(player);
         }
     }
 }
@@ -158,12 +160,13 @@ void ESPDataExtractor::ExtractNpcData(std::vector<RenderableNpc>& npcs) {
                 npc.maxHealth = health.GetMax();
             }
             
-            // Extract basic stats
+            // Extract basic stats with type-safe enum assignment
             kx::ReClass::ChCliCoreStats coreStats = nonConstCharacter.GetCoreStats();
             if (coreStats.data()) {
                 npc.level = coreStats.GetLevel();
             }
-            npc.attitude = static_cast<uint32_t>(nonConstCharacter.GetAttitude());
+            // Direct enum assignment instead of casting to uint32_t
+            npc.attitude = nonConstCharacter.GetAttitude();
             
             npcs.push_back(npc);
         }
@@ -195,11 +198,14 @@ void ESPDataExtractor::ExtractGadgetData(std::vector<RenderableGadget>& gadgets)
         const float scaleFactor = 1.23f;
         renderableGadget.position = glm::vec3(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
         renderableGadget.isValid = true;
+
+        // Extract type with type-safe enum assignment
+        renderableGadget.type = nonConstGadget.GetGadgetType();
         
-        // Extract type
-        renderableGadget.type = static_cast<uint32_t>(nonConstGadget.GetGadgetType());
-        
-        gadgets.push_back(renderableGadget);
+        // Extract gatherable status
+        renderableGadget.isGatherable = nonConstGadget.IsGatherable();
+
+    	gadgets.push_back(renderableGadget);
     }
 }
 

@@ -5,6 +5,7 @@
 #include "../Game/GameEnums.h"
 
 namespace kx {
+namespace ESPFormatting {
 
 // Helper to convert wide-character string to UTF-8 string
 inline std::string WStringToString(const wchar_t* wstr) {
@@ -97,4 +98,5 @@ inline std::string GetGadgetDescription(Game::GadgetType type, bool isGatherable
     return typeName;
 }
 
+} // namespace ESPFormatting
 } // namespace kx

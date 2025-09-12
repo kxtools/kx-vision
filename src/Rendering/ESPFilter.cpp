@@ -82,9 +82,8 @@ void ESPFilter::FilterNpcs(const std::vector<RenderableNpc>& rawNpcs, Camera& ca
             continue;
         }
         
-        // Apply attitude-based filter using EntityFilter utility
-        Game::Attitude attitude = static_cast<Game::Attitude>(npc.attitude);
-        if (!Filtering::EntityFilter::ShouldRenderNpc(attitude, settings.npcESP)) {
+        // Apply attitude-based filter using EntityFilter utility (no cast needed - already enum)
+        if (!Filtering::EntityFilter::ShouldRenderNpc(npc.attitude, settings.npcESP)) {
             continue;
         }
         
@@ -117,9 +116,8 @@ void ESPFilter::FilterGadgets(const std::vector<RenderableGadget>& rawGadgets, C
             continue;
         }
         
-        // Apply gadget type-based filter using EntityFilter utility
-        Game::GadgetType gadgetType = static_cast<Game::GadgetType>(gadget.type);
-        if (!Filtering::EntityFilter::ShouldRenderGadget(gadgetType, settings.objectESP)) {
+        // Apply gadget type-based filter using EntityFilter utility (no cast needed - already enum)
+        if (!Filtering::EntityFilter::ShouldRenderGadget(gadget.type, settings.objectESP)) {
             continue;
         }
         
