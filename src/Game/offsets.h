@@ -42,9 +42,9 @@ namespace Offsets {
     // Character Main Structure
     constexpr uintptr_t CH_CLI_CHARACTER_AGENT = 0x98;
     constexpr uintptr_t CH_CLI_CHARACTER_HEALTH = 0x03E8;
-    constexpr uintptr_t CH_CLI_CHARACTER_ENERGIES = 0x03F0;
+    constexpr uintptr_t CH_CLI_CHARACTER_ENERGIES = 0x03D8;
     constexpr uintptr_t CH_CLI_CHARACTER_CORE_STATS = 0x0388;
-    constexpr uintptr_t CH_CLI_CHARACTER_ATTITUDE = 0x03A0;
+    constexpr uintptr_t CH_CLI_CHARACTER_ATTITUDE = 0x00C0;
 
     // Character Wrapper (AgChar)
     constexpr uintptr_t AG_CHAR_CO_CHAR = 0x50;

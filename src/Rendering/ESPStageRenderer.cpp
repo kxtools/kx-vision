@@ -123,8 +123,26 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
     for (const auto& npc : npcs) {
         // All filtering has been done - just render everything
         
-        // Use attitude-based coloring for NPCs
-        unsigned int color = IM_COL32(255, 80, 80, 210); // NPCs - red/orange (like GW2 enemy indicators)
+        // Use attitude-based coloring for NPCs (minimalistic GW2-style)
+        unsigned int color;
+        switch (npc.attitude) {
+            case Game::Attitude::Hostile:
+                color = IM_COL32(255, 80, 80, 210);    // Red - enemies
+                break;
+            case Game::Attitude::Friendly:
+                color = IM_COL32(100, 255, 100, 210);  // Green - allies
+                break;
+            case Game::Attitude::Neutral:
+                color = IM_COL32(255, 255, 100, 210);  // Yellow - neutral
+                break;
+            case Game::Attitude::Indifferent:
+                color = IM_COL32(180, 180, 180, 210);  // Gray - indifferent
+                break;
+            default:
+                // Debug: Force a very obvious color for unknown attitudes
+                color = IM_COL32(255, 0, 255, 210);    // Magenta - should never see this
+                break;
+        }
         
         float healthPercent = -1.0f;
         if (npc.maxHealth > 0) {

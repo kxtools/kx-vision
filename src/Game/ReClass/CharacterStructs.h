@@ -148,8 +148,8 @@ namespace kx {
 
             Game::Attitude GetAttitude() { 
                 LOG_MEMORY("ChCliCharacter", "GetAttitude", data(), Offsets::CH_CLI_CHARACTER_ATTITUDE);
-                
-                uint32_t attitudeValue = ReadMember<uint32_t>(Offsets::CH_CLI_CHARACTER_ATTITUDE, 0);
+
+                uint32_t attitudeValue = ReadMember<uint32_t>(Offsets::CH_CLI_CHARACTER_ATTITUDE, 1);
                 Game::Attitude attitude = static_cast<Game::Attitude>(attitudeValue);
                 
                 LOG_DEBUG("ChCliCharacter::GetAttitude - Attitude: %u", static_cast<uint32_t>(attitude));
