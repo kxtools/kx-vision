@@ -5,6 +5,10 @@
 
 ![KX-Vision GUI](images/gui_v2.jpg)
 
+## 🎥 Preview
+
+**KX Vision in Action:** [Watch Demo Video](https://streamable.com/zzq3vc)
+
 [➡️ Download the Latest Release](https://github.com/kxtools/kx-vision/releases/latest)
 
 **Educational Purpose Only:** This project is developed solely for educational purposes, allowing developers to learn about game rendering concepts, memory manipulation, and MumbleLink API integration in Guild Wars 2.
