@@ -9,23 +9,59 @@
 
 namespace kx {
 
+// Box dimension constants for different entity types
+namespace BoxDimensions {
+    // Player box - tall rectangle for humanoid shape
+    constexpr float PLAYER_HEIGHT = 50.0f;
+    constexpr float PLAYER_WIDTH = 30.0f;
+    
+    // NPC box - square for easy distinction
+    constexpr float NPC_HEIGHT = 40.0f;
+    constexpr float NPC_WIDTH = 40.0f;
+    
+    // Gadget box - very small square for minimal visual impact
+    constexpr float GADGET_HEIGHT = 15.0f;
+    constexpr float GADGET_WIDTH = 15.0f;
+}
+
+// Context struct for unified entity rendering
+struct EntityRenderContext {
+    // Pre-calculated data from the Renderable object
+    const glm::vec2& screenPos;
+    float distance;
+    unsigned int color;
+    const std::vector<std::string>& details;
+    float healthPercent;
+
+    // Style and settings
+    bool renderBox;
+    bool renderDistance;
+    bool renderDot;
+    bool renderDetails;
+    bool renderHealthBar;
+    ESPEntityType entityType;
+    
+    // Screen dimensions for bounds checking
+    float screenWidth;
+    float screenHeight;
+};
+
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                       const FrameRenderData& frameData, Camera& camera) {
     // Simple rendering - no filtering logic, just draw everything that was passed in
-    RenderPlayers(drawList, screenWidth, screenHeight, frameData.players, camera);
-    RenderNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera);
-    RenderGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera);
+    RenderPlayers(drawList, screenWidth, screenHeight, frameData.players);
+    RenderNpcs(drawList, screenWidth, screenHeight, frameData.npcs);
+    RenderGadgets(drawList, screenWidth, screenHeight, frameData.gadgets);
 }
 
 void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                    const std::vector<RenderablePlayer>& players, Camera& camera) {
+                                    const std::vector<RenderablePlayer>& players) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto& player : players) {
         // All filtering has been done - just render everything
         
-        const float distance = glm::length(player.position - camera.GetPlayerPosition());
-        unsigned int color = IM_COL32(0, 255, 100, 220); // Friendly player color
+        unsigned int color = IM_COL32(100, 255, 100, 200); // Friendly player - bright green (like GW2 friendly indicators)
 
         float healthPercent = -1.0f;
         if (player.maxHealth > 0) {
@@ -61,23 +97,34 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
             }
         }
 
-        RenderEntity(drawList, player.position, distance, screenWidth, screenHeight, color, details, healthPercent, 
-                    settings.playerESP.renderBox, settings.playerESP.renderDistance, settings.playerESP.renderDot, 
-                    settings.playerESP.renderDetails, settings.playerESP.renderHealthBar, ESPEntityType::Player, camera);
+        EntityRenderContext context{
+            player.screenPos,
+            player.distance,
+            color,
+            details,
+            healthPercent,
+            settings.playerESP.renderBox,
+            settings.playerESP.renderDistance,
+            settings.playerESP.renderDot,
+            settings.playerESP.renderDetails,
+            settings.playerESP.renderHealthBar,
+            ESPEntityType::Player,
+            screenWidth,
+            screenHeight
+        };
+        RenderEntity(drawList, context);
     }
 }
 
 void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                 const std::vector<RenderableNpc>& npcs, Camera& camera) {
+                                 const std::vector<RenderableNpc>& npcs) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto& npc : npcs) {
         // All filtering has been done - just render everything
         
-        const float distance = glm::length(npc.position - camera.GetPlayerPosition());
-        
         // Use attitude-based coloring for NPCs
-        unsigned int color = IM_COL32(255, 165, 0, 220); // Default orange for NPCs
+        unsigned int color = IM_COL32(255, 80, 80, 210); // NPCs - red/orange (like GW2 enemy indicators)
         
         float healthPercent = -1.0f;
         if (npc.maxHealth > 0) {
@@ -102,21 +149,33 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
             details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc.attitude));
         }
 
-        RenderEntity(drawList, npc.position, distance, screenWidth, screenHeight, color, details, healthPercent, 
-                    settings.npcESP.renderBox, settings.npcESP.renderDistance, settings.npcESP.renderDot, 
-                    settings.npcESP.renderDetails, settings.npcESP.renderHealthBar, ESPEntityType::NPC, camera);
+        EntityRenderContext context{
+            npc.screenPos,
+            npc.distance,
+            color,
+            details,
+            healthPercent,
+            settings.npcESP.renderBox,
+            settings.npcESP.renderDistance,
+            settings.npcESP.renderDot,
+            settings.npcESP.renderDetails,
+            settings.npcESP.renderHealthBar,
+            ESPEntityType::NPC,
+            screenWidth,
+            screenHeight
+        };
+        RenderEntity(drawList, context);
     }
 }
 
 void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                    const std::vector<RenderableGadget>& gadgets, Camera& camera) {
+                                    const std::vector<RenderableGadget>& gadgets) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto& gadget : gadgets) {
         // All filtering has been done - just render everything
         
-        const float distance = glm::length(gadget.position - camera.GetPlayerPosition());
-        unsigned int color = IM_COL32(255, 255, 0, 220); // Yellow for gadgets
+        unsigned int color = IM_COL32(150, 150, 255, 190); // Gadgets - light blue (like GW2 interactable objects)
 
         std::vector<std::string> details;
         details.reserve(2); // Pre-allocate for type and gatherable status
@@ -127,60 +186,86 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
             }
         }
 
-        RenderEntity(drawList, gadget.position, distance, screenWidth, screenHeight, color, details, -1.0f, 
-                    settings.objectESP.renderBox, settings.objectESP.renderDistance, settings.objectESP.renderDot, 
-                    settings.objectESP.renderDetails, false, ESPEntityType::Gadget, camera);
+        EntityRenderContext context{
+            gadget.screenPos,
+            gadget.distance,
+            color,
+            details,
+            -1.0f,
+            settings.objectESP.renderBox,
+            settings.objectESP.renderDistance,
+            settings.objectESP.renderDot,
+            settings.objectESP.renderDetails,
+            false,
+            ESPEntityType::Gadget,
+            screenWidth,
+            screenHeight
+        };
+        RenderEntity(drawList, context);
     }
 }
 
-void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, float screenWidth, float screenHeight, 
-                                   unsigned int color, const std::vector<std::string>& details, float healthPercent, 
-                                   bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, bool renderHealthBar, 
-                                   ESPEntityType entityType, Camera& camera) {
-    // Early frustum culling - check if position projects to valid screen coordinates
-    glm::vec2 screenPos;
-    if (!kx::ESPMath::WorldToScreen(worldPos, camera, screenWidth, screenHeight, screenPos)) {
-        return; // Entity is behind camera or outside frustum
-    }
-    
+void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context) {
     // Screen bounds culling with small margin for partially visible entities
     const float margin = 50.0f;
-    if (screenPos.x < -margin || screenPos.x > screenWidth + margin || 
-        screenPos.y < -margin || screenPos.y > screenHeight + margin) {
+    if (context.screenPos.x < -margin || context.screenPos.x > context.screenWidth + margin || 
+        context.screenPos.y < -margin || context.screenPos.y > context.screenHeight + margin) {
         return; // Entity is off-screen
     }
 
-    // Calculate bounding box for entity
-    const float boxHeight = 50.0f;
-    const float boxWidth = 30.0f;
+    // Calculate bounding box for entity based on type
+    float boxHeight, boxWidth;
     
-    ImVec2 boxMin(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
-    ImVec2 boxMax(screenPos.x + boxWidth / 2, screenPos.y);
-    ImVec2 center(screenPos.x, screenPos.y - boxHeight / 2);
+    switch (context.entityType) {
+        case ESPEntityType::Player:
+            // Players: tall rectangle (humanoid)
+            boxHeight = BoxDimensions::PLAYER_HEIGHT;
+            boxWidth = BoxDimensions::PLAYER_WIDTH;
+            break;
+        case ESPEntityType::NPC:
+            // NPCs: square box
+            boxHeight = BoxDimensions::NPC_HEIGHT;
+            boxWidth = BoxDimensions::NPC_WIDTH;
+            break;
+        case ESPEntityType::Gadget:
+            // Gadgets: very small square
+            boxHeight = BoxDimensions::GADGET_HEIGHT;
+            boxWidth = BoxDimensions::GADGET_WIDTH;
+            break;
+        default:
+            // Fallback to player dimensions
+            boxHeight = BoxDimensions::PLAYER_HEIGHT;
+            boxWidth = BoxDimensions::PLAYER_WIDTH;
+            break;
+    }
+    
+    ImVec2 boxMin(context.screenPos.x - boxWidth / 2, context.screenPos.y - boxHeight);
+    ImVec2 boxMax(context.screenPos.x + boxWidth / 2, context.screenPos.y);
+    ImVec2 center(context.screenPos.x, context.screenPos.y - boxHeight / 2);
 
     // Render health bar
-    if (renderHealthBar && healthPercent >= 0.0f) {
-        RenderHealthBar(drawList, boxMin, boxMax, healthPercent);
+    if (context.renderHealthBar && context.healthPercent >= 0.0f) {
+        RenderHealthBar(drawList, boxMin, boxMax, context.healthPercent);
     }
 
     // Render bounding box
-    if (renderBox) {
-        RenderBoundingBox(drawList, boxMin, boxMax, color);
+    if (context.renderBox) {
+        RenderBoundingBox(drawList, boxMin, boxMax, context.color);
     }
 
     // Render distance text
-    if (renderDistance) {
-        RenderDistanceText(drawList, center, boxMin, distance);
+    if (context.renderDistance) {
+        RenderDistanceText(drawList, center, boxMin, context.distance);
     }
 
     // Render center dot
-    if (renderDot) {
-        RenderCenterDot(drawList, glm::vec2(screenPos.x, screenPos.y));
+    if (context.renderDot) {
+        RenderCenterDot(drawList, glm::vec2(context.screenPos.x, context.screenPos.y), context.color);
     }
 
     // Render details text
-    if (renderDetails && !details.empty()) {
-        RenderDetailsText(drawList, center, boxMax, details);
+    if (context.renderDetails && !context.details.empty()) {
+        RenderDetailsText(drawList, center, boxMax, context.details);
     }
 }
 
@@ -252,17 +337,12 @@ void ESPStageRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& ce
     drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), distText);
 }
 
-void ESPStageRenderer::RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos) {
-    const float dotRadius = 3.0f;
-    
-    // Outer glow
-    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), dotRadius + 1.0f, IM_COL32(0, 0, 0, 100));
-    
-    // Main dot
-    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), dotRadius, IM_COL32(255, 255, 255, 255));
-    
-    // Inner highlight
-    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), dotRadius - 1.0f, IM_COL32(255, 255, 0, 200));
+void ESPStageRenderer::RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos, unsigned int color) {
+    // Small, minimalistic dot with subtle outline for visibility
+    // Dark outline
+    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), 2.5f, IM_COL32(0, 0, 0, 180));
+    // Main dot using entity color
+    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), 2.0f, color);
 }
 
 void ESPStageRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details) {

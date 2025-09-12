@@ -60,7 +60,7 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         ESPDataExtractor::ExtractFrameData(s_cachedRawData);
         
         // Stage 2: Filter the extracted data (safe, configurable operations)  
-        ESPFilter::FilterFrameData(s_cachedRawData, *s_camera, s_cachedFilteredData);
+        ESPFilter::FilterFrameData(s_cachedRawData, *s_camera, screenWidth, screenHeight, s_cachedFilteredData);
         
         s_lastUpdateTime = currentTime;
     }

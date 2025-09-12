@@ -14,6 +14,9 @@ struct ImVec2;
 
 namespace kx {
 
+// Forward declaration for context struct
+struct EntityRenderContext;
+
 /**
  * @brief Handles safe rendering from extracted data (Stage 2 of rendering pipeline)
  * 
@@ -38,34 +41,30 @@ private:
      * @brief Render all players from extracted data
      */
     static void RenderPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                             const std::vector<RenderablePlayer>& players, Camera& camera);
+                             const std::vector<RenderablePlayer>& players);
 
     /**
      * @brief Render all NPCs from extracted data
      */
     static void RenderNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                          const std::vector<RenderableNpc>& npcs, Camera& camera);
+                          const std::vector<RenderableNpc>& npcs);
 
     /**
      * @brief Render all gadgets from extracted data
      */
     static void RenderGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                             const std::vector<RenderableGadget>& gadgets, Camera& camera);
+                             const std::vector<RenderableGadget>& gadgets);
 
     /**
-     * @brief Universal entity rendering function
+     * @brief Universal entity rendering function using context struct
      */
-    static void RenderEntity(ImDrawList* drawList, const glm::vec3& worldPos, float distance, 
-                            float screenWidth, float screenHeight, unsigned int color, 
-                            const std::vector<std::string>& details, float healthPercent, 
-                            bool renderBox, bool renderDistance, bool renderDot, bool renderDetails, 
-                            bool renderHealthBar, ESPEntityType entityType, Camera& camera);
+    static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context);
 
     // Helper rendering functions
     static void RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, float healthPercent);
     static void RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color);
     static void RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, float distance);
-    static void RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos);
+    static void RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos, unsigned int color);
     static void RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details);
 };
 
