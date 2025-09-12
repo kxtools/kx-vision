@@ -26,7 +26,7 @@ namespace SafeAccess {
         void AdvanceToValid() {
             m_currentValid = false;
             while (m_index < m_capacity) {
-                if (IsMemorySafe(m_array[m_index])) {
+                if (IsMemorySafe(m_array[m_index]) && IsVTablePointerValid(m_array[m_index])) {
                     m_current = kx::ReClass::ChCliCharacter(m_array[m_index]);
                     if (m_current) {
                         m_currentValid = true;
@@ -108,7 +108,7 @@ namespace SafeAccess {
             m_currentValid = false;
             m_currentName = nullptr;
             while (m_index < m_capacity) {
-                if (IsMemorySafe(m_array[m_index])) {
+                if (IsMemorySafe(m_array[m_index]) && IsVTablePointerValid(m_array[m_index])) {
                     m_currentPlayer = kx::ReClass::ChCliPlayer(m_array[m_index]);
                     if (m_currentPlayer) {
                         m_currentCharacter = m_currentPlayer.GetCharacter();
@@ -200,7 +200,7 @@ namespace SafeAccess {
         void AdvanceToValid() {
             m_currentValid = false;
             while (m_index < m_capacity) {
-                if (IsMemorySafe(m_array[m_index])) {
+                if (IsMemorySafe(m_array[m_index]) && IsVTablePointerValid(m_array[m_index])) {
                     m_current = kx::ReClass::GdCliGadget(m_array[m_index]);
                     if (m_current) {
                         m_currentValid = true;

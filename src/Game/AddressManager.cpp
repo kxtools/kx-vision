@@ -1,6 +1,8 @@
 #include "AddressManager.h"
 
 #include <iostream>
+#include <windows.h>
+#include <psapi.h>
 
 #include "../Core/Config.h" // For TARGET_PROCESS_NAME
 #include "../Utils/PatternScanner.h"
@@ -170,8 +172,29 @@ void AddressManager::ScanGameThreadUpdateFunc() {
     std::cout << "[AddressManager] -> SUCCESS: GameThreadUpdate function resolved to: 0x" << std::hex << s_pointers.gameThreadUpdateFunc << std::dec << std::endl;
 }
 
+void AddressManager::ScanModuleInformation() {
+    HMODULE hModule = GetModuleHandleA("Gw2-64.exe");
+    if (!hModule) {
+        std::cout << "[AddressManager] Failed to get handle for Gw2-64.exe" << std::endl;
+        return;
+    }
+
+    MODULEINFO moduleInfo;
+    if (!GetModuleInformation(GetCurrentProcess(), hModule, &moduleInfo, sizeof(moduleInfo))) {
+        std::cout << "[AddressManager] Failed to get module information for Gw2-64.exe" << std::endl;
+        return;
+    }
+
+    s_pointers.moduleBase = reinterpret_cast<uintptr_t>(moduleInfo.lpBaseOfDll);
+    s_pointers.moduleSize = moduleInfo.SizeOfImage;
+
+    std::cout << "[AddressManager] Module Information - Base: 0x" << std::hex << s_pointers.moduleBase 
+              << ", Size: 0x" << s_pointers.moduleSize << std::dec << std::endl;
+}
+
 void AddressManager::Scan() {
     std::cout << "[AddressManager] Scanning for memory addresses..." << std::endl;
+    ScanModuleInformation();
     ScanContextCollectionFunc();
     ScanGameThreadUpdateFunc();
 

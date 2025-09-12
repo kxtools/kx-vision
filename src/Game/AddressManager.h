@@ -12,6 +12,10 @@ struct GamePointers {
     uintptr_t contextCollectionFunc = 0;
     uintptr_t gameThreadUpdateFunc = 0;
     void* pContextCollection = nullptr;
+    
+    // Module information for VTable validation
+    uintptr_t moduleBase = 0;
+    size_t moduleSize = 0;
 };
 
 class AddressManager {
@@ -28,6 +32,10 @@ public:
     static uintptr_t GetContextCollectionFunc() { return s_pointers.contextCollectionFunc; }
     static uintptr_t GetGameThreadUpdateFunc() { return s_pointers.gameThreadUpdateFunc; }
     static void* GetContextCollectionPtr() { return s_pointers.pContextCollection; }
+    
+    // Module information getters for VTable validation
+    static uintptr_t GetModuleBase() { return s_pointers.moduleBase; }
+    static size_t GetModuleSize() { return s_pointers.moduleSize; }
 
     // Local player detection
     static void* GetLocalPlayer();
@@ -35,6 +43,7 @@ public:
 private:
     static void* GetLocalPlayerImpl(void* pContextCollection); // Helper to avoid object unwinding issues
     static void Scan();
+    static void ScanModuleInformation();
     static void ScanAgentArray();
     static void ScanWorldViewContextPtr();
     static void ScanBgfxContextFunc();
