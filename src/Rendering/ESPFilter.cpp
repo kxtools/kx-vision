@@ -5,6 +5,24 @@
 
 namespace kx {
 
+bool ESPFilter::IsWithinExtendedDistanceLimit(const glm::vec3& entityPos, const glm::vec3& cameraPos, 
+                                              bool useDistanceLimit, float distanceLimit) {
+    if (!useDistanceLimit) {
+        return true; // No distance limiting
+    }
+    
+    // Calculate fade zone distance (e.g., for 90m limit, fade zone extends to ~100m)
+    const float fadeZoneDistance = distanceLimit * FADE_ZONE_PERCENTAGE;
+    const float extendedLimit = distanceLimit + fadeZoneDistance;
+    
+    // Use squared distance comparison to avoid expensive sqrt calculation
+    const glm::vec3 deltaPos = entityPos - cameraPos;
+    const float distanceSquared = glm::dot(deltaPos, deltaPos);
+    const float extendedLimitSquared = extendedLimit * extendedLimit;
+    
+    return distanceSquared <= extendedLimitSquared;
+}
+
 bool ESPFilter::IsWithinDistanceLimit(const glm::vec3& entityPos, const glm::vec3& cameraPos, 
                                      bool useDistanceLimit, float distanceLimit) {
     if (!useDistanceLimit) {
@@ -17,6 +35,27 @@ bool ESPFilter::IsWithinDistanceLimit(const glm::vec3& entityPos, const glm::vec
     const float limitSquared = distanceLimit * distanceLimit;
     
     return distanceSquared <= limitSquared;
+}
+
+float ESPFilter::CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
+    if (!useDistanceLimit) {
+        return 1.0f; // Fully visible when no distance limit
+    }
+    
+    // Calculate fade zone distances
+    const float fadeZoneDistance = distanceLimit * FADE_ZONE_PERCENTAGE;
+    const float fadeStartDistance = distanceLimit - fadeZoneDistance; // e.g., 80m for 90m limit
+    const float fadeEndDistance = distanceLimit; // e.g., 90m for 90m limit
+    
+    if (distance <= fadeStartDistance) {
+        return 1.0f; // Fully visible
+    } else if (distance >= fadeEndDistance) {
+        return 0.0f; // Fully transparent (should be culled in filter)
+    } else {
+        // Linear interpolation in fade zone
+        const float fadeProgress = (distance - fadeStartDistance) / fadeZoneDistance;
+        return 1.0f - fadeProgress; // Fade from 1.0 to 0.0
+    }
 }
 
 bool ESPFilter::IsHealthValid(float currentHealth) {
@@ -43,9 +82,9 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply health filter
             if (!IsHealthValid(player->currentHealth)) continue;
             
-            // Apply distance filter
-            if (!IsWithinDistanceLimit(player->position, cameraPos, 
-                                       settings.espUseDistanceLimit, settings.espRenderDistanceLimit)) continue;
+            // Apply distance filter (includes fade zone)
+            if (!IsWithinExtendedDistanceLimit(player->position, cameraPos, 
+                                             settings.espUseDistanceLimit, settings.espRenderDistanceLimit)) continue;
             
             // Calculate distance for rendering
             player->distance = glm::length(player->position - cameraPos);
@@ -63,9 +102,9 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply health filter
             if (!IsHealthValid(npc->currentHealth)) continue;
             
-            // Apply distance filter
-            if (!IsWithinDistanceLimit(npc->position, cameraPos, 
-                                       settings.espUseDistanceLimit, settings.espRenderDistanceLimit)) continue;
+            // Apply distance filter (includes fade zone)
+            if (!IsWithinExtendedDistanceLimit(npc->position, cameraPos, 
+                                             settings.espUseDistanceLimit, settings.espRenderDistanceLimit)) continue;
             
             // Apply attitude-based filter
             if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, settings.npcESP)) continue;
@@ -83,9 +122,9 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
         for (RenderableGadget* gadget : extractedData.gadgets) {
             if (!gadget || !gadget->isValid) continue;
             
-            // Apply distance filter
-            if (!IsWithinDistanceLimit(gadget->position, cameraPos, 
-                                       settings.espUseDistanceLimit, settings.espRenderDistanceLimit)) continue;
+            // Apply distance filter (includes fade zone)
+            if (!IsWithinExtendedDistanceLimit(gadget->position, cameraPos, 
+                                             settings.espUseDistanceLimit, settings.espRenderDistanceLimit)) continue;
             
             // Apply gadget type-based filter
             if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, settings.objectESP)) continue;

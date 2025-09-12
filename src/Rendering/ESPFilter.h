@@ -37,7 +37,18 @@ public:
 
 private:
     /**
-     * @brief Check if entity is within distance limits
+     * @brief Check if entity is within distance limits (including fade zone)
+     * @param entityPos Entity position
+     * @param cameraPos Camera position
+     * @param useDistanceLimit Whether distance limiting is enabled
+     * @param distanceLimit Maximum distance (entities beyond this + fade zone are culled)
+     * @return true if entity should be rendered (including entities in fade zone)
+     */
+    static bool IsWithinExtendedDistanceLimit(const glm::vec3& entityPos, const glm::vec3& cameraPos, 
+                                             bool useDistanceLimit, float distanceLimit);
+
+    /**
+     * @brief Check if entity is within distance limits (legacy method for compatibility)
      * @param entityPos Entity position
      * @param cameraPos Camera position
      * @param useDistanceLimit Whether distance limiting is enabled
@@ -53,6 +64,19 @@ private:
      * @return true if entity should be rendered based on health
      */
     static bool IsHealthValid(float currentHealth);
+
+public:
+    // Constants for distance fading
+    static constexpr float FADE_ZONE_PERCENTAGE = 0.111f; // 10m fade zone for 90m limit (like GW2: 80m-90m)
+    
+    /**
+     * @brief Calculate alpha value for distance-based fading
+     * @param distance Actual distance to entity
+     * @param useDistanceLimit Whether distance limiting is enabled
+     * @param distanceLimit Maximum render distance
+     * @return Alpha value from 0.0f (invisible) to 1.0f (fully visible)
+     */
+    static float CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
 };
 
 } // namespace kx
