@@ -27,38 +27,47 @@ public:
     /**
      * @brief Apply all filters to frame data
      * @param rawData Input data from ESPDataExtractor
-     * @param camera Camera for distance calculations
+     * @param camera Camera for distance calculations and projection
+     * @param screenWidth Screen width for projection calculations
+     * @param screenHeight Screen height for projection calculations
      * @param filteredData Output filtered data ready for rendering
      */
-    static void FilterFrameData(const FrameRenderData& rawData, Camera& camera, FrameRenderData& filteredData);
+    static void FilterFrameData(const FrameRenderData& rawData, Camera& camera, 
+                               float screenWidth, float screenHeight, FrameRenderData& filteredData);
 
 private:
     /**
      * @brief Filter player entities
      * @param rawPlayers Input player data
-     * @param camera Camera for distance calculations
+     * @param camera Camera for distance calculations and projection
+     * @param screenWidth Screen width for projection calculations
+     * @param screenHeight Screen height for projection calculations
      * @param filteredPlayers Output filtered player data
      */
     static void FilterPlayers(const std::vector<RenderablePlayer>& rawPlayers, Camera& camera, 
-                             std::vector<RenderablePlayer>& filteredPlayers);
+                             float screenWidth, float screenHeight, std::vector<RenderablePlayer>& filteredPlayers);
 
     /**
      * @brief Filter NPC entities
      * @param rawNpcs Input NPC data
-     * @param camera Camera for distance calculations
+     * @param camera Camera for distance calculations and projection
+     * @param screenWidth Screen width for projection calculations
+     * @param screenHeight Screen height for projection calculations
      * @param filteredNpcs Output filtered NPC data
      */
     static void FilterNpcs(const std::vector<RenderableNpc>& rawNpcs, Camera& camera, 
-                          std::vector<RenderableNpc>& filteredNpcs);
+                          float screenWidth, float screenHeight, std::vector<RenderableNpc>& filteredNpcs);
 
     /**
      * @brief Filter gadget entities
      * @param rawGadgets Input gadget data
-     * @param camera Camera for distance calculations
+     * @param camera Camera for distance calculations and projection
+     * @param screenWidth Screen width for projection calculations
+     * @param screenHeight Screen height for projection calculations
      * @param filteredGadgets Output filtered gadget data
      */
     static void FilterGadgets(const std::vector<RenderableGadget>& rawGadgets, Camera& camera, 
-                             std::vector<RenderableGadget>& filteredGadgets);
+                             float screenWidth, float screenHeight, std::vector<RenderableGadget>& filteredGadgets);
 
     /**
      * @brief Check if entity is within distance limits
