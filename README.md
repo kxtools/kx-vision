@@ -17,7 +17,7 @@ KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild War
 
 *   **MumbleLink Integration:** Utilizes GW2's MumbleLink API for player and game state data.
 *   **Robust ESP System:** Renders characters (players, NPCs) and objects (resource nodes, waypoints) with comprehensive memory safety.
-*   **Crash Prevention:** Advanced memory validation and exception handling for stable operation.
+*   **Architectural Stability:** A two-stage, thread-safe rendering pipeline that separates unsafe memory access from the drawing loop, virtually eliminating rendering-related crashes.
 *   **Debug Logging:** Configurable debug output system for troubleshooting and development.
 *   **Configurable Visuals:** ESP includes options for boxes, distance, position dots, and health bars.
 *   **Minimalist UI:** Clean, organized ImGui interface with collapsible sections.
@@ -50,6 +50,14 @@ KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild War
 3.  Use `INSERT` key to toggle the overlay window.
 4.  Configure ESP options and debug settings through the UI.
 5.  Press `DELETE` to safely unload the DLL.
+
+## Contributing
+
+Contributions are welcome! This project was built to be a learning platform, and that includes learning by contributing.
+
+If you'd like to help, please check the [GitHub Issues](https://github.com/kxtools/kx-vision/issues) tab to find tasks to work on. Look for issues tagged with `good first issue` if you're new to the project.
+
+When submitting a pull request, please provide a clear description of the changes you've made.
 
 ## Disclaimer
 
