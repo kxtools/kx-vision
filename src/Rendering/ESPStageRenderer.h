@@ -62,6 +62,8 @@ private:
 
     // Helper rendering functions
     static void RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, float healthPercent);
+    static void RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos, float healthPercent, unsigned int entityColor);
+    static void RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos, const std::string& playerName, unsigned int entityColor);
     static void RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color);
     static void RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, float distance);
     static void RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos, unsigned int color);

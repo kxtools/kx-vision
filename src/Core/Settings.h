@@ -5,11 +5,12 @@ namespace kx {
     // --- Category-specific settings ---
     struct PlayerEspSettings {
         bool enabled = true;
-        bool renderBox = true;
-        bool renderDistance = true;
-        bool renderDot = true;
+        bool renderBox = false;
+        bool renderDistance = false;
+        bool renderDot = false;
         bool renderDetails = false;
         bool renderHealthBar = true;
+        bool renderPlayerName = true;  // Show player names by default for natural identification
         bool showProfession = true;
         bool showRace = true;
         bool showArmorWeight = true;
@@ -20,9 +21,9 @@ namespace kx {
 
     struct NpcEspSettings {
         bool enabled = true;
-        bool renderBox = true;
-        bool renderDistance = true;
-        bool renderDot = true;
+        bool renderBox = false;
+        bool renderDistance = false;
+        bool renderDot = false;
         bool renderDetails = false;
         bool renderHealthBar = true;
         // Enhanced attitude filtering using the new enum
@@ -38,8 +39,8 @@ namespace kx {
     struct ObjectEspSettings {
         bool enabled = true;
         bool renderBox = true;
-        bool renderDistance = true;
-        bool renderDot = true;
+        bool renderDistance = false;
+        bool renderDot = false;
         bool renderDetails = false;
         
         // Enhanced gadget filtering using the new enum
@@ -66,7 +67,7 @@ namespace kx {
 
         // Keep global settings
         bool espUseDistanceLimit = true;
-        float espRenderDistanceLimit = 250.0f;
+        float espRenderDistanceLimit = 90.0f;  // For more natural look
         
         // Performance settings
         float espUpdateRate = 60.0f; // ESP updates per second (lower = better performance)

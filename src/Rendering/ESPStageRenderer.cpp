@@ -25,11 +25,15 @@ struct EntityRenderContext {
     bool renderDot;
     bool renderDetails;
     bool renderHealthBar;
+    bool renderPlayerName;  // Separate player name rendering from details
     ESPEntityType entityType;
     
     // Screen dimensions for bounds checking
     float screenWidth;
     float screenHeight;
+    
+    // Player name (for players only)
+    const std::string& playerName;
 };
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
@@ -94,9 +98,11 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
             settings.playerESP.renderDot,
             settings.playerESP.renderDetails,
             settings.playerESP.renderHealthBar,
+            settings.playerESP.renderPlayerName,  // Use new player name setting
             ESPEntityType::Player,
             screenWidth,
-            screenHeight
+            screenHeight,
+            player.playerName  // Pass player name to context
         };
         RenderEntity(drawList, context, camera);
     }
@@ -153,6 +159,7 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
             details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc.attitude));
         }
 
+        static const std::string emptyPlayerName = "";
         EntityRenderContext context{
             npc.position,  // Use position instead of screenPos for real-time projection
             npc.distance,
@@ -164,9 +171,11 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
             settings.npcESP.renderDot,
             settings.npcESP.renderDetails,
             settings.npcESP.renderHealthBar,
+            false,  // NPCs don't have player names
             ESPEntityType::NPC,
             screenWidth,
-            screenHeight
+            screenHeight,
+            emptyPlayerName  // Empty string for NPCs (no player name)
         };
         RenderEntity(drawList, context, camera);
     }
@@ -193,20 +202,23 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
             }
         }
 
+        static const std::string emptyPlayerName = "";
         EntityRenderContext context{
             gadget.position,  // Use position instead of screenPos for real-time projection
             gadget.distance,
             color,
             details,
-            -1.0f,
+            -1.0f,  // healthPercent
             settings.objectESP.renderBox,
             settings.objectESP.renderDistance,
             settings.objectESP.renderDot,
             settings.objectESP.renderDetails,
-            false,
+            false,  // renderHealthBar - gadgets don't have health bars
+            false,  // renderPlayerName - gadgets don't have player names
             ESPEntityType::Gadget,
             screenWidth,
-            screenHeight
+            screenHeight,
+            emptyPlayerName  // Empty string for gadgets (no player name)
         };
         RenderEntity(drawList, context, camera);
     }
@@ -227,7 +239,15 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
         return; // Entity is off-screen
     }
 
-    // Calculate bounding box for entity based on type
+    // For players and NPCs, prioritize natural health bars over artificial boxes
+    bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
+    
+    // Always show standalone health bars for living entities when health is available
+    if (isLivingEntity && context.healthPercent >= 0.0f) {
+        RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, context.color);
+    }
+
+    // Calculate bounding box for entity based on type (mainly for gadgets and optional boxes)
     float boxHeight, boxWidth;
     
     switch (context.entityType) {
@@ -257,12 +277,12 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     ImVec2 boxMax(screenPos.x + boxWidth / 2, screenPos.y);
     ImVec2 center(screenPos.x, screenPos.y - boxHeight / 2);
 
-    // Render health bar
-    if (context.renderHealthBar && context.healthPercent >= 0.0f) {
+    // Render old-style health bar only if requested and no standalone health bar was shown
+    if (context.renderHealthBar && context.healthPercent >= 0.0f && !isLivingEntity) {
         RenderHealthBar(drawList, boxMin, boxMax, context.healthPercent);
     }
 
-    // Render bounding box
+    // Render bounding box (should be disabled by default for living entities)
     if (context.renderBox) {
         RenderBoundingBox(drawList, boxMin, boxMax, context.color);
     }
@@ -277,7 +297,12 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
         RenderCenterDot(drawList, screenPos, context.color);
     }
 
-    // Render details text
+    // Render player name for natural identification (players only)
+    if (context.entityType == ESPEntityType::Player && context.renderPlayerName && !context.playerName.empty()) {
+        RenderPlayerName(drawList, screenPos, context.playerName, context.color);
+    }
+
+    // Render details text (for all entities when enabled, but not player names for players)
     if (context.renderDetails && !context.details.empty()) {
         RenderDetailsText(drawList, center, boxMax, context.details);
     }
@@ -307,6 +332,74 @@ void ESPStageRenderer::RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMi
     
     // Border
     drawList->AddRect(barMin, barMax, IM_COL32(255, 255, 255, 100));
+}
+
+void ESPStageRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos, float healthPercent, unsigned int entityColor) {
+    if (healthPercent < 0.0f || healthPercent > 1.0f) return;
+
+    // Health bar dimensions - more natural looking
+    const float barWidth = 40.0f;
+    const float barHeight = 6.0f;
+    const float yOffset = 15.0f; // Distance below the center point
+    
+    // Position the health bar below the entity center
+    ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
+    ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
+    
+    // Background with subtle transparency
+    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, 120), 1.0f);
+    
+    // Health fill - horizontal bar
+    float healthWidth = barWidth * healthPercent;
+    ImVec2 healthBarMin(barMin.x, barMin.y);
+    ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
+    
+    // Health color: green -> yellow -> red based on percentage (more transparent for natural look)
+    unsigned int healthColor;
+    if (healthPercent > 0.66f) {
+        // Green to yellow transition
+        float t = (1.0f - healthPercent) / 0.34f;
+        healthColor = IM_COL32(static_cast<int>(255 * t), 255, 0, 160);
+    } else if (healthPercent > 0.33f) {
+        // Yellow to orange transition
+        healthColor = IM_COL32(255, static_cast<int>(255 * (healthPercent - 0.33f) / 0.33f), 0, 160);
+    } else {
+        // Red
+        healthColor = IM_COL32(255, 0, 0, 160);
+    }
+    
+    drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor, 1.0f);
+    
+    // Subtle border using entity color for identification (more transparent)
+    drawList->AddRect(barMin, barMax, IM_COL32((entityColor >> 16) & 0xFF, (entityColor >> 8) & 0xFF, entityColor & 0xFF, 80), 1.0f, 0, 1.0f);
+}
+
+void ESPStageRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos, const std::string& playerName, unsigned int entityColor) {
+    if (playerName.empty()) return;
+
+    // Calculate text size and position
+    ImVec2 textSize = ImGui::CalcTextSize(playerName.c_str());
+    
+    // Position name just below the feet position (below health bar area)
+    const float nameOffset = 25.0f; // Below feet with more padding to avoid health bar overlap
+    ImVec2 textPos(feetPos.x - textSize.x / 2, feetPos.y + nameOffset);
+    
+    // Extract RGB from entity color for a natural look
+    int r = (entityColor >> 16) & 0xFF;
+    int g = (entityColor >> 8) & 0xFF;
+    int b = entityColor & 0xFF;
+    
+    // Subtle background with rounded corners (like game UI)
+    ImVec2 bgMin(textPos.x - 4, textPos.y - 2);
+    ImVec2 bgMax(textPos.x + textSize.x + 4, textPos.y + textSize.y + 2);
+    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, 100), 3.0f);
+    
+    // Subtle border using entity color
+    drawList->AddRect(bgMin, bgMax, IM_COL32(r, g, b, 120), 3.0f, 0, 1.0f);
+    
+    // Player name text in a clean, readable color
+    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 180), playerName.c_str()); // Shadow
+    drawList->AddText(textPos, IM_COL32(255, 255, 255, 220), playerName.c_str()); // Main text
 }
 
 void ESPStageRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color) {
