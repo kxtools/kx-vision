@@ -15,9 +15,9 @@ namespace BoxDimensions {
     constexpr float PLAYER_HEIGHT = 50.0f;
     constexpr float PLAYER_WIDTH = 30.0f;
     
-    // NPC box - square for easy distinction
-    constexpr float NPC_HEIGHT = 40.0f;
-    constexpr float NPC_WIDTH = 40.0f;
+    // NPC box - smaller square for less visual clutter
+    constexpr float NPC_HEIGHT = 30.0f;
+    constexpr float NPC_WIDTH = 30.0f;
     
     // Gadget box - very small square for minimal visual impact
     constexpr float GADGET_HEIGHT = 10.0f;
