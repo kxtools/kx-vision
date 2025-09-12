@@ -4,25 +4,11 @@
 #include "ESPMath.h"
 #include "ESPStyling.h"
 #include "ESPFormatting.h"
+#include "ESPConstants.h"
 #include "../../libs/ImGui/imgui.h"
 #include <cmath>
 
 namespace kx {
-
-// Box dimension constants for different entity types
-namespace BoxDimensions {
-    // Player box - tall rectangle for humanoid shape
-    constexpr float PLAYER_HEIGHT = 50.0f;
-    constexpr float PLAYER_WIDTH = 30.0f;
-    
-    // NPC box - square for easy distinction
-    constexpr float NPC_HEIGHT = 40.0f;
-    constexpr float NPC_WIDTH = 40.0f;
-    
-    // Gadget box - very small square for minimal visual impact
-    constexpr float GADGET_HEIGHT = 15.0f;
-    constexpr float GADGET_WIDTH = 15.0f;
-}
 
 // Context struct for unified entity rendering
 struct EntityRenderContext {
@@ -61,7 +47,7 @@ void ESPStageRenderer::RenderPlayers(ImDrawList* drawList, float screenWidth, fl
     for (const auto& player : players) {
         // All filtering has been done - just render everything
         
-        unsigned int color = IM_COL32(100, 200, 255, 220); // Players - bright cyan/blue (distinct from all NPC colors)
+        unsigned int color = ESPColors::PLAYER;
 
         float healthPercent = -1.0f;
         if (player.maxHealth > 0) {
@@ -127,20 +113,20 @@ void ESPStageRenderer::RenderNpcs(ImDrawList* drawList, float screenWidth, float
         unsigned int color;
         switch (npc.attitude) {
             case Game::Attitude::Hostile:
-                color = IM_COL32(255, 80, 80, 210);    // Red - enemies
+                color = ESPColors::NPC_HOSTILE;
                 break;
             case Game::Attitude::Friendly:
-                color = IM_COL32(100, 255, 100, 210);  // Green - allies
+                color = ESPColors::NPC_FRIENDLY;
                 break;
             case Game::Attitude::Neutral:
-                color = IM_COL32(255, 255, 100, 210);  // Yellow - neutral
+                color = ESPColors::NPC_NEUTRAL;
                 break;
             case Game::Attitude::Indifferent:
-                color = IM_COL32(180, 180, 180, 210);  // Gray - indifferent
+                color = ESPColors::NPC_INDIFFERENT;
                 break;
             default:
                 // Debug: Force a very obvious color for unknown attitudes
-                color = IM_COL32(255, 0, 255, 210);    // Magenta - should never see this
+                color = ESPColors::NPC_UNKNOWN;
                 break;
         }
         
@@ -196,7 +182,7 @@ void ESPStageRenderer::RenderGadgets(ImDrawList* drawList, float screenWidth, fl
             continue;
         }
         
-        unsigned int color = IM_COL32(255, 165, 80, 200); // Gadgets - warm orange/amber (distinct and pleasant)
+        unsigned int color = ESPColors::GADGET;
 
         std::vector<std::string> details;
         details.reserve(2); // Pre-allocate for type and gatherable status
