@@ -3,32 +3,39 @@
 #include "../Game/AddressManager.h"
 #include "../Game/ReClassStructs.h"
 #include "../Utils/SafeIterators.h"
+#include "../Utils/MemorySafety.h"
 #include "ESPFormatting.h"
 
 namespace kx {
 
 void ESPDataExtractor::ExtractFrameData(FrameRenderData& frameData) {
     frameData.Clear();
-    
+
+    // FAIL-FAST: Proactive validation of root context collection
+    void* pContextCollection = AddressManager::GetContextCollectionPtr();
+    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) {
+        // The root of all game data is invalid. Don't even try to extract anything.
+        // This prevents hundreds/thousands of failed SafeRead calls every frame during
+        // loading screens, character select, or when the game hook is not available.
+        return;
+    }
+
     // Build character name to player name mapping
     std::map<void*, const wchar_t*> characterNameToPlayerName;
-    void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (pContextCollection) {
-        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-        kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
-        
-        if (charContext.data()) {
-            // Safely iterate through player list
-            kx::SafeAccess::PlayerList playerList(charContext);
-            
-            for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
-                if (playerIt.IsValid()) {
-                    void* charDataPtr = playerIt.GetCharacterDataPtr();
-                    const wchar_t* playerName = playerIt.GetName();
-                    
-                    if (charDataPtr && playerName) {
-                        characterNameToPlayerName[charDataPtr] = playerName;
-                    }
+    kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+    kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+
+    if (charContext.data()) {
+        // Safely iterate through player list
+        kx::SafeAccess::PlayerList playerList(charContext);
+
+        for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
+            if (playerIt.IsValid()) {
+                void* charDataPtr = playerIt.GetCharacterDataPtr();
+                const wchar_t* playerName = playerIt.GetName();
+
+                if (charDataPtr && playerName) {
+                    characterNameToPlayerName[charDataPtr] = playerName;
                 }
             }
         }
@@ -42,7 +49,7 @@ void ESPDataExtractor::ExtractFrameData(FrameRenderData& frameData) {
 
 void ESPDataExtractor::ExtractPlayerData(std::vector<RenderablePlayer>& players, const std::map<void*, const wchar_t*>& characterNameToPlayerName) {
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (!pContextCollection) return;
+    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
     
     kx::ReClass::ContextCollection ctxCollection(pContextCollection);
     kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
@@ -114,7 +121,7 @@ void ESPDataExtractor::ExtractPlayerData(std::vector<RenderablePlayer>& players,
 
 void ESPDataExtractor::ExtractNpcData(std::vector<RenderableNpc>& npcs) {
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (!pContextCollection) return;
+    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
     
     kx::ReClass::ContextCollection ctxCollection(pContextCollection);
     kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
@@ -175,7 +182,7 @@ void ESPDataExtractor::ExtractNpcData(std::vector<RenderableNpc>& npcs) {
 
 void ESPDataExtractor::ExtractGadgetData(std::vector<RenderableGadget>& gadgets) {
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (!pContextCollection) return;
+    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
     
     kx::ReClass::ContextCollection ctxCollection(pContextCollection);
     kx::ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();

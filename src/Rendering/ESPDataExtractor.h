@@ -12,6 +12,10 @@ namespace kx {
  * This class encapsulates all unsafe memory operations that read from game structures.
  * It extracts data into safe local data structures that can be rendered without
  * risk of memory access violations.
+ * 
+ * Performance Optimization:
+ * - Implements fail-fast validation of root ContextCollection pointer
+ * - Prevents thousands of failed memory reads during loading screens or when game is not ready
  */
 class ESPDataExtractor {
 public:
