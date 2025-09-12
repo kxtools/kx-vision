@@ -3,8 +3,8 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
 #include "../../Utils/SafeForeignClass.h"
-#include "../Coordinates.h"
 #include "../offsets.h"
+#include <glm.hpp>
 
 namespace kx {
     namespace ReClass {
@@ -19,13 +19,13 @@ namespace kx {
         public:
             CoChar(void* ptr) : kx::SafeForeignClass(ptr) {}
 
-            Coordinates3D GetVisualPosition() {
+            glm::vec3 GetVisualPosition() {
                 // Only log memory access for successful reads to reduce spam
                 if (!data()) {
-                    return { 0, 0, 0 };
+                    return { 0.0f, 0.0f, 0.0f };
                 }
                 
-                Coordinates3D result = ReadMember<Coordinates3D>(Offsets::CO_CHAR_VISUAL_POSITION, { 0, 0, 0 });
+                glm::vec3 result = ReadMember<glm::vec3>(Offsets::CO_CHAR_VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
                 
                 return result;
             }

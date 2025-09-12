@@ -73,11 +73,11 @@ void ESPDataExtractor::ExtractPlayerData(std::vector<RenderablePlayer>& players,
             kx::ReClass::CoChar coChar = agent.GetCoChar();
             if (!coChar.data()) continue;
             
-            Coordinates3D gameWorldPos = coChar.GetVisualPosition();
-            if (gameWorldPos.X == 0.0f && gameWorldPos.Y == 0.0f && gameWorldPos.Z == 0.0f) continue;
+            glm::vec3 gameWorldPos = coChar.GetVisualPosition();
+            if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
 
             const float scaleFactor = 1.23f;
-            player.position = glm::vec3(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
+            player.position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
             player.isValid = true;
 
             // Extract player name
@@ -153,11 +153,11 @@ void ESPDataExtractor::ExtractNpcData(std::vector<RenderableNpc>& npcs) {
             kx::ReClass::CoChar coChar = agent.GetCoChar();
             if (!coChar.data()) continue;
             
-            Coordinates3D gameWorldPos = coChar.GetVisualPosition();
-            if (gameWorldPos.X == 0.0f && gameWorldPos.Y == 0.0f && gameWorldPos.Z == 0.0f) continue;
+            glm::vec3 gameWorldPos = coChar.GetVisualPosition();
+            if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
             
             const float scaleFactor = 1.23f;
-            npc.position = glm::vec3(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
+            npc.position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
             npc.isValid = true;
             
             // Extract health
@@ -199,11 +199,11 @@ void ESPDataExtractor::ExtractGadgetData(std::vector<RenderableGadget>& gadgets)
         kx::ReClass::CoKeyFramed coKeyFramed = agKeyFramed.GetCoKeyFramed();
         if (!coKeyFramed.data()) continue;
         
-        Coordinates3D gameWorldPos = coKeyFramed.GetPosition();
-        if (gameWorldPos.X == 0.0f && gameWorldPos.Y == 0.0f && gameWorldPos.Z == 0.0f) continue;
+        glm::vec3 gameWorldPos = coKeyFramed.GetPosition();
+        if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
         
         const float scaleFactor = 1.23f;
-        renderableGadget.position = glm::vec3(gameWorldPos.X / scaleFactor, gameWorldPos.Z / scaleFactor, gameWorldPos.Y / scaleFactor);
+        renderableGadget.position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
         renderableGadget.isValid = true;
 
         // Extract type with type-safe enum assignment

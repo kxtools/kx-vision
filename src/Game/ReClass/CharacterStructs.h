@@ -3,7 +3,6 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
 #include "../../Utils/SafeForeignClass.h"
-#include "../Coordinates.h"
 #include "../GameEnums.h"
 #include "../offsets.h"
 #include "AgentStructs.h"

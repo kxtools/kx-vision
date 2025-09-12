@@ -3,9 +3,9 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Core/AppState.h"
 #include "../../Utils/SafeForeignClass.h"
-#include "../Coordinates.h"
 #include "../GameEnums.h"
 #include "../offsets.h"
+#include <glm.hpp>
 
 namespace kx {
     namespace ReClass {
@@ -17,12 +17,12 @@ namespace kx {
         public:
             CoKeyFramed(void* ptr) : kx::SafeForeignClass(ptr) {}
 
-            kx::Coordinates3D GetPosition() {
+            glm::vec3 GetPosition() {
                 LOG_MEMORY("CoKeyFramed", "GetPosition", data(), Offsets::CO_KEYFRAMED_POSITION);
                 
-                kx::Coordinates3D position = ReadMember<kx::Coordinates3D>(Offsets::CO_KEYFRAMED_POSITION, kx::Coordinates3D{0,0,0});
+                glm::vec3 position = ReadMember<glm::vec3>(Offsets::CO_KEYFRAMED_POSITION, glm::vec3{0.0f, 0.0f, 0.0f});
                 
-                LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", position.X, position.Y, position.Z);
+                LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", position.x, position.y, position.z);
                 return position;
             }
         };
