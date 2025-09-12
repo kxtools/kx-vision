@@ -4,6 +4,13 @@
 
 namespace kx {
 
+// ESP Entity Types for rendering differentiation
+enum class ESPEntityType {
+    Player,
+    NPC,
+    Gadget
+};
+
 // Universal base structure for all ESP entities
 struct ESPEntityData {
     bool valid = false;

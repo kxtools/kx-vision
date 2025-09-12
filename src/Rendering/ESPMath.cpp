@@ -1,11 +1,11 @@
-#include "ESP_Helpers.h"
+#include "ESPMath.h"
 
 #include "gtc/type_ptr.hpp" // Required for glm::value_ptr
 #include <algorithm> // For std::max, std::min
 
 namespace kx {
 
-    namespace ESP_Helpers {
+    namespace ESPMath {
 
         bool WorldToScreen(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight, glm::vec2& outScreenPos) {
             // Get matrices
@@ -162,6 +162,6 @@ namespace kx {
             return sqrtf(dx * dx + dy * dy);
         }
 
-    } // namespace ESP_Helpers
+    } // namespace ESPUtils
 
 } // namespace kx
