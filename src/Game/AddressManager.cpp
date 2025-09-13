@@ -15,9 +15,9 @@ GamePointers AddressManager::s_pointers;
 
 // A helper function to resolve RIP-relative addresses (like in LEA, MOV, and CALL instructions)
 uintptr_t ResolveRelativeAddress(uintptr_t instructionAddress, size_t instructionSize) {
-    if (!instructionAddress || instructionSize < 4) return 0;
+    if (!instructionAddress || instructionSize < AddressingConstants::RELATIVE_OFFSET_SIZE) return 0;
     // The relative offset is read from the last 4 bytes of the instruction.
-    int32_t relativeOffset = *reinterpret_cast<int32_t*>(instructionAddress + (instructionSize - 4));
+    int32_t relativeOffset = *reinterpret_cast<int32_t*>(instructionAddress + (instructionSize - AddressingConstants::RELATIVE_OFFSET_SIZE));
     // The address is calculated from the instruction *after* the current one.
     return instructionAddress + instructionSize + relativeOffset;
 }
@@ -42,7 +42,7 @@ void AddressManager::ScanAgentArray() {
     uintptr_t avContextFuncAddr = *avContextFuncOpt;
     std::cout << "[AddressManager] Found AgentViewContext at: 0x" << std::hex << avContextFuncAddr << std::dec << std::endl;
 
-    std::optional<uintptr_t> leaInstructionOpt = kx::PatternScanner::FindPattern(std::string(kx::AGENT_ARRAY_LEA_PATTERN), avContextFuncAddr, 0x300);
+    std::optional<uintptr_t> leaInstructionOpt = kx::PatternScanner::FindPattern(std::string(kx::AGENT_ARRAY_LEA_PATTERN), avContextFuncAddr, AddressingConstants::AGENT_ARRAY_SEARCH_RANGE);
 
     if (!leaInstructionOpt) {
         std::cerr << "[AddressManager] ERROR: Could not find AgentArray LEA instruction inside AvContext." << std::endl;
@@ -51,10 +51,10 @@ void AddressManager::ScanAgentArray() {
     }
 
     uintptr_t leaInstructionAddress = *leaInstructionOpt;
-    int32_t relativeOffset = *reinterpret_cast<int32_t*>(leaInstructionAddress + 3);
-    uintptr_t addressOfNextInstruction = leaInstructionAddress + 7;
+    int32_t relativeOffset = *reinterpret_cast<int32_t*>(leaInstructionAddress + AddressingConstants::LEA_OFFSET_POSITION);
+    uintptr_t addressOfNextInstruction = leaInstructionAddress + AddressingConstants::LEA_INSTRUCTION_SIZE;
     uintptr_t agentStructBase = addressOfNextInstruction + relativeOffset;
-    s_pointers.agentArray = agentStructBase + 0x8;
+    s_pointers.agentArray = agentStructBase + AddressingConstants::AGENT_ARRAY_OFFSET;
 
     std::cout << "[AddressManager] -> SUCCESS: AgentArray resolved to: 0x" << std::hex << s_pointers.agentArray << std::dec << std::endl;
 }
@@ -72,10 +72,10 @@ void AddressManager::ScanWorldViewContextPtr() {
     }
 
     uintptr_t landmarkAddress = *landmarkOpt;
-    uintptr_t movInstructionAddr = landmarkAddress - 7;
+    uintptr_t movInstructionAddr = landmarkAddress - AddressingConstants::MOV_INSTRUCTION_SIZE;
 
-    int32_t relativeOffset = *reinterpret_cast<int32_t*>(movInstructionAddr + 3);
-    uintptr_t addressOfNextInstruction = movInstructionAddr + 7;
+    int32_t relativeOffset = *reinterpret_cast<int32_t*>(movInstructionAddr + AddressingConstants::MOV_OFFSET_POSITION);
+    uintptr_t addressOfNextInstruction = movInstructionAddr + AddressingConstants::MOV_INSTRUCTION_SIZE;
     uintptr_t staticPointerAddress = addressOfNextInstruction + relativeOffset;
 
     s_pointers.worldViewContextPtr = *reinterpret_cast<uintptr_t*>(staticPointerAddress);
@@ -107,7 +107,7 @@ void AddressManager::ScanBgfxContextFunc()
     // Start of pattern:  00b41f25
     // Offset = 0x35
     uintptr_t patternAddress = *getContextOpt;
-    s_pointers.bgfxContextFunc = patternAddress - 0x35;
+    s_pointers.bgfxContextFunc = patternAddress - AddressingConstants::BGFX_PATTERN_OFFSET;
 
     std::cout << "[AddressManager] -> SUCCESS: BGFX Context function resolved to: 0x" << std::hex << s_pointers.bgfxContextFunc << std::dec << std::endl;
 }
@@ -141,15 +141,15 @@ void AddressManager::ScanGameThreadUpdateFunc() {
         return;
     }
 
-    uintptr_t callToGetterAddr = *locatorOpt - 0x19;
+    uintptr_t callToGetterAddr = *locatorOpt - AddressingConstants::ALERT_CONTEXT_CALL_OFFSET;
 
-    uintptr_t getterFuncAddr = ResolveRelativeAddress(callToGetterAddr, 5);
+    uintptr_t getterFuncAddr = ResolveRelativeAddress(callToGetterAddr, AddressingConstants::CALL_INSTRUCTION_SIZE);
     if (!getterFuncAddr) {
         s_pointers.gameThreadUpdateFunc = 0;
         return;
     }
 
-    uintptr_t staticPtrAddr = ResolveRelativeAddress(getterFuncAddr, 7);
+    uintptr_t staticPtrAddr = ResolveRelativeAddress(getterFuncAddr, AddressingConstants::MOV_INSTRUCTION_SIZE);
     if (!staticPtrAddr) {
         s_pointers.gameThreadUpdateFunc = 0;
         return;
@@ -167,7 +167,7 @@ void AddressManager::ScanGameThreadUpdateFunc() {
         return;
     }
 
-    s_pointers.gameThreadUpdateFunc = vtable[0];
+    s_pointers.gameThreadUpdateFunc = vtable[AddressingConstants::GAME_THREAD_UPDATE_VTABLE_INDEX];
 
     std::cout << "[AddressManager] -> SUCCESS: GameThreadUpdate function resolved to: 0x" << std::hex << s_pointers.gameThreadUpdateFunc << std::dec << std::endl;
 }
