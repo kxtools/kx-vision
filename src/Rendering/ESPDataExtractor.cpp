@@ -1,5 +1,4 @@
 #include "ESPDataExtractor.h"
-#include "../Core/AppState.h"
 #include "../Game/AddressManager.h"
 #include "../Game/ReClassStructs.h"
 #include "../Utils/SafeIterators.h"

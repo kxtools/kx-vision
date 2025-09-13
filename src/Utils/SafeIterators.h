@@ -1,9 +1,7 @@
 #pragma once
 
-#include <Windows.h>
 #include <iterator>
 #include "../Game/ReClassStructs.h"
-#include "DebugLogger.h"
 #include "MemorySafety.h"
 
 namespace kx {

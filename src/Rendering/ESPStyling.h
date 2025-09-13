@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Game/GameEnums.h"
-#include "ESPFormatting.h"
 #include <string>
 
 // Forward declaration to avoid circular dependency

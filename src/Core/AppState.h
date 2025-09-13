@@ -3,7 +3,6 @@
 #include <atomic>
 #include <mutex>
 #include "Settings.h"
-#include "../Game/GameEnums.h"
 
 namespace kx {
 

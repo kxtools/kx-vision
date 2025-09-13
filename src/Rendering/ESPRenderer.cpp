@@ -4,29 +4,17 @@
 #include "ESPData.h"
 
 #include <algorithm>
-#include <cstdio>
-#include <map>
-#include <string>
-#include <vector>
-#include <gtc/type_ptr.hpp>
 #include <Windows.h>
 
-#include "../Core/Config.h"
 #include "../Core/AppState.h"
 #include "../Utils/SafeIterators.h"
 #include "../Utils/ObjectPool.h"
 #include "ESPMath.h"
-#include "ESPData.h"
-#include "ESPStyling.h"
-#include "ESPFormatting.h"
 #include "RenderableData.h"
 #include "ESPDataExtractor.h"
 #include "ESPFilter.h"
 #include "ESPStageRenderer.h"
 #include "../../libs/ImGui/imgui.h"
-#include "../Game/AddressManager.h"
-#include "../Game/ReClassStructs.h"
-#include "../Utils/EntityFilter.h"
 
 namespace kx {
 

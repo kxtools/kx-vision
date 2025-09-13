@@ -8,7 +8,6 @@
 #include "ESPFilter.h"
 #include "ESPFeatureRenderer.h"
 #include "../../libs/ImGui/imgui.h"
-#include <cmath>
 #include <algorithm>
 
 namespace kx {

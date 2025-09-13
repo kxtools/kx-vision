@@ -1,12 +1,7 @@
 #pragma once
 
-#include "RenderableData.h"
 #include "ESPData.h"
-#include "../Core/AppState.h"
-#include "../Utils/EntityFilter.h"
-#include "../Utils/ObjectPool.h"
 #include "../Game/Camera.h"
-#include <glm.hpp>
 
 namespace kx {
 

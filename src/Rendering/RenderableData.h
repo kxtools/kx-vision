@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <vec3.hpp>
 #include <vec2.hpp>
 #include "../Game/GameEnums.h"

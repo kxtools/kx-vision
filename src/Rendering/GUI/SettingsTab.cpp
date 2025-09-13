@@ -2,7 +2,6 @@
 #include <string>
 #include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
-#include "../../Core/Config.h"
 #include "../../Utils/DebugLogger.h"
 #include "../../Game/AddressManager.h"
 #include "../../Game/ReClassStructs.h"

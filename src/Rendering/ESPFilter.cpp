@@ -1,8 +1,8 @@
 #include "ESPFilter.h"
-#include "ESPMath.h"
-#include "ESPConstants.h"
-#include <limits>
-#include <cmath>
+
+#include "AppState.h"
+#include "EntityFilter.h"
+#include "RenderableData.h"
 
 namespace kx {
 

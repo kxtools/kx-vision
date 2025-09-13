@@ -2,7 +2,6 @@
 
 #include <windows.h> // Required for VirtualProtect
 #include <cstdint>   // Required for UINTPTR_MAX
-#include <limits>    // Required for std::numeric_limits
 #include "MemorySafety.h"
 #include "DebugLogger.h"
 

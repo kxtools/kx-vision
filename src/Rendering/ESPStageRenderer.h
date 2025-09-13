@@ -1,9 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <string>
-#include <vec3.hpp>
-#include <vec2.hpp>
 #include "RenderableData.h"
 #include "ESPData.h"
 #include "../Game/Camera.h"
