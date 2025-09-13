@@ -66,7 +66,14 @@ void ImGuiManager::RenderESPWindow() {
     std::string windowTitle = "KX Vision v";
     windowTitle += kx::APP_VERSION.data();
 
-    ImGui::SetNextWindowSize(ImVec2(300, 250), ImGuiCond_FirstUseEver);
+    // Set larger initial window size and center it on first use
+    ImVec2 initialSize(600, 450);
+    ImGui::SetNextWindowSize(initialSize, ImGuiCond_FirstUseEver);
+    
+    // Center the window on first spawn
+    ImGuiIO& io = ImGui::GetIO();
+    ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
+    ImGui::SetNextWindowPos(ImVec2(center.x - initialSize.x * 0.5f, center.y - initialSize.y * 0.5f), ImGuiCond_FirstUseEver);
     
     // Pass a direct pointer to the singleton's vision window state
     ImGui::Begin(windowTitle.c_str(), kx::AppState::Get().GetVisionWindowOpenRef());
