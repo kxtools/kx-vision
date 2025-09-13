@@ -6,6 +6,7 @@
 #include "AppState.h"   // Include for AppState singleton
 #include "Console.h"
 #include "Hooks.h"
+#include "../Utils/DebugLogger.h" // Include for logger initialization
 
 HINSTANCE dll_handle;
 
@@ -28,17 +29,25 @@ DWORD WINAPI EjectThread(LPVOID lpParameter) {
 
 // Main function that runs in a separate thread
 DWORD WINAPI MainThread(LPVOID lpParameter) {
+    // Initialize debug logger first for early logging capability
+    LOG_INIT();
+    
 #ifdef _DEBUG
     kx::SetupConsole(); // Only setup console in Debug builds
 #endif // _DEBUG
 
+    LOG_INFO("KX Vision starting up...");
+    
     // Initialize AddressManager FIRST, so pointers are ready before hooks start
     kx::AddressManager::Initialize();
 
     if (!kx::InitializeHooks()) {
+        LOG_ERROR("Failed to initialize hooks.");
         std::cerr << "Failed to initialize hooks." << std::endl;
         return 1;
     }
+
+    LOG_INFO("KX Vision hooks initialized successfully");
 
     // Main loop to keep the hook alive
     while (kx::AppState::Get().IsVisionWindowOpen() && !(GetAsyncKeyState(VK_DELETE) & 0x8000)) {
@@ -54,6 +63,11 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
 
     // Cleanup hooks and ImGui
     kx::CleanupHooks();
+
+    LOG_INFO("KX Vision shutting down...");
+    
+    // Cleanup logger (close log file)
+    LOG_CLEANUP();
 
     // Eject the DLL and exit the thread
     CreateThread(0, 0, EjectThread, 0, 0, 0);

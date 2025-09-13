@@ -43,21 +43,61 @@ private:
     static std::unordered_map<std::string, std::chrono::steady_clock::time_point> s_lastLogTime;
     static std::mutex s_fileMutex;
     static std::chrono::steady_clock::time_point s_lastCleanup;
+    static std::unique_ptr<std::ofstream> s_logFile;
+    static std::string s_logFilePath;
     
     // Configuration constants
-    static constexpr std::chrono::milliseconds RATE_LIMIT_INTERVAL{1000}; // 1 second between identical messages
+    static constexpr std::chrono::milliseconds RATE_LIMIT_INTERVAL{500}; // 500ms between identical messages (more aggressive)
+    static constexpr std::chrono::milliseconds AGGRESSIVE_RATE_LIMIT{100}; // 100ms for high-frequency patterns
     static constexpr size_t MAX_RATE_LIMIT_ENTRIES = 1000; // Prevent memory growth
     static constexpr std::chrono::minutes RATE_LIMIT_CLEANUP_INTERVAL{5}; // Clean old entries every 5 minutes
     
     // Helper methods
     static std::string GetTimestamp() noexcept;
     static std::string LevelToString(Level level) noexcept;
-    static void CleanupRateLimitCache() noexcept;
+    static void CleanupRateLimitCache() noexcept; // Assumes caller holds s_rateLimitMutex
     static bool ShouldLogMessage(const std::string& message) noexcept;
     static bool ShouldRateLimit(const std::string& key, std::chrono::milliseconds interval) noexcept;
     static void LogImpl(Level level, const std::string& message, const std::string& context = "") noexcept;
+    static bool InitializeLogFile() noexcept;
+    static std::string GetLogFilePath() noexcept;
 
 public:
+    // Initialize logger (call once at startup for guaranteed proper initialization)
+    static void Initialize() noexcept {
+        try {
+            // Ensure static members are properly initialized
+            s_minLogLevel.store(ERR, std::memory_order_release);
+            s_rateLimitCacheSize.store(0, std::memory_order_release);
+            
+            // Lock and clear any existing data to ensure clean state
+            std::lock_guard<std::mutex> lock(s_rateLimitMutex);
+            s_lastLogTime.clear();
+            s_lastCleanup = std::chrono::steady_clock::now();
+            
+            // Initialize log file
+            InitializeLogFile();
+        }
+        catch (...) {
+            // If initialization fails, logger will work with defaults
+        }
+    }
+    
+    // Cleanup logger (call at shutdown to properly close files)
+    static void Cleanup() noexcept {
+        try {
+            std::lock_guard<std::mutex> lock(s_fileMutex);
+            if (s_logFile && s_logFile->is_open()) {
+                s_logFile->flush();
+                s_logFile->close();
+            }
+            s_logFile.reset();
+        }
+        catch (...) {
+            // Ignore cleanup errors
+        }
+    }
+    
     // Thread-safe log level management
     static void SetMinLogLevel(Level level) noexcept {
         s_minLogLevel.store(level, std::memory_order_release);
@@ -280,6 +320,12 @@ public:
 
 // Convenience macro to disable all logging
 #define LOG_DISABLE() kx::Debug::Logger::DisableLogging()
+
+// Convenience macro to initialize logger
+#define LOG_INIT() kx::Debug::Logger::Initialize()
+
+// Convenience macro to cleanup logger
+#define LOG_CLEANUP() kx::Debug::Logger::Cleanup()
 
 // Debug macro to check current log level
 #define LOG_PRINT_LEVEL() kx::Debug::Logger::PrintCurrentLogLevel()
