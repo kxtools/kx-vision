@@ -100,6 +100,12 @@
     <ClCompile Include="src\Rendering\ESPStageRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESPMath.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
+    <ClCompile Include="src\Rendering\GUI\AppearanceTab.cpp" />
+    <ClCompile Include="src\Rendering\GUI\InfoTab.cpp" />
+    <ClCompile Include="src\Rendering\GUI\NpcsTab.cpp" />
+    <ClCompile Include="src\Rendering\GUI\ObjectsTab.cpp" />
+    <ClCompile Include="src\Rendering\GUI\PlayersTab.cpp" />
+    <ClCompile Include="src\Rendering\GUI\SettingsTab.cpp" />
     <ClCompile Include="src\Utils\Console.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook.cpp" />
     <ClCompile Include="src\Rendering\GuiStyle.cpp" />
@@ -138,6 +144,12 @@
     <ClInclude Include="src\Rendering\ESPData.h" />
     <ClInclude Include="src\Rendering\ESPDataExtractor.h" />
     <ClInclude Include="src\Rendering\ESPStageRenderer.h" />
+    <ClInclude Include="src\Rendering\GUI\AppearanceTab.h" />
+    <ClInclude Include="src\Rendering\GUI\InfoTab.h" />
+    <ClInclude Include="src\Rendering\GUI\NpcsTab.h" />
+    <ClInclude Include="src\Rendering\GUI\ObjectsTab.h" />
+    <ClInclude Include="src\Rendering\GUI\PlayersTab.h" />
+    <ClInclude Include="src\Rendering\GUI\SettingsTab.h" />
     <ClInclude Include="src\Rendering\RenderableData.h" />
     <ClInclude Include="src\Rendering\ESPFormatting.h" />
     <ClInclude Include="src\Utils\Console.h" />

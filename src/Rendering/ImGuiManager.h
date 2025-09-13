@@ -20,12 +20,7 @@ public:
 
 private:
     static void RenderESPWindow();
-    static void RenderPlayersTab();
-    static void RenderNPCsTab();
-    static void RenderObjectsTab();
-    static void RenderAppearanceTab();
-    static void RenderSettingsTab();
-    static void RenderInfoTab();
+    
     static void RenderHints();
 
     static kx::Camera m_camera;
