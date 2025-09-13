@@ -106,12 +106,12 @@ namespace GUIStyle {
         style.GrabRounding = 3.0f;
         style.TabRounding = 4.0f;
 
-        // Apply Colors (Minimal Transparency)
+        // Apply Colors (With Natural Transparency)
         colors[ImGuiCol_Text] = aliceBlue;
         colors[ImGuiCol_TextDisabled] = coolGray;
-        colors[ImGuiCol_WindowBg] = richBlack;
-        colors[ImGuiCol_ChildBg] = oxfordBlue;
-        colors[ImGuiCol_PopupBg] = richBlack;
+        colors[ImGuiCol_WindowBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, 0.90f); // 90% opacity for natural look
+        colors[ImGuiCol_ChildBg] = ImVec4(oxfordBlue.x, oxfordBlue.y, oxfordBlue.z, 0.85f); // Slightly transparent child windows
+        colors[ImGuiCol_PopupBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, 0.95f); // Popups more opaque for readability
         colors[ImGuiCol_Border] = spaceCadet;
         colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         colors[ImGuiCol_FrameBg] = spaceCadet;
