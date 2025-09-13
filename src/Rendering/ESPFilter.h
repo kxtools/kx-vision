@@ -59,11 +59,12 @@ private:
                                      bool useDistanceLimit, float distanceLimit);
 
     /**
-     * @brief Check if entity has valid health (not dead)
+     * @brief Check if entity has valid health (configurable for dead entities)
      * @param currentHealth Entity's current health
+     * @param showDeadEntities Whether to show entities with 0 HP
      * @return true if entity should be rendered based on health
      */
-    static bool IsHealthValid(float currentHealth);
+    static bool IsHealthValid(float currentHealth, bool showDeadEntities = false);
 
 public:
     // Constants for distance fading

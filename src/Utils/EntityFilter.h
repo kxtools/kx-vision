@@ -33,11 +33,6 @@ public:
      * @brief Check if a gadget should be rendered based on type
      */
     static bool ShouldRenderGadget(Game::GadgetType type, const ObjectEspSettings& settings) {
-        // If only important gadgets are enabled, filter accordingly
-        if (settings.onlyImportantGadgets && !Game::EnumHelpers::IsImportantGadgetType(type)) {
-            return false;
-        }
-
         switch (type) {
             case Game::GadgetType::ResourceNode:
                 return settings.showResourceNodes;
@@ -58,8 +53,8 @@ public:
             case Game::GadgetType::MapPortal:
                 return settings.showPortals;
             default:
-                // For unknown types, check if we're in important-only mode
-                return !settings.onlyImportantGadgets;
+                // For unknown types, show them by default
+                return true;
         }
     }
 

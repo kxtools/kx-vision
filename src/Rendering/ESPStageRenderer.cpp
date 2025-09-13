@@ -498,11 +498,6 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
     for (const auto* gadget : gadgets) {
         if (!gadget) continue; // Safety check
         
-        // Skip resource nodes that are not gatherable
-        if (gadget->type == Game::GadgetType::ResourceNode && !gadget->isGatherable) {
-            continue;
-        }
-        
         unsigned int color = ESPColors::GADGET;
 
         std::vector<std::string> details;

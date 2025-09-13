@@ -31,6 +31,8 @@ namespace kx {
         bool showHostile = true;
         bool showNeutral = true;
         bool showIndifferent = true;
+        // Health-based filtering
+        bool showDeadNpcs = false;  // Show NPCs with 0 HP (dead/defeated enemies)
         // Add specific colors
         // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
         // etc.
@@ -53,7 +55,6 @@ namespace kx {
         bool showInteractables = true;
         bool showDoors = false;
         bool showPortals = true;
-        bool onlyImportantGadgets = false; // Only show important gadget types
     };
 
     // --- User-configurable settings ---
@@ -76,10 +77,8 @@ namespace kx {
         // Performance settings
         float espUpdateRate = 60.0f; // ESP updates per second (lower = better performance)
         
-        // New enhanced filtering options
-        bool enableSmartFiltering = true; // Use the enhanced enum-based filtering
+        // Enhanced filtering options
         bool hideDepletedNodes = true;    // Hide depleted resource nodes
-        bool prioritizeImportant = true;  // Give priority to important objects
         
         // Debug options
         bool enableDebugLogging = false;  // Enable detailed debug logging

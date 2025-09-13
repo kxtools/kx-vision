@@ -58,8 +58,13 @@ float ESPFilter::CalculateDistanceFadeAlpha(float distance, bool useDistanceLimi
     }
 }
 
-bool ESPFilter::IsHealthValid(float currentHealth) {
-    // Filter out dead entities (0 HP or negative HP)
+bool ESPFilter::IsHealthValid(float currentHealth, bool showDeadEntities) {
+    // If showing dead entities is enabled, accept all health values
+    if (showDeadEntities) {
+        return true;
+    }
+    
+    // Otherwise, filter out dead entities (0 HP or negative HP)
     return currentHealth > 0.0f;
 }
 
@@ -100,7 +105,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             if (!npc || !npc->isValid) continue;
             
             // Apply health filter
-            if (!IsHealthValid(npc->currentHealth)) continue;
+            if (!IsHealthValid(npc->currentHealth, settings.npcESP.showDeadNpcs)) continue;
             
             // Apply distance filter (includes fade zone)
             if (!IsWithinExtendedDistanceLimit(npc->position, cameraPos, 
@@ -128,6 +133,11 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             
             // Apply gadget type-based filter
             if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, settings.objectESP)) continue;
+            
+            // Apply depleted resource node filter
+            if (settings.hideDepletedNodes && gadget->type == Game::GadgetType::ResourceNode && !gadget->isGatherable) {
+                continue;
+            }
             
             // Calculate distance for rendering
             gadget->distance = glm::length(gadget->position - cameraPos);
