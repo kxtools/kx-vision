@@ -20,36 +20,6 @@ namespace ESPMath {
     bool WorldToScreen(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight, glm::vec2& outScreenPos);
 
     /**
-     * @brief Calculate proper player ESP data based on world position
-     * @param worldPos 3D world position of the entity
-     * @param camera Camera for projection
-     * @param screenWidth Screen width
-     * @param screenHeight Screen height
-     * @return PlayerESPData with calculated screen bounds and dimensions
-     */
-    PlayerESPData GetPlayerESPData(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight);
-
-    /**
-     * @brief Calculate proper NPC ESP data based on world position (square boxes for various creature types)
-     * @param worldPos 3D world position of the entity
-     * @param camera Camera for projection
-     * @param screenWidth Screen width
-     * @param screenHeight Screen height
-     * @return PlayerESPData with calculated screen bounds and dimensions (square aspect ratio)
-     */
-    PlayerESPData GetNpcESPData(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight);
-
-    /**
-     * @brief Calculate proper gadget/object ESP data based on world position  
-     * @param worldPos 3D world position of the entity
-     * @param camera Camera for projection
-     * @param screenWidth Screen width
-     * @param screenHeight Screen height
-     * @return GadgetESPData with calculated screen bounds and dimensions
-     */
-    GadgetESPData GetGadgetESPData(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight);
-
-    /**
      * @brief Calculate screen distance between two 2D points
      * @param p1 First point
      * @param p2 Second point

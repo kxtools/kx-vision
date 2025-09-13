@@ -83,29 +83,56 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
         RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, fadedEntityColor);
     }
 
-    // Calculate bounding box for entity based on type (mainly for gadgets and optional boxes)
+    // Calculate bounding box for entity based on type and distance-based scaling
     float boxHeight, boxWidth;
+    
+    // Calculate distance-based scaling using settings
+    float rawScale = settings.espScaleFactor / (context.distance + 10.0f);
+    float clampedScale = std::clamp(rawScale, settings.espMinScale, settings.espMaxScale);
     
     switch (context.entityType) {
         case ESPEntityType::Player:
-            // Players: tall rectangle (humanoid)
-            boxHeight = BoxDimensions::PLAYER_HEIGHT;
-            boxWidth = BoxDimensions::PLAYER_WIDTH;
+            // Players: tall rectangle (humanoid) with distance scaling
+            boxHeight = BoxDimensions::PLAYER_HEIGHT * clampedScale;
+            boxWidth = BoxDimensions::PLAYER_WIDTH * clampedScale;
+            // Ensure minimum size for visibility
+            if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
+                boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
+                boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
+            }
             break;
         case ESPEntityType::NPC:
-            // NPCs: square box
-            boxHeight = BoxDimensions::NPC_HEIGHT;
-            boxWidth = BoxDimensions::NPC_WIDTH;
+            // NPCs: square box with distance scaling
+            boxHeight = BoxDimensions::NPC_HEIGHT * clampedScale;
+            boxWidth = BoxDimensions::NPC_WIDTH * clampedScale;
+            // Ensure minimum size for visibility
+            if (boxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
+                boxHeight = MinimumSizes::NPC_MIN_HEIGHT;
+                boxWidth = MinimumSizes::NPC_MIN_WIDTH;
+            }
             break;
         case ESPEntityType::Gadget:
-            // Gadgets: very small square
-            boxHeight = BoxDimensions::GADGET_HEIGHT;
-            boxWidth = BoxDimensions::GADGET_WIDTH;
+            // Gadgets: very small square with half scaling for smaller appearance
+            {
+                float gadgetScale = clampedScale * 0.5f; // Use half scale for gadgets
+                boxHeight = BoxDimensions::GADGET_HEIGHT * gadgetScale;
+                boxWidth = BoxDimensions::GADGET_WIDTH * gadgetScale;
+                // Ensure minimum size for visibility
+                if (boxHeight < MinimumSizes::GADGET_MIN_HEIGHT) {
+                    boxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
+                    boxWidth = MinimumSizes::GADGET_MIN_WIDTH;
+                }
+            }
             break;
         default:
-            // Fallback to player dimensions
-            boxHeight = BoxDimensions::PLAYER_HEIGHT;
-            boxWidth = BoxDimensions::PLAYER_WIDTH;
+            // Fallback to player dimensions with scaling
+            boxHeight = BoxDimensions::PLAYER_HEIGHT * clampedScale;
+            boxWidth = BoxDimensions::PLAYER_WIDTH * clampedScale;
+            // Apply player minimum size
+            if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
+                boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
+                boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
+            }
             break;
     }
     

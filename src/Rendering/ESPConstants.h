@@ -25,6 +25,26 @@ namespace BoxDimensions {
 }
 
 /**
+ * @brief Minimum size constraints for entity visibility
+ * 
+ * These constants ensure that entities remain visible even at extreme distances
+ * by enforcing minimum pixel dimensions for each entity type.
+ */
+namespace MinimumSizes {
+    // Player minimum sizes
+    constexpr float PLAYER_MIN_HEIGHT = 20.0f;
+    constexpr float PLAYER_MIN_WIDTH = 12.0f;
+    
+    // NPC minimum sizes (square boxes)
+    constexpr float NPC_MIN_HEIGHT = 15.0f;
+    constexpr float NPC_MIN_WIDTH = 15.0f;
+    
+    // Gadget minimum sizes (very small but still visible)
+    constexpr float GADGET_MIN_HEIGHT = 5.0f;
+    constexpr float GADGET_MIN_WIDTH = 5.0f;
+}
+
+/**
  * @brief Coordinate transformation constants
  * 
  * Constants used for converting between game world coordinates and MumbleLink coordinates.

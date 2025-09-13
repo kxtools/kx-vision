@@ -74,6 +74,11 @@ namespace kx {
         bool espUseDistanceLimit = true;
         float espRenderDistanceLimit = 90.0f;  // For more natural look
         
+        // ESP Scaling Configuration
+        float espMinScale = 0.3f;      // Minimum scale factor for distant entities
+        float espMaxScale = 2.0f;      // Maximum scale factor for close entities  
+        float espScaleFactor = 35.0f;  // Base scaling divisor (calibrated for typical distances)
+        
         // Performance settings
         float espUpdateRate = 60.0f; // ESP updates per second (lower = better performance)
         
