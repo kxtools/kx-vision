@@ -1,8 +1,8 @@
 #include "Hooks.h"
 
-#include <iostream>
 #include <windows.h> // For __try/__except
 
+#include "../Utils/DebugLogger.h"
 #include "AddressManager.h"
 #include "AppState.h"
 #include "D3DRenderHook.h"
@@ -66,40 +66,40 @@ namespace kx {
                 reinterpret_cast<LPVOID>(Hooking::DetourGameThread),
                 reinterpret_cast<LPVOID*>(&Hooking::pOriginalGameThreadUpdate)
             )) {
-                std::cerr << "[Hooks] Failed to create GameThread hook." << std::endl;
+                LOG_ERROR("[Hooks] Failed to create GameThread hook.");
             }
             else {
                 if (Hooking::HookManager::EnableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr))) {
-                    std::cout << "[Hooks] GameThread hook created and enabled." << std::endl;
+                    LOG_INFO("[Hooks] GameThread hook created and enabled.");
                 }
                 else {
-                    std::cerr << "[Hooks] Failed to enable GameThread hook." << std::endl;
+                    LOG_ERROR("[Hooks] Failed to enable GameThread hook.");
                 }
             }
         }
         else {
-            std::cerr << "[Hooks] GameThread hook target not found. Character ESP will be disabled." << std::endl;
+            LOG_WARN("[Hooks] GameThread hook target not found. Character ESP will be disabled.");
         }
 
-        std::cout << "[Hooks] All hooks initialized successfully." << std::endl;
+        LOG_INFO("[Hooks] All hooks initialized successfully.");
         return true;
     }
 
     void CleanupHooks() {
-        std::cout << "[Hooks] Cleaning up..." << std::endl;
+        LOG_INFO("[Hooks] Cleaning up...");
 
         // NEW: Disable and remove the game thread hook during shutdown
         uintptr_t gameThreadFuncAddr = AddressManager::GetGameThreadUpdateFunc();
         if (gameThreadFuncAddr && Hooking::pOriginalGameThreadUpdate) {
             Hooking::HookManager::DisableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
             Hooking::HookManager::RemoveHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
-            std::cout << "[Hooks] GameThread hook cleaned up." << std::endl;
+            LOG_INFO("[Hooks] GameThread hook cleaned up.");
         }
 
         kx::Hooking::D3DRenderHook::Shutdown();
         kx::Hooking::HookManager::Shutdown();
 
-        std::cout << "[Hooks] Cleanup finished." << std::endl;
+        LOG_INFO("[Hooks] Cleanup finished.");
     }
 
 } // namespace kx

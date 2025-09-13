@@ -1,9 +1,9 @@
 #include "D3DRenderHook.h"
 
-#include <iostream>           // Replace with logging
 #include <windowsx.h>
 
 #include "../Core/AppState.h"         // For UI visibility state and shutdown coordination
+#include "../Utils/DebugLogger.h"
 #include "HookManager.h"      // To create/remove the hook
 #include "ImGuiManager.h"     // To initialize and render ImGui
 #include "../../libs/ImGui/imgui.h"
@@ -25,7 +25,7 @@ namespace kx::Hooking {
 
     bool D3DRenderHook::Initialize() {
         if (!FindPresentPointer()) {
-            std::cerr << "[D3DRenderHook] ERROR: Failed to find Present pointer." << std::endl;
+            LOG_ERROR("[D3DRenderHook] Failed to find Present pointer.");
             return false;
         }
 
@@ -33,16 +33,16 @@ namespace kx::Hooking {
         // Enable happens on first DetourPresent call if needed, or enable here?
         // Let's create and enable it immediately.
         if (!HookManager::CreateHook(m_pTargetPresent, DetourPresent, reinterpret_cast<LPVOID*>(&m_pOriginalPresent))) {
-            std::cerr << "[D3DRenderHook] Failed to create Present hook via HookManager." << std::endl;
+            LOG_ERROR("[D3DRenderHook] Failed to create Present hook via HookManager.");
             return false;
         }
         if (!HookManager::EnableHook(m_pTargetPresent)) {
-            std::cerr << "[D3DRenderHook] Failed to enable Present hook via HookManager." << std::endl;
+            LOG_ERROR("[D3DRenderHook] Failed to enable Present hook via HookManager.");
             // HookManager::RemoveHook(m_pTargetPresent); // Attempt cleanup if enable fails
             return false;
         }
 
-        std::cout << "[D3DRenderHook] Present hook created and enabled." << std::endl;
+        LOG_INFO("[D3DRenderHook] Present hook created and enabled.");
         kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK); // Update hook status via singleton
         return true;
     }
@@ -52,20 +52,20 @@ namespace kx::Hooking {
         if (m_hWindow && m_pOriginalWndProc) {
             SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
             m_pOriginalWndProc = nullptr;
-            std::cout << "[D3DRenderHook] Restored original WndProc." << std::endl;
+            LOG_INFO("[D3DRenderHook] Restored original WndProc.");
         }
 
         // Shutdown ImGui
         if (m_isInit) {
             ImGuiManager::Shutdown();
-            std::cout << "[D3DRenderHook] ImGui shutdown." << std::endl;
+            LOG_INFO("[D3DRenderHook] ImGui shutdown.");
         }
 
         // Release D3D resources
         if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
         if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
         if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-        std::cout << "[D3DRenderHook] D3D resources released." << std::endl;
+        LOG_INFO("[D3DRenderHook] D3D resources released.");
 
         // Request HookManager to disable/remove the hook (usually done in HookManager::Shutdown)
         // HookManager::DisableHook(m_pTargetPresent); // Optionally disable explicitly
@@ -90,14 +90,14 @@ namespace kx::Hooking {
 
         if (!RegisterClassExW(&wc)) {
             if (GetLastError() != ERROR_CLASS_ALREADY_EXISTS) { // Check if it failed for a real reason
-                std::cerr << "[D3DRenderHook] Failed to register dummy window class. Error: " << GetLastError() << std::endl;
+                LOG_ERROR("[D3DRenderHook] Failed to register dummy window class. Error: %d", GetLastError());
                 return false;
             }
         }
 
         dummy_hwnd = CreateWindowW(DUMMY_WNDCLASS_NAME, NULL, WS_OVERLAPPEDWINDOW, 0, 0, 1, 1, NULL, NULL, wc.hInstance, NULL);
         if (!dummy_hwnd) {
-            std::cerr << "[D3DRenderHook] Failed to create dummy window. Error: " << GetLastError() << std::endl;
+            LOG_ERROR("[D3DRenderHook] Failed to create dummy window. Error: %d", GetLastError());
             UnregisterClassW(DUMMY_WNDCLASS_NAME, wc.hInstance);
             return false;
         }
@@ -126,10 +126,10 @@ namespace kx::Hooking {
             pSwapChain->Release();
             pDevice->Release();
             success = true;
-            std::cout << "[D3DRenderHook] Found Present pointer at: 0x" << std::hex << m_pTargetPresent << std::dec << std::endl;
+            LOG_INFO("[D3DRenderHook] Found Present pointer at: 0x%p", m_pTargetPresent);
         }
         else {
-            std::cerr << "[D3DRenderHook] D3D11CreateDeviceAndSwapChain failed (HRESULT: 0x" << std::hex << hr << std::dec << ")" << std::endl;
+            LOG_ERROR("[D3DRenderHook] D3D11CreateDeviceAndSwapChain failed (HRESULT: 0x%X)", hr);
             if (pSwapChain) pSwapChain->Release();
             if (pDevice) pDevice->Release();
         }
@@ -161,7 +161,7 @@ namespace kx::Hooking {
                     pBackBuffer->Release();
                 }
                 else {
-                    std::cerr << "[D3DRenderHook] Failed to get back buffer." << std::endl;
+                    LOG_ERROR("[D3DRenderHook] Failed to get back buffer.");
                     // Release potentially acquired resources on partial failure
                     if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
                     if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
@@ -172,7 +172,7 @@ namespace kx::Hooking {
                 // Hook WndProc now that we have the window handle
                 m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
                 if (!m_pOriginalWndProc) {
-                    std::cerr << "[D3DRenderHook] Failed to hook WndProc." << std::endl;
+                    LOG_ERROR("[D3DRenderHook] Failed to hook WndProc.");
                     // Clean up D3D resources if WndProc hook fails
                     if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
                     if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
@@ -183,7 +183,7 @@ namespace kx::Hooking {
 
                 // Initialize ImGui
                 if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
-                    std::cerr << "[D3DRenderHook] Failed to initialize ImGui." << std::endl;
+                    LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui.");
                     // Restore WndProc if ImGui init fails
                     SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
                     m_pOriginalWndProc = nullptr;
@@ -196,7 +196,7 @@ namespace kx::Hooking {
                 }
                 else {
                     m_isInit = true; // Full initialization successful
-                    std::cout << "[D3DRenderHook] ImGui Initialized." << std::endl;
+                    LOG_INFO("[D3DRenderHook] ImGui Initialized.");
                 }
             }
             else {

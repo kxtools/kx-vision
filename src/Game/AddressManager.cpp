@@ -1,10 +1,10 @@
 #include "AddressManager.h"
 
-#include <iostream>
 #include <windows.h>
 #include <psapi.h>
 
 #include "../Core/Config.h" // For TARGET_PROCESS_NAME
+#include "../Utils/DebugLogger.h"
 #include "../Utils/PatternScanner.h"
 #include "ReClassStructs.h" // For ContextCollection and ChCliContext
 
@@ -34,18 +34,18 @@ void AddressManager::ScanAgentArray() {
     );
 
     if (!avContextFuncOpt) {
-        std::cerr << "[AddressManager] ERROR: AgentViewContext pattern not found." << std::endl;
+        LOG_ERROR("[AddressManager] AgentViewContext pattern not found.");
         s_pointers.agentArray = 0;
         return;
     }
 
     uintptr_t avContextFuncAddr = *avContextFuncOpt;
-    std::cout << "[AddressManager] Found AgentViewContext at: 0x" << std::hex << avContextFuncAddr << std::dec << std::endl;
+    LOG_INFO("[AddressManager] Found AgentViewContext at: 0x%p", (void*)avContextFuncAddr);
 
     std::optional<uintptr_t> leaInstructionOpt = kx::PatternScanner::FindPattern(std::string(kx::AGENT_ARRAY_LEA_PATTERN), avContextFuncAddr, AddressingConstants::AGENT_ARRAY_SEARCH_RANGE);
 
     if (!leaInstructionOpt) {
-        std::cerr << "[AddressManager] ERROR: Could not find AgentArray LEA instruction inside AvContext." << std::endl;
+        LOG_ERROR("[AddressManager] Could not find AgentArray LEA instruction inside AvContext.");
         s_pointers.agentArray = 0;
         return;
     }
@@ -56,7 +56,7 @@ void AddressManager::ScanAgentArray() {
     uintptr_t agentStructBase = addressOfNextInstruction + relativeOffset;
     s_pointers.agentArray = agentStructBase + AddressingConstants::AGENT_ARRAY_OFFSET;
 
-    std::cout << "[AddressManager] -> SUCCESS: AgentArray resolved to: 0x" << std::hex << s_pointers.agentArray << std::dec << std::endl;
+    LOG_INFO("[AddressManager] -> SUCCESS: AgentArray resolved to: 0x%p", (void*)s_pointers.agentArray);
 }
 
 void AddressManager::ScanWorldViewContextPtr() {
@@ -66,7 +66,7 @@ void AddressManager::ScanWorldViewContextPtr() {
     );
 
     if (!landmarkOpt) {
-        std::cerr << "[AddressManager] ERROR: WorldViewContext pattern not found." << std::endl;
+        LOG_ERROR("[AddressManager] WorldViewContext pattern not found.");
         s_pointers.worldViewContextPtr = 0;
         return;
     }
@@ -81,10 +81,10 @@ void AddressManager::ScanWorldViewContextPtr() {
     s_pointers.worldViewContextPtr = *reinterpret_cast<uintptr_t*>(staticPointerAddress);
 
     if (s_pointers.worldViewContextPtr) {
-        std::cout << "[AddressManager] -> SUCCESS: WorldViewContext resolved to: 0x" << std::hex << s_pointers.worldViewContextPtr << std::dec << std::endl;
+        LOG_INFO("[AddressManager] -> SUCCESS: WorldViewContext resolved to: 0x%p", (void*)s_pointers.worldViewContextPtr);
     }
     else {
-        std::cerr << "[AddressManager] ERROR: WvContext static address was null." << std::endl;
+        LOG_ERROR("[AddressManager] ERROR: WvContext static address was null.");
     }
 }
 
@@ -96,7 +96,7 @@ void AddressManager::ScanBgfxContextFunc()
     );
 
     if (!getContextOpt) {
-        std::cerr << "[AddressManager] ERROR: BGFX Context function pattern not found." << std::endl;
+        LOG_ERROR("[AddressManager] BGFX Context function pattern not found.");
         s_pointers.bgfxContextFunc = 0;
         return;
     }
@@ -109,7 +109,7 @@ void AddressManager::ScanBgfxContextFunc()
     uintptr_t patternAddress = *getContextOpt;
     s_pointers.bgfxContextFunc = patternAddress - AddressingConstants::BGFX_PATTERN_OFFSET;
 
-    std::cout << "[AddressManager] -> SUCCESS: BGFX Context function resolved to: 0x" << std::hex << s_pointers.bgfxContextFunc << std::dec << std::endl;
+    LOG_INFO("[AddressManager] -> SUCCESS: BGFX Context function resolved to: 0x%p", (void*)s_pointers.bgfxContextFunc);
 }
 
 void AddressManager::ScanContextCollectionFunc()
@@ -120,13 +120,13 @@ void AddressManager::ScanContextCollectionFunc()
     );
 
     if (!funcOpt) {
-        std::cerr << "[AddressManager] ERROR: ContextCollection function pattern not found." << std::endl;
+        LOG_ERROR("[AddressManager] ContextCollection function pattern not found.");
         s_pointers.contextCollectionFunc = 0;
         return;
     }
 
     s_pointers.contextCollectionFunc = *funcOpt;
-    std::cout << "[AddressManager] -> SUCCESS: ContextCollection function resolved to: 0x" << std::hex << s_pointers.contextCollectionFunc << std::dec << std::endl;
+    LOG_INFO("[AddressManager] -> SUCCESS: ContextCollection function resolved to: 0x%p", (void*)s_pointers.contextCollectionFunc);
 }
 
 void AddressManager::ScanGameThreadUpdateFunc() {
@@ -136,7 +136,7 @@ void AddressManager::ScanGameThreadUpdateFunc() {
     );
 
     if (!locatorOpt) {
-        std::cerr << "[AddressManager] ERROR: AlertContext locator pattern not found." << std::endl;
+        LOG_ERROR("[AddressManager] AlertContext locator pattern not found.");
         s_pointers.gameThreadUpdateFunc = 0;
         return;
     }
@@ -169,31 +169,30 @@ void AddressManager::ScanGameThreadUpdateFunc() {
 
     s_pointers.gameThreadUpdateFunc = vtable[AddressingConstants::GAME_THREAD_UPDATE_VTABLE_INDEX];
 
-    std::cout << "[AddressManager] -> SUCCESS: GameThreadUpdate function resolved to: 0x" << std::hex << s_pointers.gameThreadUpdateFunc << std::dec << std::endl;
+    LOG_INFO("[AddressManager] -> SUCCESS: GameThreadUpdate function resolved to: 0x%p", (void*)s_pointers.gameThreadUpdateFunc);
 }
 
 void AddressManager::ScanModuleInformation() {
     HMODULE hModule = GetModuleHandleA("Gw2-64.exe");
     if (!hModule) {
-        std::cout << "[AddressManager] Failed to get handle for Gw2-64.exe" << std::endl;
+        LOG_ERROR("[AddressManager] Failed to get handle for Gw2-64.exe");
         return;
     }
 
     MODULEINFO moduleInfo;
     if (!GetModuleInformation(GetCurrentProcess(), hModule, &moduleInfo, sizeof(moduleInfo))) {
-        std::cout << "[AddressManager] Failed to get module information for Gw2-64.exe" << std::endl;
+        LOG_ERROR("[AddressManager] Failed to get module information for Gw2-64.exe");
         return;
     }
 
     s_pointers.moduleBase = reinterpret_cast<uintptr_t>(moduleInfo.lpBaseOfDll);
     s_pointers.moduleSize = moduleInfo.SizeOfImage;
 
-    std::cout << "[AddressManager] Module Information - Base: 0x" << std::hex << s_pointers.moduleBase 
-              << ", Size: 0x" << s_pointers.moduleSize << std::dec << std::endl;
+    LOG_INFO("[AddressManager] Module Information - Base: 0x%p, Size: 0x%Ix", (void*)s_pointers.moduleBase, s_pointers.moduleSize);
 }
 
 void AddressManager::Scan() {
-    std::cout << "[AddressManager] Scanning for memory addresses..." << std::endl;
+    LOG_INFO("[AddressManager] Scanning for memory addresses...");
     ScanModuleInformation();
     ScanContextCollectionFunc();
     ScanGameThreadUpdateFunc();

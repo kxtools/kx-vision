@@ -67,7 +67,6 @@ public:
     static void Initialize() noexcept {
         try {
             // Ensure static members are properly initialized
-            s_minLogLevel.store(ERR, std::memory_order_release);
             s_rateLimitCacheSize.store(0, std::memory_order_release);
             
             // Lock and clear any existing data to ensure clean state

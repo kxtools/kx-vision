@@ -338,7 +338,7 @@ void ImGuiManager::RenderSettingsTab() {
                 ImGui::Separator();
                 ImGui::Text("Log Level:");
                 
-                static int currentLogLevel = 3; // Default to ERROR (index 3)
+            	static int currentLogLevel = static_cast<int>(kx::AppConfig::DEFAULT_LOG_LEVEL);
                 const char* logLevels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" };
                 
                 if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {

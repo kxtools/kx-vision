@@ -1,4 +1,5 @@
 #include "DebugLogger.h"
+#include "../Core/Settings.h"
 #include <iostream>
 #include <sstream>
 #include <ctime>
@@ -8,7 +9,7 @@ namespace kx {
 namespace Debug {
 
 // Initialize static atomic members with thread-safe default values
-std::atomic<Logger::Level> Logger::s_minLogLevel{Logger::ERR};
+std::atomic<Logger::Level> Logger::s_minLogLevel{static_cast<Logger::Level>(kx::AppConfig::DEFAULT_LOG_LEVEL)};
 std::atomic<size_t> Logger::s_rateLimitCacheSize{0};
 
 // Initialize rate limiting infrastructure with proper thread safety

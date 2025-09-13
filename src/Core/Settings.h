@@ -58,6 +58,14 @@ namespace kx {
     };
 
     // --- User-configurable settings ---
+    namespace AppConfig {
+#ifdef _DEBUG
+        constexpr int DEFAULT_LOG_LEVEL = 1; // INFO
+#else
+        constexpr int DEFAULT_LOG_LEVEL = 3; // ERR
+#endif
+    }
+
     struct Settings {
 #ifdef _DEBUG
         bool showVisionWindow = true;   // Show menu by default in debug builds
@@ -86,7 +94,11 @@ namespace kx {
         bool hideDepletedNodes = true;    // Hide depleted resource nodes
         
         // Debug options
-        bool enableDebugLogging = false;  // Enable detailed debug logging
+#ifdef _DEBUG
+        bool enableDebugLogging = true;   // Enable verbose logging by default in debug builds
+#else
+        bool enableDebugLogging = false;  // Disable verbose logging by default in release builds
+#endif
     };
 
 } // namespace kx

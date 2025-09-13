@@ -1,5 +1,4 @@
 #include <cstdio> // Required for fclose
-#include <iostream>
 #include <windows.h>
 
 #include "AddressManager.h"
@@ -43,7 +42,6 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
 
     if (!kx::InitializeHooks()) {
         LOG_ERROR("Failed to initialize hooks.");
-        std::cerr << "Failed to initialize hooks." << std::endl;
         return 1;
     }
 

@@ -1,8 +1,9 @@
 #include "Console.h"
 
 #include <cstdio>
-#include <iostream>
 #include <windows.h>
+
+#include "DebugLogger.h"
 
 namespace kx {
 void SetupConsole() {
@@ -21,6 +22,6 @@ void SetupConsole() {
         DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
     }
 
-    std::cout << "[Console] Console initialized!" << std::endl;
+    LOG_INFO("[Console] Console initialized!");
 }
 }

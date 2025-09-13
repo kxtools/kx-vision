@@ -1,12 +1,13 @@
 #include "PatternScanner.h"
 
-#include <iostream> // For error logging (temporary, consider a proper logger)
 #include <optional>
 #include <psapi.h> // For GetModuleInformation
 #include <sstream>
 #include <string>
 #include <vector>
 #include <windows.h>
+
+#include "DebugLogger.h"
 
 #pragma comment(lib, "psapi.lib") // Link against psapi.lib for GetModuleInformation
 
@@ -29,16 +30,16 @@ bool PatternScanner::PatternToBytes(const std::string& pattern, std::vector<int>
                     bytes.push_back(byteVal);
                 } else {
                     // Invalid byte value
-                    std::cerr << "[PatternScanner] Error: Invalid byte value '" << byteStr << "' in pattern." << std::endl;
+                    LOG_ERROR("[PatternScanner] Error: Invalid byte value '%s' in pattern.", byteStr.c_str());
                     return false;
                 }
             } catch (const std::invalid_argument&) {
                 // Invalid hex string format
-                 std::cerr << "[PatternScanner] Error: Invalid hex string '" << byteStr << "' in pattern." << std::endl;
+                 LOG_ERROR("[PatternScanner] Error: Invalid hex string '%s' in pattern.", byteStr.c_str());
                 return false;
             } catch (const std::out_of_range&) {
                 // Hex string out of range for int
-                 std::cerr << "[PatternScanner] Error: Hex string '" << byteStr << "' out of range in pattern." << std::endl;
+                 LOG_ERROR("[PatternScanner] Error: Hex string '%s' out of range in pattern.", byteStr.c_str());
                 return false;
             }
         }
@@ -50,19 +51,19 @@ bool PatternScanner::PatternToBytes(const std::string& pattern, std::vector<int>
 std::optional<uintptr_t> PatternScanner::FindPattern(const std::string& pattern, const std::string& moduleName) {
     std::vector<int> patternBytes;
     if (!PatternToBytes(pattern, patternBytes)) {
-        std::cerr << "[PatternScanner] Failed to parse pattern string." << std::endl;
+        LOG_ERROR("[PatternScanner] Failed to parse pattern string.");
         return std::nullopt;
     }
 
     HMODULE hModule = GetModuleHandleA(moduleName.c_str());
     if (hModule == NULL) {
-        std::cerr << "[PatternScanner] Error: Could not get handle for module '" << moduleName << "'. Error code: " << GetLastError() << std::endl;
+        LOG_ERROR("[PatternScanner] Error: Could not get handle for module '%s'. Error code: %d", moduleName.c_str(), GetLastError());
         return std::nullopt;
     }
 
     MODULEINFO moduleInfo;
     if (!GetModuleInformation(GetCurrentProcess(), hModule, &moduleInfo, sizeof(moduleInfo))) {
-        std::cerr << "[PatternScanner] Error: Could not get module information for '" << moduleName << "'. Error code: " << GetLastError() << std::endl;
+        LOG_ERROR("[PatternScanner] Error: Could not get module information for '%s'. Error code: %d", moduleName.c_str(), GetLastError());
         return std::nullopt;
     }
 
@@ -75,14 +76,14 @@ std::optional<uintptr_t> PatternScanner::FindPattern(const std::string& pattern,
 std::optional<uintptr_t> PatternScanner::FindPattern(const std::string& pattern, uintptr_t startAddress, size_t scanSize) {
     std::vector<int> patternBytes;
     if (!PatternToBytes(pattern, patternBytes)) {
-        std::cerr << "[PatternScanner] Failed to parse pattern string." << std::endl;
+        LOG_ERROR("[PatternScanner] Failed to parse pattern string.");
         return std::nullopt;
     }
 
     size_t patternSize = patternBytes.size();
 
     if (scanSize < patternSize) {
-         std::cerr << "[PatternScanner] Error: Module size is smaller than pattern size." << std::endl;
+         LOG_ERROR("[PatternScanner] Error: Module size is smaller than pattern size.");
         return std::nullopt; // Cannot possibly find the pattern
     }
 
@@ -102,7 +103,7 @@ std::optional<uintptr_t> PatternScanner::FindPattern(const std::string& pattern,
     }
 
     // Pattern not found
-    std::cerr << "[PatternScanner] Pattern not found in specified memory range." << std::endl;
+    LOG_WARN("[PatternScanner] Pattern not found in specified memory range.");
     return std::nullopt;
 }
 
