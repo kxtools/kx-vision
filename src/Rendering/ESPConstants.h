@@ -52,6 +52,18 @@ namespace ExtractionCapacity {
 }
 
 /**
+ * @brief Rendering effect constants
+ * 
+ * Constants that control visual effects and rendering behaviors in the ESP system.
+ * These values tune the visual experience and performance characteristics.
+ */
+namespace RenderingEffects {
+    // Distance fade zone - entities fade out in the last 11% of their distance limit
+    // e.g., with 90m limit: fade starts at 80m (90 * 0.89), ends at 90m
+    constexpr float FADE_ZONE_PERCENTAGE = 0.11f;
+}
+
+/**
  * @brief ESP color constants for different entity types and attitudes
  * 
  * Provides a consistent color scheme across the ESP system:
