@@ -5,6 +5,7 @@
 #include "../Utils/SafeIterators.h"
 #include "../Utils/MemorySafety.h"
 #include "ESPFormatting.h"
+#include "ESPConstants.h"
 
 namespace kx {
 
@@ -46,7 +47,7 @@ void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPoo
                                         std::vector<RenderablePlayer*>& players,
                                         const std::map<void*, const wchar_t*>& characterNameToPlayerName) {
     players.clear();
-    players.reserve(100); // Reserve reasonable space
+    players.reserve(ExtractionCapacity::PLAYERS_RESERVE); // Reserve reasonable space
 
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
     if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
@@ -81,8 +82,9 @@ void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPoo
             glm::vec3 gameWorldPos = coChar.GetVisualPosition();
             if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
 
-            const float scaleFactor = 1.23f;
-            renderablePlayer->position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
+            renderablePlayer->position = glm::vec3(gameWorldPos.x / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
+                                                 gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
+                                                 gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
             renderablePlayer->isValid = true;
 
             // Extract player name
@@ -120,14 +122,14 @@ void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPoo
             }
 
             players.push_back(renderablePlayer);
-        }
-    }
+		}
+	}
 }
 
 void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
                                      std::vector<RenderableNpc*>& npcs) {
     npcs.clear();
-    npcs.reserve(500); // Reserve reasonable space
+    npcs.reserve(ExtractionCapacity::NPCS_RESERVE); // Reserve reasonable space
 
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
     if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
@@ -170,8 +172,9 @@ void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
             glm::vec3 gameWorldPos = coChar.GetVisualPosition();
             if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
             
-            const float scaleFactor = 1.23f;
-            renderableNpc->position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
+            renderableNpc->position = glm::vec3(gameWorldPos.x / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
+                                              gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
+                                              gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
             renderableNpc->isValid = true;
             
             // Extract health
@@ -190,14 +193,14 @@ void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
             renderableNpc->attitude = nonConstCharacter.GetAttitude();
             
             npcs.push_back(renderableNpc);
-        }
-    }
+		}
+	}
 }
 
 void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
                                         std::vector<RenderableGadget*>& gadgets) {
     gadgets.clear();
-    gadgets.reserve(1000); // Reserve reasonable space
+    gadgets.reserve(ExtractionCapacity::GADGETS_RESERVE); // Reserve reasonable space
 
     void* pContextCollection = AddressManager::GetContextCollectionPtr();
     if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
@@ -225,8 +228,9 @@ void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPoo
         glm::vec3 gameWorldPos = coKeyFramed.GetPosition();
         if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
         
-        const float scaleFactor = 1.23f;
-        renderableGadget->position = glm::vec3(gameWorldPos.x / scaleFactor, gameWorldPos.z / scaleFactor, gameWorldPos.y / scaleFactor);
+        renderableGadget->position = glm::vec3(gameWorldPos.x / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
+                                             gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
+                                             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
         renderableGadget->isValid = true;
 
         // Extract type with type-safe enum assignment

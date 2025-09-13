@@ -13,9 +13,11 @@ namespace SafeAccess {
     constexpr uintptr_t MAX_VALID_MEMORY_ADDRESS = 0x7FFFFFFFFFFF; // Maximum valid user-mode address on x64
     
     // --- Sanity Check Limits ---
-    constexpr uint32_t MAX_REASONABLE_PLAYER_COUNT = 2000;      // Maximum expected players in a game instance
-    constexpr uint32_t MAX_REASONABLE_CHARACTER_COUNT = 0x10000; // Maximum expected characters in memory
-    constexpr uint32_t MAX_REASONABLE_GADGET_COUNT = 0x10000;   // Maximum expected gadgets in memory
+    // These limits are based on actual observed game data and provide safety bounds
+    // for iterator validation to detect obviously corrupted memory/capacity values
+    constexpr uint32_t MAX_REASONABLE_PLAYER_COUNT = 1000;       // Observed ~134, set generous upper bound
+    constexpr uint32_t MAX_REASONABLE_CHARACTER_COUNT = 15000;   // Observed ~9728, allow for larger instances  
+    constexpr uint32_t MAX_REASONABLE_GADGET_COUNT = 15000;      // Observed ~9216, allow for resource-rich areas
 
     // --- Pointer Cache for Performance ---
     // Thread-safe cache accessors using function-local statics

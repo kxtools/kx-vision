@@ -25,6 +25,33 @@ namespace BoxDimensions {
 }
 
 /**
+ * @brief Coordinate transformation constants
+ * 
+ * Constants used for converting between game world coordinates and MumbleLink coordinates.
+ * The game uses different coordinate systems internally vs what's exposed through MumbleLink.
+ */
+namespace CoordinateTransform {
+    // Scale factor for converting game world coordinates to MumbleLink meter-based units
+    constexpr float GAME_TO_MUMBLE_SCALE_FACTOR = 1.23f;
+}
+
+/**
+ * @brief Data extraction capacity constants
+ * 
+ * Initial capacity reservations for entity collections to minimize dynamic allocations
+ * during frame data extraction. These values are based on actual game data analysis:
+ * - PlayerList typically has ~134 players, we extract ~12 valid players
+ * - CharacterList capacity ~9728, we extract ~29 NPCs 
+ * - GadgetList capacity ~9216, we extract ~457 gadgets
+ * - Values include safe buffer for peak scenarios and different map types
+ */
+namespace ExtractionCapacity {
+    constexpr size_t PLAYERS_RESERVE = 64;     // ~12 typical + buffer for busy instances
+    constexpr size_t NPCS_RESERVE = 128;       // ~29 typical + buffer for NPC-heavy areas  
+    constexpr size_t GADGETS_RESERVE = 1024;   // ~457 typical + buffer for resource-rich zones
+}
+
+/**
  * @brief ESP color constants for different entity types and attitudes
  * 
  * Provides a consistent color scheme across the ESP system:
