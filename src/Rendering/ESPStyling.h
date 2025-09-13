@@ -56,27 +56,6 @@ public:
         }
     }
 
-    // Check if a profession is a heavy armor class
-    static bool IsHeavyArmorProfession(Game::Profession profession) {
-        return profession == Game::Profession::Guardian ||
-               profession == Game::Profession::Warrior;
-    }
-
-    // Check if a profession is a medium armor class
-    static bool IsMediumArmorProfession(Game::Profession profession) {
-        return profession == Game::Profession::Engineer ||
-               profession == Game::Profession::Ranger ||
-               profession == Game::Profession::Thief;
-    }
-
-    // Check if a profession is a light armor class
-    static bool IsLightArmorProfession(Game::Profession profession) {
-        return profession == Game::Profession::Elementalist ||
-               profession == Game::Profession::Mesmer ||
-               profession == Game::Profession::Necromancer ||
-               profession == Game::Profession::Revenant;
-    }
-
     // Get armor weight description
     static std::string GetArmorWeight(Game::Profession profession) {
         const char* name = Game::EnumHelpers::GetArmorWeight(profession);
