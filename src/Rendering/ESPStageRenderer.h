@@ -52,18 +52,7 @@ private:
      */
     static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera);
 
-    // Helper rendering functions
-    static void RenderHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, float healthPercent, float fadeAlpha = 1.0f);
-    static void RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos, float healthPercent, unsigned int entityColor);
-    static void RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos, const std::string& playerName, unsigned int entityColor);
-    static void RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, unsigned int color);
-    static void RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, float distance, float fadeAlpha = 1.0f);
-    static void RenderCenterDot(ImDrawList* drawList, const glm::vec2& feetPos, unsigned int color);
-    static void RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos, float fadeAlpha = 1.0f);
-    static void RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, const std::vector<std::string>& details, float fadeAlpha = 1.0f);
-
     // Distance fading helper functions
-    static unsigned int ApplyAlphaToColor(unsigned int color, float alpha);
     static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
 };
 
