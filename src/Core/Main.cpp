@@ -8,6 +8,7 @@
 #include "../Utils/DebugLogger.h" // Include for logger initialization
 
 HINSTANCE dll_handle;
+static HANDLE g_hSingleInstanceMutex = NULL;
 
 // Eject thread to free the DLL
 DWORD WINAPI EjectThread(LPVOID lpParameter) {
@@ -82,13 +83,41 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
+    {
+        // Create a uniquely named mutex.
+        // Using a GUID is a good way to ensure the name is unique.
+        const wchar_t* mutexName = L"kx-vision-instance-mutex-9A8B7C6D";
+
+        g_hSingleInstanceMutex = CreateMutexW(NULL, TRUE, mutexName);
+
+        // Check if the mutex already exists.
+        if (g_hSingleInstanceMutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS) {
+            // Another instance is already running. Close the handle we just tried to create
+            // and signal the loader to NOT load this DLL.
+            if (g_hSingleInstanceMutex) {
+                CloseHandle(g_hSingleInstanceMutex);
+            }
+            return FALSE; // Prevents the DLL from being loaded.
+        }
+
+        // If we're here, we are the first and only instance. Proceed with initialization.
         dll_handle = hModule;
         DisableThreadLibraryCalls(hModule);
         CreateThread(NULL, 0, MainThread, NULL, 0, NULL);
-        break;
+    }
+    break;
+
     case DLL_PROCESS_DETACH:
-        // Optional: Handle cleanup if necessary
-        break;
+    {
+        // It's good practice to release and close the mutex on shutdown.
+        // This ensures it's cleaned up properly if the DLL is ever unloaded
+        // and then reloaded without the process restarting.
+        if (g_hSingleInstanceMutex) {
+            ReleaseMutex(g_hSingleInstanceMutex);
+            CloseHandle(g_hSingleInstanceMutex);
+        }
+    }
+    break;
     }
     return TRUE;
 }
