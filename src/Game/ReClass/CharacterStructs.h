@@ -170,7 +170,7 @@ namespace kx {
                 }
                 
                 void* characterPtr = nullptr;
-                if (!Debug::SafeRead<void*>(data(), 0x18, characterPtr)) {
+                if (!Debug::SafeRead<void*>(data(), Offsets::CH_CLI_PLAYER_CHARACTER_PTR, characterPtr)) {
                     return ChCliCharacter(nullptr);
                 }
                 
@@ -183,7 +183,7 @@ namespace kx {
                 }
                 
                 wchar_t* namePtr = nullptr;
-                if (!Debug::SafeRead<wchar_t*>(data(), 0x68, namePtr)) {
+                if (!Debug::SafeRead<wchar_t*>(data(), Offsets::CH_CLI_PLAYER_NAME_PTR, namePtr)) {
                     return nullptr;
                 }
                 

@@ -53,6 +53,10 @@ namespace Offsets {
     // Coordinate System (CoChar)
     constexpr uintptr_t CO_CHAR_VISUAL_POSITION = 0x30;
 
+    // Player Wrapper (ChCliPlayer)
+    constexpr uintptr_t CH_CLI_PLAYER_CHARACTER_PTR = 0x18;
+    constexpr uintptr_t CH_CLI_PLAYER_NAME_PTR = 0x68;
+
     // Context System - Character Context
     constexpr uintptr_t CH_CLI_CONTEXT_CHARACTER_LIST = 0x60;
     constexpr uintptr_t CH_CLI_CONTEXT_CHARACTER_LIST_CAPACITY = 0x68;
