@@ -1,5 +1,7 @@
 #pragma once
 
+#define GW2AL_BUILD true // Add this line to enable GW2AL build
+
 #include <atomic>
 #include <mutex>
 #include "Settings.h"

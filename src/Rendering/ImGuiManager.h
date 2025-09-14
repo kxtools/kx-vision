@@ -12,11 +12,15 @@
  */
 class ImGuiManager {
 public:
-    static bool Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd);
+    // Add a boolean to tell the initializer it's running in GW2AL mode
+    // It will skip creating its own context if lib_imgui provides one.
+    // For your goal, we'll tell it to create its own context regardless.
+    static bool Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd, bool is_gw2al_mode = false);
     static void NewFrame();
     static void Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView);
     static void RenderUI();
-    static void Shutdown();
+    // Add a shutdown function that knows about the mode
+    static void Shutdown(bool is_gw2al_mode = false);
 
 private:
     static void RenderESPWindow();

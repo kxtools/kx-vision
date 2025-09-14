@@ -23,6 +23,7 @@ namespace kx::Hooking {
     ID3D11RenderTargetView* D3DRenderHook::m_pMainRenderTargetView = nullptr;
     WNDPROC D3DRenderHook::m_pOriginalWndProc = nullptr;
 
+#ifndef GW2AL_BUILD
     bool D3DRenderHook::Initialize() {
         if (!FindPresentPointer()) {
             LOG_ERROR("[D3DRenderHook] Failed to find Present pointer.");
@@ -44,6 +45,48 @@ namespace kx::Hooking {
 
         LOG_INFO("[D3DRenderHook] Present hook created and enabled.");
         kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK); // Update hook status via singleton
+        return true;
+    }
+#endif // !GW2AL_BUILD
+
+    // NEW: Implement the GW2AL initializer
+    bool D3DRenderHook::InitializeFromGW2AL(ID3D11Device* device, IDXGISwapChain* pSwapChain) {
+        if (m_isInit) return true;
+
+        m_pDevice = device;
+        m_pDevice->GetImmediateContext(&m_pContext);
+
+        DXGI_SWAP_CHAIN_DESC sd;
+        pSwapChain->GetDesc(&sd);
+        m_hWindow = sd.OutputWindow;
+
+        // Create the render target view
+        ID3D11Texture2D* pBackBuffer = nullptr;
+        if (SUCCEEDED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) {
+            m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
+            pBackBuffer->Release();
+        } else {
+            LOG_ERROR("[D3DRenderHook] Failed to get back buffer from GW2AL swap chain.");
+            return false;
+        }
+
+        // Hook WndProc (still needed for input)
+        m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
+        if (!m_pOriginalWndProc) {
+            LOG_ERROR("[D3DRenderHook] Failed to hook WndProc in GW2AL mode.");
+            return false;
+        }
+
+        // Initialize ImGui
+        if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow, true)) { // Pass true for gw2al mode
+            LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui in GW2AL mode.");
+            SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)m_pOriginalWndProc); // Restore WndProc
+            return false;
+        }
+
+        m_isInit = true;
+        LOG_INFO("[D3DRenderHook] Initialized successfully via GW2AL.");
+        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK);
         return true;
     }
 
@@ -81,7 +124,7 @@ namespace kx::Hooking {
         return m_isInit;
     }
 
-
+#ifndef GW2AL_BUILD
     bool D3DRenderHook::FindPresentPointer() {
         // This logic remains complex but necessary. Keep it encapsulated here.
         const wchar_t* DUMMY_WNDCLASS_NAME = L"KxDummyWindowPresent"; // Use unique name
@@ -243,6 +286,7 @@ namespace kx::Hooking {
         // Call original Present function - ensure it's valid
         return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
     }
+#endif // !GW2AL_BUILD
 
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         // Track mouse buttons
@@ -303,4 +347,5 @@ namespace kx::Hooking {
 
 
 } // namespace kx::Hooking
+
 

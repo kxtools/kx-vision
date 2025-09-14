@@ -26,6 +26,9 @@ namespace kx::Hooking {
          * @return True if successful, false otherwise.
          */
         static bool Initialize();
+        
+        // NEW: Add a dedicated initializer for GW2AL
+        static bool InitializeFromGW2AL(ID3D11Device* device, IDXGISwapChain* swapChain);
 
         /**
          * @brief Cleans up resources, restores the original WndProc, and

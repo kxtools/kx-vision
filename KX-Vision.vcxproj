@@ -90,6 +90,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
@@ -124,6 +125,9 @@
     <ClCompile Include="src\Utils\PatternScanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="libs\gw2al\gw2al_api.h" />
+    <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
+    <ClInclude Include="src\Core\Integration.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Game\AddressManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
@@ -137,6 +141,7 @@
     <ClInclude Include="src\Game\ReClass\CharacterStructs.h" />
     <ClInclude Include="src\Game\ReClass\ContextStructs.h" />
     <ClInclude Include="src\Game\ReClass\GadgetStructs.h" />
+    <ClInclude Include="src\Hooking\d3d9_wrapper_structs.h" />
     <ClInclude Include="src\Rendering\ESPConstants.h" />
     <ClInclude Include="src\Rendering\ESPFeatureRenderer.h" />
     <ClInclude Include="src\Rendering\ESPFilter.h" />

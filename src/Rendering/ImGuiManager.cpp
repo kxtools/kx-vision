@@ -26,21 +26,20 @@
 kx::Camera ImGuiManager::m_camera;
 kx::MumbleLinkManager ImGuiManager::m_mumbleLinkManager;
 
-bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
+bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd, bool is_gw2al_mode) {
     IMGUI_CHECKVERSION();
+    
+    // In your case, you ALWAYS want your own ImGui, so we don't need to check the mode here.
+    // If you wanted to support lib_imgui, you would check `is_gw2al_mode` here.
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
-
     GUIStyle::LoadAppFont();
     GUIStyle::ApplyCustomStyle();
-
     if (!ImGui_ImplWin32_Init(hwnd)) return false;
     if (!ImGui_ImplDX11_Init(device, context)) return false;
-    
-    // Initialize ESP renderer with our camera
-    kx::ESPRenderer::Initialize(m_camera);
 
+    kx::ESPRenderer::Initialize(m_camera);
     return true;
 }
 
@@ -59,6 +58,22 @@ void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* 
     // Set render target and draw ImGui data
     context->OMSetRenderTargets(1, &mainRenderTargetView, NULL);
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void ImGuiManager::RenderUI() {
+    ImGuiIO& io = ImGui::GetIO();
+
+    // Update MumbleLink and Camera
+    m_mumbleLinkManager.Update();
+    m_camera.Update(m_mumbleLinkManager.GetData(), kx::Hooking::D3DRenderHook::GetWindowHandle());
+
+    // Render the ESP overlay
+    kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, m_mumbleLinkManager.GetData());
+    
+    // Render the UI window if it's shown
+    if (kx::AppState::Get().GetSettings().showVisionWindow) {
+        RenderESPWindow();
+    }
 }
 
 void ImGuiManager::RenderESPWindow() {
@@ -105,22 +120,6 @@ void ImGuiManager::RenderESPWindow() {
 
 
 
-void ImGuiManager::RenderUI() {
-    ImGuiIO& io = ImGui::GetIO();
-
-    // Update MumbleLink and Camera
-    m_mumbleLinkManager.Update();
-    m_camera.Update(m_mumbleLinkManager.GetData(), kx::Hooking::D3DRenderHook::GetWindowHandle());
-
-    // Render the ESP overlay
-    kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, m_mumbleLinkManager.GetData());
-    
-    // Render the UI window if it's shown
-    if (kx::AppState::Get().GetSettings().showVisionWindow) {
-        RenderESPWindow();
-    }
-}
-
 void ImGuiManager::RenderHints() {
     // Display keyboard shortcuts with consistent styling
     const char* hints[] = {
@@ -135,8 +134,8 @@ void ImGuiManager::RenderHints() {
     ImGui::Separator();
 }
 
-void ImGuiManager::Shutdown() {
-    // Clean up ImGui resources in reverse order of initialization
+void ImGuiManager::Shutdown(bool is_gw2al_mode) {
+    // Again, you always manage your own context, so the mode doesn't matter here.
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();

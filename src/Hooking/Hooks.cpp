@@ -53,11 +53,13 @@ namespace kx {
             return false;
         }
 
+        #ifndef GW2AL_BUILD
         if (!kx::Hooking::D3DRenderHook::Initialize()) {
             kx::Hooking::HookManager::Shutdown();
             AppState::Get().SetPresentHookStatus(HookStatus::Failed);
             return false;
         }
+#endif
 
         uintptr_t gameThreadFuncAddr = AddressManager::GetGameThreadUpdateFunc();
         if (gameThreadFuncAddr) {

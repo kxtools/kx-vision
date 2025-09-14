@@ -1,8 +1,10 @@
+#include "AppState.h"
+#ifndef GW2AL_BUILD
+
 #include <cstdio> // Required for fclose
 #include <windows.h>
 
 #include "AddressManager.h"
-#include "AppState.h"   // Include for AppState singleton
 #include "Console.h"
 #include "Hooks.h"
 #include "../Utils/DebugLogger.h" // Include for logger initialization
@@ -121,3 +123,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     }
     return TRUE;
 }
+
+#endif // !GW2AL_BUILD
+
