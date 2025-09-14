@@ -103,6 +103,25 @@ inline std::string GadgetTypeToString(Game::GadgetType type) {
     return "Gadget ID: " + std::to_string(static_cast<uint32_t>(type));
 }
 
+inline std::string RankToString(Game::CharacterRank rank) {
+    const char* name = Game::EnumHelpers::GetRankName(rank);
+    // Return the name if it's valid, otherwise return an empty string.
+    // This prevents "Normal" or unknown ranks from being displayed.
+    if (name != nullptr) {
+        return std::string(name);
+    }
+    return "";
+}
+
+// Helper to format the character name with its rank prefix (e.g., "Veteran Risen Knight")
+inline std::string FormatRankAndName(Game::CharacterRank rank, const std::string& name) {
+    std::string rankStr = RankToString(rank);
+    if (!rankStr.empty()) {
+        return rankStr + " " + name;
+    }
+    return name; // Return just the name if the rank is Normal or unknown
+}
+
 // Helper to get full character description
 inline std::string GetCharacterDescription(Game::Profession profession, Game::Race race, uint32_t level) {
     // Validate level to prevent display of garbage values

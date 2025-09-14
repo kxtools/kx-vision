@@ -45,12 +45,15 @@ struct RenderableNpc {
     float maxHealth;
     uint32_t level;
     Game::Attitude attitude;         // Type-safe enum instead of uint32_t
+    Game::CharacterRank rank;
     bool isValid;
     void* address;
-    
-        RenderableNpc() : position(0.0f), screenPos(0.0f), distance(0.0f), 
-                     currentHealth(0.0f), maxHealth(0.0f), 
-                     level(0), attitude(Game::Attitude::Neutral), isValid(false), address(nullptr) {}
+
+    RenderableNpc() : position(0.0f), screenPos(0.0f), distance(0.0f),
+                      currentHealth(0.0f), maxHealth(0.0f),
+                      level(0), attitude(Game::Attitude::Neutral), rank(), isValid(false), address(nullptr)
+    {
+    }
 };
 
 struct RenderableGadget {

@@ -281,7 +281,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
         }
 
         std::vector<std::string> details;
-        details.reserve(5); // Pre-allocate to avoid reallocations
+        details.reserve(6); // Pre-allocate to avoid reallocations
         if (settings.npcESP.renderDetails) {
             if (!npc->name.empty()) {
                 details.emplace_back("NPC: " + npc->name);
@@ -296,6 +296,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
             }
             
             details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc->attitude));
+            details.emplace_back("Rank: " + ESPFormatting::RankToString(npc->rank));
 
 #ifdef _DEBUG
             char addrStr[32];

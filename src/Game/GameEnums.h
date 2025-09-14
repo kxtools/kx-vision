@@ -54,6 +54,16 @@ enum class CharacterRank : int {
     End = 6
 };
 
+// Bitmask flags for character ranks, read directly from memory
+enum class CharacterRankFlags : uint32_t {
+    None = 0,
+    Champion = 1 << 1,    // Unverified, from previous knowledge
+    Elite = 1 << 5,    // Unverified, from previous knowledge
+    Legendary = 1 << 11,   // Unverified, from previous knowledge
+    Ambient = 1 << 23,   // VERIFIED from memory dump
+    Veteran = 1 << 29,   // VERIFIED from memory dump
+};
+
 enum class Attitude : uint32_t {
     Friendly = 0,
     Hostile = 1,

@@ -155,6 +155,26 @@ namespace kx {
                 LOG_DEBUG("ChCliCharacter::GetAttitude - Attitude: %u", static_cast<uint32_t>(attitude));
                 return attitude;
             }
+
+            Game::CharacterRank GetRank() {
+                LOG_MEMORY("ChCliCharacter", "GetRank", data(), Offsets::CH_CLI_CHARACTER_RANK_FLAGS);
+
+                uint32_t flags = ReadMember<uint32_t>(Offsets::CH_CLI_CHARACTER_RANK_FLAGS, 0);
+
+                // Check from highest rank to lowest
+                if ((flags & static_cast<uint32_t>(Game::CharacterRankFlags::Legendary)) != 0)
+                    return Game::CharacterRank::Legendary;
+                if ((flags & static_cast<uint32_t>(Game::CharacterRankFlags::Champion)) != 0)
+                    return Game::CharacterRank::Champion;
+                if ((flags & static_cast<uint32_t>(Game::CharacterRankFlags::Elite)) != 0)
+                    return Game::CharacterRank::Elite;
+                if ((flags & static_cast<uint32_t>(Game::CharacterRankFlags::Veteran)) != 0)
+                    return Game::CharacterRank::Veteran;
+                if ((flags & static_cast<uint32_t>(Game::CharacterRankFlags::Ambient)) != 0)
+                    return Game::CharacterRank::Ambient;
+
+                return Game::CharacterRank::Normal;
+            }
         };
 
         /**

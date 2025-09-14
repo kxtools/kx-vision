@@ -192,6 +192,7 @@ void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
             }
             // Direct enum assignment instead of casting to uint32_t
             renderableNpc->attitude = nonConstCharacter.GetAttitude();
+            renderableNpc->rank = nonConstCharacter.GetRank();
             
             npcs.push_back(renderableNpc);
 		}
