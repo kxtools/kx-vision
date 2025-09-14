@@ -288,59 +288,20 @@ namespace kx::Hooking {
     }
 #endif // !GW2AL_BUILD
 
+    // In Hooking/D3DRenderHook.cpp
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-        // Track mouse buttons
-        static bool rightMouseDown = false;
-        static bool leftMouseDown = false;
-        static bool wasOverImGuiWindow = false;
-
-        // Update mouse button states
-        if (uMsg == WM_RBUTTONDOWN) rightMouseDown = true;
-        else if (uMsg == WM_RBUTTONUP) rightMouseDown = false;
-        else if (uMsg == WM_LBUTTONDOWN) leftMouseDown = true;
-        else if (uMsg == WM_LBUTTONUP) leftMouseDown = false;
-
-        // Only process ImGui input if overlay is visible
         if (m_isInit && kx::AppState::Get().GetSettings().showVisionWindow) {
-            // First, check if the mouse is over an ImGui window without changing input state
-            bool isOverImGuiWindow = false;
-
-            // For mouse events, temporarily pass to ImGui to check if mouse is over a window
-            if (uMsg == WM_MOUSEMOVE) {
-                // Check if mouse is over any ImGui window (without handling the input)
-                isOverImGuiWindow = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) ||
-                    ImGui::IsAnyItemHovered();
-
-                // Store this for when other messages come in
-                wasOverImGuiWindow = isOverImGuiWindow;
-            }
-            else {
-                // For non-mousemove events, use the last known hover state
-                isOverImGuiWindow = wasOverImGuiWindow;
+            if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
+                return 1;
             }
 
-            // Special handling for left mouse button for camera rotation
-            if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP) && !isOverImGuiWindow) {
-                // If LMB and not over ImGui, pass directly to game without ImGui processing
-                return CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam);
-            }
-
-            // Handle other inputs normally - if RMB isn't down OR mouse is over ImGui window
-            if (!rightMouseDown || isOverImGuiWindow) {
-                // Process through ImGui
-                bool handled = ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-
-                // Get ImGui IO
-                ImGuiIO& io = ImGui::GetIO();
-
-                // If ImGui wants the input, don't pass to the game
-                if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
-                    return 1; // Handled by ImGui
-                }
+            ImGuiIO& io = ImGui::GetIO();
+            if ((io.WantCaptureMouse && (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)) ||
+                (io.WantCaptureKeyboard && (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST))) {
+                return 1;
             }
         }
 
-        // Pass the message to the original game window procedure
         return m_pOriginalWndProc ? CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam)
             : DefWindowProc(hWnd, uMsg, wParam, lParam);
     }

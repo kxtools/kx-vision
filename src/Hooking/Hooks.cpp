@@ -98,7 +98,11 @@ namespace kx {
             LOG_INFO("[Hooks] GameThread hook cleaned up.");
         }
 
+#ifndef GW2AL_BUILD
+        // Only the standalone version needs to shut down the D3D hook it created.
         kx::Hooking::D3DRenderHook::Shutdown();
+#endif
+
         kx::Hooking::HookManager::Shutdown();
 
         LOG_INFO("[Hooks] Cleanup finished.");

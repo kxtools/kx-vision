@@ -83,6 +83,8 @@ private:
 
     // Single static struct instance holding all pointers.
     static GamePointers s_pointers;
+
+    static bool s_is_scanned;
 };
 
 } // namespace kx

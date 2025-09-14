@@ -13,6 +13,8 @@ namespace kx {
 // Define the single static instance of the GamePointers struct.
 GamePointers AddressManager::s_pointers;
 
+bool AddressManager::s_is_scanned = false;
+
 // A helper function to resolve RIP-relative addresses (like in LEA, MOV, and CALL instructions)
 uintptr_t ResolveRelativeAddress(uintptr_t instructionAddress, size_t instructionSize) {
     if (!instructionAddress || instructionSize < AddressingConstants::RELATIVE_OFFSET_SIZE) return 0;
@@ -204,7 +206,9 @@ void AddressManager::Scan() {
 }
 
 void AddressManager::Initialize() {
+    if (s_is_scanned) return;
     Scan();
+    s_is_scanned = true;
 }
 
 void* AddressManager::GetLocalPlayer() {

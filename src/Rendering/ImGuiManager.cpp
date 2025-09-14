@@ -51,16 +51,43 @@ void ImGuiManager::NewFrame() {
 }
 
 void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView) {
-    // Finish the frame and render ImGui elements
     ImGui::EndFrame();
     ImGui::Render();
-    
-    // Set render target and draw ImGui data
-    context->OMSetRenderTargets(1, &mainRenderTargetView, NULL);
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+    ID3D11RenderTargetView* rtv = mainRenderTargetView;
+    // If no RTV is provided (like from the GW2AL event), get it from D3DRenderHook's state
+    if (!rtv && kx::Hooking::D3DRenderHook::IsInitialized()) {
+        rtv = kx::Hooking::D3DRenderHook::GetRenderTargetView(); // You'll need to add this getter
+    }
+
+    if (rtv) {
+        context->OMSetRenderTargets(1, &rtv, NULL);
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    }
 }
 
+// Add this to your RenderUI function
 void ImGuiManager::RenderUI() {
+    // --- FIX: Defer Address Scanning & Handle Input ---
+    // This static flag ensures we only do these checks once.
+    static bool first_run = true;
+    if (first_run) {
+        // Deferring the scan until the first render frame is more reliable.
+        kx::AddressManager::Initialize();
+        first_run = false;
+    }
+
+    // This is the new, correct location for the window toggle hotkey.
+    // It will now work in both standalone and GW2AL mode.
+    static bool lastToggleKeyState = false;
+    bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
+    if (currentToggleKeyState && !lastToggleKeyState) {
+        auto& settings = kx::AppState::Get().GetSettings();
+        settings.showVisionWindow = !settings.showVisionWindow;
+    }
+    lastToggleKeyState = currentToggleKeyState;
+    // --- END FIX ---
+
     ImGuiIO& io = ImGui::GetIO();
 
     // Update MumbleLink and Camera
@@ -69,7 +96,7 @@ void ImGuiManager::RenderUI() {
 
     // Render the ESP overlay
     kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, m_mumbleLinkManager.GetData());
-    
+
     // Render the UI window if it's shown
     if (kx::AppState::Get().GetSettings().showVisionWindow) {
         RenderESPWindow();

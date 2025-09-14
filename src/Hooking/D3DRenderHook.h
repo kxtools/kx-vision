@@ -42,7 +42,9 @@ namespace kx::Hooking {
          */
         static bool IsInitialized();
 
+        static ID3D11Device* GetDevice() { return m_pDevice; }
         static ID3D11DeviceContext* GetContext() { return m_pContext; }
+        static ID3D11RenderTargetView* GetRenderTargetView() { return m_pMainRenderTargetView; }
 
         static HWND GetWindowHandle() { return m_hWindow; }
 
