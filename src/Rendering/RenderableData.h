@@ -27,12 +27,13 @@ struct RenderablePlayer {
     Game::Race race;                 // Type-safe enum for character race
     bool isValid;
     bool isLocalPlayer; // Flag to identify if this is the local player
+    void* address;
     
-    RenderablePlayer() : position(0.0f), screenPos(0.0f), distance(0.0f), 
+        RenderablePlayer() : position(0.0f), screenPos(0.0f), distance(0.0f), 
                         currentHealth(0.0f), maxHealth(0.0f), 
                         currentEnergy(0.0f), maxEnergy(0.0f), level(0), 
                         profession(Game::Profession::None), attitude(Game::Attitude::Neutral),
-                        race(Game::Race::None), isValid(false), isLocalPlayer(false) {}
+                        race(Game::Race::None), isValid(false), isLocalPlayer(false), address(nullptr) {}
 };
 
 struct RenderableNpc {
@@ -45,10 +46,11 @@ struct RenderableNpc {
     uint32_t level;
     Game::Attitude attitude;         // Type-safe enum instead of uint32_t
     bool isValid;
+    void* address;
     
-    RenderableNpc() : position(0.0f), screenPos(0.0f), distance(0.0f), 
+        RenderableNpc() : position(0.0f), screenPos(0.0f), distance(0.0f), 
                      currentHealth(0.0f), maxHealth(0.0f), 
-                     level(0), attitude(Game::Attitude::Neutral), isValid(false) {}
+                     level(0), attitude(Game::Attitude::Neutral), isValid(false), address(nullptr) {}
 };
 
 struct RenderableGadget {
@@ -59,10 +61,11 @@ struct RenderableGadget {
     Game::GadgetType type;           // Type-safe enum instead of uint32_t
     bool isGatherable;               // Additional flag for resource nodes
     bool isValid;
+    void* address;
     
     RenderableGadget() : position(0.0f), screenPos(0.0f), distance(0.0f), 
                         type(Game::GadgetType::None), 
-                        isGatherable(false), isValid(false) {}
+                        isGatherable(false), isValid(false), address(nullptr) {}
 };
 
 } // namespace kx

@@ -193,7 +193,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
         }
 
         std::vector<std::string> details;
-        details.reserve(5); // Pre-allocate to avoid reallocations
+        details.reserve(7); // Pre-allocate to avoid reallocations
         if (settings.playerESP.renderDetails) {
             if (!player->playerName.empty()) {
                 details.emplace_back("Player: " + player->playerName);
@@ -219,6 +219,12 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
                 const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
                 details.emplace_back("Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
             }
+
+#ifdef _DEBUG
+            char addrStr[32];
+            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
+            details.emplace_back(addrStr);
+#endif
         }
 
         EntityRenderContext context{
@@ -275,7 +281,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
         }
 
         std::vector<std::string> details;
-        details.reserve(4); // Pre-allocate to avoid reallocations
+        details.reserve(5); // Pre-allocate to avoid reallocations
         if (settings.npcESP.renderDetails) {
             if (!npc->name.empty()) {
                 details.emplace_back("NPC: " + npc->name);
@@ -290,6 +296,12 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
             }
             
             details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc->attitude));
+
+#ifdef _DEBUG
+            char addrStr[32];
+            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", npc->address);
+            details.emplace_back(addrStr);
+#endif
         }
 
         static const std::string emptyPlayerName = "";
@@ -324,12 +336,18 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         unsigned int color = ESPColors::GADGET;
 
         std::vector<std::string> details;
-        details.reserve(2); // Pre-allocate for type and gatherable status
+        details.reserve(3); // Pre-allocate for type and gatherable status
         if (settings.objectESP.renderDetails) {
             details.emplace_back("Type: " + ESPFormatting::GadgetTypeToString(gadget->type));
             if (gadget->isGatherable) {
                 details.emplace_back("Status: Gatherable");
             }
+
+#ifdef _DEBUG
+            char addrStr[32];
+            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", gadget->address);
+            details.emplace_back(addrStr);
+#endif
         }
 
         static const std::string emptyPlayerName = "";

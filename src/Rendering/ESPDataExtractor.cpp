@@ -85,6 +85,7 @@ void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPoo
                                                  gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
                                                  gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
             renderablePlayer->isValid = true;
+            renderablePlayer->address = const_cast<void*>(character.data());
 
             // Extract player name
             auto playerNameIt = characterNameToPlayerName.find(characterDataPtr);
@@ -175,6 +176,7 @@ void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
                                               gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
                                               gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
             renderableNpc->isValid = true;
+        	renderableNpc->address = const_cast<void*>(character.data());
             
             // Extract health
             kx::ReClass::ChCliHealth health = nonConstCharacter.GetHealth();
@@ -231,6 +233,7 @@ void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPoo
                                              gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
                                              gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
         renderableGadget->isValid = true;
+        renderableGadget->address = const_cast<void*>(gadget.data());
 
         // Extract type with type-safe enum assignment
         renderableGadget->type = nonConstGadget.GetGadgetType();
