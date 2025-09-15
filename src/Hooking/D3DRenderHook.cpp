@@ -312,56 +312,35 @@ namespace kx::Hooking {
 
     // In Hooking/D3DRenderHook.cpp
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-        // If our addon isn't initialized, do nothing.
         if (!m_isInit) {
-            return m_pOriginalWndProc ? CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam)
-                : DefWindowProc(hWnd, uMsg, wParam, lParam);
+            return CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam);
         }
 
         ImGuiIO& io = ImGui::GetIO();
 
-        // Check if the mouse cursor is currently over an ImGui window.
-        // We do this check BEFORE calling the ImGui handler for mouse messages.
-        bool isMouseOverImGui = io.WantCaptureMouse;
+        // Always let ImGui's backend process the message. This is crucial for its
+        // internal state management (e.g., knowing a mouse button was released).
+        ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
 
-        // --- CRITICAL FIX FOR GW2 CAMERA ---
-        // If the UI is open BUT the mouse is NOT over an ImGui window, we must NOT let
-        // ImGui's WndProc handler see mouse messages. This allows the game's camera
-        // controls to work correctly.
-        if (kx::AppState::Get().GetSettings().showVisionWindow && isMouseOverImGui) {
-            // If the mouse IS over ImGui, let ImGui process it and block the game.
-            ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-
-            switch (uMsg) {
-            case WM_LBUTTONDOWN: case WM_LBUTTONUP:
-            case WM_RBUTTONDOWN: case WM_RBUTTONUP:
-            case WM_MBUTTONDOWN: case WM_MBUTTONUP:
-            case WM_XBUTTONDOWN: case WM_XBUTTONUP:
-            case WM_MOUSEWHEEL: case WM_MOUSEMOVE:
-                return 1; // Block the game from seeing the message.
+        // Now, we decide whether to BLOCK the game from receiving the message.
+        // We only block if our UI is visible AND ImGui wants to capture the input.
+        if (kx::AppState::Get().GetSettings().showVisionWindow) {
+            // If ImGui wants the mouse, block all mouse messages from the game.
+            // This prevents camera movement while dragging a window or clicking a button.
+            if (io.WantCaptureMouse && (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)) {
+                return 1;
             }
-        }
-        else {
-            // If the UI is hidden OR the mouse is over the game world, ImGui should
-            // still process non-mouse events (like keyboard input for hotkeys),
-            // but it should NOT block mouse events from the game.
-            ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-        }
 
-        // Now, handle keyboard blocking separately. This logic is fine because
-        // it doesn't interfere with the mouse-based camera.
-        if (kx::AppState::Get().GetSettings().showVisionWindow && io.WantCaptureKeyboard) {
-            switch (uMsg) {
-            case WM_KEYDOWN: case WM_KEYUP:
-            case WM_SYSKEYDOWN: case WM_SYSKEYUP:
-            case WM_CHAR:
-                return 1; // Block game from getting keyboard input if ImGui wants it.
+            // If ImGui wants the keyboard, block all keyboard messages.
+            // This prevents typing in-game chat while typing in an ImGui text field.
+            if (io.WantCaptureKeyboard && (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)) {
+                return 1;
             }
         }
 
-        // If we haven't returned yet, it's safe to pass the message to the game.
-        return m_pOriginalWndProc ? CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam)
-            : DefWindowProc(hWnd, uMsg, wParam, lParam);
+        // If we're here, either the UI is hidden or ImGui doesn't want the input.
+        // In either case, the game should receive the message.
+        return CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam);
     }
 
 

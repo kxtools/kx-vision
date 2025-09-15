@@ -40,7 +40,6 @@ void OnPresent(d3d9_wrapper_event_data* evd) {
     }
     pBackBuffer->Release();
 
-    // Backup the game's D3D state. THIS IS THE FIX.
     kx::StateBackupD3D11 d3dstate;
     kx::BackupD3D11State(context, d3dstate);
 
@@ -48,7 +47,6 @@ void OnPresent(d3d9_wrapper_event_data* evd) {
     ImGuiManager::RenderUI();
     ImGuiManager::Render(context, mainRenderTargetView);
 
-    // Restore the game's D3D state. THIS IS THE FIX.
     kx::RestoreD3D11State(context, d3dstate);
 
     mainRenderTargetView->Release();
@@ -89,26 +87,20 @@ extern "C" __declspec(dllexport) gw2al_addon_dsc* gw2addon_get_description() {
 }
 
 // This is called by GW2AL when the addon is loaded.
+// In Core/GW2AL_Integration.cpp
 extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* core_api) {
     g_al_api = core_api;
     g_addon_loader_present = true;
 
-    // CRITICAL FIX: Initialize your logger. This is why logs weren't appearing.
     LOG_INIT();
     LOG_INFO("KXVision starting up in GW2AL mode...");
 
-    // Initialize your core components that don't depend on DirectX yet.
-    //kx::AddressManager::Initialize();
-    kx::InitializeHooks(); // This now only hooks the game thread, not Present.
-
-    // Get the function pointer from d3d9_wrapper that allows us to subscribe to events.
+    // Get the function pointer from d3d9_wrapper to enable events.
     pD3D9_wrapper_enable_event enable_event = (pD3D9_wrapper_enable_event)g_al_api->query_function(
         g_al_api->hash_name((wchar_t*)D3D9_WRAPPER_ENABLE_EVENT_FNAME)
     );
 
-    // Tell d3d9_wrapper that we are interested in two events:
-    // 1. When the swap chain is created (so we can get the D3D device).
-    // 2. Before the frame is presented (so we can draw our UI).
+    // Enable ONLY the events we need to kickstart our initialization and rendering.
     enable_event(METH_DXGI_CreateSwapChain, WRAP_CB_POST);
     enable_event(METH_SWC_Present, WRAP_CB_PRE);
     enable_event(METH_SWC_ResizeBuffers, WRAP_CB_POST);
@@ -117,22 +109,20 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
     g_al_api->watch_event(
         g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_DXGI_CreateSwapChain")),
         g_al_api->hash_name(L"kxvision_init"),
-        [](void* data) {
+        [](void* data) { // Lambda function for our callback
             d3d9_wrapper_event_data* evd = (d3d9_wrapper_event_data*)data;
-
-            // Cast the event's stack pointer to our known struct to get the function arguments.
             dxgi_CreateSwapChain_cp* params = (dxgi_CreateSwapChain_cp*)evd->stackPtr;
 
-            // Now that we have the device and swap chain, initialize our renderer and ImGui.
+            // This is the FIRST point where we have a D3D device. Initialize our renderer.
             kx::Hooking::D3DRenderHook::InitializeFromGW2AL(
                 (ID3D11Device*)params->inDevice,
                 *params->ppSwapchain
             );
 
-            // Unwatch this event now that we are initialized. It only needs to run once.
+            // Now that the renderer is initialized, we can unwatch this event.
             g_al_api->unwatch_event(g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_DXGI_CreateSwapChain")), g_al_api->hash_name(L"kxvision_init"));
         },
-        -1 // Use a high priority to initialize as early as possible.
+        -1 // High priority to initialize as early as possible.
     );
 
     // Watch for the Present call every frame. This is our render loop.
@@ -140,9 +130,10 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
         g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_Present")),
         g_al_api->hash_name(L"kxvision_present"),
         (gw2al_api_event_handler)&OnPresent,
-        0 // Default priority is fine for rendering.
+        0
     );
 
+    // Watch for the ResizeBuffers event to handle window size changes.
     g_al_api->watch_event(
         g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_SWC_ResizeBuffers")),
         g_al_api->hash_name(L"kxvision_resize"),

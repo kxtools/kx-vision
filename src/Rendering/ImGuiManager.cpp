@@ -7,6 +7,7 @@
 
 #include "ESPRenderer.h"
 #include "GuiStyle.h"
+#include "Hooks.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../../libs/ImGui/imgui_impl_dx11.h"
 #include "../../libs/ImGui/imgui_impl_win32.h"
@@ -68,17 +69,33 @@ void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* 
 
 // Add this to your RenderUI function
 void ImGuiManager::RenderUI() {
-    // --- FIX: Defer Address Scanning & Handle Input ---
-    // This static flag ensures we only do these checks once.
-    static bool first_run = true;
-    if (first_run) {
-        // Deferring the scan until the first render frame is more reliable.
-        kx::AddressManager::Initialize();
-        first_run = false;
-    }
+    // This static flag ensures we only run our core initialization logic ONCE.
+    static bool is_fully_initialized = false;
 
-    // This is the new, correct location for the window toggle hotkey.
-    // It will now work in both standalone and GW2AL mode.
+    // Always update MumbleLink first to get the latest game state.
+    m_mumbleLinkManager.Update();
+
+    // --- DEFINITIVE FIX for Initialization Timing ---
+    if (!is_fully_initialized && m_mumbleLinkManager.IsInitialized()) {
+        // We are connected to MumbleLink, now get the data.
+        const kx::MumbleLinkData* mumbleData = m_mumbleLinkManager.GetData();
+
+        // Cast the raw context block to our MumbleContext struct.
+        const kx::MumbleContext* context = reinterpret_cast<const kx::MumbleContext*>(mumbleData->context);
+
+        // Now, we can safely check mapId. If it's not 0, the player is in-game.
+        if (context && context->mapId != 0) {
+            LOG_INFO("[ImGuiManager] MumbleLink is active and in-map (Map ID: %u). Initializing core components...", context->mapId);
+            kx::AddressManager::Initialize();
+            kx::InitializeHooks();
+            is_fully_initialized = true; // Set the flag so this block never runs again.
+        }
+    }
+    // --- END FIX ---
+
+    // The rest of the function handles frame-by-frame logic.
+
+    // Handle the window toggle hotkey.
     static bool lastToggleKeyState = false;
     bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
     if (currentToggleKeyState && !lastToggleKeyState) {
@@ -86,18 +103,17 @@ void ImGuiManager::RenderUI() {
         settings.showVisionWindow = !settings.showVisionWindow;
     }
     lastToggleKeyState = currentToggleKeyState;
-    // --- END FIX ---
 
     ImGuiIO& io = ImGui::GetIO();
+    const kx::MumbleLinkData* mumbleData = m_mumbleLinkManager.GetData();
 
-    // Update MumbleLink and Camera
-    m_mumbleLinkManager.Update();
-    m_camera.Update(m_mumbleLinkManager.GetData(), kx::Hooking::D3DRenderHook::GetWindowHandle());
+    // Update the camera.
+    m_camera.Update(mumbleData, kx::Hooking::D3DRenderHook::GetWindowHandle());
 
-    // Render the ESP overlay
-    kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, m_mumbleLinkManager.GetData());
+    // Render the ESP overlay.
+    kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, mumbleData);
 
-    // Render the UI window if it's shown
+    // Render the UI window if it's shown.
     if (kx::AppState::Get().GetSettings().showVisionWindow) {
         RenderESPWindow();
     }

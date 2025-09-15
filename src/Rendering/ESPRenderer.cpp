@@ -71,9 +71,9 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {
-    if (mumbleData && (mumbleData->context.uiState & IsMapOpen)) {
+    /*if (mumbleData && (mumbleData->context.uiState & IsMapOpen)) {
         return true;
-    }
+    }*/
     return false;
 }
 

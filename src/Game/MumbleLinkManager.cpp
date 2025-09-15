@@ -1,77 +1,95 @@
 #include "MumbleLinkManager.h"
-
-#include <iostream>
+#include <string> // Required for std::wcscmp
 
 namespace kx {
 
-MumbleLinkManager::MumbleLinkManager() {
-    // Initialization is handled lazily in the first Update call
-}
-
-MumbleLinkManager::~MumbleLinkManager() {
-    if (m_mumbleLink) UnmapViewOfFile(m_mumbleLink);
-    if (m_mumbleLinkFile) CloseHandle(m_mumbleLinkFile);
-}
-
-bool MumbleLinkManager::Initialize() {
-    m_mumbleLinkFile = CreateFileMappingW(
-        INVALID_HANDLE_VALUE,
-        NULL,
-        PAGE_READWRITE,
-        0,
-        sizeof(MumbleLinkData),
-        L"MumbleLink"
-    );
-
-    if (m_mumbleLinkFile == NULL) {
-        return false;
+    MumbleLinkManager::MumbleLinkManager() {
+        // Initialization is deferred to the first Update() call.
+        // This makes the startup process more resilient to timing issues.
     }
 
-    m_mumbleLink = static_cast<MumbleLinkData*>(MapViewOfFile(
-        m_mumbleLinkFile,
-        FILE_MAP_READ,
-        0,
-        0,
-        sizeof(MumbleLinkData)
-    ));
-
-    if (m_mumbleLink == NULL) {
-        CloseHandle(m_mumbleLinkFile);
-        m_mumbleLinkFile = nullptr;
-        return false;
-    }
-
-    m_mumbleLinkInitialized = true;
-    return true;
-}
-
-void MumbleLinkManager::Update() {
-    if (!m_mumbleLinkInitialized) {
-        auto now = std::chrono::steady_clock::now();
-        if (now - m_lastMumbleRetryTime >= MumbleRetryInterval) {
-            m_lastMumbleRetryTime = now;
-            if (!Initialize()) {
-                return;
-            }
-        } else {
-            return;
+    MumbleLinkManager::~MumbleLinkManager() {
+        // Clean up Windows handles on destruction.
+        if (m_mumbleLink) {
+            UnmapViewOfFile(m_mumbleLink);
+            m_mumbleLink = nullptr;
+        }
+        if (m_mumbleLinkFile) {
+            CloseHandle(m_mumbleLinkFile);
+            m_mumbleLinkFile = nullptr;
         }
     }
 
-    // 1. Validate the basic MumbleLink data (uiVersion and game name).
-    //    If invalid, we stop processing this frame.
-    if (m_mumbleLink->uiVersion != 2 ||
-        std::wcscmp(m_mumbleLink->name, GW2_GAME_NAME) != 0) {
-        return; 
+    bool MumbleLinkManager::Initialize() {
+        // Try to open the shared memory file created by Guild Wars 2.
+        m_mumbleLinkFile = CreateFileMappingW(
+            INVALID_HANDLE_VALUE,
+            NULL,
+            PAGE_READWRITE,
+            0,
+            sizeof(MumbleLinkData),
+            GW2_MUMBLE_LINK_NAME
+        );
+
+        if (m_mumbleLinkFile == NULL) {
+            // This is not an error; it just means the game hasn't created the MumbleLink yet.
+            return false;
+        }
+
+        // Map the shared memory file into our process's address space.
+        m_mumbleLink = static_cast<MumbleLinkData*>(MapViewOfFile(
+            m_mumbleLinkFile,
+            FILE_MAP_READ,
+            0,
+            0,
+            sizeof(MumbleLinkData)
+        ));
+
+        if (m_mumbleLink == NULL) {
+            // If mapping fails, clean up and report failure.
+            CloseHandle(m_mumbleLinkFile);
+            m_mumbleLinkFile = nullptr;
+            return false;
+        }
+
+        m_mumbleLinkInitialized = true;
+        return true;
     }
 
-    // 2. If the data is valid, update m_lastTick if the uiTick has advanced.
-    //    This is for internal tracking of MumbleLink's own tick counter.
-    //    Crucially, the function DOES NOT return here if uiTick hasn't changed.
-    //    The actual camera/avatar data (m_mumbleLink) is always available via GetData().
-    if (m_mumbleLink->uiTick != m_lastTick) {
-        m_lastTick = m_mumbleLink->uiTick;
+    void MumbleLinkManager::Update() {
+        // If we are not yet connected, periodically try to initialize.
+        if (!m_mumbleLinkInitialized) {
+            auto now = std::chrono::steady_clock::now();
+            if (now - m_lastMumbleRetryTime >= MumbleRetryInterval) {
+                m_lastMumbleRetryTime = now;
+                Initialize(); // Attempt to connect.
+            }
+            // Return early if we are still not connected.
+            return;
+        }
+
+        // --- Data Validation ---
+        // Once connected, we must continuously validate the data. If the game closes
+        // or another application creates a MumbleLink, the data will become invalid.
+        if (m_mumbleLink->uiVersion != 2 ||
+            std::wcscmp(m_mumbleLink->name, GW2_GAME_NAME) != 0) {
+
+            // Data is invalid. Mark as uninitialized to trigger reconnect attempts.
+            //m_mumbleLinkInitialized = false;
+
+            //// Clean up resources.
+            //UnmapViewOfFile(m_mumbleLink);
+            //m_mumbleLink = nullptr;
+            //CloseHandle(m_mumbleLinkFile);
+            //m_mumbleLinkFile = nullptr;
+            return;
+        }
+
+        // If data is valid, update our internal tick counter.
+        // The data in m_mumbleLink is always the latest from shared memory.
+        if (m_mumbleLink->uiTick != m_lastTick) {
+            m_lastTick = m_mumbleLink->uiTick;
+        }
     }
-}
 
 } // namespace kx
