@@ -7,6 +7,7 @@
 #include "HookManager.h"      // To create/remove the hook
 #include "ImGuiManager.h"     // To initialize and render ImGui
 #include "../../libs/ImGui/imgui.h"
+#include "../../libs/ImGui/imgui_impl_dx11.h"
 
 // Declare the external ImGui Win32 handler
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -122,6 +123,27 @@ namespace kx::Hooking {
 
     bool D3DRenderHook::IsInitialized() {
         return m_isInit;
+    }
+
+    void D3DRenderHook::OnResize(IDXGISwapChain* pSwapChain) {
+        if (!m_isInit) return;
+
+        // Release the old render target view
+        if (m_pMainRenderTargetView) {
+            m_pMainRenderTargetView->Release();
+            m_pMainRenderTargetView = nullptr;
+        }
+        ImGui_ImplDX11_InvalidateDeviceObjects();
+
+        // The RTV will be recreated on the next Present call, but we must
+        // tell ImGui about the new size immediately.
+        DXGI_SWAP_CHAIN_DESC sd;
+        pSwapChain->GetDesc(&sd);
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize = ImVec2((float)sd.BufferDesc.Width, (float)sd.BufferDesc.Height);
+
+        ImGui_ImplDX11_CreateDeviceObjects();
+        LOG_INFO("[D3DRenderHook] Swap chain resized to %dx%d.", sd.BufferDesc.Width, sd.BufferDesc.Height);
     }
 
 #ifndef GW2AL_BUILD
@@ -290,18 +312,54 @@ namespace kx::Hooking {
 
     // In Hooking/D3DRenderHook.cpp
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-        if (m_isInit && kx::AppState::Get().GetSettings().showVisionWindow) {
-            if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-                return 1;
-            }
+        // If our addon isn't initialized, do nothing.
+        if (!m_isInit) {
+            return m_pOriginalWndProc ? CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam)
+                : DefWindowProc(hWnd, uMsg, wParam, lParam);
+        }
 
-            ImGuiIO& io = ImGui::GetIO();
-            if ((io.WantCaptureMouse && (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)) ||
-                (io.WantCaptureKeyboard && (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST))) {
-                return 1;
+        ImGuiIO& io = ImGui::GetIO();
+
+        // Check if the mouse cursor is currently over an ImGui window.
+        // We do this check BEFORE calling the ImGui handler for mouse messages.
+        bool isMouseOverImGui = io.WantCaptureMouse;
+
+        // --- CRITICAL FIX FOR GW2 CAMERA ---
+        // If the UI is open BUT the mouse is NOT over an ImGui window, we must NOT let
+        // ImGui's WndProc handler see mouse messages. This allows the game's camera
+        // controls to work correctly.
+        if (kx::AppState::Get().GetSettings().showVisionWindow && isMouseOverImGui) {
+            // If the mouse IS over ImGui, let ImGui process it and block the game.
+            ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+
+            switch (uMsg) {
+            case WM_LBUTTONDOWN: case WM_LBUTTONUP:
+            case WM_RBUTTONDOWN: case WM_RBUTTONUP:
+            case WM_MBUTTONDOWN: case WM_MBUTTONUP:
+            case WM_XBUTTONDOWN: case WM_XBUTTONUP:
+            case WM_MOUSEWHEEL: case WM_MOUSEMOVE:
+                return 1; // Block the game from seeing the message.
+            }
+        }
+        else {
+            // If the UI is hidden OR the mouse is over the game world, ImGui should
+            // still process non-mouse events (like keyboard input for hotkeys),
+            // but it should NOT block mouse events from the game.
+            ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+        }
+
+        // Now, handle keyboard blocking separately. This logic is fine because
+        // it doesn't interfere with the mouse-based camera.
+        if (kx::AppState::Get().GetSettings().showVisionWindow && io.WantCaptureKeyboard) {
+            switch (uMsg) {
+            case WM_KEYDOWN: case WM_KEYUP:
+            case WM_SYSKEYDOWN: case WM_SYSKEYUP:
+            case WM_CHAR:
+                return 1; // Block game from getting keyboard input if ImGui wants it.
             }
         }
 
+        // If we haven't returned yet, it's safe to pass the message to the game.
         return m_pOriginalWndProc ? CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam)
             : DefWindowProc(hWnd, uMsg, wParam, lParam);
     }

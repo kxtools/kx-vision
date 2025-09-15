@@ -17,3 +17,12 @@ struct dxgi_CreateSwapChain_cp {
     DXGI_SWAP_CHAIN_DESC* desc;
     IDXGISwapChain** ppSwapchain;
 };
+
+struct swc_ResizeBuffers_cp {
+    IDXGISwapChain* swc;
+    UINT BufferCount;
+    UINT Width;
+    UINT Height;
+    DXGI_FORMAT NewFormat;
+    UINT SwapChainFlags;
+};

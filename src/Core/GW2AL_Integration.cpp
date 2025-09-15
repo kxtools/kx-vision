@@ -40,6 +40,7 @@ void OnPresent(d3d9_wrapper_event_data* evd) {
     }
     pBackBuffer->Release();
 
+    // Backup the game's D3D state. THIS IS THE FIX.
     kx::StateBackupD3D11 d3dstate;
     kx::BackupD3D11State(context, d3dstate);
 
@@ -47,9 +48,23 @@ void OnPresent(d3d9_wrapper_event_data* evd) {
     ImGuiManager::RenderUI();
     ImGuiManager::Render(context, mainRenderTargetView);
 
+    // Restore the game's D3D state. THIS IS THE FIX.
     kx::RestoreD3D11State(context, d3dstate);
 
     mainRenderTargetView->Release();
+}
+
+void OnResize(d3d9_wrapper_event_data* evd) {
+    if (!kx::Hooking::D3DRenderHook::IsInitialized()) return;
+
+    // Get the swap chain pointer from the event data
+    struct swc_ResizeBuffers_cp {
+        IDXGISwapChain* swc;
+        // ... other params we don't need
+    };
+    swc_ResizeBuffers_cp* params = (swc_ResizeBuffers_cp*)evd->stackPtr;
+
+    kx::Hooking::D3DRenderHook::OnResize(params->swc);
 }
 
 // This is the addon's entry point for GW2AL.
@@ -96,6 +111,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
     // 2. Before the frame is presented (so we can draw our UI).
     enable_event(METH_DXGI_CreateSwapChain, WRAP_CB_POST);
     enable_event(METH_SWC_Present, WRAP_CB_PRE);
+    enable_event(METH_SWC_ResizeBuffers, WRAP_CB_POST);
 
     // Watch for the swap chain creation event. This is our main initialization point.
     g_al_api->watch_event(
@@ -127,6 +143,13 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
         0 // Default priority is fine for rendering.
     );
 
+    g_al_api->watch_event(
+        g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_SWC_ResizeBuffers")),
+        g_al_api->hash_name(L"kxvision_resize"),
+        (gw2al_api_event_handler)&OnResize,
+        0
+    );
+
     return GW2AL_OK;
 }
 
@@ -134,6 +157,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
 extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting) {
     // Unsubscribe from events to prevent callbacks to an unloaded module.
     g_al_api->unwatch_event(g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_Present")), g_al_api->hash_name(L"kxvision_present"));
+    g_al_api->unwatch_event(g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_SWC_ResizeBuffers")), g_al_api->hash_name(L"kxvision_resize")); // <<<--- ADD THIS LINE
 
     // Perform cleanup in the reverse order of initialization.
     kx::CleanupHooks();

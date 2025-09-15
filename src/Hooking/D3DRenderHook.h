@@ -42,10 +42,12 @@ namespace kx::Hooking {
          */
         static bool IsInitialized();
 
+        // NEW: Function to handle swap chain resizing
+        static void OnResize(IDXGISwapChain* pSwapChain);
+
         static ID3D11Device* GetDevice() { return m_pDevice; }
         static ID3D11DeviceContext* GetContext() { return m_pContext; }
         static ID3D11RenderTargetView* GetRenderTargetView() { return m_pMainRenderTargetView; }
-
         static HWND GetWindowHandle() { return m_hWindow; }
 
     private:
