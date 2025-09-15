@@ -316,30 +316,61 @@ namespace kx::Hooking {
             return CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam);
         }
 
+        // Only process input with ImGui if the UI is visible.
+        // This prevents a hidden UI from capturing mouse/keyboard focus.
+        if (kx::AppState::Get().GetSettings().showVisionWindow) {
+            // Let ImGui's backend process the message first. This is crucial because
+            // it's what updates the io.WantCaptureMouse and io.WantCaptureKeyboard flags.
+            ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+        }
+
         ImGuiIO& io = ImGui::GetIO();
 
-        // Always let ImGui's backend process the message. This is crucial for its
-        // internal state management (e.g., knowing a mouse button was released).
-        ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-
-        // Now, we decide whether to BLOCK the game from receiving the message.
-        // We only block if our UI is visible AND ImGui wants to capture the input.
+        // Now, decide whether to BLOCK the game from receiving this message.
+        // We block input only if your UI is visible AND ImGui has captured the input.
         if (kx::AppState::Get().GetSettings().showVisionWindow) {
-            // If ImGui wants the mouse, block all mouse messages from the game.
-            // This prevents camera movement while dragging a window or clicking a button.
-            if (io.WantCaptureMouse && (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)) {
-                return 1;
+            // Check for mouse input capture
+            switch (uMsg) {
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONUP:
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONUP:
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONUP:
+            case WM_XBUTTONDOWN:
+            case WM_XBUTTONUP:
+            case WM_MOUSEWHEEL:
+            case WM_LBUTTONDBLCLK:
+            case WM_RBUTTONDBLCLK:
+            case WM_MBUTTONDBLCLK:
+            case WM_XBUTTONDBLCLK:
+            case WM_MOUSEMOVE: // Also block mouse movement if captured
+                if (io.WantCaptureMouse) {
+                    return 0; // Input is captured by ImGui, block it from the game.
+                }
+                break;
             }
 
-            // If ImGui wants the keyboard, block all keyboard messages.
-            // This prevents typing in-game chat while typing in an ImGui text field.
-            if (io.WantCaptureKeyboard && (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)) {
-                return 1;
+            // Check for keyboard input capture
+            switch (uMsg) {
+            case WM_KEYDOWN:
+            case WM_KEYUP:
+            case WM_SYSKEYDOWN:
+            case WM_SYSKEYUP:
+                if (io.WantCaptureKeyboard) {
+                    return 0; // Input is captured by ImGui, block it from the game.
+                }
+                break;
+            case WM_CHAR:
+                if (io.WantTextInput) {
+                    return 0; // Input is captured by ImGui, block it from the game.
+                }
+                break;
             }
         }
 
-        // If we're here, either the UI is hidden or ImGui doesn't want the input.
-        // In either case, the game should receive the message.
+        // If we haven't returned yet, it means the input was not captured by ImGui
+        // or the UI is hidden. In either case, we should pass the message to the game.
         return CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam);
     }
 
