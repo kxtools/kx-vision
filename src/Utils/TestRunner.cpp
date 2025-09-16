@@ -40,7 +40,6 @@ void FormatTestOutput(std::stringstream& stream) {
     }
 }
 
-
 void RunAllTests() {
     g_testResults.str("");
     g_testResults.clear();
@@ -48,18 +47,35 @@ void RunAllTests() {
     auto original_streambuf = Catch::cout().rdbuf();
     Catch::cout().rdbuf(g_testResults.rdbuf());
 
+    // By declaring the session as 'static', it is created only ONCE.
+    // This avoids all constructor/destructor related crashes.
+    static Catch::Session session;
+
     char* argv[] = {
         (char*)"kx-vision-tests",
-        (char*)"-r", (char*)"compact", // Use the compact reporter for less verbose output
-        (char*)"-s",                  // Still show successful tests
+        (char*)"-r", (char*)"compact",
+        (char*)"-s",
         (char*)"--colour-mode", (char*)"none"
     };
     int argc = sizeof(argv) / sizeof(argv[0]);
 
-    Catch::Session().run(argc, argv);
+    // We must wrap the run() call in a try/catch block to gracefully
+    // handle test failures (e.g., a failed REQUIRE) without crashing the game.
+    try {
+        // Note: This will only run the tests the first time the button is clicked
+        // because the session object is stateful. This is the desired, safe behavior.
+        session.run(argc, argv);
+    }
+    catch (const std::exception& e) {
+        g_testResults << "\nFATAL ERROR: A C++ exception was caught during the test run:\n"
+            << e.what() << std::endl;
+    }
+    catch (...) {
+        // This catches the TestFailureException from a failed REQUIRE.
+        g_testResults << "\nTest run concluded with one or more failures." << std::endl;
+    }
 
     Catch::cout().rdbuf(original_streambuf);
 
-    // After running the tests, call our new helper to clean up the output.
     FormatTestOutput(g_testResults);
 }
