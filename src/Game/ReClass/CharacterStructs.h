@@ -156,7 +156,7 @@ namespace kx {
                 return attitude;
             }
 
-            Game::CharacterRank GetRank() {
+            Game::CharacterRank GetRank() const {
                 LOG_MEMORY("ChCliCharacter", "GetRank", data(), Offsets::CH_CLI_CHARACTER_RANK_FLAGS);
 
                 uint32_t flags = ReadMember<uint32_t>(Offsets::CH_CLI_CHARACTER_RANK_FLAGS, 0);

@@ -62,6 +62,7 @@ SCENARIO("Live Offset Validation in PvP Lobby", "[Offsets]")
                 auto coreStats = localPlayer.GetCoreStats();
                 CHECK(coreStats.GetLevel() == 80);
                 CHECK(coreStats.GetProfession() != kx::Game::Profession::None);
+                CHECK(coreStats.GetRace() != kx::Game::Race::None);
 
                 auto health = localPlayer.GetHealth();
                 CHECK(health.GetMax() > 1000.0f);
@@ -79,7 +80,6 @@ SCENARIO("Live Offset Validation in PvP Lobby", "[Offsets]")
                 REQUIRE(golem.data() != nullptr);
 
                 CHECK(golem.GetAttitude() == kx::Game::Attitude::Hostile);
-
                 CHECK(golem.GetRank() == kx::Game::CharacterRank::Ambient);
             }
         }
@@ -87,11 +87,14 @@ SCENARIO("Live Offset Validation in PvP Lobby", "[Offsets]")
         // --- TEST 3: Indifferent & Ambient NPC Validation ---
         WHEN("Searching for an Indifferent Training Golem") {
             auto golem = findCharacter(charContext, [](const auto& character) {
-                return character.GetAttitude() == kx::Game::Attitude::Indifferent;
+                // We now look for a character that is BOTH Indifferent AND Ambient.
+                // This will correctly skip over any Elite guards that are also Indifferent.
+                return character.GetAttitude() == kx::Game::Attitude::Indifferent
+                    && character.GetRank() == kx::Game::CharacterRank::Ambient;
                 });
 
             THEN("The golem is found and its Attitude and Rank offsets are valid") {
-                INFO("Could not find an indifferent golem. Are you near the Siege Training Waypoint?");
+                INFO("Could not find an Indifferent AND Ambient golem. This test can be fragile if other NPCs are nearby.");
                 REQUIRE(golem.data() != nullptr);
 
                 CHECK(golem.GetAttitude() == kx::Game::Attitude::Indifferent);
@@ -99,7 +102,7 @@ SCENARIO("Live Offset Validation in PvP Lobby", "[Offsets]")
             }
         }
 
-        // --- TEST 4: Gadget Validation ---
+        // --- TEST 4: PlayerCreated Gadget Validation ---
         WHEN("Searching for a Trebuchet gadget") {
             kx::ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
             REQUIRE(gadgetContext.data() != nullptr);
@@ -108,10 +111,32 @@ SCENARIO("Live Offset Validation in PvP Lobby", "[Offsets]")
                 return gadget.GetGadgetType() == kx::Game::GadgetType::PlayerCreated;
                 });
 
-            THEN("The trebuchet is found and its GadgetType offset is valid") {
+            THEN("The trebuchet is found and its Type and Position offsets are valid") {
                 INFO("Could not find a 'PlayerCreated' gadget (Trebuchet).");
                 REQUIRE(trebuchet.data() != nullptr);
                 CHECK(trebuchet.GetGadgetType() == kx::Game::GadgetType::PlayerCreated);
+
+                glm::vec3 pos = trebuchet.GetAgKeyFramed().GetCoKeyFramed().GetPosition();
+                CHECK(pos.x != 0.0f);
+            }
+        }
+
+        // --- TEST 5: Waypoint Gadget Validation ---
+        WHEN("Searching for the Siege Training Waypoint gadget") {
+            kx::ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
+            REQUIRE(gadgetContext.data() != nullptr);
+
+            auto waypoint = findGadget(gadgetContext, [](const auto& gadget) {
+                return gadget.GetGadgetType() == kx::Game::GadgetType::Waypoint;
+                });
+
+            THEN("The waypoint is found and its Type and Position offsets are valid") {
+                INFO("Could not find a 'Waypoint' gadget.");
+                REQUIRE(waypoint.data() != nullptr);
+                CHECK(waypoint.GetGadgetType() == kx::Game::GadgetType::Waypoint);
+
+                glm::vec3 pos = waypoint.GetAgKeyFramed().GetCoKeyFramed().GetPosition();
+                CHECK(pos.x != 0.0f);
             }
         }
     }
