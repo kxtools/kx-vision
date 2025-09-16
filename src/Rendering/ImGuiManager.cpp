@@ -21,6 +21,7 @@
 #include "GUI/ObjectsTab.h"
 #include "GUI/PlayersTab.h"
 #include "GUI/SettingsTab.h"
+#include "GUI/ValidationTab.h"
 
 // Define static members
 kx::Camera ImGuiManager::m_camera;
@@ -97,13 +98,16 @@ void ImGuiManager::RenderESPWindow() {
 	    kx::GUI::RenderAppearanceTab();
 	    kx::GUI::RenderSettingsTab();
 	    kx::GUI::RenderInfoTab();
+
+#ifdef _DEBUG
+        kx::GUI::RenderValidationTab();
+#endif
+
         ImGui::EndTabBar();
     }
 
     ImGui::End();
 }
-
-
 
 void ImGuiManager::RenderUI() {
     ImGuiIO& io = ImGui::GetIO();

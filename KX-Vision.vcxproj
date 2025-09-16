@@ -90,6 +90,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="libs\Catch2\catch_amalgamated.cpp" />
+    <ClCompile Include="libs\ImGui\imgui_stdlib.cpp" />
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
@@ -106,6 +108,8 @@
     <ClCompile Include="src\Rendering\GUI\ObjectsTab.cpp" />
     <ClCompile Include="src\Rendering\GUI\PlayersTab.cpp" />
     <ClCompile Include="src\Rendering\GUI\SettingsTab.cpp" />
+    <ClCompile Include="src\Rendering\GUI\ValidationTab.cpp" />
+    <ClCompile Include="src\Tests\OffsetValidationTests.cpp" />
     <ClCompile Include="src\Utils\Console.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook.cpp" />
     <ClCompile Include="src\Rendering\GuiStyle.cpp" />
@@ -122,8 +126,11 @@
     <ClCompile Include="src\Core\Main.cpp" />
     <ClCompile Include="src\Utils\DebugLogger.cpp" />
     <ClCompile Include="src\Utils\PatternScanner.cpp" />
+    <ClCompile Include="src\Utils\TestRunner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="libs\Catch2\catch_amalgamated.hpp" />
+    <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Game\AddressManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
@@ -150,6 +157,7 @@
     <ClInclude Include="src\Rendering\GUI\ObjectsTab.h" />
     <ClInclude Include="src\Rendering\GUI\PlayersTab.h" />
     <ClInclude Include="src\Rendering\GUI\SettingsTab.h" />
+    <ClInclude Include="src\Rendering\GUI\ValidationTab.h" />
     <ClInclude Include="src\Rendering\RenderableData.h" />
     <ClInclude Include="src\Rendering\ESPFormatting.h" />
     <ClInclude Include="src\Utils\Console.h" />
