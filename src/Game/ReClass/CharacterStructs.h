@@ -146,7 +146,7 @@ namespace kx {
                 return result;
             }
 
-            Game::Attitude GetAttitude() { 
+            Game::Attitude GetAttitude() const {
                 LOG_MEMORY("ChCliCharacter", "GetAttitude", data(), Offsets::CH_CLI_CHARACTER_ATTITUDE);
 
                 uint32_t attitudeValue = ReadMember<uint32_t>(Offsets::CH_CLI_CHARACTER_ATTITUDE, 1);

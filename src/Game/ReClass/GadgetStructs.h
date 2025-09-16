@@ -51,7 +51,7 @@ namespace kx {
         public:
             GdCliGadget(void* ptr) : kx::SafeForeignClass(ptr) {}
 
-            Game::GadgetType GetGadgetType() {
+            Game::GadgetType GetGadgetType() const {
                 LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), Offsets::GD_CLI_GADGET_TYPE);
                 
                 uint32_t typeValue = ReadMember<uint32_t>(Offsets::GD_CLI_GADGET_TYPE, 0);

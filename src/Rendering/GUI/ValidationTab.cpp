@@ -1,6 +1,5 @@
 #include "ValidationTab.h"
 #include "../../../libs/ImGui/imgui.h"
-#include "../../../libs/ImGui/imgui_stdlib.h"
 #include <string>
 #include <sstream>
 
@@ -11,14 +10,11 @@ namespace kx {
     namespace GUI {
         void RenderValidationTab() {
             if (ImGui::BeginTabItem("Validation")) {
-                // We use a static bool to track the state across multiple frames.
-                // It will only be false until the button is clicked for the first time.
                 static bool testsHaveBeenRun = false;
 
                 ImGui::TextWrapped("Run these tests in the PvP Lobby for best results.");
                 ImGui::Separator();
 
-                // If the tests have been run, we want to disable the button.
                 if (testsHaveBeenRun) {
                     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
                     ImGui::Button("Run Core Pointer Test");
@@ -28,10 +24,8 @@ namespace kx {
                     }
                 }
                 else {
-                    // This is the normal, clickable button.
                     if (ImGui::Button("Run Core Pointer Test")) {
                         RunAllTests();
-                        // Once clicked, we set the flag to true to disable future clicks.
                         testsHaveBeenRun = true;
                     }
                 }
@@ -39,16 +33,40 @@ namespace kx {
                 ImGui::Separator();
                 ImGui::Text("Results:");
 
-                // The results display logic remains the same, but we need to use a static string
-                // to ensure the results persist after the test run.
+                // Create a scrollable child window to contain the results
+                // This mimics the behavior of the InputTextMultiline
+                ImGui::BeginChild("ResultsRegion", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+
                 static std::string resultsStr;
                 if (testsHaveBeenRun && resultsStr.empty()) {
                     resultsStr = g_testResults.str();
                 }
 
-                ImGui::InputTextMultiline("##Results", &resultsStr,
-                    ImVec2(-1.0f, -1.0f),
-                    ImGuiInputTextFlags_ReadOnly);
+                if (!resultsStr.empty()) {
+                    // Define our colors for pass and fail
+                    const ImVec4 greenColor = ImVec4(0.4f, 1.0f, 0.4f, 1.0f);
+                    const ImVec4 redColor = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+
+                    // Use a stringstream to easily read the results line by line
+                    std::stringstream ss(resultsStr);
+                    std::string line;
+
+                    while (std::getline(ss, line)) {
+                        // Check for keywords to determine the color
+                        if (line.find("passed:") != std::string::npos || line.find("All tests passed") != std::string::npos) {
+                            ImGui::TextColored(greenColor, "%s", line.c_str());
+                        }
+                        else if (line.find("failed:") != std::string::npos || line.find("FAILED") != std::string::npos || line.find("fail") != std::string::npos) {
+                            ImGui::TextColored(redColor, "%s", line.c_str());
+                        }
+                        else {
+                            // Default color for headers and other info
+                            ImGui::TextUnformatted(line.c_str());
+                        }
+                    }
+                }
+
+                ImGui::EndChild(); // End the scrollable region
 
                 ImGui::EndTabItem();
             }
