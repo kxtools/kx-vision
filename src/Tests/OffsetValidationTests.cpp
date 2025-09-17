@@ -60,7 +60,7 @@ SCENARIO("Live Offset Validation in PvP Lobby", "[Offsets]")
                 CHECK(pos.x != 0.0f);
 
                 auto coreStats = localPlayer.GetCoreStats();
-                CHECK(coreStats.GetLevel() == 80);
+                CHECK(coreStats.GetScaledLevel() == 80);
                 CHECK(coreStats.GetProfession() != kx::Game::Profession::None);
                 CHECK(coreStats.GetRace() != kx::Game::Race::None);
 
