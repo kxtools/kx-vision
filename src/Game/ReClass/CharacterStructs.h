@@ -96,7 +96,16 @@ namespace kx {
                 LOG_DEBUG("ChCliCoreStats::GetLevel - Level: %u", level);
                 return level;
             }
-            
+
+            uint32_t GetScaledLevel() {
+                LOG_MEMORY("ChCliCoreStats", "GetScaledLevel", data(), Offsets::CH_CLI_CORE_STATS_SCALED_LEVEL);
+
+                uint32_t scaledLevel = ReadMember<uint32_t>(Offsets::CH_CLI_CORE_STATS_SCALED_LEVEL, 0);
+
+                LOG_DEBUG("ChCliCoreStats::GetScaledLevel - Level: %u", scaledLevel);
+                return scaledLevel;
+            }
+
             Game::Profession GetProfession() { 
                 LOG_MEMORY("ChCliCoreStats", "GetProfession", data(), Offsets::CH_CLI_CORE_STATS_PROFESSION);
                 

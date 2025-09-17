@@ -115,7 +115,7 @@ void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPoo
             kx::ReClass::ChCliCoreStats coreStats = nonConstCharacter.GetCoreStats();
             if (coreStats.data()) {
                 renderablePlayer->level = coreStats.GetLevel();
-                // Direct enum assignment instead of casting to uint32_t
+                renderablePlayer->scaledLevel = coreStats.GetScaledLevel();
                 renderablePlayer->profession = coreStats.GetProfession();
                 renderablePlayer->attitude = nonConstCharacter.GetAttitude();
                 renderablePlayer->race = coreStats.GetRace();

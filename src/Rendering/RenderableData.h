@@ -22,6 +22,7 @@ struct RenderablePlayer {
     float currentEnergy;
     float maxEnergy;
     uint32_t level;
+    uint32_t scaledLevel;
     Game::Profession profession;     // Type-safe enum instead of uint32_t
     Game::Attitude attitude;         // Type-safe enum instead of uint32_t
     Game::Race race;                 // Type-safe enum for character race
@@ -29,11 +30,13 @@ struct RenderablePlayer {
     bool isLocalPlayer; // Flag to identify if this is the local player
     void* address;
     
-        RenderablePlayer() : position(0.0f), screenPos(0.0f), distance(0.0f), 
-                        currentHealth(0.0f), maxHealth(0.0f), 
-                        currentEnergy(0.0f), maxEnergy(0.0f), level(0), 
-                        profession(Game::Profession::None), attitude(Game::Attitude::Neutral),
-                        race(Game::Race::None), isValid(false), isLocalPlayer(false), address(nullptr) {}
+        RenderablePlayer() : position(0.0f), screenPos(0.0f), distance(0.0f),
+                             currentHealth(0.0f), maxHealth(0.0f),
+                             currentEnergy(0.0f), maxEnergy(0.0f), level(0), scaledLevel(0),
+                             profession(Game::Profession::None), attitude(Game::Attitude::Neutral),
+                             race(Game::Race::None), isValid(false), isLocalPlayer(false), address(nullptr)
+    {
+    }
 };
 
 struct RenderableNpc {

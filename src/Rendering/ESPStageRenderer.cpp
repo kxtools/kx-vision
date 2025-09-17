@@ -200,7 +200,11 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
             }
             
             if (player->level > 0) {
-                details.emplace_back("Level: " + std::to_string(player->level));
+                std::string levelText = "Level: " + std::to_string(player->level);
+                if (player->scaledLevel != player->level && player->scaledLevel > 0) {
+                    levelText += " (" + std::to_string(player->scaledLevel) + ")";
+                }
+                details.emplace_back(levelText);
             }
             
             if (player->profession != Game::Profession::None) {

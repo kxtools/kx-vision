@@ -38,6 +38,7 @@ namespace Offsets {
     constexpr uintptr_t CH_CLI_CORE_STATS_RACE = 0x33;
     constexpr uintptr_t CH_CLI_CORE_STATS_LEVEL = 0xAC;
     constexpr uintptr_t CH_CLI_CORE_STATS_PROFESSION = 0x12C;
+    constexpr uintptr_t CH_CLI_CORE_STATS_SCALED_LEVEL = 0x234;
 
     // Character Main Structure
     constexpr uintptr_t CH_CLI_CHARACTER_AGENT = 0x98;
