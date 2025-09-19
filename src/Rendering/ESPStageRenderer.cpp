@@ -341,9 +341,14 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         unsigned int color = ESPColors::GADGET;
 
         std::vector<std::string> details;
-        details.reserve(3); // Pre-allocate for type and gatherable status
+        details.reserve(4); // Pre-allocate for type and gatherable status
         if (settings.objectESP.renderDetails) {
             details.emplace_back("Type: " + ESPFormatting::GadgetTypeToString(gadget->type));
+
+            if (gadget->type == Game::GadgetType::ResourceNode) {
+                details.emplace_back("Node: " + ESPFormatting::ResourceNodeTypeToString(gadget->resourceType));
+            }
+
             if (gadget->isGatherable) {
                 details.emplace_back("Status: Gatherable");
             }

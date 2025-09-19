@@ -79,6 +79,7 @@ namespace Offsets {
     constexpr uintptr_t CO_KEYFRAMED_POSITION = 0x0030;
     constexpr uintptr_t AG_KEYFRAMED_CO_KEYFRAMED = 0x0050;
     constexpr uintptr_t GD_CLI_GADGET_TYPE = 0x0200;
+    constexpr uintptr_t GD_CLI_GADGET_RESOURCE_NODE_TYPE = 0x04E4;
     constexpr uintptr_t GD_CLI_GADGET_FLAGS = 0x04E8;
     constexpr uintptr_t GD_CLI_GADGET_AG_KEYFRAMED = 0x0038;
 

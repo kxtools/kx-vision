@@ -238,6 +238,10 @@ void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPoo
 
         // Extract type with type-safe enum assignment
         renderableGadget->type = nonConstGadget.GetGadgetType();
+
+        if (renderableGadget->type == Game::GadgetType::ResourceNode) {
+            renderableGadget->resourceType = nonConstGadget.GetResourceNodeType();
+        }
         
         // Extract gatherable status
         renderableGadget->isGatherable = nonConstGadget.IsGatherable();

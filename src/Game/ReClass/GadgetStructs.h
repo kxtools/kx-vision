@@ -61,6 +61,12 @@ namespace kx {
                 return gadgetType;
             }
 
+            Game::ResourceNodeType GetResourceNodeType() const {
+                LOG_MEMORY("GdCliGadget", "GetResourceNodeType", data(), Offsets::GD_CLI_GADGET_RESOURCE_NODE_TYPE);
+
+                return ReadMember<Game::ResourceNodeType>(Offsets::GD_CLI_GADGET_RESOURCE_NODE_TYPE, Game::ResourceNodeType::None);
+            }
+
             bool IsGatherable() {
                 LOG_MEMORY("GdCliGadget", "IsGatherable", data(), Offsets::GD_CLI_GADGET_FLAGS);
                 

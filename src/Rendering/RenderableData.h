@@ -65,13 +65,16 @@ struct RenderableGadget {
     float distance;                  // Pre-calculated distance to camera
     std::string name;
     Game::GadgetType type;           // Type-safe enum instead of uint32_t
+    Game::ResourceNodeType resourceType;
     bool isGatherable;               // Additional flag for resource nodes
     bool isValid;
     void* address;
     
-    RenderableGadget() : position(0.0f), screenPos(0.0f), distance(0.0f), 
-                        type(Game::GadgetType::None), 
-                        isGatherable(false), isValid(false), address(nullptr) {}
+    RenderableGadget() : position(0.0f), screenPos(0.0f), distance(0.0f),
+                         type(Game::GadgetType::None), resourceType(),
+                         isGatherable(false), isValid(false), address(nullptr)
+    {
+    }
 };
 
 } // namespace kx
