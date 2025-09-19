@@ -151,12 +151,13 @@ inline std::string GetGadgetDescription(Game::GadgetType type, bool isGatherable
 
 inline std::string ResourceNodeTypeToString(Game::ResourceNodeType type) {
     switch (type) {
-    case Game::ResourceNodeType::Plant: return "Plant";
-    case Game::ResourceNodeType::Tree: return "Tree";
-    case Game::ResourceNodeType::Rock: return "Rock";
-    case Game::ResourceNodeType::Quest: return "Quest Node";
-    default: return "Unknown Node";
-    }
+	case Game::ResourceNodeType::Plant: return "Plant";
+	case Game::ResourceNodeType::Tree: return "Tree";
+	case Game::ResourceNodeType::Rock: return "Rock";
+	case Game::ResourceNodeType::Quest: return "Quest Node";
+	default:
+		return "Node ID: " + std::to_string(static_cast<int>(type));
+	}
 }
 
 } // namespace ESPFormatting
