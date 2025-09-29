@@ -95,8 +95,10 @@ namespace kx {
         // Debug options
 #ifdef _DEBUG
         bool enableDebugLogging = true;   // Enable verbose logging by default in debug builds
+        bool showDebugAddresses = true; // Show entity memory addresses on ESP
 #else
         bool enableDebugLogging = false;  // Disable verbose logging by default in release builds
+        bool showDebugAddresses = false;
 #endif
     };
 

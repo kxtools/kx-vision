@@ -4,6 +4,7 @@
 #include "RenderableData.h"
 #include "ESPData.h"
 #include "../Game/Camera.h"
+#include "../Core/Settings.h"
 
 // Forward declarations
 struct ImDrawList;
@@ -43,6 +44,10 @@ private:
 
     static void RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                    const std::vector<RenderableGadget*>& gadgets, Camera& camera);
+
+    // Player-specific detail builders
+    static std::vector<std::string> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings);
+    static std::vector<std::string> BuildGearDetails(const RenderablePlayer* player);
 
     /**
      * @brief Universal entity rendering function using context struct

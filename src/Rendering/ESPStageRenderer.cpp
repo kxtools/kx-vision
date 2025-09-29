@@ -7,6 +7,7 @@
 #include "ESPConstants.h"
 #include "ESPFilter.h"
 #include "ESPFeatureRenderer.h"
+#include "../Game/Generated/StatData.h"
 #include "../../libs/ImGui/imgui.h"
 #include <algorithm>
 
@@ -183,7 +184,26 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
     
     for (const auto* player : players) {
         if (!player) continue; // Safety check
-        
+
+        std::vector<std::string> details;
+        if (settings.playerESP.renderDetails) {
+            details = BuildPlayerDetails(player, settings.playerESP);
+        }
+
+        if (settings.playerESP.showGearInfo && !player->gear.empty()) {
+            if (!details.empty()) {
+                details.emplace_back("--- Gear Stats ---");
+            }
+            auto gearDetails = BuildGearDetails(player);
+            details.insert(details.end(), gearDetails.begin(), gearDetails.end());
+        }
+
+        if (settings.showDebugAddresses) {
+            char addrStr[32];
+            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
+            details.emplace_back(addrStr);
+        }
+
         // All filtering has been done - just render everything
         unsigned int color = ESPColors::PLAYER;
 
@@ -191,59 +211,6 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
         if (player->maxHealth > 0) {
             healthPercent = player->currentHealth / player->maxHealth;
         }
-
-        std::vector<std::string> details;
-        details.reserve(20);
-
-        if (settings.playerESP.renderDetails) {
-            if (!player->playerName.empty()) {
-                details.emplace_back("Player: " + player->playerName);
-            }
-            
-            if (player->level > 0) {
-                std::string levelText = "Level: " + std::to_string(player->level);
-                if (player->scaledLevel != player->level && player->scaledLevel > 0) {
-                    levelText += " (" + std::to_string(player->scaledLevel) + ")";
-                }
-                details.emplace_back(levelText);
-            }
-            
-            if (player->profession != Game::Profession::None) {
-                details.emplace_back("Prof: " + ESPFormatting::ProfessionToString(player->profession));
-            }
-            
-            if (player->race != Game::Race::None) {
-                details.emplace_back("Race: " + ESPFormatting::RaceToString(player->race));
-            }
-            
-            if (player->maxHealth > 0) {
-                details.emplace_back("HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)));
-            }
-            
-            if (player->maxEnergy > 0) {
-                const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
-                details.emplace_back("Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
-            }
-        }
-
-        // Gear Info Vector
-        if (settings.playerESP.showGearInfo && !player->gear.empty()) {
-            // Add a separator only if there are other details already present
-            if (!details.empty()) {
-                details.emplace_back("--- Gear ---");
-            }
-            for (const auto& pair : player->gear) {
-                const char* slotName = ESPFormatting::EquipmentSlotToString(pair.first);
-                const GearSlotInfo& info = pair.second;
-                details.emplace_back(std::string(slotName) + ": " + std::to_string(info.itemId) + " (S: " + std::to_string(info.statId) + ")");
-            }
-        }
-
-#ifdef _DEBUG
-        char addrStr[32];
-        snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
-        details.emplace_back(addrStr);
-#endif
 
         EntityRenderContext context{
             player->position,  // Use position instead of screenPos for real-time projection
@@ -316,11 +283,11 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
             details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc->attitude));
             details.emplace_back("Rank: " + ESPFormatting::RankToString(npc->rank));
 
-#ifdef _DEBUG
-            char addrStr[32];
-            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", npc->address);
-            details.emplace_back(addrStr);
-#endif
+            if (settings.showDebugAddresses) {
+                char addrStr[32];
+                snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", npc->address);
+                details.emplace_back(addrStr);
+            }
         }
 
         static const std::string emptyPlayerName = "";
@@ -367,11 +334,11 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
                 details.emplace_back("Status: Gatherable");
             }
 
-#ifdef _DEBUG
-            char addrStr[32];
-            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", gadget->address);
-            details.emplace_back(addrStr);
-#endif
+            if (settings.showDebugAddresses) {
+                char addrStr[32];
+                snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", gadget->address);
+                details.emplace_back(addrStr);
+            }
         }
 
         static const std::string emptyPlayerName = "";
@@ -394,6 +361,83 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         };
         RenderEntity(drawList, context, camera);
     }
+}
+
+std::vector<std::string> ESPStageRenderer::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings) {
+    std::vector<std::string> details;
+    details.reserve(10); // Reserve space
+
+    if (!player->playerName.empty()) {
+        details.emplace_back("Player: " + player->playerName);
+    }
+    
+    if (player->level > 0) {
+        std::string levelText = "Level: " + std::to_string(player->level);
+        if (player->scaledLevel != player->level && player->scaledLevel > 0) {
+            levelText += " (" + std::to_string(player->scaledLevel) + ")";
+        }
+        details.emplace_back(levelText);
+    }
+    
+    if (player->profession != Game::Profession::None) {
+        details.emplace_back("Prof: " + ESPFormatting::ProfessionToString(player->profession));
+    }
+    
+    if (player->race != Game::Race::None) {
+        details.emplace_back("Race: " + ESPFormatting::RaceToString(player->race));
+    }
+    
+    if (player->maxHealth > 0) {
+        details.emplace_back("HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)));
+    }
+    
+    if (player->maxEnergy > 0) {
+        const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
+        details.emplace_back("Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
+    }
+    return details;
+}
+
+std::vector<std::string> ESPStageRenderer::BuildGearDetails(const RenderablePlayer* player) {
+    std::vector<std::string> gearDetails;
+    gearDetails.reserve(12);
+
+    const std::vector<Game::EquipmentSlot> displayOrder = {
+        Game::EquipmentSlot::Helm,
+        Game::EquipmentSlot::Shoulders,
+        Game::EquipmentSlot::Chest,
+        Game::EquipmentSlot::Gloves,
+        Game::EquipmentSlot::Pants,
+        Game::EquipmentSlot::Boots,
+        Game::EquipmentSlot::Back,
+        // TODO: Add accessories and aquatic gear later
+        Game::EquipmentSlot::MainhandWeapon1,
+        Game::EquipmentSlot::OffhandWeapon1,
+        Game::EquipmentSlot::MainhandWeapon2,
+        Game::EquipmentSlot::OffhandWeapon2,
+    };
+
+    for (const auto& slotEnum : displayOrder) {
+        auto gearIt = player->gear.find(slotEnum);
+        if (gearIt != player->gear.end()) {
+            const char* slotName = ESPFormatting::EquipmentSlotToString(gearIt->first);
+            const GearSlotInfo& info = gearIt->second;
+
+            std::string statName = "No Stats";
+            if (info.statId > 0) {
+                auto statIt = kx::data::stat::DATA.find(info.statId);
+                if (statIt != kx::data::stat::DATA.end()) {
+                    statName = statIt->second.name;
+                }
+                else {
+                    statName = "stat(" + std::to_string(info.statId) + ")";
+                }
+            }
+
+            gearDetails.emplace_back(std::string(slotName) + ": " + statName);
+        }
+    }
+    return gearDetails;
 }
 
 float ESPStageRenderer::CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {

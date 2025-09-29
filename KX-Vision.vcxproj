@@ -137,6 +137,9 @@
     <ClInclude Include="src\Game\Camera.h" />
     <ClInclude Include="src\Game\GameConstants.h" />
     <ClInclude Include="src\Game\GameEnums.h" />
+    <ClInclude Include="src\Game\Generated\APIData.h" />
+    <ClInclude Include="src\Game\Generated\EnumsAndStructs.h" />
+    <ClInclude Include="src\Game\Generated\StatData.h" />
     <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
     <ClInclude Include="src\Game\ReClassStructs.h" />
