@@ -56,8 +56,8 @@ public:
      * @param summary The gear summary string to display
      * @param entityColor Entity color (used for styling)
      */
-    static void RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos, 
-                                const std::string& summary, unsigned int entityColor);
+    static void RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos,
+        const std::vector<CompactStatInfo>& summary, float fadeAlpha);
 
     /**
      * @brief Render a bounding box with corner indicators

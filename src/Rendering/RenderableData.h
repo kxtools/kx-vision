@@ -20,6 +20,12 @@ struct GearSlotInfo {
     // We can add fields for upgrades, rarity, etc. here later.
 };
 
+struct CompactStatInfo {
+    std::string statName;
+    int count = 0;
+    Game::ItemRarity highestRarity = Game::ItemRarity::None;
+};
+
 struct ColoredDetail {
     std::string text;
     ImU32 color = 0; // 0 means default color

@@ -2,6 +2,8 @@
 #include "../../libs/ImGui/imgui.h"
 #include <algorithm>
 
+#include "ESPStyling.h"
+
 namespace kx {
 
 void ESPFeatureRenderer::RenderAttachedHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, 
@@ -236,29 +238,66 @@ unsigned int ESPFeatureRenderer::ApplyAlphaToColor(unsigned int color, float alp
 }
 
 void ESPFeatureRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos,
-                                           const std::string& summary, unsigned int entityColor) {
+    const std::vector<CompactStatInfo>& summary, float fadeAlpha) {
     if (summary.empty()) return;
 
-    // Extract alpha from entity color for distance fading
-    float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
+    // --- Part 1: Calculate total width for centering ---
+    float totalWidth = 0.0f;
+    const std::string prefix = "Stats: ";
+    totalWidth += ImGui::CalcTextSize(prefix.c_str()).x;
 
-    ImVec2 textSize = ImGui::CalcTextSize(summary.c_str());
+    for (size_t i = 0; i < summary.size(); ++i) {
+        const auto& info = summary[i];
+        std::string segment = std::to_string(info.count) + "x " + info.statName;
+        totalWidth += ImGui::CalcTextSize(segment.c_str()).x;
+        if (i < summary.size() - 1) {
+            totalWidth += ImGui::CalcTextSize(", ").x;
+        }
+    }
 
-    // Position summary below the player name area
-    const float summaryOffset = 42.0f; // Below player name (player name is at 25)
-    ImVec2 textPos(feetPos.x - textSize.x / 2, feetPos.y + summaryOffset);
+    // --- Part 2: Render the multi-colored line ---
+    const float summaryOffset = 42.0f;
+    ImVec2 currentPos(feetPos.x - totalWidth / 2.0f, feetPos.y + summaryOffset);
 
-    // Subtle background with rounded corners (like game UI) and distance fade
-    ImVec2 bgMin(textPos.x - 4, textPos.y - 2);
-    ImVec2 bgMax(textPos.x + textSize.x + 4, textPos.y + textSize.y + 2);
-    unsigned int bgAlpha = static_cast<unsigned int>(80 * fadeAlpha); // More transparent background
+    // Fade alphas
+    unsigned int bgAlpha = static_cast<unsigned int>(80 * fadeAlpha);
+    unsigned int shadowAlpha = static_cast<unsigned int>(160 * fadeAlpha);
+    unsigned int defaultTextAlpha = static_cast<unsigned int>(200 * fadeAlpha);
+
+    // Background
+    ImVec2 bgMin(currentPos.x - 4, currentPos.y - 2);
+    ImVec2 bgMax(currentPos.x + totalWidth + 4, currentPos.y + ImGui::GetTextLineHeight() + 2);
     drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), 3.0f);
 
-    // Summary text in a clean, readable color with distance fade
-    unsigned int shadowAlpha = static_cast<unsigned int>(160 * fadeAlpha);
-    unsigned int textAlpha = static_cast<unsigned int>(200 * fadeAlpha);
-    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), summary.c_str()); // Shadow
-    drawList->AddText(textPos, IM_COL32(200, 210, 255, textAlpha), summary.c_str()); // Slightly dimmer text color
+    // Render "Stats: " prefix in default color
+    drawList->AddText(ImVec2(currentPos.x + 1, currentPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), prefix.c_str());
+    drawList->AddText(currentPos, IM_COL32(200, 210, 255, defaultTextAlpha), prefix.c_str());
+    currentPos.x += ImGui::CalcTextSize(prefix.c_str()).x;
+
+    // Render each colored segment
+    for (size_t i = 0; i < summary.size(); ++i) {
+        const auto& info = summary[i];
+        std::string segment = std::to_string(info.count) + "x " + info.statName;
+        ImU32 rarityColor = ESPHelpers::GetRarityColor(info.highestRarity);
+
+        // Apply fade to the rarity color
+        int r = (rarityColor >> 0) & 0xFF;
+        int g = (rarityColor >> 8) & 0xFF;
+        int b = (rarityColor >> 16) & 0xFF;
+        rarityColor = IM_COL32(r, g, b, defaultTextAlpha);
+
+        drawList->AddText(ImVec2(currentPos.x + 1, currentPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), segment.c_str());
+        drawList->AddText(currentPos, rarityColor, segment.c_str());
+        currentPos.x += ImGui::CalcTextSize(segment.c_str()).x;
+
+        // Render separator
+        if (i < summary.size() - 1) {
+            const std::string separator = ", ";
+            drawList->AddText(ImVec2(currentPos.x + 1, currentPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), separator.c_str());
+            drawList->AddText(currentPos, IM_COL32(200, 210, 255, defaultTextAlpha), separator.c_str());
+            currentPos.x += ImGui::CalcTextSize(separator.c_str()).x;
+        }
+    }
 }
 
 } // namespace kx

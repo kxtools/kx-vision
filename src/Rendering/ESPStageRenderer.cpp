@@ -39,7 +39,7 @@ struct EntityRenderContext {
     
     // Player name (for players only)
     const std::string& playerName;
-    const std::string& gearSummary;
+    const std::vector<CompactStatInfo>& gearSummary;
 };
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
@@ -177,7 +177,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
 
     // Render gear summary (players only, compact mode)
     if (context.entityType == ESPEntityType::Player && !context.gearSummary.empty()) {
-        ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, context.gearSummary, fadedEntityColor);
+        ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, context.gearSummary, distanceFadeAlpha);
     }
 
     // Render details text (for all entities when enabled, but not player names for players)
@@ -198,7 +198,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
             details = BuildPlayerDetails(player, settings.playerESP);
         }
 
-        std::string gearSummary;
+        std::vector<CompactStatInfo> gearSummary;
         switch (settings.playerESP.gearDisplayMode) {
             case 1: // Compact
             {
@@ -315,7 +315,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
         }
 
         static const std::string emptyPlayerName = "";
-        static const std::string emptyGearSummary = "";
+        std::vector<CompactStatInfo> emptyGearSummary;
         EntityRenderContext context{
             npc->position,  // Use position instead of screenPos for real-time projection
             npc->distance,
@@ -368,7 +368,7 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         }
 
         static const std::string emptyPlayerName = "";
-        static const std::string emptyGearSummary = "";
+        std::vector<CompactStatInfo> emptyGearSummary;
         EntityRenderContext context{
             gadget->position,  // Use position instead of screenPos for real-time projection
             gadget->distance,
@@ -426,34 +426,43 @@ std::vector<ColoredDetail> ESPStageRenderer::BuildPlayerDetails(const Renderable
     return details;
 }
 
-std::string ESPStageRenderer::BuildCompactGearSummary(const RenderablePlayer* player) {
+std::vector<CompactStatInfo> ESPStageRenderer::BuildCompactGearSummary(const RenderablePlayer* player) {
     if (!player || player->gear.empty()) {
-        return "";
+        return {};
     }
 
-    std::map<std::string, int> statCounts;
+    // Use a map to group stats and find the highest rarity for each
+    std::map<std::string, CompactStatInfo> statSummary;
     for (const auto& pair : player->gear) {
         const GearSlotInfo& info = pair.second;
         if (info.statId > 0) {
             auto statIt = kx::data::stat::DATA.find(info.statId);
             if (statIt != kx::data::stat::DATA.end()) {
-                statCounts[statIt->second.name]++;
+                std::string statName = statIt->second.name;
+
+                // Increment count
+                statSummary[statName].count++;
+                statSummary[statName].statName = statName;
+
+                // Keep track of the highest rarity
+                if (info.rarity > statSummary[statName].highestRarity) {
+                    statSummary[statName].highestRarity = info.rarity;
+                }
             }
         }
     }
 
-    if (statCounts.empty()) {
-        return "";
+    if (statSummary.empty()) {
+        return {};
     }
 
-    std::string summary = "Stats: ";
-    for (auto it = statCounts.begin(); it != statCounts.end(); ++it) {
-        summary += std::to_string(it->second) + "x " + it->first;
-        if (std::next(it) != statCounts.end()) {
-            summary += ", ";
-        }
+    // Convert the map to a vector for ordered rendering
+    std::vector<CompactStatInfo> result;
+    result.reserve(statSummary.size());
+    for (const auto& pair : statSummary) {
+        result.push_back(pair.second);
     }
-    return summary;
+    return result;
 }
 
 std::vector<ColoredDetail> ESPStageRenderer::BuildGearDetails(const RenderablePlayer* player) {
