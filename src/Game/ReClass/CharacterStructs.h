@@ -6,6 +6,7 @@
 #include "../GameEnums.h"
 #include "../offsets.h"
 #include "AgentStructs.h"
+#include "EquipmentStructs.h"
 
 namespace kx {
     namespace ReClass {
@@ -183,6 +184,10 @@ namespace kx {
                     return Game::CharacterRank::Ambient;
 
                 return Game::CharacterRank::Normal;
+            }
+
+            Inventory GetInventory() const {
+                return ReadPointer<Inventory>(Offsets::CH_CLI_CHARACTER_INVENTORY);
             }
         };
 

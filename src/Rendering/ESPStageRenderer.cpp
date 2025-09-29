@@ -193,7 +193,8 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
         }
 
         std::vector<std::string> details;
-        details.reserve(7); // Pre-allocate to avoid reallocations
+        details.reserve(20);
+
         if (settings.playerESP.renderDetails) {
             if (!player->playerName.empty()) {
                 details.emplace_back("Player: " + player->playerName);
@@ -223,13 +224,26 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
                 const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
                 details.emplace_back("Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
             }
+        }
+
+        // Gear Info Vector
+        if (settings.playerESP.showGearInfo && !player->gear.empty()) {
+            // Add a separator only if there are other details already present
+            if (!details.empty()) {
+                details.emplace_back("--- Gear ---");
+            }
+            for (const auto& pair : player->gear) {
+                const char* slotName = ESPFormatting::EquipmentSlotToString(pair.first);
+                const GearSlotInfo& info = pair.second;
+                details.emplace_back(std::string(slotName) + ": " + std::to_string(info.itemId) + " (S: " + std::to_string(info.statId) + ")");
+            }
+        }
 
 #ifdef _DEBUG
-            char addrStr[32];
-            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
-            details.emplace_back(addrStr);
+        char addrStr[32];
+        snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
+        details.emplace_back(addrStr);
 #endif
-        }
 
         EntityRenderContext context{
             player->position,  // Use position instead of screenPos for real-time projection
@@ -240,7 +254,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
             settings.playerESP.renderBox,
             settings.playerESP.renderDistance,
             settings.playerESP.renderDot,
-            settings.playerESP.renderDetails,
+            !details.empty(),
             settings.playerESP.renderHealthBar,
             settings.playerESP.renderPlayerName,  // Use new player name setting
             ESPEntityType::Player,

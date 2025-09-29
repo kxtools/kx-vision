@@ -16,4 +16,5 @@
 #include "ReClass/AgentStructs.h"     // Must be included first (no dependencies)
 #include "ReClass/CharacterStructs.h" // Depends on AgentStructs
 #include "ReClass/GadgetStructs.h"    // Independent module
+#include "ReClass/EquipmentStructs.h"
 #include "ReClass/ContextStructs.h"   // Depends on Character and Gadget structs

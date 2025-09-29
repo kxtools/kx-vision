@@ -160,5 +160,21 @@ inline std::string ResourceNodeTypeToString(Game::ResourceNodeType type) {
 	}
 }
 
+inline const char* EquipmentSlotToString(Game::EquipmentSlot slot) {
+    switch (slot) {
+    case Game::EquipmentSlot::Helm: return "Helm";
+    case Game::EquipmentSlot::Shoulders: return "Shoulders";
+    case Game::EquipmentSlot::Chest: return "Chest";
+    case Game::EquipmentSlot::Gloves: return "Gloves";
+    case Game::EquipmentSlot::Pants: return "Legs";
+    case Game::EquipmentSlot::Boots: return "Feet";
+    case Game::EquipmentSlot::MainhandWeapon1: return "Weapon1 A";
+    case Game::EquipmentSlot::OffhandWeapon1: return "Weapon1 B";
+    case Game::EquipmentSlot::MainhandWeapon2: return "Weapon2 A";
+    case Game::EquipmentSlot::OffhandWeapon2: return "Weapon2 B";
+    default: return "Unknown Slot";
+    }
+}
+
 } // namespace ESPFormatting
 } // namespace kx

@@ -15,8 +15,7 @@ namespace kx {
         bool showRace = true;
         bool showArmorWeight = true;
         bool showLocalPlayer = false; // Hide local player by default
-        // Future features from zenith can be added here:
-        // SnaplineType snaplineType = SnaplineType::Disabled;
+        bool showGearInfo = false;
     };
 
     struct NpcEspSettings {

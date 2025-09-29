@@ -143,7 +143,10 @@
     <ClInclude Include="src\Game\ReClass\AgentStructs.h" />
     <ClInclude Include="src\Game\ReClass\CharacterStructs.h" />
     <ClInclude Include="src\Game\ReClass\ContextStructs.h" />
+    <ClInclude Include="src\Game\ReClass\EquipmentStructs.h" />
     <ClInclude Include="src\Game\ReClass\GadgetStructs.h" />
+    <ClInclude Include="src\Game\ReClass\ItemStructs.h" />
+    <ClInclude Include="src\Game\ReClass\StatStructs.h" />
     <ClInclude Include="src\Rendering\ESPConstants.h" />
     <ClInclude Include="src\Rendering\ESPFeatureRenderer.h" />
     <ClInclude Include="src\Rendering\ESPFilter.h" />

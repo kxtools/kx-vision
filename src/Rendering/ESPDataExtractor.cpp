@@ -121,6 +121,42 @@ void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPoo
                 renderablePlayer->race = coreStats.GetRace();
             }
 
+            renderablePlayer->gear.clear(); // Clear any previous frame's gear data
+            kx::ReClass::Inventory inventory = nonConstCharacter.GetInventory();
+            if (inventory) {
+                // Define all the slots we want to check
+                const std::vector<Game::EquipmentSlot> slotsToCheck = {
+                    Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
+                    Game::EquipmentSlot::Gloves, Game::EquipmentSlot::Pants, Game::EquipmentSlot::Boots,
+                    Game::EquipmentSlot::MainhandWeapon1, Game::EquipmentSlot::OffhandWeapon1,
+                    Game::EquipmentSlot::MainhandWeapon2, Game::EquipmentSlot::OffhandWeapon2
+                };
+
+                for (const auto& slotEnum : slotsToCheck) {
+                    kx::ReClass::EquipSlot slot = inventory.GetEquipSlot(static_cast<int>(slotEnum));
+                    if (!slot) continue;
+
+                    kx::ReClass::ItemDef itemDef = slot.GetItemDefinition();
+                    if (!itemDef || itemDef.GetId() == 0) continue;
+
+                    GearSlotInfo slotInfo;
+                    slotInfo.itemId = itemDef.GetId();
+
+                    // Handle the distinction between weapon stats and gear stats
+                    if (Game::EnumHelpers::IsWeaponSlot(slotEnum)) {
+                        kx::ReClass::Stat stat = slot.GetStatWeapon();
+                        if (stat) slotInfo.statId = stat.GetId();
+                    }
+                    else {
+                        kx::ReClass::Stat stat = slot.GetStatGear();
+                        if (stat) slotInfo.statId = stat.GetId();
+                    }
+
+                    // Add the populated info to our map
+                    renderablePlayer->gear[slotEnum] = slotInfo;
+                }
+            }
+
             players.push_back(renderablePlayer);
 		}
 	}

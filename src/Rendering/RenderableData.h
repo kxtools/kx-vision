@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <vec3.hpp>
 #include <vec2.hpp>
 #include "../Game/GameEnums.h"
@@ -10,6 +11,12 @@ namespace kx {
 // Safe data structures for the two-stage rendering pipeline
 // These contain only plain data types, no pointers to game memory
 // Now using proper enum types for better type safety
+
+struct GearSlotInfo {
+    uint32_t itemId = 0;
+    uint32_t statId = 0;
+    // We can add fields for upgrades, rarity, etc. here later.
+};
 
 struct RenderablePlayer {
     glm::vec3 position;
@@ -29,6 +36,8 @@ struct RenderablePlayer {
     bool isValid;
     bool isLocalPlayer; // Flag to identify if this is the local player
     void* address;
+
+    std::map<Game::EquipmentSlot, GearSlotInfo> gear;
     
         RenderablePlayer() : position(0.0f), screenPos(0.0f), distance(0.0f),
                              currentHealth(0.0f), maxHealth(0.0f),

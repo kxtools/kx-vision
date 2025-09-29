@@ -17,6 +17,8 @@ namespace kx {
                     if (ImGui::IsItemHovered()) {
                         ImGui::SetTooltip("Show your own character in the ESP overlay.");
                     }
+
+                    ImGui::Checkbox("Show Gear Info", &settings.playerESP.showGearInfo);
                 }
                 ImGui::EndTabItem();
             }
