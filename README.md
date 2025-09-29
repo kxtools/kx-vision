@@ -1,7 +1,7 @@
 # KX-Vision for Guild Wars 2
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.2-green.svg)
+![Version](https://img.shields.io/badge/version-0.4-green.svg)
 
 ![KX-Vision GUI](images/gui_v2.jpg)
 
@@ -15,12 +15,13 @@
 
 ## Overview
 
-KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild Wars 2. It uses the officially supported MumbleLink API for positional data and is designed as a learning platform for real-time overlay rendering with ImGui and DirectX 11, 3D-to-2D projection, and clean C++ architecture for game tools.
+KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild Wars 2. It uses the officially supported MumbleLink API for positional data and features an advanced, multi-level gear checker to inspect player builds. The project is designed as a learning platform for real-time overlay rendering with ImGui and DirectX 11, 3D-to-2D projection, and clean C++ architecture for game tools.
 
 ## Features
 
 *   **MumbleLink Integration:** Utilizes GW2's MumbleLink API for player and game state data.
 *   **Robust ESP System:** Renders characters (players, NPCs) and objects (resource nodes, waypoints) with comprehensive memory safety.
+*   **Advanced Gear Checker:** Inspect player equipment with three modes (Off, Compact, Detailed). The compact view provides a color-coded summary of stat sets and rarity, offering at-a-glance build identification.
 *   **Architectural Stability:** A two-stage, thread-safe rendering pipeline that separates unsafe memory access from the drawing loop, virtually eliminating rendering-related crashes.
 *   **Debug Logging:** Configurable debug output system for troubleshooting and development.
 *   **Configurable Visuals:** ESP includes options for boxes, distance, position dots, and health bars.
