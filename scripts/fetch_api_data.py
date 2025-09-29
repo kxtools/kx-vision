@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 ENDPOINTS_TO_FETCH = [
-    {'name': 'ITEM', 'path': '/items', 'fetch_type': 'paginated'},
+    # {'name': 'ITEM', 'path': '/items', 'fetch_type': 'paginated'},
     {'name': 'STAT', 'path': '/itemstats', 'fetch_type': 'single'},
 ]
 API_BASE_URL = "https://api.guildwars2.com/v2"
