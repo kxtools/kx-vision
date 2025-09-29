@@ -256,7 +256,7 @@ void ESPFeatureRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2
     }
 
     // --- Part 2: Render the multi-colored line ---
-    const float summaryOffset = 42.0f;
+    const float summaryOffset = 45.0f;
     ImVec2 currentPos(feetPos.x - totalWidth / 2.0f, feetPos.y + summaryOffset);
 
     // Fade alphas
