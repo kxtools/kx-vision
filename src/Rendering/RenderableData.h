@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <vec3.hpp>
 #include <vec2.hpp>
 #include "../Game/GameEnums.h"
@@ -50,7 +51,7 @@ struct RenderablePlayer {
     bool isLocalPlayer; // Flag to identify if this is the local player
     void* address;
 
-    std::map<Game::EquipmentSlot, GearSlotInfo> gear;
+    std::unordered_map<Game::EquipmentSlot, GearSlotInfo> gear;
     
         RenderablePlayer() : position(0.0f), screenPos(0.0f), distance(0.0f),
                              currentHealth(0.0f), maxHealth(0.0f),

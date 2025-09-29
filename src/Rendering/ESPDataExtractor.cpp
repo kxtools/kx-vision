@@ -1,4 +1,5 @@
 #include "ESPDataExtractor.h"
+#include "Extractors/EntityExtractor.h"
 #include "../Game/AddressManager.h"
 #include "../Game/ReClassStructs.h"
 #include "../Utils/SafeIterators.h"
@@ -8,285 +9,119 @@
 
 namespace kx {
 
-void ESPDataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
-                                        ObjectPool<RenderableNpc>& npcPool, 
-                                        ObjectPool<RenderableGadget>& gadgetPool,
-                                        PooledFrameRenderData& pooledData) {
-    pooledData.Reset();
+    void ESPDataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
+        ObjectPool<RenderableNpc>& npcPool,
+        ObjectPool<RenderableGadget>& gadgetPool,
+        PooledFrameRenderData& pooledData) {
+        pooledData.Reset();
 
-    // FAIL-FAST: Proactive validation of root context collection
-    void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) {
-        return;
+        void* pContextCollection = AddressManager::GetContextCollectionPtr();
+        if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) {
+            return;
+        }
+
+        // build the map of character pointers to player names.
+        std::unordered_map<void*, const wchar_t*> characterToPlayerNameMap;
+        {
+            kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+            kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+            if (charContext.data()) {
+                kx::SafeAccess::PlayerList playerList(charContext);
+                for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
+                    if (playerIt.IsValid()) {
+                        characterToPlayerNameMap[playerIt.GetCharacterDataPtr()] = playerIt.GetName();
+                    }
+                }
+            }
+        }
+
+        // The extraction calls now pass the map.
+        ExtractPlayerData(playerPool, pooledData.players, characterToPlayerNameMap);
+        ExtractNpcData(npcPool, pooledData.npcs, characterToPlayerNameMap); // Pass map to exclude players
+        ExtractGadgetData(gadgetPool, pooledData.gadgets);
     }
 
-    // Extract all data directly into object pools
-    std::map<void*, const wchar_t*> characterNameToPlayerName;
-    
-    // Build character name to player name mapping first
-    {
+    void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPool,
+        std::vector<RenderablePlayer*>& players,
+        const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap) {
+        players.clear();
+        players.reserve(ExtractionCapacity::PLAYERS_RESERVE);
+
+        void* pContextCollection = AddressManager::GetContextCollectionPtr();
+        if (!pContextCollection) return;
+
         kx::ReClass::ContextCollection ctxCollection(pContextCollection);
         kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
-        if (charContext.data()) {
-            kx::SafeAccess::PlayerList playerList(charContext);
-            for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
-                if (playerIt.IsValid()) {
-                    characterNameToPlayerName[playerIt.GetCharacterDataPtr()] = playerIt.GetName();
+        if (!charContext.data()) return;
+
+        void* localPlayerPtr = AddressManager::GetLocalPlayer();
+
+        kx::SafeAccess::CharacterList characterList(charContext);
+        for (const auto& character : characterList) {
+            // Find if this character is in our player map
+            auto it = characterToPlayerNameMap.find(const_cast<void*>(character.data()));
+            if (it != characterToPlayerNameMap.end()) {
+                RenderablePlayer* renderablePlayer = playerPool.Get();
+                if (!renderablePlayer) break; // Pool exhausted
+
+                // Delegate all extraction logic to the helper class
+                if (EntityExtractor::ExtractPlayer(*renderablePlayer, character, it->second, localPlayerPtr)) {
+                    players.push_back(renderablePlayer);
                 }
             }
         }
     }
-    
-    ExtractPlayerData(playerPool, pooledData.players, characterNameToPlayerName);
-    ExtractNpcData(npcPool, pooledData.npcs);
-    ExtractGadgetData(gadgetPool, pooledData.gadgets);
-}
 
-void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPool,
-                                        std::vector<RenderablePlayer*>& players,
-                                        const std::map<void*, const wchar_t*>& characterNameToPlayerName) {
-    players.clear();
-    players.reserve(ExtractionCapacity::PLAYERS_RESERVE); // Reserve reasonable space
+    void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
+        std::vector<RenderableNpc*>& npcs,
+        const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap) {
+        npcs.clear();
+        npcs.reserve(ExtractionCapacity::NPCS_RESERVE);
 
-    void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
-    
-    kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-    kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
-    if (!charContext.data()) return;
-    
-    // Safely iterate through character list for players
-    kx::SafeAccess::CharacterList characterList(charContext);
-    
-    for (const auto& character : characterList) {
-        void* characterDataPtr = const_cast<void*>(character.data());
-        
-        // Check if this character is a player
-        if (characterNameToPlayerName.count(characterDataPtr)) {
-            // Get an object from the pool instead of creating a new one
-            RenderablePlayer* renderablePlayer = playerPool.Get();
-            if (!renderablePlayer) {
-                // Pool exhausted, skip remaining players
-                break;
-            }
-            
-            // Extract position
-            kx::ReClass::ChCliCharacter& nonConstCharacter = const_cast<kx::ReClass::ChCliCharacter&>(character);
-            kx::ReClass::AgChar agent = nonConstCharacter.GetAgent();
-            if (!agent.data()) continue;
-            
-            kx::ReClass::CoChar coChar = agent.GetCoChar();
-            if (!coChar.data()) continue;
-            
-            glm::vec3 gameWorldPos = coChar.GetVisualPosition();
-            if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
+        void* pContextCollection = AddressManager::GetContextCollectionPtr();
+        if (!pContextCollection) return;
 
-            renderablePlayer->position = glm::vec3(gameWorldPos.x / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
-                                                 gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
-                                                 gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
-            renderablePlayer->isValid = true;
-            renderablePlayer->address = const_cast<void*>(character.data());
+        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+        kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+        if (!charContext.data()) return;
 
-            // Extract player name
-            auto playerNameIt = characterNameToPlayerName.find(characterDataPtr);
-            if (playerNameIt != characterNameToPlayerName.end() && playerNameIt->second) {
-                renderablePlayer->playerName = ESPFormatting::WStringToString(playerNameIt->second);
-            }
+        kx::SafeAccess::CharacterList characterList(charContext);
+        for (const auto& character : characterList) {
+            // If the character is NOT in the player map, it's an NPC
+            if (characterToPlayerNameMap.find(const_cast<void*>(character.data())) == characterToPlayerNameMap.end()) {
+                RenderableNpc* renderableNpc = npcPool.Get();
+                if (!renderableNpc) break; // Pool exhausted
 
-            // Check if this is the local player
-            void* localPlayer = AddressManager::GetLocalPlayer();
-            renderablePlayer->isLocalPlayer = (characterDataPtr == localPlayer);
-
-            // Extract health
-            kx::ReClass::ChCliHealth health = nonConstCharacter.GetHealth();
-            if (health.data()) {
-                renderablePlayer->currentHealth = health.GetCurrent();
-                renderablePlayer->maxHealth = health.GetMax();
-            }
-
-            // Extract energy
-            kx::ReClass::ChCliEnergies energies = nonConstCharacter.GetEnergies();
-            if (energies.data()) {
-                renderablePlayer->currentEnergy = energies.GetCurrent();
-                renderablePlayer->maxEnergy = energies.GetMax();
-            }
-
-            // Extract core stats with type-safe enum assignments
-            kx::ReClass::ChCliCoreStats coreStats = nonConstCharacter.GetCoreStats();
-            if (coreStats.data()) {
-                renderablePlayer->level = coreStats.GetLevel();
-                renderablePlayer->scaledLevel = coreStats.GetScaledLevel();
-                renderablePlayer->profession = coreStats.GetProfession();
-                renderablePlayer->attitude = nonConstCharacter.GetAttitude();
-                renderablePlayer->race = coreStats.GetRace();
-            }
-
-            renderablePlayer->gear.clear(); // Clear any previous frame's gear data
-            kx::ReClass::Inventory inventory = nonConstCharacter.GetInventory();
-            if (inventory) {
-                // Define all the slots we want to check
-                const std::vector<Game::EquipmentSlot> slotsToCheck = {
-                    Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
-                    Game::EquipmentSlot::Gloves, Game::EquipmentSlot::Pants, Game::EquipmentSlot::Boots,
-                    Game::EquipmentSlot::Back, Game::EquipmentSlot::Amulet, Game::EquipmentSlot::Accessory1,
-                    Game::EquipmentSlot::Accessory2, Game::EquipmentSlot::Ring1, Game::EquipmentSlot::Ring2,
-                    Game::EquipmentSlot::MainhandWeapon1, Game::EquipmentSlot::OffhandWeapon1,
-                    Game::EquipmentSlot::MainhandWeapon2, Game::EquipmentSlot::OffhandWeapon2
-                };
-
-                for (const auto& slotEnum : slotsToCheck) {
-                    kx::ReClass::EquipSlot slot = inventory.GetEquipSlot(static_cast<int>(slotEnum));
-                    if (!slot) continue;
-
-                    kx::ReClass::ItemDef itemDef = slot.GetItemDefinition();
-                    if (!itemDef || itemDef.GetId() == 0) continue;
-
-                    GearSlotInfo slotInfo;
-                    slotInfo.itemId = itemDef.GetId();
-                    slotInfo.rarity = itemDef.GetRarity();
-
-                    // Handle the distinction between weapon stats and gear stats
-                    if (Game::EnumHelpers::IsWeaponSlot(slotEnum)) {
-                        kx::ReClass::Stat stat = slot.GetStatWeapon();
-                        if (stat) slotInfo.statId = stat.GetId();
-                    }
-                    else {
-                        kx::ReClass::Stat stat = slot.GetStatGear();
-                        if (stat) slotInfo.statId = stat.GetId();
-                    }
-
-                    // Add the populated info to our map
-                    renderablePlayer->gear[slotEnum] = slotInfo;
+                // Delegate all extraction logic to the helper class
+                if (EntityExtractor::ExtractNpc(*renderableNpc, character)) {
+                    npcs.push_back(renderableNpc);
                 }
             }
-
-            players.push_back(renderablePlayer);
-		}
-	}
-}
-
-void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
-                                     std::vector<RenderableNpc*>& npcs) {
-    npcs.clear();
-    npcs.reserve(ExtractionCapacity::NPCS_RESERVE); // Reserve reasonable space
-
-    void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
-    
-    kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-    kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
-    if (!charContext.data()) return;
-    
-    // Build character to player name mapping to exclude players
-    std::map<void*, const wchar_t*> characterNameToPlayerName;
-    kx::SafeAccess::PlayerList playerList(charContext);
-    for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
-        if (playerIt.IsValid()) {
-            characterNameToPlayerName[playerIt.GetCharacterDataPtr()] = playerIt.GetName();
         }
     }
-    
-    // Safely iterate through character list for NPCs
-    kx::SafeAccess::CharacterList characterList(charContext);
-    for (const auto& character : characterList) {
-        void* characterDataPtr = const_cast<void*>(character.data());
-        
-        // Check if this character is NOT a player (i.e., it's an NPC)
-        if (!characterNameToPlayerName.count(characterDataPtr)) {
-            // Get an object from the pool instead of creating a new one
-            RenderableNpc* renderableNpc = npcPool.Get();
-            if (!renderableNpc) {
-                // Pool exhausted, skip remaining NPCs
-                break;
-            }
-            
-            // Extract position
-            kx::ReClass::ChCliCharacter& nonConstCharacter = const_cast<kx::ReClass::ChCliCharacter&>(character);
-            kx::ReClass::AgChar agent = nonConstCharacter.GetAgent();
-            if (!agent.data()) continue;
-            
-            kx::ReClass::CoChar coChar = agent.GetCoChar();
-            if (!coChar.data()) continue;
-            
-            glm::vec3 gameWorldPos = coChar.GetVisualPosition();
-            if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
-            
-            renderableNpc->position = glm::vec3(gameWorldPos.x / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
-                                              gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
-                                              gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
-            renderableNpc->isValid = true;
-        	renderableNpc->address = const_cast<void*>(character.data());
-            
-            // Extract health
-            kx::ReClass::ChCliHealth health = nonConstCharacter.GetHealth();
-            if (health.data()) {
-                renderableNpc->currentHealth = health.GetCurrent();
-                renderableNpc->maxHealth = health.GetMax();
-            }
-            
-            // Extract basic stats with type-safe enum assignment
-            kx::ReClass::ChCliCoreStats coreStats = nonConstCharacter.GetCoreStats();
-            if (coreStats.data()) {
-                renderableNpc->level = coreStats.GetLevel();
-            }
-            // Direct enum assignment instead of casting to uint32_t
-            renderableNpc->attitude = nonConstCharacter.GetAttitude();
-            renderableNpc->rank = nonConstCharacter.GetRank();
-            
-            npcs.push_back(renderableNpc);
-		}
-	}
-}
 
-void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
-                                        std::vector<RenderableGadget*>& gadgets) {
-    gadgets.clear();
-    gadgets.reserve(ExtractionCapacity::GADGETS_RESERVE); // Reserve reasonable space
+    void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
+        std::vector<RenderableGadget*>& gadgets) {
+        gadgets.clear();
+        gadgets.reserve(ExtractionCapacity::GADGETS_RESERVE);
 
-    void* pContextCollection = AddressManager::GetContextCollectionPtr();
-    if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) return;
-    
-    kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-    kx::ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();
-    if (!gadgetCtx.data()) return;
-    
-    // Safely iterate through gadget list
-    kx::SafeAccess::GadgetList gadgetList(gadgetCtx);
-    for (const auto& gadget : gadgetList) {
-        // Get an object from the pool instead of creating a new one
-        RenderableGadget* renderableGadget = gadgetPool.Get();
-        if (!renderableGadget) {
-            // Pool exhausted, skip remaining gadgets
-            break;
+        void* pContextCollection = AddressManager::GetContextCollectionPtr();
+        if (!pContextCollection) return;
+
+        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+        kx::ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
+        if (!gadgetContext.data()) return;
+
+        kx::SafeAccess::GadgetList gadgetList(gadgetContext);
+        for (const auto& gadget : gadgetList) {
+            RenderableGadget* renderableGadget = gadgetPool.Get();
+            if (!renderableGadget) break; // Pool exhausted
+
+            // Delegate all extraction logic to the helper class
+            if (EntityExtractor::ExtractGadget(*renderableGadget, gadget)) {
+                gadgets.push_back(renderableGadget);
+            }
         }
-        
-        // Extract position
-        kx::ReClass::GdCliGadget& nonConstGadget = const_cast<kx::ReClass::GdCliGadget&>(gadget);
-        kx::ReClass::AgKeyFramed agKeyFramed = nonConstGadget.GetAgKeyFramed();
-        kx::ReClass::CoKeyFramed coKeyFramed = agKeyFramed.GetCoKeyFramed();
-        if (!coKeyFramed.data()) continue;
-        
-        glm::vec3 gameWorldPos = coKeyFramed.GetPosition();
-        if (gameWorldPos.x == 0.0f && gameWorldPos.y == 0.0f && gameWorldPos.z == 0.0f) continue;
-        
-        renderableGadget->position = glm::vec3(gameWorldPos.x / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
-                                             gameWorldPos.z / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR, 
-                                             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR);
-        renderableGadget->isValid = true;
-        renderableGadget->address = const_cast<void*>(gadget.data());
-
-        // Extract type with type-safe enum assignment
-        renderableGadget->type = nonConstGadget.GetGadgetType();
-
-        if (renderableGadget->type == Game::GadgetType::ResourceNode) {
-            renderableGadget->resourceType = nonConstGadget.GetResourceNodeType();
-        }
-        
-        // Extract gatherable status
-        renderableGadget->isGatherable = nonConstGadget.IsGatherable();
-
-        gadgets.push_back(renderableGadget);
     }
-}
 
 } // namespace kx
