@@ -48,6 +48,16 @@ public:
                                 const std::string& playerName, unsigned int entityColor);
 
     /**
+     * @brief Render a compact gear summary below a player name
+     * @param drawList ImGui draw list for rendering
+     * @param feetPos Entity feet position
+     * @param summary The gear summary string to display
+     * @param entityColor Entity color (used for styling)
+     */
+    static void RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos, 
+                                const std::string& summary, unsigned int entityColor);
+
+    /**
      * @brief Render a bounding box with corner indicators
      * @param drawList ImGui draw list for rendering
      * @param boxMin Upper-left corner of the bounding box

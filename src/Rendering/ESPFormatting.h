@@ -168,6 +168,12 @@ inline const char* EquipmentSlotToString(Game::EquipmentSlot slot) {
     case Game::EquipmentSlot::Gloves: return "Gloves";
     case Game::EquipmentSlot::Pants: return "Legs";
     case Game::EquipmentSlot::Boots: return "Feet";
+    case Game::EquipmentSlot::Back: return "Back";
+    case Game::EquipmentSlot::Amulet: return "Amulet";
+    case Game::EquipmentSlot::Accessory1: return "Accessory 1";
+    case Game::EquipmentSlot::Accessory2: return "Accessory 2";
+    case Game::EquipmentSlot::Ring1: return "Ring 1";
+    case Game::EquipmentSlot::Ring2: return "Ring 2";
     case Game::EquipmentSlot::MainhandWeapon1: return "Weapon1 A";
     case Game::EquipmentSlot::OffhandWeapon1: return "Weapon1 B";
     case Game::EquipmentSlot::MainhandWeapon2: return "Weapon2 A";

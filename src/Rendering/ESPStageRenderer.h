@@ -48,6 +48,7 @@ private:
     // Player-specific detail builders
     static std::vector<std::string> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings);
     static std::vector<std::string> BuildGearDetails(const RenderablePlayer* player);
+    static std::string BuildCompactGearSummary(const RenderablePlayer* player);
 
     /**
      * @brief Universal entity rendering function using context struct

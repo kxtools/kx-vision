@@ -15,7 +15,7 @@ namespace kx {
         bool showRace = true;
         bool showArmorWeight = true;
         bool showLocalPlayer = false; // Hide local player by default
-        bool showGearInfo = false;
+        int gearDisplayMode = 0; // 0: Off, 1: Compact, 2: Detailed
     };
 
     struct NpcEspSettings {

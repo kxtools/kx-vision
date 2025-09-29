@@ -18,7 +18,10 @@ namespace kx {
                         ImGui::SetTooltip("Show your own character in the ESP overlay.");
                     }
 
-                    ImGui::Checkbox("Show Gear Info", &settings.playerESP.showGearInfo);
+                    const char* gearModes[] = { "Off", "Compact", "Detailed" };
+                    ImGui::PushItemWidth(150.0f);
+                    ImGui::Combo("Gear Display", &settings.playerESP.gearDisplayMode, gearModes, IM_ARRAYSIZE(gearModes));
+                    ImGui::PopItemWidth();
                 }
                 ImGui::EndTabItem();
             }

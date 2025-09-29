@@ -37,6 +37,7 @@ struct EntityRenderContext {
     
     // Player name (for players only)
     const std::string& playerName;
+    const std::string& gearSummary;
 };
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
@@ -172,6 +173,11 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
         ESPFeatureRenderer::RenderPlayerName(drawList, screenPos, context.playerName, fadedEntityColor);
     }
 
+    // Render gear summary (players only, compact mode)
+    if (context.entityType == ESPEntityType::Player && !context.gearSummary.empty()) {
+        ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, context.gearSummary, fadedEntityColor);
+    }
+
     // Render details text (for all entities when enabled, but not player names for players)
     if (context.renderDetails && !context.details.empty()) {
         ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, distanceFadeAlpha);
@@ -190,12 +196,27 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
             details = BuildPlayerDetails(player, settings.playerESP);
         }
 
-        if (settings.playerESP.showGearInfo && !player->gear.empty()) {
-            if (!details.empty()) {
-                details.emplace_back("--- Gear Stats ---");
+        std::string gearSummary;
+        switch (settings.playerESP.gearDisplayMode) {
+            case 1: // Compact
+            {
+                gearSummary = BuildCompactGearSummary(player);
+                break;
             }
-            auto gearDetails = BuildGearDetails(player);
-            details.insert(details.end(), gearDetails.begin(), gearDetails.end());
+            case 2: // Detailed
+            {
+                if (!player->gear.empty()) {
+                    if (!details.empty()) {
+                        details.emplace_back("--- Gear Stats ---");
+                    }
+                    auto gearDetails = BuildGearDetails(player);
+                    details.insert(details.end(), gearDetails.begin(), gearDetails.end());
+                }
+                break;
+            }
+            case 0: // Off
+            default:
+                break;
         }
 
         if (settings.showDebugAddresses) {
@@ -213,7 +234,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
         }
 
         EntityRenderContext context{
-            player->position,  // Use position instead of screenPos for real-time projection
+            player->position,
             player->distance,
             color,
             details,
@@ -223,11 +244,12 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
             settings.playerESP.renderDot,
             !details.empty(),
             settings.playerESP.renderHealthBar,
-            settings.playerESP.renderPlayerName,  // Use new player name setting
+            settings.playerESP.renderPlayerName,
             ESPEntityType::Player,
             screenWidth,
             screenHeight,
-            player->playerName  // Pass player name to context
+            player->playerName,
+            gearSummary
         };
         RenderEntity(drawList, context, camera);
     }
@@ -291,6 +313,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
         }
 
         static const std::string emptyPlayerName = "";
+        static const std::string emptyGearSummary = "";
         EntityRenderContext context{
             npc->position,  // Use position instead of screenPos for real-time projection
             npc->distance,
@@ -306,7 +329,8 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
             ESPEntityType::NPC,
             screenWidth,
             screenHeight,
-            emptyPlayerName  // Empty string for NPCs (no player name)
+            emptyPlayerName,
+            emptyGearSummary
         };
         RenderEntity(drawList, context, camera);
     }
@@ -342,6 +366,7 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         }
 
         static const std::string emptyPlayerName = "";
+        static const std::string emptyGearSummary = "";
         EntityRenderContext context{
             gadget->position,  // Use position instead of screenPos for real-time projection
             gadget->distance,
@@ -357,7 +382,8 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
             ESPEntityType::Gadget,
             screenWidth,
             screenHeight,
-            emptyPlayerName  // Empty string for gadgets (no player name)
+            emptyPlayerName,
+            emptyGearSummary
         };
         RenderEntity(drawList, context, camera);
     }
@@ -398,19 +424,56 @@ std::vector<std::string> ESPStageRenderer::BuildPlayerDetails(const RenderablePl
     return details;
 }
 
+std::string ESPStageRenderer::BuildCompactGearSummary(const RenderablePlayer* player) {
+    if (!player || player->gear.empty()) {
+        return "";
+    }
+
+    std::map<std::string, int> statCounts;
+    for (const auto& pair : player->gear) {
+        const GearSlotInfo& info = pair.second;
+        if (info.statId > 0) {
+            auto statIt = kx::data::stat::DATA.find(info.statId);
+            if (statIt != kx::data::stat::DATA.end()) {
+                statCounts[statIt->second.name]++;
+            }
+        }
+    }
+
+    if (statCounts.empty()) {
+        return "";
+    }
+
+    std::string summary = "Stats: ";
+    for (auto it = statCounts.begin(); it != statCounts.end(); ++it) {
+        summary += std::to_string(it->second) + "x " + it->first;
+        if (std::next(it) != statCounts.end()) {
+            summary += ", ";
+        }
+    }
+    return summary;
+}
+
 std::vector<std::string> ESPStageRenderer::BuildGearDetails(const RenderablePlayer* player) {
     std::vector<std::string> gearDetails;
     gearDetails.reserve(12);
 
     const std::vector<Game::EquipmentSlot> displayOrder = {
+        // Armor
         Game::EquipmentSlot::Helm,
         Game::EquipmentSlot::Shoulders,
         Game::EquipmentSlot::Chest,
         Game::EquipmentSlot::Gloves,
         Game::EquipmentSlot::Pants,
         Game::EquipmentSlot::Boots,
+        // Trinkets
         Game::EquipmentSlot::Back,
-        // TODO: Add accessories and aquatic gear later
+        Game::EquipmentSlot::Amulet,
+        Game::EquipmentSlot::Ring1,
+        Game::EquipmentSlot::Ring2,
+        Game::EquipmentSlot::Accessory1,
+        Game::EquipmentSlot::Accessory2,
+        // Weapons
         Game::EquipmentSlot::MainhandWeapon1,
         Game::EquipmentSlot::OffhandWeapon1,
         Game::EquipmentSlot::MainhandWeapon2,

@@ -228,4 +228,30 @@ unsigned int ESPFeatureRenderer::ApplyAlphaToColor(unsigned int color, float alp
     return IM_COL32(r, g, b, newAlpha);
 }
 
+void ESPFeatureRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos,
+                                           const std::string& summary, unsigned int entityColor) {
+    if (summary.empty()) return;
+
+    // Extract alpha from entity color for distance fading
+    float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
+
+    ImVec2 textSize = ImGui::CalcTextSize(summary.c_str());
+
+    // Position summary below the player name area
+    const float summaryOffset = 42.0f; // Below player name (player name is at 25)
+    ImVec2 textPos(feetPos.x - textSize.x / 2, feetPos.y + summaryOffset);
+
+    // Subtle background with rounded corners (like game UI) and distance fade
+    ImVec2 bgMin(textPos.x - 4, textPos.y - 2);
+    ImVec2 bgMax(textPos.x + textSize.x + 4, textPos.y + textSize.y + 2);
+    unsigned int bgAlpha = static_cast<unsigned int>(80 * fadeAlpha); // More transparent background
+    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), 3.0f);
+
+    // Summary text in a clean, readable color with distance fade
+    unsigned int shadowAlpha = static_cast<unsigned int>(160 * fadeAlpha);
+    unsigned int textAlpha = static_cast<unsigned int>(200 * fadeAlpha);
+    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), summary.c_str()); // Shadow
+    drawList->AddText(textPos, IM_COL32(200, 210, 255, textAlpha), summary.c_str()); // Slightly dimmer text color
+}
+
 } // namespace kx

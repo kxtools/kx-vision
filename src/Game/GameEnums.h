@@ -123,13 +123,52 @@ enum class EquipmentSlot : int {
     Helm = 5,
     Pants = 6,
     Shoulders = 7,
+
+    TownChest = 14,
+    TownBoots = 15,
+    TownGloves = 16,
+    TownHelm = 17,
+    TownPants = 18,
+
+    Accessory1 = 19,
+    Accessory2 = 20,
+    Ring1 = 21,
+    Ring2 = 22,
+    Amulet = 23,
+
+    AquaticWeapon1 = 24,
+    AquaticWeapon2 = 25,
+    Novelty = 26,
+    TransformWeapon = 27,
+
     MainhandWeapon1 = 29,
     OffhandWeapon1 = 30,
     MainhandWeapon2 = 31,
     OffhandWeapon2 = 32,
+    Toy = 33,
     ForagingTool = 34,
     LoggingTool = 35,
     MiningTool = 36,
+
+    PvpAquaticHelm = 40,
+    PvpBack = 41,
+    PvpChest = 42,
+    PvpBoots = 43,
+    PvpGloves = 44,
+    PvpHelm = 45,
+    PvpPants = 46,
+    PvpShoulders = 47,
+    PvpAquaticWeapon1 = 48,
+    PvpAquaticWeapon2 = 49,
+    PvpMainhandWeapon1 = 50,
+    PvpOffhandWeapon1 = 51,
+    PvpMainhandWeapon2 = 52,
+    PvpOffhandWeapon2 = 53,
+
+    PvpAmulet = 58,
+    FishingRod = 60,
+    Relic = 67,
+    Backpack1 = 68,
     End = 69
 };
 
