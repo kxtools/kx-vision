@@ -57,5 +57,3 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
-
-scripts/Game/Generated/* filter=lfs diff=lfs merge=lfs -text
