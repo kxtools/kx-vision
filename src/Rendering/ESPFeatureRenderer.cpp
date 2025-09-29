@@ -151,15 +151,15 @@ void ESPFeatureRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& 
     ImVec2 textSize = ImGui::CalcTextSize(distText);
     ImVec2 textPos(center.x - textSize.x / 2, boxMin.y - textSize.y - 5);
     
-    // Background with distance fade
-    unsigned int bgAlpha = static_cast<unsigned int>(150 * fadeAlpha);
-    drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1), 
-                          ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1), 
-                          IM_COL32(0, 0, 0, bgAlpha), 2.0f);
-    
-    // Text with shadow and distance fade
-    unsigned int shadowAlpha = static_cast<unsigned int>(255 * fadeAlpha);
-    unsigned int textAlpha = static_cast<unsigned int>(255 * fadeAlpha);
+    // Background with distance fade - REDUCED OPACITY
+    unsigned int bgAlpha = static_cast<unsigned int>(100 * fadeAlpha); // Before: 150
+    drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1),
+        ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1),
+        IM_COL32(0, 0, 0, bgAlpha), 2.0f);
+
+    // Text with shadow and distance fade - REDUCED OPACITY
+    unsigned int shadowAlpha = static_cast<unsigned int>(180 * fadeAlpha); // Before: 255
+    unsigned int textAlpha = static_cast<unsigned int>(220 * fadeAlpha);   // Before: 255
     drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), distText);
     drawList->AddText(textPos, IM_COL32(255, 255, 255, textAlpha), distText);
 }
@@ -188,28 +188,35 @@ void ESPFeatureRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::
     drawList->AddCircleFilled(pos, 1.5f, IM_COL32(255, 255, 255, dotAlpha));
 }
 
-void ESPFeatureRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, 
-                                          const std::vector<std::string>& details, float fadeAlpha) {
+void ESPFeatureRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax,
+    const std::vector<ColoredDetail>& details, float fadeAlpha) {
     if (details.empty()) return;
 
     float textY = boxMax.y + 5.0f;
-    
+
     for (const auto& detail : details) {
-        ImVec2 textSize = ImGui::CalcTextSize(detail.c_str());
+        ImVec2 textSize = ImGui::CalcTextSize(detail.text.c_str());
         ImVec2 textPos(center.x - textSize.x / 2, textY);
-        
-        // Background with distance fade
-        unsigned int bgAlpha = static_cast<unsigned int>(160 * fadeAlpha);
-        drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1), 
-                              ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 1), 
-                              IM_COL32(0, 0, 0, bgAlpha), 1.0f);
-        
-        // Text with shadow and distance fade
-        unsigned int shadowAlpha = static_cast<unsigned int>(200 * fadeAlpha);
-        unsigned int textAlpha = static_cast<unsigned int>(255 * fadeAlpha);
-        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), detail.c_str());
-        drawList->AddText(textPos, IM_COL32(255, 255, 255, textAlpha), detail.c_str());
-        
+
+        // Background with distance fade - REDUCED OPACITY
+        unsigned int bgAlpha = static_cast<unsigned int>(100 * fadeAlpha); // Before: 160
+        drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1),
+            ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 1),
+            IM_COL32(0, 0, 0, bgAlpha), 1.0f);
+
+        // Text with shadow and distance fade - REDUCED SHADOW OPACITY
+        unsigned int shadowAlpha = static_cast<unsigned int>(180 * fadeAlpha); // Before: 200
+
+        // Extract the original alpha from the detail color and combine it with the fade alpha
+        int originalAlpha = (detail.color >> 24) & 0xFF;
+        unsigned int textAlpha = static_cast<unsigned int>(originalAlpha * fadeAlpha);
+
+        // Re-create the final text color with the new combined alpha
+        ImU32 finalTextColor = (detail.color & 0x00FFFFFF) | (textAlpha << 24);
+
+        drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), detail.text.c_str());
+        drawList->AddText(textPos, finalTextColor, detail.text.c_str());
+
         textY += textSize.y + 3;
     }
 }

@@ -143,6 +143,7 @@ void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPoo
 
                     GearSlotInfo slotInfo;
                     slotInfo.itemId = itemDef.GetId();
+                    slotInfo.rarity = itemDef.GetRarity();
 
                     // Handle the distinction between weapon stats and gear stats
                     if (Game::EnumHelpers::IsWeaponSlot(slotEnum)) {

@@ -5,6 +5,7 @@
 #include <vec3.hpp>
 #include <vec2.hpp>
 #include "../Game/GameEnums.h"
+#include "../../libs/ImGui/imgui.h"
 
 namespace kx {
 
@@ -15,7 +16,13 @@ namespace kx {
 struct GearSlotInfo {
     uint32_t itemId = 0;
     uint32_t statId = 0;
+    Game::ItemRarity rarity = Game::ItemRarity::None;
     // We can add fields for upgrades, rarity, etc. here later.
+};
+
+struct ColoredDetail {
+    std::string text;
+    ImU32 color = 0; // 0 means default color
 };
 
 struct RenderablePlayer {

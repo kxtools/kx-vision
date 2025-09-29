@@ -46,8 +46,8 @@ private:
                                    const std::vector<RenderableGadget*>& gadgets, Camera& camera);
 
     // Player-specific detail builders
-    static std::vector<std::string> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings);
-    static std::vector<std::string> BuildGearDetails(const RenderablePlayer* player);
+    static std::vector<ColoredDetail> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings);
+    static std::vector<ColoredDetail> BuildGearDetails(const RenderablePlayer* player);
     static std::string BuildCompactGearSummary(const RenderablePlayer* player);
 
     /**

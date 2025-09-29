@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "RenderableData.h"
+
 namespace kx {
 
 /**
@@ -103,7 +105,7 @@ public:
      * @param fadeAlpha Distance-based fade alpha (0.0-1.0)
      */
     static void RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, 
-                                 const std::vector<std::string>& details, float fadeAlpha);
+                                 const std::vector<ColoredDetail>& details, float fadeAlpha);
 
     /**
      * @brief Apply alpha multiplier to a color while preserving RGB values

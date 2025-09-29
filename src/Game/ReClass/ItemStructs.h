@@ -21,14 +21,9 @@ namespace kx {
                 return ReadMember<uint32_t>(Offsets::ITEM_DEF_ID, 0);
             }
 
-            // You can add more methods here as you verify their offsets.
-            // For example, the old rarity offset was 0x60.
-            /*
             Game::ItemRarity GetRarity() const {
-                // UNVERIFIED OFFSET - FOR EXAMPLE PURPOSES
-                return ReadMember<Game::ItemRarity>(0x60, Game::ItemRarity::None);
+                return ReadMember<Game::ItemRarity>(Offsets::ITEM_DEF_RARITY, Game::ItemRarity::None);
             }
-            */
         };
 
     } // namespace ReClass

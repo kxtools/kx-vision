@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Game/GameEnums.h"
+#include "../../libs/ImGui/imgui.h"
 #include <string>
 
 // Forward declaration to avoid circular dependency
@@ -28,6 +29,20 @@ public:
             case Game::Attitude::Neutral: 
             default: 
                 return 0xDCFFFFFF; // White
+        }
+    }
+
+    static ImU32 GetRarityColor(Game::ItemRarity rarity) {
+        switch (rarity) {
+            case Game::ItemRarity::Junk:       return IM_COL32(100, 100, 100, 255); // Gray
+            case Game::ItemRarity::Common:     return IM_COL32(189, 170, 170, 255); // White
+            case Game::ItemRarity::Fine:       return IM_COL32(98, 164, 218, 255);  // Blue
+            case Game::ItemRarity::Masterwork: return IM_COL32(26, 147, 6, 255);    // Green
+            case Game::ItemRarity::Rare:       return IM_COL32(252, 208, 11, 255);  // Yellow
+            case Game::ItemRarity::Exotic:     return IM_COL32(255, 164, 5, 255);   // Orange
+            case Game::ItemRarity::Ascended:   return IM_COL32(251, 62, 141, 255);  // Pink
+            case Game::ItemRarity::Legendary:  return IM_COL32(76, 19, 157, 255);   // Purple
+            default:                           return IM_COL32(255, 255, 255, 255); // Default to white
         }
     }
 

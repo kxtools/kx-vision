@@ -160,6 +160,20 @@ inline std::string ResourceNodeTypeToString(Game::ResourceNodeType type) {
 	}
 }
 
+inline const char* RarityToString(Game::ItemRarity rarity) {
+    switch (rarity) {
+    case Game::ItemRarity::Junk: return "Junk";
+    case Game::ItemRarity::Common: return "Common";
+    case Game::ItemRarity::Fine: return "Fine";
+    case Game::ItemRarity::Masterwork: return "Masterwork";
+    case Game::ItemRarity::Rare: return "Rare";
+    case Game::ItemRarity::Exotic: return "Exotic";
+    case Game::ItemRarity::Ascended: return "Ascended";
+    case Game::ItemRarity::Legendary: return "Legendary";
+    default: return "Unknown";
+    }
+}
+
 inline const char* EquipmentSlotToString(Game::EquipmentSlot slot) {
     switch (slot) {
     case Game::EquipmentSlot::Helm: return "Helm";

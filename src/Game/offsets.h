@@ -93,12 +93,12 @@ namespace Offsets {
     constexpr uintptr_t EQUIP_SLOT_STAT_GEAR = 0xA0;        // Ptr to Stat for Armor/Trinkets from EquipSlot
     constexpr uintptr_t EQUIP_SLOT_STAT_WEAPON = 0xA8;        // Ptr to Stat for Weapons from EquipSlot
     constexpr uintptr_t ITEM_DEF_ID = 0x28;                 // Item's ID from ItemDef
+    constexpr uintptr_t ITEM_DEF_RARITY = 0x60;
     constexpr uintptr_t STAT_ID = 0x28;                     // Stat combination ID from Stat
 
     // --- Historical/Unverified Offsets from old GearCheck ---
     // These are good starting points for finding runes, sigils, and rarity.
     // They require verification before use.
-    // constexpr uintptr_t ITEM_DEF_RARITY = 0x60;
     // constexpr uintptr_t EQUIP_SLOT_RUNE = 0xC0;
     // constexpr uintptr_t EQUIP_SLOT_SIGIL1 = 0xC8;
     // constexpr uintptr_t EQUIP_SLOT_SIGIL2 = 0xD0;

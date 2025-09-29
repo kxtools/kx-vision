@@ -13,13 +13,15 @@
 
 namespace kx {
 
+	const ImU32 DEFAULT_TEXT_COLOR = IM_COL32(255, 255, 255, 255); // White
+
 // Context struct for unified entity rendering
 struct EntityRenderContext {
     // Entity data
     const glm::vec3& position;    // World position for real-time screen projection
     float distance;
     unsigned int color;
-    const std::vector<std::string>& details;
+    const std::vector<ColoredDetail>& details;
     float healthPercent;
 
     // Style and settings
@@ -191,7 +193,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
     for (const auto* player : players) {
         if (!player) continue; // Safety check
 
-        std::vector<std::string> details;
+        std::vector<ColoredDetail> details;
         if (settings.playerESP.renderDetails) {
             details = BuildPlayerDetails(player, settings.playerESP);
         }
@@ -287,28 +289,28 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
             healthPercent = npc->currentHealth / npc->maxHealth;
         }
 
-        std::vector<std::string> details;
-        details.reserve(6); // Pre-allocate to avoid reallocations
+        std::vector<ColoredDetail> details;
+        details.reserve(6);
         if (settings.npcESP.renderDetails) {
             if (!npc->name.empty()) {
-                details.emplace_back("NPC: " + npc->name);
+                details.push_back({ "NPC: " + npc->name, DEFAULT_TEXT_COLOR });
             }
-            
+
             if (npc->level > 0) {
-                details.emplace_back("Level: " + std::to_string(npc->level));
+                details.push_back({ "Level: " + std::to_string(npc->level), DEFAULT_TEXT_COLOR });
             }
-            
+
             if (npc->maxHealth > 0) {
-                details.emplace_back("HP: " + std::to_string(static_cast<int>(npc->currentHealth)) + "/" + std::to_string(static_cast<int>(npc->maxHealth)));
+                details.push_back({ "HP: " + std::to_string(static_cast<int>(npc->currentHealth)) + "/" + std::to_string(static_cast<int>(npc->maxHealth)), DEFAULT_TEXT_COLOR });
             }
-            
-            details.emplace_back("Attitude: " + ESPFormatting::AttitudeToString(npc->attitude));
-            details.emplace_back("Rank: " + ESPFormatting::RankToString(npc->rank));
+
+            details.push_back({ "Attitude: " + ESPFormatting::AttitudeToString(npc->attitude), DEFAULT_TEXT_COLOR });
+            details.push_back({ "Rank: " + ESPFormatting::RankToString(npc->rank), DEFAULT_TEXT_COLOR });
 
             if (settings.showDebugAddresses) {
                 char addrStr[32];
                 snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", npc->address);
-                details.emplace_back(addrStr);
+                details.push_back({ std::string(addrStr), DEFAULT_TEXT_COLOR });
             }
         }
 
@@ -345,23 +347,23 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         
         unsigned int color = ESPColors::GADGET;
 
-        std::vector<std::string> details;
-        details.reserve(4); // Pre-allocate for type and gatherable status
+        std::vector<ColoredDetail> details;
+        details.reserve(4);
         if (settings.objectESP.renderDetails) {
-            details.emplace_back("Type: " + ESPFormatting::GadgetTypeToString(gadget->type));
+            details.push_back({ "Type: " + ESPFormatting::GadgetTypeToString(gadget->type), DEFAULT_TEXT_COLOR });
 
             if (gadget->type == Game::GadgetType::ResourceNode) {
-                details.emplace_back("Node: " + ESPFormatting::ResourceNodeTypeToString(gadget->resourceType));
+                details.push_back({ "Node: " + ESPFormatting::ResourceNodeTypeToString(gadget->resourceType), DEFAULT_TEXT_COLOR });
             }
 
             if (gadget->isGatherable) {
-                details.emplace_back("Status: Gatherable");
+                details.push_back({ "Status: Gatherable", DEFAULT_TEXT_COLOR });
             }
 
             if (settings.showDebugAddresses) {
                 char addrStr[32];
                 snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", gadget->address);
-                details.emplace_back(addrStr);
+                details.push_back({ std::string(addrStr), DEFAULT_TEXT_COLOR });
             }
         }
 
@@ -389,37 +391,37 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
     }
 }
 
-std::vector<std::string> ESPStageRenderer::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings) {
-    std::vector<std::string> details;
+std::vector<ColoredDetail> ESPStageRenderer::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings) {
+    std::vector<ColoredDetail> details;
     details.reserve(10); // Reserve space
 
     if (!player->playerName.empty()) {
-        details.emplace_back("Player: " + player->playerName);
+        details.push_back({ "Player: " + player->playerName, DEFAULT_TEXT_COLOR });
     }
-    
+
     if (player->level > 0) {
         std::string levelText = "Level: " + std::to_string(player->level);
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {
             levelText += " (" + std::to_string(player->scaledLevel) + ")";
         }
-        details.emplace_back(levelText);
+        details.push_back({ levelText, DEFAULT_TEXT_COLOR });
     }
-    
+
     if (player->profession != Game::Profession::None) {
-        details.emplace_back("Prof: " + ESPFormatting::ProfessionToString(player->profession));
+        details.push_back({ "Prof: " + ESPFormatting::ProfessionToString(player->profession), DEFAULT_TEXT_COLOR });
     }
-    
+
     if (player->race != Game::Race::None) {
-        details.emplace_back("Race: " + ESPFormatting::RaceToString(player->race));
+        details.push_back({ "Race: " + ESPFormatting::RaceToString(player->race), DEFAULT_TEXT_COLOR });
     }
-    
+
     if (player->maxHealth > 0) {
-        details.emplace_back("HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)));
+        details.push_back({ "HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)), DEFAULT_TEXT_COLOR });
     }
-    
+
     if (player->maxEnergy > 0) {
         const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
-        details.emplace_back("Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)");
+        details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)", DEFAULT_TEXT_COLOR });
     }
     return details;
 }
@@ -454,8 +456,8 @@ std::string ESPStageRenderer::BuildCompactGearSummary(const RenderablePlayer* pl
     return summary;
 }
 
-std::vector<std::string> ESPStageRenderer::BuildGearDetails(const RenderablePlayer* player) {
-    std::vector<std::string> gearDetails;
+std::vector<ColoredDetail> ESPStageRenderer::BuildGearDetails(const RenderablePlayer* player) {
+    std::vector<ColoredDetail> gearDetails;
     gearDetails.reserve(12);
 
     const std::vector<Game::EquipmentSlot> displayOrder = {
@@ -485,6 +487,7 @@ std::vector<std::string> ESPStageRenderer::BuildGearDetails(const RenderablePlay
         if (gearIt != player->gear.end()) {
             const char* slotName = ESPFormatting::EquipmentSlotToString(gearIt->first);
             const GearSlotInfo& info = gearIt->second;
+            ImU32 rarityColor = ESPHelpers::GetRarityColor(info.rarity);
 
             std::string statName = "No Stats";
             if (info.statId > 0) {
@@ -497,7 +500,7 @@ std::vector<std::string> ESPStageRenderer::BuildGearDetails(const RenderablePlay
                 }
             }
 
-            gearDetails.emplace_back(std::string(slotName) + ": " + statName);
+            gearDetails.push_back({ std::string(slotName) + ": " + statName, rarityColor });
         }
     }
     return gearDetails;
