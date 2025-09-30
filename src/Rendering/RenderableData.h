@@ -27,6 +27,11 @@ struct CompactStatInfo {
     Game::ItemRarity highestRarity = Game::ItemRarity::None;
 };
 
+struct DominantStat {
+    std::string name;
+    float percentage;
+};
+
 struct ColoredDetail {
     std::string text;
     ImU32 color = 0; // 0 means default color

@@ -39,7 +39,6 @@ struct EntityRenderContext {
     
     // Player name (for players only)
     const std::string& playerName;
-    const std::vector<CompactStatInfo>& gearSummary;
 };
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
@@ -175,85 +174,97 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
         ESPFeatureRenderer::RenderPlayerName(drawList, screenPos, context.playerName, fadedEntityColor);
     }
 
-    // Render gear summary (players only, compact mode)
-    if (context.entityType == ESPEntityType::Player && !context.gearSummary.empty()) {
-        ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, context.gearSummary, distanceFadeAlpha);
-    }
-
     // Render details text (for all entities when enabled, but not player names for players)
     if (context.renderDetails && !context.details.empty()) {
         ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, distanceFadeAlpha);
     }
 }
 
-void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                          const std::vector<RenderablePlayer*>& players, Camera& camera) {
+void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,
+    const std::vector<RenderablePlayer*>& players, Camera& camera) {
     const auto& settings = AppState::Get().GetSettings();
-    
+
     for (const auto* player : players) {
-        if (!player) continue; // Safety check
+        if (!player) continue;
+
+        // --- 1. DATA PREPARATION ---
+        // Prepare all text details first. This includes general info and the detailed gear view if selected.
 
         std::vector<ColoredDetail> details;
         if (settings.playerESP.renderDetails) {
             details = BuildPlayerDetails(player, settings.playerESP);
         }
 
-        std::vector<CompactStatInfo> gearSummary;
-        switch (settings.playerESP.gearDisplayMode) {
-            case 1: // Compact
-            {
-                gearSummary = BuildCompactGearSummary(player);
-                break;
-            }
-            case 2: // Detailed
-            {
-                if (!player->gear.empty()) {
-                    if (!details.empty()) {
-                        details.emplace_back("--- Gear Stats ---");
-                    }
-                    auto gearDetails = BuildGearDetails(player);
-                    details.insert(details.end(), gearDetails.begin(), gearDetails.end());
+        // If "Detailed" mode is selected, build the full gear list and add it to the details.
+        if (settings.playerESP.gearDisplayMode == 3) { // 3 = Detailed
+            auto gearDetails = BuildGearDetails(player);
+            if (!gearDetails.empty()) {
+                if (!details.empty()) {
+                    details.push_back({ "--- Gear Stats ---", DEFAULT_TEXT_COLOR });
                 }
-                break;
+                details.insert(details.end(), gearDetails.begin(), gearDetails.end());
             }
-            case 0: // Off
-            default:
-                break;
         }
 
         if (settings.showDebugAddresses) {
             char addrStr[32];
             snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
-            details.emplace_back(addrStr);
+            details.push_back({ std::string(addrStr), DEFAULT_TEXT_COLOR });
         }
 
-        // All filtering has been done - just render everything
-        unsigned int color = ESPColors::PLAYER;
+        // --- 2. CORE RENDERING ---
+        // Project to screen and render all common elements (name, health bar, box, dot, details).
 
-        float healthPercent = -1.0f;
-        if (player->maxHealth > 0) {
-            healthPercent = player->currentHealth / player->maxHealth;
+        glm::vec2 screenPos;
+        if (!ESPMath::WorldToScreen(player->position, camera, screenWidth, screenHeight, screenPos)) {
+            continue; // Skip if off-screen
         }
+
+        float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(player->distance, settings.espUseDistanceLimit, settings.espRenderDistanceLimit);
+        if (distanceFadeAlpha <= 0.0f) {
+            continue; // Skip if fully faded out
+        }
+
+        unsigned int fadedPlayerColor = ESPFeatureRenderer::ApplyAlphaToColor(ESPColors::PLAYER, distanceFadeAlpha);
+        float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
 
         EntityRenderContext context{
             player->position,
             player->distance,
-            color,
+            fadedPlayerColor,
             details,
             healthPercent,
             settings.playerESP.renderBox,
             settings.playerESP.renderDistance,
             settings.playerESP.renderDot,
-            !details.empty(),
+            !details.empty(), // renderDetails is true only if the details vector is not empty
             settings.playerESP.renderHealthBar,
             settings.playerESP.renderPlayerName,
             ESPEntityType::Player,
             screenWidth,
             screenHeight,
-            player->playerName,
-            gearSummary
+            player->playerName
         };
         RenderEntity(drawList, context, camera);
+
+        // --- 3. SPECIALIZED SUMMARY RENDERING ---
+        // After the main elements are drawn, render the specific compact summary if one is selected.
+
+        switch (settings.playerESP.gearDisplayMode) {
+        case 1: { // Compact (Stat Names)
+            auto compactSummary = BuildCompactGearSummary(player);
+            ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, compactSummary, distanceFadeAlpha);
+            break;
+        }
+        case 2: { // Compact (Top 3 Attributes)
+            auto dominantStats = BuildDominantStats(player);
+            ESPFeatureRenderer::RenderDominantStats(drawList, screenPos, dominantStats, distanceFadeAlpha);
+            break;
+        }
+        default:
+            // Modes 0 (Off) and 3 (Detailed) do not have a separate summary view.
+            break;
+        }
     }
 }
 
@@ -315,7 +326,6 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
         }
 
         static const std::string emptyPlayerName = "";
-        std::vector<CompactStatInfo> emptyGearSummary;
         EntityRenderContext context{
             npc->position,  // Use position instead of screenPos for real-time projection
             npc->distance,
@@ -332,7 +342,6 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
             screenWidth,
             screenHeight,
             emptyPlayerName,
-            emptyGearSummary
         };
         RenderEntity(drawList, context, camera);
     }
@@ -368,7 +377,6 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         }
 
         static const std::string emptyPlayerName = "";
-        std::vector<CompactStatInfo> emptyGearSummary;
         EntityRenderContext context{
             gadget->position,  // Use position instead of screenPos for real-time projection
             gadget->distance,
@@ -385,7 +393,6 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
             screenWidth,
             screenHeight,
             emptyPlayerName,
-            emptyGearSummary
         };
         RenderEntity(drawList, context, camera);
     }
@@ -462,6 +469,75 @@ std::vector<CompactStatInfo> ESPStageRenderer::BuildCompactGearSummary(const Ren
     for (const auto& pair : statSummary) {
         result.push_back(pair.second);
     }
+    return result;
+}
+
+std::map<kx::data::ApiAttribute, int> ESPStageRenderer::BuildAttributeSummary(const RenderablePlayer* player) {
+    std::map<kx::data::ApiAttribute, int> attributeCounts;
+    if (!player || player->gear.empty()) {
+        return attributeCounts;
+    }
+
+    for (const auto& pair : player->gear) {
+        const GearSlotInfo& info = pair.second;
+        if (info.statId > 0) {
+            auto statIt = kx::data::stat::DATA.find(info.statId);
+            if (statIt != kx::data::stat::DATA.end()) {
+                for (const auto& attr : statIt->second.attributes) {
+                    attributeCounts[attr.attribute]++;
+                }
+            }
+        }
+    }
+    return attributeCounts;
+}
+
+std::vector<DominantStat> ESPStageRenderer::BuildDominantStats(const RenderablePlayer* player) {
+    std::vector<DominantStat> result;
+
+    // 1. Get the raw attribute counts
+    std::map<kx::data::ApiAttribute, int> attributeCounts = BuildAttributeSummary(player);
+    if (attributeCounts.empty()) {
+        return result;
+    }
+
+    // 2. Calculate the total number of attribute instances
+    float totalAttributes = 0.0f;
+    for (const auto& pair : attributeCounts) {
+        totalAttributes += pair.second;
+    }
+    if (totalAttributes == 0) return result;
+
+    // 3. Convert to a vector of DominantStat with percentages
+    std::vector<DominantStat> allStats;
+    allStats.reserve(attributeCounts.size());
+    for (const auto& pair : attributeCounts) {
+        const char* name = "??";
+        switch (pair.first) {
+        case kx::data::ApiAttribute::Power:           name = "Power"; break;
+        case kx::data::ApiAttribute::Precision:       name = "Precision"; break;
+        case kx::data::ApiAttribute::Toughness:       name = "Toughness"; break;
+        case kx::data::ApiAttribute::Vitality:        name = "Vitality"; break;
+        case kx::data::ApiAttribute::CritDamage:      name = "Ferocity"; break;
+        case kx::data::ApiAttribute::Healing:         name = "Healing"; break;
+        case kx::data::ApiAttribute::ConditionDamage: name = "Condi Dmg"; break;
+        case kx::data::ApiAttribute::BoonDuration:    name = "Boon Dmg"; break;
+        case kx::data::ApiAttribute::ConditionDuration: name = "Condi Dura"; break;
+        }
+        allStats.push_back({ name, (pair.second / totalAttributes) * 100.0f });
+    }
+
+    // 4. Sort the vector in descending order of percentage
+    std::sort(allStats.begin(), allStats.end(), [](const DominantStat& a, const DominantStat& b) {
+        return a.percentage > b.percentage;
+        });
+
+    // 5. Return the top 3
+    result.reserve(3);
+    for (size_t i = 0; i < allStats.size() && i < 3; ++i) {
+        result.push_back(allStats[i]);
+    }
+
     return result;
 }
 

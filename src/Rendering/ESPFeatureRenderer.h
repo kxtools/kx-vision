@@ -59,6 +59,9 @@ public:
     static void RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos,
         const std::vector<CompactStatInfo>& summary, float fadeAlpha);
 
+    static void RenderDominantStats(ImDrawList* drawList, const glm::vec2& feetPos,
+        const std::vector<DominantStat>& stats, float fadeAlpha);
+
     /**
      * @brief Render a bounding box with corner indicators
      * @param drawList ImGui draw list for rendering

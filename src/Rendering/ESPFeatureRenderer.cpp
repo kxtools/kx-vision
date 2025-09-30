@@ -300,4 +300,36 @@ void ESPFeatureRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2
     }
 }
 
+void ESPFeatureRenderer::RenderDominantStats(ImDrawList* drawList, const glm::vec2& feetPos,
+    const std::vector<DominantStat>& stats, float fadeAlpha) {
+    if (stats.empty()) return;
+
+    // 1. Build the display string
+    std::string summaryText = "[";
+    for (size_t i = 0; i < stats.size(); ++i) {
+        summaryText += stats[i].name;
+        if (i < stats.size() - 1) {
+            summaryText += " | ";
+        }
+    }
+    summaryText += "]";
+
+    // 2. Calculate width and position
+    float totalWidth = ImGui::CalcTextSize(summaryText.c_str()).x;
+    const float summaryOffset = 45.0f; // Use same offset as the other compact view for consistency
+    ImVec2 textPos(feetPos.x - totalWidth / 2.0f, feetPos.y + summaryOffset);
+
+    // 3. Render
+    unsigned int bgAlpha = static_cast<unsigned int>(80 * fadeAlpha);
+    unsigned int shadowAlpha = static_cast<unsigned int>(160 * fadeAlpha);
+    unsigned int textAlpha = static_cast<unsigned int>(200 * fadeAlpha);
+
+    ImVec2 bgMin(textPos.x - 4, textPos.y - 2);
+    ImVec2 bgMax(textPos.x + totalWidth + 4, textPos.y + ImGui::GetTextLineHeight() + 2);
+    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), 3.0f);
+
+    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), summaryText.c_str());
+    drawList->AddText(textPos, IM_COL32(200, 210, 255, textAlpha), summaryText.c_str());
+}
+
 } // namespace kx

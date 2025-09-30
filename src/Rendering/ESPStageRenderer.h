@@ -5,6 +5,7 @@
 #include "ESPData.h"
 #include "../Game/Camera.h"
 #include "../Core/Settings.h"
+#include "Generated/EnumsAndStructs.h"
 
 // Forward declarations
 struct ImDrawList;
@@ -49,6 +50,8 @@ private:
     static std::vector<ColoredDetail> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings);
     static std::vector<ColoredDetail> BuildGearDetails(const RenderablePlayer* player);
     static std::vector<CompactStatInfo> BuildCompactGearSummary(const RenderablePlayer* player);
+    static std::map<kx::data::ApiAttribute, int> BuildAttributeSummary(const RenderablePlayer* player);
+    static std::vector<DominantStat> BuildDominantStats(const RenderablePlayer* player);
 
     /**
      * @brief Universal entity rendering function using context struct
