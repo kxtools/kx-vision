@@ -29,14 +29,47 @@ namespace kx {
                         ImGui::SetTooltip("Minimum scale factor for very distant entities.\nLower values = smaller distant entities.");
                     }
                     
-                    ImGui::SliderFloat("Max Scale", &settings.espMaxScale, 1.0f, 5.0f, "%.2f"); 
+                    ImGui::SliderFloat("Max Scale", &settings.espMaxScale, 0.1f, 5.0f, "%.2f"); 
                     if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("Maximum scale factor for very close entities.\nHigher values = larger close entities.");
+                        ImGui::SetTooltip("Maximum scale factor for very close entities.\n1.0 = base size, >1.0 = larger, <1.0 = smaller.");
                     }
                     
-                    ImGui::SliderFloat("Scale Factor", &settings.espScaleFactor, 10.0f, 100.0f, "%.0f");
+                    ImGui::SliderFloat("Distance Factor", &settings.espDistanceFactor, 20.0f, 500.0f, "%.0f");
                     if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("Base scaling divisor that controls overall entity size.\nHigher values = smaller entities overall.\nDefault: 35 (matches original fixed sizes at typical distances)");
+                        ImGui::SetTooltip("Controls the scaling curve. This is the distance (in meters) at which elements will shrink to 50% of their size.\nHigher values = scaling happens over a longer distance.");
+                    }
+
+                    ImGui::SliderFloat("Scaling Exponent", &settings.espScalingExponent, 0.5f, 2.5f, "%.2f");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Controls the curve shape. > 1.0 makes scaling more aggressive at long distances. < 1.0 makes it more aggressive at close distances.");
+                    }
+
+                    ImGui::SliderFloat("Min Font Size", &settings.espMinFontSize, 1.0f, 10.0f, "%.1fpx");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("The absolute minimum pixel size for fonts at maximum distance.\nPrevents text from becoming completely unreadable.");
+                    }
+                }
+
+                if (ImGui::CollapsingHeader("Element Base Sizes", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::SliderFloat("Font Size", &settings.espBaseFontSize, 6.0f, 30.0f, "%.1fpx");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Base font size before distance scaling is applied.");
+                    }
+                    ImGui::SliderFloat("Dot Radius", &settings.espBaseDotRadius, 1.0f, 10.0f, "%.1fpx");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Base radius for the center dot before distance scaling.");
+                    }
+                    ImGui::SliderFloat("Box Thickness", &settings.espBaseBoxThickness, 0.5f, 5.0f, "%.1fpx");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Base thickness for bounding boxes before distance scaling.");
+                    }
+                    ImGui::SliderFloat("Health Bar Width", &settings.espBaseHealthBarWidth, 20.0f, 100.0f, "%.0fpx");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Base width for standalone health bars before distance scaling.");
+                    }
+                    ImGui::SliderFloat("Health Bar Height", &settings.espBaseHealthBarHeight, 2.0f, 20.0f, "%.1fpx");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Base height for standalone health bars before distance scaling.");
                     }
                 }
                 

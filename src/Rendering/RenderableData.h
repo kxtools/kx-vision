@@ -40,7 +40,8 @@ struct ColoredDetail {
 struct RenderablePlayer {
     glm::vec3 position;
     glm::vec2 screenPos;             // Pre-calculated screen position
-    float distance;                  // Pre-calculated distance to camera
+    float visualDistance;            // Distance from camera (for scaling)
+    float gameplayDistance;          // Distance from player (for display)
     std::string characterName;
     std::string playerName;
     float currentHealth;
@@ -58,7 +59,7 @@ struct RenderablePlayer {
 
     std::unordered_map<Game::EquipmentSlot, GearSlotInfo> gear;
     
-        RenderablePlayer() : position(0.0f), screenPos(0.0f), distance(0.0f),
+        RenderablePlayer() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                              currentHealth(0.0f), maxHealth(0.0f),
                              currentEnergy(0.0f), maxEnergy(0.0f), level(0), scaledLevel(0),
                              profession(Game::Profession::None), attitude(Game::Attitude::Neutral),
@@ -70,7 +71,8 @@ struct RenderablePlayer {
 struct RenderableNpc {
     glm::vec3 position;
     glm::vec2 screenPos;             // Pre-calculated screen position
-    float distance;                  // Pre-calculated distance to camera
+    float visualDistance;            // Distance from camera (for scaling)
+    float gameplayDistance;          // Distance from player (for display)
     std::string name;
     float currentHealth;
     float maxHealth;
@@ -80,7 +82,7 @@ struct RenderableNpc {
     bool isValid;
     void* address;
 
-    RenderableNpc() : position(0.0f), screenPos(0.0f), distance(0.0f),
+    RenderableNpc() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                       currentHealth(0.0f), maxHealth(0.0f),
                       level(0), attitude(Game::Attitude::Neutral), rank(), isValid(false), address(nullptr)
     {
@@ -90,7 +92,8 @@ struct RenderableNpc {
 struct RenderableGadget {
     glm::vec3 position;
     glm::vec2 screenPos;             // Pre-calculated screen position
-    float distance;                  // Pre-calculated distance to camera
+    float visualDistance;            // Distance from camera (for scaling)
+    float gameplayDistance;          // Distance from player (for display)
     std::string name;
     Game::GadgetType type;           // Type-safe enum instead of uint32_t
     Game::ResourceNodeType resourceType;
@@ -98,7 +101,7 @@ struct RenderableGadget {
     bool isValid;
     void* address;
     
-    RenderableGadget() : position(0.0f), screenPos(0.0f), distance(0.0f),
+    RenderableGadget() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          type(Game::GadgetType::None), resourceType(),
                          isGatherable(false), isValid(false), address(nullptr)
     {
