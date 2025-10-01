@@ -110,6 +110,7 @@
     <ClCompile Include="src\Core\AppState.cpp" />
     <ClCompile Include="src\Rendering\Extractors\EntityExtractor.cpp" />
     <ClCompile Include="src\Rendering\GUI\AppearanceTab.cpp" />
+    <ClCompile Include="src\Rendering\GUI\GuiHelpers.cpp" />
     <ClCompile Include="src\Rendering\GUI\InfoTab.cpp" />
     <ClCompile Include="src\Rendering\GUI\NpcsTab.cpp" />
     <ClCompile Include="src\Rendering\GUI\ObjectsTab.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />
     <ClInclude Include="src\Rendering\Extractors\EntityExtractor.h" />
     <ClInclude Include="src\Rendering\GUI\AppearanceTab.h" />
+    <ClInclude Include="src\Rendering\GUI\GuiHelpers.h" />
     <ClInclude Include="src\Rendering\GUI\InfoTab.h" />
     <ClInclude Include="src\Rendering\GUI\NpcsTab.h" />
     <ClInclude Include="src\Rendering\GUI\ObjectsTab.h" />
