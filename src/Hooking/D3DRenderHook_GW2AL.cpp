@@ -11,9 +11,9 @@
 
 #include "D3DRenderHook.h"
 
+#include "Config.h"
 #ifdef GW2AL_BUILD // Only compile this file in GW2AL mode
 
-#include "../Core/Config.h"
 #include "../Core/AppState.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../../libs/ImGui/imgui_impl_win32.h"

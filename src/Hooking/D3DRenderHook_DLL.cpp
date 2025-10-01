@@ -13,10 +13,10 @@
 
 #include "D3DRenderHook.h"
 
+#include "Config.h"
 #ifndef GW2AL_BUILD // Only compile this file in DLL mode
 
 #include <windowsx.h>
-#include "../Core/Config.h"
 #include "../Core/AppState.h"
 #include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
