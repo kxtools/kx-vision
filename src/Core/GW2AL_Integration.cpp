@@ -16,7 +16,6 @@
 
 #include "AppState.h"
 #include "AppLifecycleManager.h"
-#include "Integration.h"
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
@@ -172,7 +171,6 @@ extern "C" __declspec(dllexport) gw2al_addon_dsc* gw2addon_get_description() {
  */
 extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* core_api) {
     g_al_api = core_api;
-    g_addon_loader_present = true;
 
     LOG_INIT();
     LOG_INFO("KXVision starting up in GW2AL mode...");

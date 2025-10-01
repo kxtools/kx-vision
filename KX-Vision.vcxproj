@@ -145,7 +145,6 @@
     <ClInclude Include="libs\gw2al\gw2al_api.h" />
     <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
     <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
-    <ClInclude Include="src\Core\Integration.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Game\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
