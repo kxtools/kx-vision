@@ -88,4 +88,72 @@ namespace ESPColors {
     constexpr unsigned int GADGET = IM_COL32(80, 165, 255, 200);  // Warm orange/amber (R:255, G:165, B:80)
 }
 
+/**
+ * @brief ESP layout constants for positioning and sizing visual elements.
+ *
+ * Centralizes hardcoded pixel values for offsets, padding, and sizes to allow
+ * for easy visual tuning of the ESP's appearance.
+ */
+namespace RenderingLayout {
+    // Common
+    constexpr float TEXT_SHADOW_OFFSET = 1.0f;
+    constexpr float DOT_RADIUS_MULTIPLIER = 0.8f;
+
+    // Attached Health Bar
+    constexpr float ATTACHED_HEALTH_BAR_WIDTH = 4.0f;
+    constexpr float ATTACHED_HEALTH_BAR_SPACING = 2.0f;
+    constexpr float ATTACHED_HEALTH_BAR_BG_ALPHA = 150.0f;
+    constexpr float ATTACHED_HEALTH_BAR_BORDER_ALPHA = 100.0f;
+
+    // Standalone Health Bar
+    constexpr float STANDALONE_HEALTH_BAR_Y_OFFSET = 15.0f;
+    constexpr float STANDALONE_HEALTH_BAR_BG_ROUNDING = 1.0f;
+    constexpr float STANDALONE_HEALTH_BAR_BORDER_ROUNDING = 1.0f;
+    constexpr float STANDALONE_HEALTH_BAR_BORDER_THICKNESS = 1.0f;
+    constexpr float STANDALONE_HEALTH_BAR_BG_ALPHA = 180.0f;
+    constexpr float STANDALONE_HEALTH_BAR_HEALTH_ALPHA = 220.0f;
+    constexpr float STANDALONE_HEALTH_BAR_BORDER_ALPHA = 100.0f;
+
+    // Player Name
+    constexpr float PLAYER_NAME_Y_OFFSET = 25.0f;
+    constexpr float PLAYER_NAME_BG_PADDING_X = 4.0f;
+    constexpr float PLAYER_NAME_BG_PADDING_Y = 2.0f;
+    constexpr float PLAYER_NAME_BG_ROUNDING = 3.0f;
+    constexpr float PLAYER_NAME_BORDER_THICKNESS = 1.0f;
+    constexpr float PLAYER_NAME_BG_ALPHA = 100.0f;
+    constexpr float PLAYER_NAME_BORDER_ALPHA = 120.0f;
+    constexpr float PLAYER_NAME_SHADOW_ALPHA = 180.0f;
+    constexpr float PLAYER_NAME_TEXT_ALPHA = 220.0f;
+
+    // Bounding Box
+    constexpr float BOX_CORNER_SIZE_MULTIPLIER = 4.0f;
+
+    // Distance Text
+    constexpr float DISTANCE_TEXT_Y_OFFSET = 5.0f;
+    constexpr float DISTANCE_TEXT_BG_PADDING_X = 2.0f;
+    constexpr float DISTANCE_TEXT_BG_PADDING_Y = 1.0f;
+    constexpr float DISTANCE_TEXT_BG_ROUNDING = 2.0f;
+    constexpr float DISTANCE_TEXT_BG_ALPHA = 100.0f;
+    constexpr float DISTANCE_TEXT_SHADOW_ALPHA = 180.0f;
+    constexpr float DISTANCE_TEXT_TEXT_ALPHA = 220.0f;
+
+    // Details Text
+    constexpr float DETAILS_TEXT_Y_OFFSET = 5.0f;
+    constexpr float DETAILS_TEXT_BG_PADDING_X = 3.0f;
+    constexpr float DETAILS_TEXT_BG_PADDING_Y = 1.0f;
+    constexpr float DETAILS_TEXT_BG_ROUNDING = 1.0f;
+    constexpr float DETAILS_TEXT_LINE_SPACING = 3.0f;
+    constexpr float DETAILS_TEXT_BG_ALPHA = 100.0f;
+    constexpr float DETAILS_TEXT_SHADOW_ALPHA = 180.0f;
+
+    // Compact Summary Views (Gear, Stats)
+    constexpr float SUMMARY_Y_OFFSET = 45.0f;
+    constexpr float SUMMARY_BG_PADDING_X = 4.0f;
+    constexpr float SUMMARY_BG_PADDING_Y = 2.0f;
+    constexpr float SUMMARY_BG_ROUNDING = 3.0f;
+    constexpr float SUMMARY_BG_ALPHA = 80.0f;
+    constexpr float SUMMARY_SHADOW_ALPHA = 160.0f;
+    constexpr float SUMMARY_TEXT_ALPHA = 200.0f;
+}
+
 } // namespace kx

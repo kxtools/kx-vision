@@ -2,6 +2,7 @@
 #include "../../libs/ImGui/imgui.h"
 #include <algorithm>
 
+#include "ESPConstants.h"
 #include "ESPStyling.h"
 
 namespace kx {
@@ -14,14 +15,14 @@ void ESPFeatureRenderer::RenderAttachedHealthBar(ImDrawList* drawList, const ImV
                                                  float healthPercent, float fadeAlpha) {
     if (healthPercent < 0.0f || healthPercent > 1.0f) return;
 
-    const float barWidth = 4.0f;
+    const float barWidth = RenderingLayout::ATTACHED_HEALTH_BAR_WIDTH;
     const float barHeight = boxMax.y - boxMin.y;
     
-    ImVec2 barMin(boxMin.x - barWidth - 2.0f, boxMin.y);
-    ImVec2 barMax(boxMin.x - 2.0f, boxMax.y);
+    ImVec2 barMin(boxMin.x - barWidth - RenderingLayout::ATTACHED_HEALTH_BAR_SPACING, boxMin.y);
+    ImVec2 barMax(boxMin.x - RenderingLayout::ATTACHED_HEALTH_BAR_SPACING, boxMax.y);
     
     // Background with fade alpha
-    unsigned int bgAlpha = static_cast<unsigned int>(150 * fadeAlpha);
+    unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::ATTACHED_HEALTH_BAR_BG_ALPHA * fadeAlpha);
     drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha));
     
     // Health bar - fill from bottom to top with fade alpha
@@ -36,7 +37,7 @@ void ESPFeatureRenderer::RenderAttachedHealthBar(ImDrawList* drawList, const ImV
     drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor);
     
     // Border with fade alpha
-    unsigned int borderAlpha = static_cast<unsigned int>(100 * fadeAlpha);
+    unsigned int borderAlpha = static_cast<unsigned int>(RenderingLayout::ATTACHED_HEALTH_BAR_BORDER_ALPHA * fadeAlpha);
     drawList->AddRect(barMin, barMax, IM_COL32(255, 255, 255, borderAlpha));
 }
 
@@ -48,12 +49,12 @@ void ESPFeatureRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const g
     float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
 
     // Position the health bar below the entity center
-    const float yOffset = 15.0f;
+    const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
     ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
     ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
 
     // 1. Render the background with a dark, semi-opaque gray to provide neutral contrast.
-    unsigned int bgAlpha = static_cast<unsigned int>(180 * fadeAlpha);
+    unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha);
     drawList->AddRectFilled(barMin, barMax, IM_COL32(50, 50, 50, bgAlpha), 1.0f);
 
     // 2. Define our bright color keyframes for the gradient.
@@ -79,16 +80,16 @@ void ESPFeatureRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const g
 
     // 4. Apply the distance fade alpha to the final calculated color.
     // Lower the base opacity from 255 (100%) to 220 (~85%) for a more natural feel.
-    unsigned int healthAlpha = static_cast<unsigned int>(220 * fadeAlpha);
+    unsigned int healthAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha);
     unsigned int finalHealthColor = ImGui::ColorConvertFloat4ToU32(ImVec4(finalColorVec.x, finalColorVec.y, finalColorVec.z, static_cast<float>(healthAlpha) / 255.0f));
 
     // 5. Draw the final health fill.
     float healthWidth = barWidth * healthPercent;
-    drawList->AddRectFilled(barMin, ImVec2(barMin.x + healthWidth, barMax.y), finalHealthColor, 1.0f);
+    drawList->AddRectFilled(barMin, ImVec2(barMin.x + healthWidth, barMax.y), finalHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
     // 6. Add a subtle black border to frame the bar and improve definition.
-    unsigned int borderAlpha = static_cast<unsigned int>(100 * fadeAlpha);
-    drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, borderAlpha), 1.0f, 0, 1.0f);
+    unsigned int borderAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha);
+    drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, borderAlpha), RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ROUNDING, 0, RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
 }
 
 void ESPFeatureRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos, 
@@ -102,7 +103,7 @@ void ESPFeatureRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2&
     ImVec2 textSize = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, playerName.c_str());
     
     // Position name just below the feet position (below health bar area)
-    const float nameOffset = 25.0f; // Below feet with more padding to avoid health bar overlap
+    const float nameOffset = RenderingLayout::PLAYER_NAME_Y_OFFSET;
     ImVec2 textPos(feetPos.x - textSize.x / 2, feetPos.y + nameOffset);
     
     // Extract RGB from entity color for a natural look
@@ -111,19 +112,19 @@ void ESPFeatureRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2&
     int b = entityColor & 0xFF;
     
     // Subtle background with rounded corners (like game UI) and distance fade
-    ImVec2 bgMin(textPos.x - 4, textPos.y - 2);
-    ImVec2 bgMax(textPos.x + textSize.x + 4, textPos.y + textSize.y + 2);
-    unsigned int bgAlpha = static_cast<unsigned int>(100 * fadeAlpha);
-    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), 3.0f);
+    ImVec2 bgMin(textPos.x - RenderingLayout::PLAYER_NAME_BG_PADDING_X, textPos.y - RenderingLayout::PLAYER_NAME_BG_PADDING_Y);
+    ImVec2 bgMax(textPos.x + textSize.x + RenderingLayout::PLAYER_NAME_BG_PADDING_X, textPos.y + textSize.y + RenderingLayout::PLAYER_NAME_BG_PADDING_Y);
+    unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_BG_ALPHA * fadeAlpha);
+    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::PLAYER_NAME_BG_ROUNDING);
     
     // Subtle border using entity color with distance fade
-    unsigned int borderAlpha = static_cast<unsigned int>(120 * fadeAlpha);
-    drawList->AddRect(bgMin, bgMax, IM_COL32(r, g, b, borderAlpha), 3.0f, 0, 1.0f);
+    unsigned int borderAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_BORDER_ALPHA * fadeAlpha);
+    drawList->AddRect(bgMin, bgMax, IM_COL32(r, g, b, borderAlpha), RenderingLayout::PLAYER_NAME_BG_ROUNDING, 0, RenderingLayout::PLAYER_NAME_BORDER_THICKNESS);
     
     // Player name text in a clean, readable color with distance fade
-    unsigned int shadowAlpha = static_cast<unsigned int>(180 * fadeAlpha);
-    unsigned int textAlpha = static_cast<unsigned int>(220 * fadeAlpha);
-    drawList->AddText(font, fontSize, ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), playerName.c_str()); // Shadow
+    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_SHADOW_ALPHA * fadeAlpha);
+    unsigned int textAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_TEXT_ALPHA * fadeAlpha);
+    drawList->AddText(font, fontSize, ImVec2(textPos.x + RenderingLayout::TEXT_SHADOW_OFFSET, textPos.y + RenderingLayout::TEXT_SHADOW_OFFSET), IM_COL32(0, 0, 0, shadowAlpha), playerName.c_str()); // Shadow
     drawList->AddText(font, fontSize, textPos, IM_COL32(255, 255, 255, textAlpha), playerName.c_str()); // Main text
 }
 
@@ -133,7 +134,7 @@ void ESPFeatureRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& b
     drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, thickness);
     
     // Corner indicators for better visibility, scaled with thickness
-    const float cornerSize = thickness * 4.0f;
+    const float cornerSize = thickness * RenderingLayout::BOX_CORNER_SIZE_MULTIPLIER;
     
     // Top-left corner
     drawList->AddLine(ImVec2(boxMin.x, boxMin.y), ImVec2(boxMin.x + cornerSize, boxMin.y), color, thickness);
@@ -159,18 +160,18 @@ void ESPFeatureRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& 
     
     ImFont* font = ImGui::GetFont();
     ImVec2 textSize = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, distText);
-    ImVec2 textPos(center.x - textSize.x / 2, boxMin.y - textSize.y - 5);
+    ImVec2 textPos(center.x - textSize.x / 2, boxMin.y - textSize.y - RenderingLayout::DISTANCE_TEXT_Y_OFFSET);
     
     // Background with distance fade - REDUCED OPACITY
-    unsigned int bgAlpha = static_cast<unsigned int>(100 * fadeAlpha); // Before: 150
-    drawList->AddRectFilled(ImVec2(textPos.x - 2, textPos.y - 1),
-        ImVec2(textPos.x + textSize.x + 2, textPos.y + textSize.y + 1),
-        IM_COL32(0, 0, 0, bgAlpha), 2.0f);
+    unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::DISTANCE_TEXT_BG_ALPHA * fadeAlpha); // Before: 150
+    drawList->AddRectFilled(ImVec2(textPos.x - RenderingLayout::DISTANCE_TEXT_BG_PADDING_X, textPos.y - RenderingLayout::DISTANCE_TEXT_BG_PADDING_Y),
+        ImVec2(textPos.x + textSize.x + RenderingLayout::DISTANCE_TEXT_BG_PADDING_X, textPos.y + textSize.y + RenderingLayout::DISTANCE_TEXT_BG_PADDING_Y),
+        IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::DISTANCE_TEXT_BG_ROUNDING);
 
     // Text with shadow and distance fade - REDUCED OPACITY
-    unsigned int shadowAlpha = static_cast<unsigned int>(180 * fadeAlpha); // Before: 255
-    unsigned int textAlpha = static_cast<unsigned int>(220 * fadeAlpha);   // Before: 255
-    drawList->AddText(font, fontSize, ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), distText);
+    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::DISTANCE_TEXT_SHADOW_ALPHA * fadeAlpha); // Before: 255
+    unsigned int textAlpha = static_cast<unsigned int>(RenderingLayout::DISTANCE_TEXT_TEXT_ALPHA * fadeAlpha);   // Before: 255
+    drawList->AddText(font, fontSize, ImVec2(textPos.x + RenderingLayout::TEXT_SHADOW_OFFSET, textPos.y + RenderingLayout::TEXT_SHADOW_OFFSET), IM_COL32(0, 0, 0, shadowAlpha), distText);
     drawList->AddText(font, fontSize, textPos, IM_COL32(255, 255, 255, textAlpha), distText);
 }
 
@@ -180,29 +181,29 @@ void ESPFeatureRenderer::RenderColoredDot(ImDrawList* drawList, const glm::vec2&
     
     // Small, minimalistic dot with subtle outline for visibility
     // Dark outline with distance fade
-    unsigned int shadowAlpha = static_cast<unsigned int>(180 * fadeAlpha);
+    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_SHADOW_ALPHA * fadeAlpha);
     drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), radius, IM_COL32(0, 0, 0, shadowAlpha));
     // Main dot using entity color (already has faded alpha)
-    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), radius * 0.8f, color);
+    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, color);
 }
 
 void ESPFeatureRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos, float fadeAlpha, float radius) {
     ImVec2 pos(feetPos.x, feetPos.y);
     
     // Shadow with distance fade
-    unsigned int shadowAlpha = static_cast<unsigned int>(120 * fadeAlpha);
-    drawList->AddCircleFilled(ImVec2(pos.x + 1, pos.y + 1), radius, IM_COL32(0, 0, 0, shadowAlpha));
+    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_BORDER_ALPHA * fadeAlpha);
+    drawList->AddCircleFilled(ImVec2(pos.x + RenderingLayout::TEXT_SHADOW_OFFSET, pos.y + RenderingLayout::TEXT_SHADOW_OFFSET), radius, IM_COL32(0, 0, 0, shadowAlpha));
     
     // Dot with distance fade
     unsigned int dotAlpha = static_cast<unsigned int>(255 * fadeAlpha);
-    drawList->AddCircleFilled(pos, radius * 0.8f, IM_COL32(255, 255, 255, dotAlpha));
+    drawList->AddCircleFilled(pos, radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, IM_COL32(255, 255, 255, dotAlpha));
 }
 
 void ESPFeatureRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax,
     const std::vector<ColoredDetail>& details, float fadeAlpha, float fontSize) {
     if (details.empty()) return;
 
-    float textY = boxMax.y + 5.0f;
+    float textY = boxMax.y + RenderingLayout::DETAILS_TEXT_Y_OFFSET;
     ImFont* font = ImGui::GetFont();
 
     for (const auto& detail : details) {
@@ -210,13 +211,13 @@ void ESPFeatureRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& c
         ImVec2 textPos(center.x - textSize.x / 2, textY);
 
         // Background with distance fade - REDUCED OPACITY
-        unsigned int bgAlpha = static_cast<unsigned int>(100 * fadeAlpha); // Before: 160
-        drawList->AddRectFilled(ImVec2(textPos.x - 3, textPos.y - 1),
-            ImVec2(textPos.x + textSize.x + 3, textPos.y + textSize.y + 1),
-            IM_COL32(0, 0, 0, bgAlpha), 1.0f);
+        unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::DETAILS_TEXT_BG_ALPHA * fadeAlpha); // Before: 160
+        drawList->AddRectFilled(ImVec2(textPos.x - RenderingLayout::DETAILS_TEXT_BG_PADDING_X, textPos.y - RenderingLayout::DETAILS_TEXT_BG_PADDING_Y),
+            ImVec2(textPos.x + textSize.x + RenderingLayout::DETAILS_TEXT_BG_PADDING_X, textPos.y + textSize.y + RenderingLayout::DETAILS_TEXT_BG_PADDING_Y),
+            IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::DETAILS_TEXT_BG_ROUNDING);
 
         // Text with shadow and distance fade - REDUCED SHADOW OPACITY
-        unsigned int shadowAlpha = static_cast<unsigned int>(180 * fadeAlpha); // Before: 200
+        unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::DETAILS_TEXT_SHADOW_ALPHA * fadeAlpha); // Before: 200
 
         // Extract the original alpha from the detail color and combine it with the fade alpha
         int originalAlpha = (detail.color >> 24) & 0xFF;
@@ -225,10 +226,10 @@ void ESPFeatureRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& c
         // Re-create the final text color with the new combined alpha
         ImU32 finalTextColor = (detail.color & 0x00FFFFFF) | (textAlpha << 24);
 
-        drawList->AddText(font, fontSize, ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), detail.text.c_str());
+        drawList->AddText(font, fontSize, ImVec2(textPos.x + RenderingLayout::TEXT_SHADOW_OFFSET, textPos.y + RenderingLayout::TEXT_SHADOW_OFFSET), IM_COL32(0, 0, 0, shadowAlpha), detail.text.c_str());
         drawList->AddText(font, fontSize, textPos, finalTextColor, detail.text.c_str());
 
-        textY += textSize.y + 3;
+        textY += textSize.y + RenderingLayout::DETAILS_TEXT_LINE_SPACING;
     }
 }
 
@@ -267,21 +268,21 @@ void ESPFeatureRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2
     }
 
     // --- Part 2: Render the multi-colored line ---
-    const float summaryOffset = 45.0f;
+    const float summaryOffset = RenderingLayout::SUMMARY_Y_OFFSET;
     ImVec2 currentPos(feetPos.x - totalWidth / 2.0f, feetPos.y + summaryOffset);
 
     // Fade alphas
-    unsigned int bgAlpha = static_cast<unsigned int>(80 * fadeAlpha);
-    unsigned int shadowAlpha = static_cast<unsigned int>(160 * fadeAlpha);
-    unsigned int defaultTextAlpha = static_cast<unsigned int>(200 * fadeAlpha);
+    unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::SUMMARY_BG_ALPHA * fadeAlpha);
+    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::SUMMARY_SHADOW_ALPHA * fadeAlpha);
+    unsigned int defaultTextAlpha = static_cast<unsigned int>(RenderingLayout::SUMMARY_TEXT_ALPHA * fadeAlpha);
 
     // Background
-    ImVec2 bgMin(currentPos.x - 4, currentPos.y - 2);
-    ImVec2 bgMax(currentPos.x + totalWidth + 4, currentPos.y + font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, " ").y + 2);
-    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), 3.0f);
+    ImVec2 bgMin(currentPos.x - RenderingLayout::SUMMARY_BG_PADDING_X, currentPos.y - RenderingLayout::SUMMARY_BG_PADDING_Y);
+    ImVec2 bgMax(currentPos.x + totalWidth + RenderingLayout::SUMMARY_BG_PADDING_X, currentPos.y + font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, " ").y + RenderingLayout::SUMMARY_BG_PADDING_Y);
+    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::SUMMARY_BG_ROUNDING);
 
     // Render "Stats: " prefix in default color
-    drawList->AddText(font, fontSize, ImVec2(currentPos.x + 1, currentPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), prefix.c_str());
+    drawList->AddText(font, fontSize, ImVec2(currentPos.x + RenderingLayout::TEXT_SHADOW_OFFSET, currentPos.y + RenderingLayout::TEXT_SHADOW_OFFSET), IM_COL32(0, 0, 0, shadowAlpha), prefix.c_str());
     drawList->AddText(font, fontSize, currentPos, IM_COL32(200, 210, 255, defaultTextAlpha), prefix.c_str());
     currentPos.x += font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, prefix.c_str()).x;
 
@@ -304,7 +305,7 @@ void ESPFeatureRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2
         // Render separator
         if (i < summary.size() - 1) {
             const std::string separator = ", ";
-            drawList->AddText(font, fontSize, ImVec2(currentPos.x + 1, currentPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), separator.c_str());
+            drawList->AddText(font, fontSize, ImVec2(currentPos.x + RenderingLayout::TEXT_SHADOW_OFFSET, currentPos.y + RenderingLayout::TEXT_SHADOW_OFFSET), IM_COL32(0, 0, 0, shadowAlpha), separator.c_str());
             drawList->AddText(font, fontSize, currentPos, IM_COL32(200, 210, 255, defaultTextAlpha), separator.c_str());
             currentPos.x += font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, separator.c_str()).x;
         }
@@ -329,19 +330,19 @@ void ESPFeatureRenderer::RenderDominantStats(ImDrawList* drawList, const glm::ve
 
     // 2. Calculate width and position
     float totalWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, summaryText.c_str()).x;
-    const float summaryOffset = 45.0f; // Use same offset as the other compact view for consistency
+    const float summaryOffset = RenderingLayout::SUMMARY_Y_OFFSET; // Use same offset as the other compact view for consistency
     ImVec2 textPos(feetPos.x - totalWidth / 2.0f, feetPos.y + summaryOffset);
 
     // 3. Render
-    unsigned int bgAlpha = static_cast<unsigned int>(80 * fadeAlpha);
-    unsigned int shadowAlpha = static_cast<unsigned int>(160 * fadeAlpha);
-    unsigned int textAlpha = static_cast<unsigned int>(200 * fadeAlpha);
+    unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::SUMMARY_BG_ALPHA * fadeAlpha);
+    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::SUMMARY_SHADOW_ALPHA * fadeAlpha);
+    unsigned int textAlpha = static_cast<unsigned int>(RenderingLayout::SUMMARY_TEXT_ALPHA * fadeAlpha);
 
-    ImVec2 bgMin(textPos.x - 4, textPos.y - 2);
-    ImVec2 bgMax(textPos.x + totalWidth + 4, textPos.y + font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, " ").y + 2);
-    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), 3.0f);
+    ImVec2 bgMin(textPos.x - RenderingLayout::SUMMARY_BG_PADDING_X, textPos.y - RenderingLayout::SUMMARY_BG_PADDING_Y);
+    ImVec2 bgMax(textPos.x + totalWidth + RenderingLayout::SUMMARY_BG_PADDING_X, textPos.y + font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, " ").y + RenderingLayout::SUMMARY_BG_PADDING_Y);
+    drawList->AddRectFilled(bgMin, bgMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::SUMMARY_BG_ROUNDING);
 
-    drawList->AddText(font, fontSize, ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, shadowAlpha), summaryText.c_str());
+    drawList->AddText(font, fontSize, ImVec2(textPos.x + RenderingLayout::TEXT_SHADOW_OFFSET, textPos.y + RenderingLayout::TEXT_SHADOW_OFFSET), IM_COL32(0, 0, 0, shadowAlpha), summaryText.c_str());
     drawList->AddText(font, fontSize, textPos, IM_COL32(200, 210, 255, textAlpha), summaryText.c_str());
 }
 
