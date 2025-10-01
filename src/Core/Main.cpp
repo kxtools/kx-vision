@@ -1,3 +1,6 @@
+#include "Config.h"
+#ifndef GW2AL_BUILD // This entire file is only compiled for standalone DLL mode
+
 #include <cstdio> // Required for fclose
 #include <windows.h>
 
@@ -37,9 +40,8 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
 
     LOG_INFO("KX Vision starting up...");
     
-    // Create and initialize the application lifecycle manager
-    kx::AppLifecycleManager app;
-    if (!app.Initialize()) {
+    // Initialize the global application lifecycle manager
+    if (!kx::g_App.Initialize()) {
         LOG_ERROR("Failed to initialize application");
         LOG_CLEANUP();
         CreateThread(0, 0, EjectThread, 0, 0, 0);
@@ -49,14 +51,14 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
     LOG_INFO("KX Vision initialized successfully");
     
     // Main loop - drive the state machine
-    while (!app.IsShutdownRequested()) {
-        app.Update();
+    while (!kx::g_App.IsShutdownRequested()) {
+        kx::g_App.Update();
     }
     
     LOG_INFO("Shutdown requested, cleaning up...");
     
     // Perform shutdown
-    app.Shutdown();
+    kx::g_App.Shutdown();
     
     LOG_INFO("KX Vision shut down successfully");
     
@@ -116,3 +118,5 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     }
     return TRUE;
 }
+
+#endif // !GW2AL_BUILD
