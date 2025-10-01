@@ -57,12 +57,12 @@ namespace kx {
         // Renders all sliders related to the ESP scaling curve.
         static void RenderScalingSettings(Settings& settings) {
             if (ImGui::CollapsingHeader("ESP Scaling Configuration")) { // Collapsed by default
-                ImGui::SliderFloat("Scaling Start Distance", &settings.espScalingStartDistance, 0.0f, 150.0f, "%.1fm"); // Increased range
+                ImGui::SliderFloat("Scaling Start Distance", &settings.espScalingStartDistance, 0.0f, 150.0f, "%.1fm");
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip("The distance at which elements begin to scale down.\nInside this range, elements remain at 100% size.");
                 }
 
-                ImGui::SliderFloat("Distance Factor", &settings.espDistanceFactor, 10.0f, 200.0f, "%.0f"); // Tightened range
+                ImGui::SliderFloat("Distance Factor", &settings.espDistanceFactor, 50.0f, 500.0f, "%.0f"); // Expanded range for better control
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip("Controls the curve's steepness after the start distance.\nHigher values = gentler slope (slower scaling).\nLower values = steeper cliff (faster scaling).");
                 }
@@ -79,12 +79,12 @@ namespace kx {
                     ImGui::SetTooltip("Minimum scale factor for very distant entities.\nPrevents elements from becoming invisibly small.");
                 }
 
-                ImGui::SliderFloat("Max Scale", &settings.espMaxScale, 0.5f, 2.0f, "%.2f"); // Tightened range
+                ImGui::SliderFloat("Max Scale", &settings.espMaxScale, 0.5f, 2.0f, "%.2f");
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip("Maximum scale factor for very close entities.\nSet to 1.0 to prevent any magnification.");
                 }
 
-                ImGui::SliderFloat("Min Font Size", &settings.espMinFontSize, 1.0f, 10.0f, "%.1fpx");
+                ImGui::SliderFloat("Min Font Size", &settings.espMinFontSize, 6.0f, 12.0f, "%.1fpx"); // Tightened, more useful range
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip("The absolute minimum pixel size for fonts at maximum distance.\nPrevents text from becoming completely unreadable.");
                 }
