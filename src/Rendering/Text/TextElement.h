@@ -4,6 +4,7 @@
 #include <vector>
 #include <glm.hpp>
 #include "../../../libs/ImGui/imgui.h"
+#include "../Utils/ESPConstants.h"
 
 namespace kx {
 
@@ -30,7 +31,7 @@ enum class TextAlignment {
  * @brief Style configuration for text rendering
  */
 struct TextStyle {
-    float fontSize = 13.0f;
+    float fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
     
     // Text colors
     ImU32 textColor = IM_COL32(255, 255, 255, 255);
@@ -38,19 +39,19 @@ struct TextStyle {
     
     // Shadow
     bool enableShadow = true;
-    ImVec2 shadowOffset = ImVec2(1.0f, 1.0f);
-    float shadowAlpha = 128.0f / 255.0f;  // 0.0 to 1.0
+    ImVec2 shadowOffset = ImVec2(RenderingLayout::TEXT_DEFAULT_SHADOW_OFFSET_X, RenderingLayout::TEXT_DEFAULT_SHADOW_OFFSET_Y);
+    float shadowAlpha = RenderingLayout::TEXT_DEFAULT_SHADOW_ALPHA / 255.0f;  // 0.0 to 1.0
     
     // Background
     bool enableBackground = true;
-    ImVec2 backgroundPadding = ImVec2(4.0f, 2.0f);
-    float backgroundAlpha = 180.0f / 255.0f;  // 0.0 to 1.0
-    float backgroundRounding = 3.0f;
+    ImVec2 backgroundPadding = ImVec2(RenderingLayout::TEXT_DEFAULT_BG_PADDING_X, RenderingLayout::TEXT_DEFAULT_BG_PADDING_Y);
+    float backgroundAlpha = RenderingLayout::TEXT_DEFAULT_BG_ALPHA / 255.0f;  // 0.0 to 1.0
+    float backgroundRounding = RenderingLayout::TEXT_DEFAULT_BG_ROUNDING;
     
     // Border
     bool enableBorder = false;
     ImU32 borderColor = IM_COL32(255, 255, 255, 128);
-    float borderThickness = 1.0f;
+    float borderThickness = RenderingLayout::TEXT_DEFAULT_BORDER_THICKNESS;
     
     // Distance fading
     float fadeAlpha = 1.0f;  // Overall fade multiplier (0.0 to 1.0)

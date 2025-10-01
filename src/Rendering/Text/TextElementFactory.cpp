@@ -109,7 +109,7 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
 
 TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor) {
     TextStyle style;
-    style.fontSize = 13.0f;
+    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
     style.fadeAlpha = fadeAlpha;
     
     // Text
@@ -139,7 +139,7 @@ TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int e
 
 TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha) {
     TextStyle style;
-    style.fontSize = 13.0f;
+    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
     style.fadeAlpha = fadeAlpha;
     
     // Text
@@ -164,7 +164,7 @@ TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha) {
 
 TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha) {
     TextStyle style;
-    style.fontSize = 13.0f;
+    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
     style.fadeAlpha = fadeAlpha;
     style.useCustomTextColor = true;  // Details have per-line colors
     
@@ -187,7 +187,7 @@ TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha) {
 
 TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha) {
     TextStyle style;
-    style.fontSize = 13.0f;
+    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
     style.fadeAlpha = fadeAlpha;
     
     // Text

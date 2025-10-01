@@ -1,5 +1,8 @@
 #include "TextRenderer.h"
 #include "../../../libs/ImGui/imgui.h"
+#include "../Utils/ESPConstants.h"
+
+using namespace kx::RenderingLayout;
 
 namespace kx {
 
@@ -85,10 +88,10 @@ ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWi
     // Calculate vertical position based on anchor
     switch (positioning) {
         case TextAnchor::Above:
-            pos.y = anchor.y - totalHeight - 5.0f;  // 5px gap
+            pos.y = anchor.y - totalHeight - RenderingLayout::TEXT_ANCHOR_GAP;
             break;
         case TextAnchor::Below:
-            pos.y = anchor.y + 5.0f;  // 5px gap
+            pos.y = anchor.y + RenderingLayout::TEXT_ANCHOR_GAP;
             break;
         case TextAnchor::Center:
             pos.y = anchor.y - totalHeight / 2.0f;
@@ -100,7 +103,7 @@ ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWi
     
     // Add offset for this specific line
     ImFont* font = ImGui::GetFont();
-    float lineSpacing = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, " ").y + 2.0f;
+    float lineSpacing = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, " ").y + TEXT_LINE_SPACING_EXTRA;
     pos.y += lineIndex * lineSpacing;
     
     // Calculate horizontal position based on alignment

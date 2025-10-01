@@ -154,6 +154,22 @@ namespace RenderingLayout {
     constexpr float SUMMARY_BG_ALPHA = 80.0f;
     constexpr float SUMMARY_SHADOW_ALPHA = 160.0f;
     constexpr float SUMMARY_TEXT_ALPHA = 200.0f;
+
+    // Text Rendering - Positioning
+    constexpr float TEXT_ANCHOR_GAP = 5.0f;          // Gap between anchor and text (Above/Below modes)
+    constexpr float TEXT_LINE_SPACING_EXTRA = 2.0f; // Extra spacing between multi-line text
+
+    // Text Rendering - Default Style Values
+    constexpr float TEXT_DEFAULT_FONT_SIZE = 13.0f;
+    constexpr float TEXT_DEFAULT_SHADOW_OFFSET_X = 1.0f;
+    constexpr float TEXT_DEFAULT_SHADOW_OFFSET_Y = 1.0f;
+    constexpr float TEXT_DEFAULT_SHADOW_ALPHA = 128.0f;     // 0-255 range
+    constexpr float TEXT_DEFAULT_BG_PADDING_X = 4.0f;
+    constexpr float TEXT_DEFAULT_BG_PADDING_Y = 2.0f;
+    constexpr float TEXT_DEFAULT_BG_ALPHA = 180.0f;         // 0-255 range
+    constexpr float TEXT_DEFAULT_BG_ROUNDING = 3.0f;
+    constexpr float TEXT_DEFAULT_BORDER_THICKNESS = 1.0f;
+    constexpr float TEXT_DEFAULT_LINE_SPACING = 2.0f;
 }
 
 } // namespace kx
