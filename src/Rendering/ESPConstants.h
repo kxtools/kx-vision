@@ -72,18 +72,20 @@ namespace RenderingEffects {
  * - Gadgets: Warm orange for interactable objects
  */
 namespace ESPColors {
+    // Colors are defined in (Blue, Green, Red, Alpha) order for IM_COL32.
+
     // Player colors
-    constexpr unsigned int PLAYER = IM_COL32(100, 200, 255, 220);  // Bright cyan/blue
+    constexpr unsigned int PLAYER = IM_COL32(255, 200, 100, 220);  // Bright cyan/blue (R:100, G:200, B:255)
     
     // NPC colors based on attitude
-    constexpr unsigned int NPC_HOSTILE = IM_COL32(255, 80, 80, 210);      // Red - enemies
-    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Green - allies
-    constexpr unsigned int NPC_NEUTRAL = IM_COL32(255, 255, 100, 210);    // Yellow - neutral
-    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(180, 180, 180, 210); // Gray - indifferent
-    constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown
+    constexpr unsigned int NPC_HOSTILE = IM_COL32(80, 80, 255, 210);      // Red - enemies (R:255, G:80, B:80)
+    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Green - allies (R:100, G:255, B:100)
+    constexpr unsigned int NPC_NEUTRAL = IM_COL32(100, 255, 255, 210);    // Yellow - neutral (R:255, G:255, B:100)
+    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(180, 180, 180, 210); // Gray - indifferent (R:180, G:180, B:180)
+    constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown (R:255, G:0, B:255)
     
     // Gadget colors
-    constexpr unsigned int GADGET = IM_COL32(255, 165, 80, 200);  // Warm orange/amber
+    constexpr unsigned int GADGET = IM_COL32(80, 165, 255, 200);  // Warm orange/amber (R:255, G:165, B:80)
 }
 
 } // namespace kx
