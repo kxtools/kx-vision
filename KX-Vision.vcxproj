@@ -166,6 +166,7 @@
     <ClInclude Include="src\Rendering\GUI\PlayersTab.h" />
     <ClInclude Include="src\Rendering\GUI\SettingsTab.h" />
     <ClInclude Include="src\Rendering\GUI\ValidationTab.h" />
+    <ClInclude Include="src\Rendering\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\RenderableData.h" />
     <ClInclude Include="src\Rendering\ESPFormatting.h" />
     <ClInclude Include="src\Utils\Console.h" />
