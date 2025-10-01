@@ -95,6 +95,7 @@
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
+    <ClCompile Include="src\Rendering\ESPContextFactory.cpp" />
     <ClCompile Include="src\Rendering\ESPDataExtractor.cpp" />
     <ClCompile Include="src\Rendering\ESPFeatureRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESPFilter.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="src\Game\ReClass\ItemStructs.h" />
     <ClInclude Include="src\Game\ReClass\StatStructs.h" />
     <ClInclude Include="src\Rendering\ESPConstants.h" />
+    <ClInclude Include="src\Rendering\ESPContextFactory.h" />
     <ClInclude Include="src\Rendering\ESPFeatureRenderer.h" />
     <ClInclude Include="src\Rendering\ESPFilter.h" />
     <ClInclude Include="src\Rendering\ESPStyling.h" />

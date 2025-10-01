@@ -1,4 +1,5 @@
 #include "ESPStageRenderer.h"
+#include "ESPContextFactory.h"
 #include "../Core/AppState.h"
 #include "../Game/Camera.h"
 #include "ESPMath.h"
@@ -240,34 +241,8 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
         }
 
         // --- 2. CORE RENDERING ---
-        // Project to screen and render all common elements (name, health bar, box, dot, details).
-
-        glm::vec2 screenPos;
-        if (!ESPMath::WorldToScreen(player->position, camera, screenWidth, screenHeight, screenPos)) {
-            continue; // Skip if off-screen
-        }
-
-        float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
-
-        EntityRenderContext context{
-            player->position,
-            player->visualDistance,
-            player->gameplayDistance,
-            ESPColors::PLAYER,
-            details,
-            healthPercent,
-            settings.playerESP.renderBox,
-            settings.playerESP.renderDistance,
-            settings.playerESP.renderDot,
-            !details.empty(), // renderDetails is true only if the details vector is not empty
-            settings.playerESP.renderHealthBar,
-            settings.playerESP.renderPlayerName,
-            ESPEntityType::Player,
-            screenWidth,
-            screenHeight,
-            player->playerName,
-            player // Pass the full player object for summary rendering
-        };
+        // Use factory to create context and render
+        auto context = ESPContextFactory::CreateContextForPlayer(player, settings, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera);
     }
 }
@@ -278,31 +253,6 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
     
     for (const auto* npc : npcs) {
         if (!npc) continue; // Safety check
-        
-        // Use attitude-based coloring for NPCs (minimalistic GW2-style)
-        unsigned int color;
-        switch (npc->attitude) {
-            case Game::Attitude::Hostile:
-                color = ESPColors::NPC_HOSTILE;
-                break;
-            case Game::Attitude::Friendly:
-                color = ESPColors::NPC_FRIENDLY;
-                break;
-            case Game::Attitude::Neutral:
-                color = ESPColors::NPC_NEUTRAL;
-                break;
-            case Game::Attitude::Indifferent:
-                color = ESPColors::NPC_INDIFFERENT;
-                break;
-            default:
-                color = ESPColors::NPC_UNKNOWN;
-                break;
-        }
-        
-        float healthPercent = -1.0f;
-        if (npc->maxHealth > 0) {
-            healthPercent = npc->currentHealth / npc->maxHealth;
-        }
 
         std::vector<ColoredDetail> details;
         details.reserve(6);
@@ -333,26 +283,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
             }
         }
 
-        static const std::string emptyPlayerName = "";
-        EntityRenderContext context{
-            npc->position,
-            npc->visualDistance,
-            npc->gameplayDistance,
-            color,
-            details,
-            healthPercent,
-            settings.npcESP.renderBox,
-            settings.npcESP.renderDistance,
-            settings.npcESP.renderDot,
-            settings.npcESP.renderDetails,
-            settings.npcESP.renderHealthBar,
-            false,  // NPCs don't have player names
-            ESPEntityType::NPC,
-            screenWidth,
-            screenHeight,
-            emptyPlayerName,
-            nullptr // Not a player
-        };
+        auto context = ESPContextFactory::CreateContextForNpc(npc, settings, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera);
     }
 }
@@ -363,8 +294,6 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
     
     for (const auto* gadget : gadgets) {
         if (!gadget) continue; // Safety check
-        
-        unsigned int color = ESPColors::GADGET;
 
         std::vector<ColoredDetail> details;
         details.reserve(4);
@@ -387,26 +316,7 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
             }
         }
 
-        static const std::string emptyPlayerName = "";
-        EntityRenderContext context{
-            gadget->position,
-            gadget->visualDistance,
-            gadget->gameplayDistance,
-            color,
-            details,
-            -1.0f,  // healthPercent
-            settings.objectESP.renderBox,
-            settings.objectESP.renderDistance,
-            settings.objectESP.renderDot,
-            settings.objectESP.renderDetails,
-            false,  // renderHealthBar - gadgets don't have health bars
-            false,  // renderPlayerName - gadgets don't have player names
-            ESPEntityType::Gadget,
-            screenWidth,
-            screenHeight,
-            emptyPlayerName,
-            nullptr // Not a player
-        };
+        auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera);
     }
 }
