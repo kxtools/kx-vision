@@ -2,6 +2,18 @@
 
 namespace kx {
 
+    // --- ESP Display Modes ---
+    
+    /**
+     * @brief Display mode for player gear/equipment stats
+     */
+    enum class GearDisplayMode {
+        Off = 0,        // No gear information displayed
+        Compact = 1,    // Compact view: Show stat names with counts
+        Attributes = 2, // Show top 3 dominant attributes with percentages
+        Detailed = 3    // Detailed view: Full list of all gear slots and stats
+    };
+
     // --- Category-specific settings ---
     struct PlayerEspSettings {
         bool enabled = true;
@@ -15,7 +27,7 @@ namespace kx {
         bool showRace = true;
         bool showArmorWeight = true;
         bool showLocalPlayer = false; // Hide local player by default
-        int gearDisplayMode = 0; // 0: Off, 1: Compact, 2: Detailed
+        GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
     };
 
     struct NpcEspSettings {

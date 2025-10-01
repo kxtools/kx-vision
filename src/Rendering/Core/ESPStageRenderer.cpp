@@ -189,18 +189,18 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Specialized Summary Rendering (Players Only)
     if (context.entityType == ESPEntityType::Player && context.player != nullptr) {
         switch (settings.playerESP.gearDisplayMode) {
-        case 1: { // Compact (Stat Names)
+        case GearDisplayMode::Compact: { // Compact (Stat Names)
             auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
             ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, compactSummary, distanceFadeAlpha, finalFontSize);
             break;
         }
-        case 2: { // Compact (Top 3 Attributes)
+        case GearDisplayMode::Attributes: { // Top 3 Attributes
             auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
             ESPFeatureRenderer::RenderDominantStats(drawList, screenPos, dominantStats, distanceFadeAlpha, finalFontSize);
             break;
         }
         default:
-            // Modes 0 (Off) and 3 (Detailed) do not have a separate summary view
+            // Modes Off and Detailed do not have a separate summary view
             break;
         }
     }
@@ -254,7 +254,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
         std::vector<ColoredDetail> details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, settings.playerESP, settings.showDebugAddresses);
 
         // If "Detailed" mode is selected, build the full gear list and add it to the details.
-        if (settings.playerESP.gearDisplayMode == 3) { // 3 = Detailed
+        if (settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
             auto gearDetails = ESPPlayerDetailsBuilder::BuildGearDetails(player);
             if (!gearDetails.empty()) {
                 if (!details.empty()) {
