@@ -17,6 +17,10 @@
 
 KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild Wars 2. It uses the officially supported MumbleLink API for positional data and features an advanced, multi-level gear checker to inspect player builds. The project is designed as a learning platform for real-time overlay rendering with ImGui and DirectX 11, 3D-to-2D projection, and clean C++ architecture for game tools.
 
+**Dual Mode Support:** KX-Vision can be built in two modes:
+- **DLL Injection Mode:** Traditional standalone DLL that can be injected into the game process.
+- **GW2AL Addon Mode:** Integrates with the [Guild Wars 2 Addon Loader](https://github.com/gw2-addon-loader/loader-core) framework for safer, community-supported addon loading.
+
 ## Features
 
 *   **MumbleLink Integration:** Utilizes GW2's MumbleLink API for player and game state data.
@@ -44,11 +48,26 @@ KX-Vision is an open-source ESP (Extra Sensory Perception) overlay for Guild War
     cd kx-vision
     ```
 2.  Open `KX-Vision.sln` in Visual Studio.
-3.  Set the configuration to `Release | x64`.
+3.  Choose your build configuration:
+    - **For DLL Injection Mode:** `Release | x64`
+    - **For GW2AL Addon Mode:** `Release-GW2AL | x64`
 4.  Build the solution (F7 or Build → Build Solution).
-5.  Find the output DLL in the `x64/Release` directory.
+5.  Find the output DLL in the `x64/Release` or `x64/Release-GW2AL` directory.
 
-## Usage for Educational Purposes
+## Installation & Usage
+
+### Method 1: GW2AL Addon Mode (Recommended)
+
+**Prerequisites:**
+- Install the [Guild Wars 2 Addon Loader](https://github.com/gw2-addon-loader/loader-core) and d3d11 wrapper.
+
+**Installation:**
+1. Download and extract the archive `kx-vision_gw2al.zip` found in the [latest release](https://github.com/kxtools/kx-vision/releases/latest).
+2. Place `gw2addon_kxvision.dll` in your `addons` folder inside a new folder named `kxvision` (with the default game install path, this would be `C:\Program Files\Guild Wars 2\addons\kxvision`).
+3. Run the game! If everything was set up properly, the overlay will load automatically.
+4. Press `INSERT` to toggle the overlay window visibility.
+
+### Method 2: DLL Injection Mode (Educational Purposes Only)
 
 1.  Launch Guild Wars 2.
 2.  Inject the DLL using a tool like Process Hacker or Xenos.
@@ -80,9 +99,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Credits
 
 *   Initial concept and development by Krixx
-*   Uses [Dear ImGui](https://github.com/ocornut/imgui)
-*   Uses [GLM](https://github.com/g-truc/glm)
-*   Uses [MinHook](https://github.com/TsudaKageyu/minhook) for function hooking.
+*   Uses [Dear ImGui](https://github.com/ocornut/imgui) for the user interface
+*   Uses [GLM](https://github.com/g-truc/glm) for mathematics
+*   Uses [MinHook](https://github.com/TsudaKageyu/minhook) for function hooking
+*   Uses [nlohmann/json](https://github.com/nlohmann/json) for JSON parsing
+*   Uses [Catch2](https://github.com/catchorg/Catch2) for unit testing
 *   **Hacklib:** A valuable learning resource for the initial development of this project. [https://bitbucket.org/rafzi/hacklib_gw2/src/master/](https://bitbucket.org/rafzi/hacklib_gw2/src/master/)
 *   **retrosax:** For sharing valuable reverse engineering information from the "Leyline - Guild Wars 2 Multihack and ESP" project. [UnknownCheats Thread](https://www.unknowncheats.me/forum/guild-wars-2-a/610320-leylin-guild-wars-2-multihack-esp.html)
 
