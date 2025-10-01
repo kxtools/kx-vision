@@ -81,22 +81,14 @@ namespace kx::Hooking {
 
         LOG_INFO("[D3DRenderHook] Handling resize event");
 
-        // Release the old render target view
+        // Release the old cached render target view if it exists
+        // It will be recreated on the next Present call
         if (m_pMainRenderTargetView) {
             m_pMainRenderTargetView->Release();
             m_pMainRenderTargetView = nullptr;
         }
-        ImGui_ImplDX11_InvalidateDeviceObjects();
 
-        // The RTV will be recreated on the next Present call, but we must
-        // tell ImGui about the new size immediately.
-        DXGI_SWAP_CHAIN_DESC sd;
-        pSwapChain->GetDesc(&sd);
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2((float)sd.BufferDesc.Width, (float)sd.BufferDesc.Height);
-
-        ImGui_ImplDX11_CreateDeviceObjects();
-        LOG_INFO("[D3DRenderHook] Swap chain resized to %dx%d.", sd.BufferDesc.Width, sd.BufferDesc.Height);
+        LOG_INFO("[D3DRenderHook] Cached RTV released, will be recreated on next frame");
     }
 
     void D3DRenderHook::Shutdown() {
