@@ -50,9 +50,8 @@ namespace kx {
     bool InitializeHooks() {
         AppState::Get().SetPresentHookStatus(HookStatus::Unknown);
 
-        if (!kx::Hooking::HookManager::Initialize()) {
-            return false;
-        }
+        // Note: HookManager::Initialize() is now called in AppLifecycleManager::Initialize()
+        // or AppLifecycleManager::InitializeForGW2AL() for architectural consistency
 
 #ifndef GW2AL_BUILD
         // Only initialize D3D hook in standalone DLL mode

@@ -117,11 +117,6 @@ namespace kx::Hooking {
         static bool InitializeD3DResources(IDXGISwapChain* pSwapChain);
 
         /**
-         * @brief Handle per-frame input (hotkeys, toggle UI)
-         */
-        static void HandleInput();
-
-        /**
          * @brief Render the ImGui frame
          */
         static void RenderFrame();

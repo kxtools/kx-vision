@@ -18,7 +18,14 @@ AppLifecycleManager g_App;
 bool AppLifecycleManager::Initialize() {
     LOG_INFO("AppLifecycleManager: Starting initialization");
     
-    // Initialize hooks first (this sets up D3D hook which creates ImGuiManager)
+    // Initialize HookManager (MinHook)
+    if (!kx::Hooking::HookManager::Initialize()) {
+        LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager");
+        return false;
+    }
+    LOG_INFO("AppLifecycleManager: HookManager initialized");
+    
+    // Initialize hooks (this sets up D3D hook which creates ImGuiManager)
     if (!InitializeHooks()) {
         LOG_ERROR("AppLifecycleManager: Failed to initialize hooks");
         return false;
@@ -35,6 +42,13 @@ bool AppLifecycleManager::Initialize() {
 
 bool AppLifecycleManager::InitializeForGW2AL() {
     LOG_INFO("AppLifecycleManager: Initializing for GW2AL mode");
+    
+    // Initialize HookManager (MinHook) - needed for game thread hook later
+    if (!kx::Hooking::HookManager::Initialize()) {
+        LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager");
+        return false;
+    }
+    LOG_INFO("AppLifecycleManager: HookManager initialized");
     
     // In GW2AL mode, hooks are managed differently
     // We don't initialize the Present hook here (GW2AL handles that)
@@ -192,6 +206,17 @@ void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, floa
         return;
     }
 
+    // === Handle input (INSERT key toggle for UI visibility) ===
+    static bool lastToggleKeyState = false;
+    bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
+    
+    if (currentToggleKeyState && !lastToggleKeyState) {
+        bool isOpen = AppState::Get().IsVisionWindowOpen();
+        AppState::Get().SetVisionWindowOpen(!isOpen);
+    }
+    
+    lastToggleKeyState = currentToggleKeyState;
+
     // CRITICAL: Backup D3D state before rendering
     // This is essential for compatibility with other overlays (Discord, Steam, etc.)
     // and in GW2AL mode where we share the pipeline with the game and other addons
@@ -274,15 +299,7 @@ bool AppLifecycleManager::InitializeGameServices() {
     ESPRenderer::Initialize(m_camera);
     LOG_INFO("AppLifecycleManager: ESPRenderer initialized");
     
-#ifdef GW2AL_BUILD
-    // In GW2AL mode, MinHook is not initialized by InitializeHooks() (which is DLL-only)
-    // We need to initialize it here so we can create the game thread hook
-    if (!kx::Hooking::HookManager::Initialize()) {
-        LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager in GW2AL mode");
-        return false;
-    }
-    LOG_INFO("AppLifecycleManager: HookManager initialized for GW2AL mode");
-#endif
+    // Note: HookManager was initialized earlier in Initialize() or InitializeForGW2AL()
     
     // Initialize the game thread hook (both DLL and GW2AL modes)
     if (InitializeGameThreadHook()) {

@@ -70,18 +70,6 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
         return;
     }
     pBackBuffer->Release();
-
-    // === Handle input (INSERT key toggle) ===
-    static bool lastToggleKeyState = false;
-    bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
-    
-    if (currentToggleKeyState && !lastToggleKeyState) {
-        // Toggle the window visibility flag (same one ImGui X button uses)
-        bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
-        kx::AppState::Get().SetVisionWindowOpen(!isOpen);
-    }
-    
-    lastToggleKeyState = currentToggleKeyState;
     
     // Get display size from swap chain
     DXGI_SWAP_CHAIN_DESC sd;

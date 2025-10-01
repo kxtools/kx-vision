@@ -122,7 +122,6 @@ namespace kx::Hooking {
 
         // Per-frame logic
         if (m_isInit) {
-            HandleInput();
             RenderFrame();
         }
 
@@ -184,19 +183,6 @@ namespace kx::Hooking {
         m_isInit = true;
         LOG_INFO("[D3DRenderHook] D3D resources and ImGui initialized successfully");
         return true;
-    }
-
-    void D3DRenderHook::HandleInput() {
-        // Handle INSERT key toggle for UI visibility
-        static bool lastToggleKeyState = false;
-        bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
-        
-        if (currentToggleKeyState && !lastToggleKeyState) {
-            bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
-            kx::AppState::Get().SetVisionWindowOpen(!isOpen);
-        }
-        
-        lastToggleKeyState = currentToggleKeyState;
     }
 
     void D3DRenderHook::RenderFrame() {
