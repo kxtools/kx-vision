@@ -89,7 +89,7 @@ namespace kx {
         float espScalingExponent = 1.1f;       // The exponent for the scaling curve's shape.
 
         // Base size settings for scalable elements
-        float espMinFontSize = 1.0f;
+        float espMinFontSize = 9.0f;
         float espBaseFontSize = 17.0f;
         float espBaseDotRadius = 2.5f;
         float espBaseHealthBarWidth = 60.0f;
