@@ -3,37 +3,10 @@
 #include "../Utils/ESPConstants.h"
 #include "../Core/ESPStageRenderer.h"
 #include "../Utils/ESPStyling.h"
+#include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
 
 namespace kx {
-
-// Context struct definition (shared with ESPStageRenderer.cpp)
-struct EntityRenderContext {
-    // Entity data
-    const glm::vec3& position;    // World position for real-time screen projection
-    float visualDistance;
-    float gameplayDistance;
-    unsigned int color;
-    const std::vector<ColoredDetail>& details;
-    float healthPercent;
-
-    // Style and settings
-    bool renderBox;
-    bool renderDistance;
-    bool renderDot;
-    bool renderDetails;
-    bool renderHealthBar;
-    bool renderPlayerName;  // Separate player name rendering from details
-    ESPEntityType entityType;
-    
-    // Screen dimensions for bounds checking
-    float screenWidth;
-    float screenHeight;
-    
-    // Player-specific data
-    const std::string& playerName;
-    const RenderablePlayer* player; // Pointer to the full player object for summary rendering
-};
 
 EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePlayer* player,
                                                              const Settings& settings,

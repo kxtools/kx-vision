@@ -2,12 +2,10 @@
 
 #include <vector>
 #include "../Data/RenderableData.h"
+#include "../Data/EntityRenderContext.h"
 #include "../../Core/Settings.h"
 
 namespace kx {
-
-// Forward declarations
-struct EntityRenderContext;
 
 /**
  * @brief Factory class for creating EntityRenderContext objects

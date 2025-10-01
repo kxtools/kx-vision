@@ -8,40 +8,13 @@
 #include "../Utils/ESPEntityDetailsBuilder.h"
 #include "ESPFilter.h"
 #include "../Renderers/ESPFeatureRenderer.h"
+#include "../Data/EntityRenderContext.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
 
 namespace kx {
 
 const ImU32 DEFAULT_TEXT_COLOR = IM_COL32(255, 255, 255, 255); // White
-
-// Context struct for unified entity rendering
-struct EntityRenderContext {
-    // Entity data
-    const glm::vec3& position;    // World position for real-time screen projection
-    float visualDistance;
-    float gameplayDistance;
-    unsigned int color;
-    const std::vector<ColoredDetail>& details;
-    float healthPercent;
-
-    // Style and settings
-    bool renderBox;
-    bool renderDistance;
-    bool renderDot;
-    bool renderDetails;
-    bool renderHealthBar;
-    bool renderPlayerName;  // Separate player name rendering from details
-    ESPEntityType entityType;
-    
-    // Screen dimensions for bounds checking
-    float screenWidth;
-    float screenHeight;
-    
-    // Player-specific data
-    const std::string& playerName;
-    const RenderablePlayer* player; // Pointer to the full player object for summary rendering
-};
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                       const PooledFrameRenderData& frameData, Camera& camera) {
