@@ -80,13 +80,13 @@ namespace kx {
         // Keep global settings
         bool espUseDistanceLimit = true;
         float espRenderDistanceLimit = 90.0f;  // For more natural look
-        
+
         // ESP Scaling Configuration
         float espMinScale = 0.1f;
         float espMaxScale = 1.0f;
-        float espScalingStartDistance = 50.0f; // The distance at which elements begin to scale down.
-        float espDistanceFactor = 80.0f;       // Controls the curve's steepness. Higher values = gentler slope.
-        float espScalingExponent = 1.1f;       // The exponent for the scaling curve's shape.
+        float espScalingStartDistance = 0.0f;  // A single, continuous curve starts at 0.
+        float espDistanceFactor = 300.0f;      // Your preferred gentle curve for maximum readability.
+        float espScalingExponent = 1.2f;       // A slightly accelerating curve feels most natural.
 
         // Base size settings for scalable elements
         float espMinFontSize = 9.0f;
