@@ -37,7 +37,7 @@ public:
      * @param entityColor Entity color (used for border styling)
      */
     static void RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos, 
-                                         float healthPercent, unsigned int entityColor);
+                                         float healthPercent, unsigned int entityColor, float barWidth, float barHeight);
 
     /**
      * @brief Render a player name below an entity
@@ -47,7 +47,7 @@ public:
      * @param entityColor Entity color (used for styling)
      */
     static void RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos, 
-                                const std::string& playerName, unsigned int entityColor);
+                                const std::string& playerName, unsigned int entityColor, float fontSize);
 
     /**
      * @brief Render a compact gear summary below a player name
@@ -57,10 +57,10 @@ public:
      * @param entityColor Entity color (used for styling)
      */
     static void RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos,
-        const std::vector<CompactStatInfo>& summary, float fadeAlpha);
+        const std::vector<CompactStatInfo>& summary, float fadeAlpha, float fontSize);
 
     static void RenderDominantStats(ImDrawList* drawList, const glm::vec2& feetPos,
-        const std::vector<DominantStat>& stats, float fadeAlpha);
+        const std::vector<DominantStat>& stats, float fadeAlpha, float fontSize);
 
     /**
      * @brief Render a bounding box with corner indicators
@@ -70,7 +70,7 @@ public:
      * @param color Box color with alpha
      */
     static void RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, 
-                                 unsigned int color);
+                                 unsigned int color, float thickness);
 
     /**
      * @brief Render distance text above an entity
@@ -81,7 +81,7 @@ public:
      * @param fadeAlpha Distance-based fade alpha (0.0-1.0)
      */
     static void RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin, 
-                                  float distance, float fadeAlpha);
+                                  float distance, float fadeAlpha, float fontSize);
 
     /**
      * @brief Render a colored center dot for an entity
@@ -89,7 +89,7 @@ public:
      * @param feetPos Entity feet position
      * @param color Dot color with alpha
      */
-    static void RenderColoredDot(ImDrawList* drawList, const glm::vec2& feetPos, unsigned int color);
+    static void RenderColoredDot(ImDrawList* drawList, const glm::vec2& feetPos, unsigned int color, float radius);
 
     /**
      * @brief Render a natural white dot (for gadgets)
@@ -97,7 +97,7 @@ public:
      * @param feetPos Entity feet position
      * @param fadeAlpha Distance-based fade alpha (0.0-1.0)
      */
-    static void RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos, float fadeAlpha);
+    static void RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos, float fadeAlpha, float radius);
 
     /**
      * @brief Render details text below an entity
@@ -108,7 +108,7 @@ public:
      * @param fadeAlpha Distance-based fade alpha (0.0-1.0)
      */
     static void RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax, 
-                                 const std::vector<ColoredDetail>& details, float fadeAlpha);
+                                 const std::vector<ColoredDetail>& details, float fadeAlpha, float fontSize);
 
     /**
      * @brief Apply alpha multiplier to a color while preserving RGB values

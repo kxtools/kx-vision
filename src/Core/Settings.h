@@ -82,9 +82,21 @@ namespace kx {
         float espRenderDistanceLimit = 90.0f;  // For more natural look
         
         // ESP Scaling Configuration
-        float espMinScale = 0.3f;      // Minimum scale factor for distant entities
-        float espMaxScale = 2.0f;      // Maximum scale factor for close entities  
-        float espScaleFactor = 35.0f;  // Base scaling divisor (calibrated for typical distances)
+        float espMinScale = 0.1f;
+        float espMaxScale = 1.0f;
+        float espScalingStartDistance = 50.0f; // The distance at which elements begin to scale down.
+        float espDistanceFactor = 80.0f;       // Controls the curve's steepness. Higher values = gentler slope.
+        float espScalingExponent = 1.1f;       // The exponent for the scaling curve's shape.
+
+        // Base size settings for scalable elements
+        float espMinFontSize = 1.0f;
+        float espBaseFontSize = 17.0f;
+        float espBaseDotRadius = 2.5f;
+        float espBaseHealthBarWidth = 60.0f;
+        float espBaseHealthBarHeight = 6.0f;
+        float espBaseBoxThickness = 1.5f;
+        float espBaseBoxHeight = 60.0f;
+        float espBaseBoxWidth = 35.0f;
         
         // Performance settings
         float espUpdateRate = 60.0f; // ESP updates per second (lower = better performance)

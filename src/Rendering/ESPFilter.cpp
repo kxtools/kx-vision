@@ -42,7 +42,8 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
     filteredData.Reset();
     
     const auto& settings = AppState::Get().GetSettings();
-    const glm::vec3 cameraPos = camera.GetPlayerPosition();
+    const glm::vec3 playerPos = camera.GetPlayerPosition();
+    const glm::vec3 cameraPos = camera.GetCameraPosition();
     
     // Filter players - apply same logic but work with pointers
     if (settings.playerESP.enabled) {
@@ -56,11 +57,12 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply health filter
             if (!IsHealthValid(player->currentHealth)) continue;
             
-            // Calculate distance for rendering
-            player->distance = glm::length(player->position - cameraPos);
+            // Calculate distances
+            player->visualDistance = glm::length(player->position - cameraPos);
+            player->gameplayDistance = glm::length(player->position - playerPos);
             
-            // Apply simple distance filter - let renderer handle fading
-            if (settings.espUseDistanceLimit && player->distance > settings.espRenderDistanceLimit) continue;
+            // Apply distance filter based on visual distance
+            if (settings.espUseDistanceLimit && player->gameplayDistance > settings.espRenderDistanceLimit) continue;
             
             filteredData.players.push_back(player);
         }
@@ -75,11 +77,12 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply health filter
             if (!IsHealthValid(npc->currentHealth, settings.npcESP.showDeadNpcs)) continue;
             
-            // Calculate distance for rendering
-            npc->distance = glm::length(npc->position - cameraPos);
+            // Calculate distances
+            npc->visualDistance = glm::length(npc->position - cameraPos);
+            npc->gameplayDistance = glm::length(npc->position - playerPos);
             
-            // Apply simple distance filter - let renderer handle fading
-            if (settings.espUseDistanceLimit && npc->distance > settings.espRenderDistanceLimit) continue;
+            // Apply distance filter based on visual distance
+            if (settings.espUseDistanceLimit && npc->gameplayDistance > settings.espRenderDistanceLimit) continue;
             
             // Apply attitude-based filter
             if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, settings.npcESP)) continue;
@@ -94,11 +97,12 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
         for (RenderableGadget* gadget : extractedData.gadgets) {
             if (!gadget || !gadget->isValid) continue;
             
-            // Calculate distance for rendering
-            gadget->distance = glm::length(gadget->position - cameraPos);
+            // Calculate distances
+            gadget->visualDistance = glm::length(gadget->position - cameraPos);
+            gadget->gameplayDistance = glm::length(gadget->position - playerPos);
             
-            // Apply simple distance filter - let renderer handle fading
-            if (settings.espUseDistanceLimit && gadget->distance > settings.espRenderDistanceLimit) continue;
+            // Apply distance filter based on visual distance
+            if (settings.espUseDistanceLimit && gadget->gameplayDistance > settings.espRenderDistanceLimit) continue;
             
             // Apply gadget type-based filter
             if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, settings.objectESP)) continue;
