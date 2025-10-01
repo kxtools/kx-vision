@@ -223,7 +223,7 @@ void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, floa
     StateBackupD3D11 d3dState;
     BackupD3D11State(context, d3dState);
 
-    // Update MumbleLink every frame
+    // Update MumbleLink every frame (it will auto-initialize on first call)
     m_mumbleLinkManager.Update();
     const MumbleLinkData* mumbleLinkData = m_mumbleLinkManager.GetData();
     

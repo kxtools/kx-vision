@@ -147,7 +147,7 @@ void ImGuiManager::RenderHints() {
 #else
     const char* hints[] = {
         "Press INSERT to show/hide window.",
-        "Press DELETE to unload addon."
+        "Press DELETE to unload DLL."
     };
 #endif
     

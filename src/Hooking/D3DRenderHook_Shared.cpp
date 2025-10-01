@@ -36,6 +36,7 @@ namespace kx::Hooking {
         LOG_INFO("[D3DRenderHook] Initializing from provided device (GW2AL mode)");
 
         m_pDevice = device;
+        m_pDevice->AddRef(); // Must AddRef since we Release in Shutdown()
         m_pDevice->GetImmediateContext(&m_pContext);
 
         // Get window handle from swap chain
