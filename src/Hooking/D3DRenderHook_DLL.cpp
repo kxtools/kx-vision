@@ -212,22 +212,12 @@ namespace kx::Hooking {
         }
 
         try {
-            // Get game state from lifecycle manager
-            kx::Camera& camera = m_pLifecycleManager->GetCamera();
-            kx::MumbleLinkManager& mumbleLinkManager = m_pLifecycleManager->GetMumbleLinkManager();
-            
-            // Update game state every frame
-            mumbleLinkManager.Update();
-            const kx::MumbleLinkData* mumbleLinkData = mumbleLinkManager.GetData();
-            camera.Update(mumbleLinkData, m_hWindow);
-            
             // Get display size
             ImGuiIO& io = ImGui::GetIO();
             
-            ImGuiManager::NewFrame();
-            ImGuiManager::RenderUI(camera, mumbleLinkManager, mumbleLinkData, 
-                                   m_hWindow, io.DisplaySize.x, io.DisplaySize.y);
-            ImGuiManager::Render(m_pContext, m_pMainRenderTargetView);
+            // === Centralized per-frame tick (update + render) ===
+            m_pLifecycleManager->RenderTick(m_hWindow, io.DisplaySize.x, io.DisplaySize.y, 
+                                            m_pContext, m_pMainRenderTargetView);
         }
         catch (const std::exception& e) {
             OutputDebugStringA("[D3DRenderHook::RenderFrame] ImGui Exception: ");

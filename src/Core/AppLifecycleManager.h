@@ -97,6 +97,24 @@ public:
      */
     void CheckAndInitializeServices();
 
+    /**
+     * @brief Centralized per-frame tick logic for rendering
+     * 
+     * This function contains all the shared per-frame logic that needs to
+     * happen before ImGui rendering in both DLL and GW2AL modes:
+     * - Update MumbleLink data
+     * - Update camera
+     * - Check and initialize services (if not already done)
+     * 
+     * @param windowHandle The HWND of the game window
+     * @param displayWidth The width of the display/viewport
+     * @param displayHeight The height of the display/viewport
+     * @param context The D3D11 device context (for rendering)
+     * @param renderTargetView The render target view to render to
+     */
+    void RenderTick(HWND windowHandle, float displayWidth, float displayHeight, 
+                    ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView);
+
 private:
     /**
      * @brief Application lifecycle states

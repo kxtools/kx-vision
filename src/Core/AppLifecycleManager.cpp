@@ -6,6 +6,7 @@
 #include "Hooks.h"
 #include "../Rendering/ImGuiManager.h"
 #include "../Rendering/Core/ESPRenderer.h"
+#include "../Rendering/D3DState.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 
@@ -182,6 +183,40 @@ void AppLifecycleManager::CheckAndInitializeServices() {
             m_currentState = State::ShuttingDown;
         }
     }
+}
+
+void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, float displayHeight,
+                                      ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView) {
+    // Early exit if shutting down
+    if (m_currentState == State::ShuttingDown) {
+        return;
+    }
+
+    // CRITICAL: Backup D3D state before rendering
+    // This is essential for compatibility with other overlays (Discord, Steam, etc.)
+    // and in GW2AL mode where we share the pipeline with the game and other addons
+    StateBackupD3D11 d3dState;
+    BackupD3D11State(context, d3dState);
+
+    // Update MumbleLink every frame
+    m_mumbleLinkManager.Update();
+    const MumbleLinkData* mumbleLinkData = m_mumbleLinkManager.GetData();
+    
+    // Check and initialize services if ready (for GW2AL mode)
+    CheckAndInitializeServices();
+    
+    // Update camera with latest MumbleLink data
+    m_camera.Update(mumbleLinkData, windowHandle);
+    
+    // Render ImGui UI
+    ImGuiManager::NewFrame();
+    ImGuiManager::RenderUI(m_camera, m_mumbleLinkManager, mumbleLinkData, 
+                           windowHandle, displayWidth, displayHeight);
+    ImGuiManager::Render(context, renderTargetView);
+
+    // CRITICAL: Restore D3D state after rendering
+    // This ensures we don't interfere with game rendering or other overlays
+    RestoreD3D11State(context, d3dState);
 }
 
 void AppLifecycleManager::HandleInitializingServicesState() {

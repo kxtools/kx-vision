@@ -21,7 +21,6 @@
 #include <d3d11.h>
 #include <dxgi.h>
 
-#include "../Rendering/D3DState.h"
 #include "../../libs/gw2al/gw2al_api.h"
 #include "../../libs/gw2al/gw2al_d3d9_wrapper.h" 
 #include "../Hooking/GW2AL/d3d9_wrapper_structs.h"
@@ -72,25 +71,6 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     }
     pBackBuffer->Release();
 
-    // CRITICAL: Backup D3D state before rendering (shared pipeline with game and other addons)
-    kx::StateBackupD3D11 d3dstate;
-    kx::BackupD3D11State(context, d3dstate);
-
-    // === Update game state every frame ===
-    auto& camera = kx::g_App.GetCamera();
-    auto& mumbleLinkManager = kx::g_App.GetMumbleLinkManager();
-    
-    // Update MumbleLink every frame
-    mumbleLinkManager.Update();
-    const kx::MumbleLinkData* mumbleLinkData = mumbleLinkManager.GetData();
-    
-    // Check and initialize game services if ready (MumbleLink connected + player in-game)
-    kx::g_App.CheckAndInitializeServices();
-    
-    // Update camera with latest MumbleLink data
-    HWND windowHandle = kx::Hooking::D3DRenderHook::GetWindowHandle();
-    camera.Update(mumbleLinkData, windowHandle);
-    
     // === Handle input (INSERT key toggle) ===
     static bool lastToggleKeyState = false;
     bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
@@ -108,14 +88,11 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     pSwapChain->GetDesc(&sd);
     float displayWidth = static_cast<float>(sd.BufferDesc.Width);
     float displayHeight = static_cast<float>(sd.BufferDesc.Height);
+    HWND windowHandle = kx::Hooking::D3DRenderHook::GetWindowHandle();
 
-    // Render our ImGui overlay
-    ImGuiManager::NewFrame();
-    ImGuiManager::RenderUI(camera, mumbleLinkManager, mumbleLinkData, windowHandle, displayWidth, displayHeight);
-    ImGuiManager::Render(context, mainRenderTargetView);
-
-    // CRITICAL: Restore D3D state after rendering
-    kx::RestoreD3D11State(context, d3dstate);
+    // === Centralized per-frame tick (update + render) ===
+    // Note: D3D state backup/restore is handled inside RenderTick
+    kx::g_App.RenderTick(windowHandle, displayWidth, displayHeight, context, mainRenderTargetView);
 
     // Clean up temporary render target view
     mainRenderTargetView->Release();
