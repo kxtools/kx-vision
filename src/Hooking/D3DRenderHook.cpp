@@ -141,107 +141,121 @@ namespace kx::Hooking {
 
 
     HRESULT __stdcall D3DRenderHook::DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
-		// Check the shutdown flag FIRST. If set, immediately call original and exit.
-		// This prevents accessing potentially destroyed resources (ImGui context, etc.)
-        if (kx::AppState::Get().IsShuttingDown()) { // Use AppState singleton method
+        // Check the shutdown flag FIRST. If set, immediately call original and exit.
+        // This prevents accessing potentially destroyed resources (ImGui context, etc.)
+        if (kx::AppState::Get().IsShuttingDown()) {
             return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
         }
 
+        // One-time initialization of D3D resources and ImGui
         if (!m_isInit) {
-            // Attempt to initialize D3D resources and ImGui using the game's swapchain/device
-            if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void**>(&m_pDevice)))) {
-                m_pDevice->GetImmediateContext(&m_pContext);
-                DXGI_SWAP_CHAIN_DESC sd;
-                pSwapChain->GetDesc(&sd);
-                m_hWindow = sd.OutputWindow;
-
-                ID3D11Texture2D* pBackBuffer = nullptr;
-                if (SUCCEEDED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer)))) {
-                    m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
-                    pBackBuffer->Release();
-                }
-                else {
-                    LOG_ERROR("[D3DRenderHook] Failed to get back buffer.");
-                    // Release potentially acquired resources on partial failure
-                    if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
-                    if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-                    m_hWindow = NULL;
-                    return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
-                }
-
-                // Hook WndProc now that we have the window handle
-                m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
-                if (!m_pOriginalWndProc) {
-                    LOG_ERROR("[D3DRenderHook] Failed to hook WndProc.");
-                    // Clean up D3D resources if WndProc hook fails
-                    if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-                    if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
-                    if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-                    m_hWindow = NULL;
-                    return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
-                }
-
-                // Initialize ImGui
-                if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
-                    LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui.");
-                    // Restore WndProc if ImGui init fails
-                    SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
-                    m_pOriginalWndProc = nullptr;
-                    // Clean up D3D resources
-                    if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-                    if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
-                    if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-                    m_hWindow = NULL;
-                    // Continue without ImGui
-                }
-                else {
-                    m_isInit = true; // Full initialization successful
-                    LOG_INFO("[D3DRenderHook] ImGui Initialized.");
-                }
-            }
-            else {
-                // Failed to get device, cannot initialize yet. Call original.
+            if (!InitializeD3DResources(pSwapChain)) {
                 return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
             }
         }
 
-        // --- Hotkey / Frame Logic ---
-		// Hotkey check should ideally also check m_isInit?
-        if (m_isInit) { // Only process hotkeys/UI if fully initialized
-            static bool lastToggleKeyState = false;
-            bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
-            if (currentToggleKeyState && !lastToggleKeyState) {
-                auto& settings = kx::AppState::Get().GetSettings();
-                settings.showVisionWindow = !settings.showVisionWindow;
-            }
-            lastToggleKeyState = currentToggleKeyState;
-
-            // --- Render ImGui overlay ---
-            // Add ANOTHER check for shutdown flag right before ImGui calls
-            // AND ensure ImGui context still exists (check GImGui != nullptr)
-            if (!kx::AppState::Get().IsShuttingDown() && ImGui::GetCurrentContext() != nullptr)
-            {
-                try { // Optional: Add try-catch around ImGui calls during shutdown race possibility
-                    ImGuiManager::NewFrame();
-                    ImGuiManager::RenderUI(); // Contains ImGui::Begin/End
-                    ImGuiManager::Render(m_pContext, m_pMainRenderTargetView);
-                }
-                catch (const std::exception& e) {
-                    OutputDebugStringA("[DetourPresent] ImGui Exception during Render: ");
-                    OutputDebugStringA(e.what());
-                    OutputDebugStringA("\n");
-                }
-                catch (...)
-                {
-                    OutputDebugStringA("[DetourPresent] Unknown ImGui Exception during Render.\n");
-                }
-            }
-            // --- End Render ImGui ---
+        // Per-frame logic
+        if (m_isInit) {
+            HandleInput();
+            RenderFrame();
         }
-        // --- End Hotkey / Frame Logic ---
 
-        // Call original Present function - ensure it's valid
+        // Call original Present function
         return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
+    }
+
+    bool D3DRenderHook::InitializeD3DResources(IDXGISwapChain* pSwapChain) {
+        // Attempt to get D3D device from swap chain
+        if (FAILED(pSwapChain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void**>(&m_pDevice)))) {
+            LOG_ERROR("[D3DRenderHook] Failed to get D3D device from swap chain");
+            return false;
+        }
+
+        // Get immediate context
+        m_pDevice->GetImmediateContext(&m_pContext);
+
+        // Get window handle from swap chain
+        DXGI_SWAP_CHAIN_DESC sd;
+        pSwapChain->GetDesc(&sd);
+        m_hWindow = sd.OutputWindow;
+
+        // Create render target view from back buffer
+        ID3D11Texture2D* pBackBuffer = nullptr;
+        if (FAILED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer)))) {
+            LOG_ERROR("[D3DRenderHook] Failed to get back buffer");
+            // Cleanup on failure
+            if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
+            if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
+            m_hWindow = NULL;
+            return false;
+        }
+
+        m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
+        pBackBuffer->Release();
+
+        // Hook WndProc
+        m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
+        if (!m_pOriginalWndProc) {
+            LOG_ERROR("[D3DRenderHook] Failed to hook WndProc");
+            // Cleanup on failure
+            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
+            if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
+            if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
+            m_hWindow = NULL;
+            return false;
+        }
+
+        // Initialize ImGui
+        if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
+            LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui");
+            // Restore WndProc on failure
+            SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
+            m_pOriginalWndProc = nullptr;
+            // Cleanup D3D resources
+            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
+            if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
+            if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
+            m_hWindow = NULL;
+            return false;
+        }
+
+        m_isInit = true;
+        LOG_INFO("[D3DRenderHook] D3D resources and ImGui initialized successfully");
+        return true;
+    }
+
+    void D3DRenderHook::HandleInput() {
+        // Handle INSERT key toggle for UI visibility
+        static bool lastToggleKeyState = false;
+        bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
+        
+        if (currentToggleKeyState && !lastToggleKeyState) {
+            auto& settings = kx::AppState::Get().GetSettings();
+            settings.showVisionWindow = !settings.showVisionWindow;
+        }
+        
+        lastToggleKeyState = currentToggleKeyState;
+    }
+
+    void D3DRenderHook::RenderFrame() {
+        // Double-check shutdown flag and ImGui context before rendering
+        if (kx::AppState::Get().IsShuttingDown() || ImGui::GetCurrentContext() == nullptr) {
+            return;
+        }
+
+        try {
+            ImGuiManager::NewFrame();
+            ImGuiManager::RenderUI();
+            ImGuiManager::Render(m_pContext, m_pMainRenderTargetView);
+        }
+        catch (const std::exception& e) {
+            OutputDebugStringA("[D3DRenderHook::RenderFrame] ImGui Exception: ");
+            OutputDebugStringA(e.what());
+            OutputDebugStringA("\n");
+        }
+        catch (...) {
+            OutputDebugStringA("[D3DRenderHook::RenderFrame] Unknown ImGui Exception\n");
+        }
     }
 
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

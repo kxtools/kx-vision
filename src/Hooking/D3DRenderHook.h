@@ -78,6 +78,25 @@ namespace kx::Hooking {
          * @brief The replacement Window Procedure (WndProc).
          */
         static LRESULT __stdcall WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+        // --- Helper Methods for DetourPresent ---
+        
+        /**
+         * @brief One-time initialization of D3D resources, ImGui, and WndProc hook
+         * @param pSwapChain The swap chain to initialize from
+         * @return True if initialization successful, false otherwise
+         */
+        static bool InitializeD3DResources(IDXGISwapChain* pSwapChain);
+
+        /**
+         * @brief Handle per-frame input (hotkeys, toggle UI)
+         */
+        static void HandleInput();
+
+        /**
+         * @brief Render the ImGui frame
+         */
+        static void RenderFrame();
     };
 
 } // namespace kx::Hooking
