@@ -2,9 +2,46 @@
 #include "GuiHelpers.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
+#include <vector>
 
 namespace kx {
     namespace GUI {
+
+        namespace {
+            /**
+             * @brief Helper function to set all object type filters to a specific value
+             * @param settings Reference to ObjectEspSettings
+             * @param value The boolean value to set for all filters
+             */
+            void SetAllObjectFilters(ObjectEspSettings& settings, bool value) {
+                // Array of pointers to all filter boolean members
+                std::vector<bool*> filters = {
+                    &settings.showResourceNodes,
+                    &settings.showWaypoints,
+                    &settings.showVistas,
+                    &settings.showCraftingStations,
+                    &settings.showAttackTargets,
+                    &settings.showPlayerCreated,
+                    &settings.showInteractables,
+                    &settings.showDoors,
+                    &settings.showPortals,
+                    &settings.showDestructible,
+                    &settings.showPoints,
+                    &settings.showPlayerSpecific,
+                    &settings.showProps,
+                    &settings.showBuildSites,
+                    &settings.showBountyBoards,
+                    &settings.showRifts,
+                    &settings.showGeneric,
+                    &settings.showUnknown
+                };
+
+                // Set all filters to the specified value
+                for (bool* filter : filters) {
+                    *filter = value;
+                }
+            }
+        }
 
         void RenderObjectsTab() {
             if (ImGui::BeginTabItem("Objects")) {
@@ -60,47 +97,11 @@ namespace kx {
                     ImGui::Separator();
                     ImGui::Text("Quick Selection");
                     if (ImGui::Button("Select All")) {
-                        // Enable all object types
-                        settings.objectESP.showResourceNodes = true;
-                        settings.objectESP.showWaypoints = true;
-                        settings.objectESP.showVistas = true;
-                        settings.objectESP.showCraftingStations = true;
-                        settings.objectESP.showAttackTargets = true;
-                        settings.objectESP.showPlayerCreated = true;
-                        settings.objectESP.showInteractables = true;
-                        settings.objectESP.showDoors = true;
-                        settings.objectESP.showPortals = true;
-                        settings.objectESP.showDestructible = true;
-                        settings.objectESP.showPoints = true;
-                        settings.objectESP.showPlayerSpecific = true;
-                        settings.objectESP.showProps = true;
-                        settings.objectESP.showBuildSites = true;
-                        settings.objectESP.showBountyBoards = true;
-                        settings.objectESP.showRifts = true;
-                        settings.objectESP.showGeneric = true;
-                        settings.objectESP.showUnknown = true;
+                        SetAllObjectFilters(settings.objectESP, true);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Clear All")) {
-                        // Disable all object types
-                        settings.objectESP.showResourceNodes = false;
-                        settings.objectESP.showWaypoints = false;
-                        settings.objectESP.showVistas = false;
-                        settings.objectESP.showCraftingStations = false;
-                        settings.objectESP.showAttackTargets = false;
-                        settings.objectESP.showPlayerCreated = false;
-                        settings.objectESP.showInteractables = false;
-                        settings.objectESP.showDoors = false;
-                        settings.objectESP.showPortals = false;
-                        settings.objectESP.showDestructible = false;
-                        settings.objectESP.showPoints = false;
-                        settings.objectESP.showPlayerSpecific = false;
-                        settings.objectESP.showProps = false;
-                        settings.objectESP.showBuildSites = false;
-                        settings.objectESP.showBountyBoards = false;
-                        settings.objectESP.showRifts = false;
-                        settings.objectESP.showGeneric = false;
-                        settings.objectESP.showUnknown = false;
+                        SetAllObjectFilters(settings.objectESP, false);
                     }
                     
                     ImGui::Separator();
