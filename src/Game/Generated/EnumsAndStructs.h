@@ -10,7 +10,6 @@
 #ifndef KX_API_ENUMS_STRUCTS_H
 #define KX_API_ENUMS_STRUCTS_H
 
-#include <cstdint>
 #include <vector>
 
 namespace kx::data {

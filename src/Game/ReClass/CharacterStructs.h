@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Core/AppState.h"
 #include "../../Utils/SafeForeignClass.h"
 #include "../GameEnums.h"
 #include "../offsets.h"

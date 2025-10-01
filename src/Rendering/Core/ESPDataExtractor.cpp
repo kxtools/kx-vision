@@ -4,7 +4,6 @@
 #include "../../Game/ReClassStructs.h"
 #include "../../Utils/SafeIterators.h"
 #include "../../Utils/MemorySafety.h"
-#include "../Utils/ESPFormatting.h"
 #include "../Utils/ESPConstants.h"
 
 namespace kx {

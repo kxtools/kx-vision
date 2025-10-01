@@ -2,7 +2,6 @@
 
 #include "../Game/GameEnums.h"
 #include "../../libs/ImGui/imgui.h"
-#include <string>
 
 // Forward declaration to avoid circular dependency
 namespace kx {

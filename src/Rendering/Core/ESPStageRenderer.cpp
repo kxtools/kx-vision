@@ -3,14 +3,11 @@
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Utils/ESPMath.h"
-#include "../Utils/ESPStyling.h"
-#include "../Utils/ESPFormatting.h"
 #include "../Utils/ESPConstants.h"
 #include "../Utils/ESPPlayerDetailsBuilder.h"
 #include "../Utils/ESPEntityDetailsBuilder.h"
 #include "ESPFilter.h"
 #include "../Renderers/ESPFeatureRenderer.h"
-#include "../../Game/Generated/StatData.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
 

@@ -3,7 +3,6 @@
 #include <map>
 #include <vector>
 #include "../Data/RenderableData.h"
-#include "../Data/ESPData.h"
 #include "../../Core/Settings.h"
 #include "Generated/EnumsAndStructs.h"
 

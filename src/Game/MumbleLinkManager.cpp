@@ -1,6 +1,5 @@
 #include "MumbleLinkManager.h"
 
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include "../Utils/StringHelpers.h"
 

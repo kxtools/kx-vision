@@ -2,7 +2,6 @@
 #include "GuiHelpers.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
-#include <string>
 
 namespace kx {
     namespace GUI {
