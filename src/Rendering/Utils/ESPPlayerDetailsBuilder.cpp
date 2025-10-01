@@ -11,7 +11,7 @@ namespace kx {
 
 const ImU32 DEFAULT_TEXT_COLOR = IM_COL32(255, 255, 255, 255); // White
 
-std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings) {
+std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
     
     // Check if details rendering is enabled
@@ -19,7 +19,7 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         return details;
     }
     
-    details.reserve(10); // Reserve space
+    details.reserve(16); // Future-proof: generous reserve for adding new fields
 
     if (!player->playerName.empty()) {
         details.push_back({ "Player: " + player->playerName, DEFAULT_TEXT_COLOR });
@@ -51,6 +51,13 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
         details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)", DEFAULT_TEXT_COLOR });
     }
+
+    if (showDebugAddresses) {
+        char addrStr[32];
+        snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
+        details.push_back({ std::string(addrStr), DEFAULT_TEXT_COLOR });
+    }
+
     return details;
 }
 
@@ -164,7 +171,7 @@ std::vector<DominantStat> ESPPlayerDetailsBuilder::BuildDominantStats(const Rend
 
 std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildGearDetails(const RenderablePlayer* player) {
     std::vector<ColoredDetail> gearDetails;
-    gearDetails.reserve(12);
+    gearDetails.reserve(20); // Future-proof: generous reserve for all gear slots + extras
 
     const std::vector<Game::EquipmentSlot> displayOrder = {
         // Armor

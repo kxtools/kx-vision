@@ -22,9 +22,10 @@ public:
      * @brief Build basic player information details (name, level, profession, etc.)
      * @param player The player entity to build details for
      * @param settings Player ESP settings for filtering what to display
+     * @param showDebugAddresses Whether to include memory addresses for debugging
      * @return Vector of colored text details
      */
-    static std::vector<ColoredDetail> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings);
+    static std::vector<ColoredDetail> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses);
 
     /**
      * @brief Build detailed gear information showing each equipment slot and stat

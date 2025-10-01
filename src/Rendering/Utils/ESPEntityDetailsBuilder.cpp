@@ -9,11 +9,12 @@ const ImU32 DEFAULT_TEXT_COLOR = IM_COL32(255, 255, 255, 255); // White
 
 std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
-    details.reserve(6);
     
     if (!settings.renderDetails) {
         return details;
     }
+
+    details.reserve(12); // Future-proof: generous reserve for adding new fields
 
     if (!npc->name.empty()) {
         details.push_back({ "NPC: " + npc->name, DEFAULT_TEXT_COLOR });
@@ -46,11 +47,12 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
 
 std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
-    details.reserve(4);
     
     if (!settings.renderDetails) {
         return details;
     }
+
+    details.reserve(8); // Future-proof: generous reserve for adding new fields
 
     const char* gadgetName = Game::EnumHelpers::GetGadgetTypeName(gadget->type);
     details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), DEFAULT_TEXT_COLOR });

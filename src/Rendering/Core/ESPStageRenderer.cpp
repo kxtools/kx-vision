@@ -219,7 +219,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
 
         // --- 1. DATA PREPARATION ---
         // Use the builder to prepare all text details. This includes general info and detailed gear view if selected.
-        std::vector<ColoredDetail> details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, settings.playerESP);
+        std::vector<ColoredDetail> details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, settings.playerESP, settings.showDebugAddresses);
 
         // If "Detailed" mode is selected, build the full gear list and add it to the details.
         if (settings.playerESP.gearDisplayMode == 3) { // 3 = Detailed
@@ -230,12 +230,6 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
                 }
                 details.insert(details.end(), gearDetails.begin(), gearDetails.end());
             }
-        }
-
-        if (settings.showDebugAddresses) {
-            char addrStr[32];
-            snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
-            details.push_back({ std::string(addrStr), DEFAULT_TEXT_COLOR });
         }
 
         // --- 2. CORE RENDERING ---
