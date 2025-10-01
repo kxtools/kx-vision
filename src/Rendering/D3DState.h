@@ -15,9 +15,9 @@ namespace kx {
  * with the game and other addons. We must save and restore all state.
  * 
  * Optimized version: Only backs up state that ImGui actually modifies,
- * plus depth/stencil for maximum addon compatibility (e.g., ArcDPS).
+ * plus depth/stencil and render targets for maximum addon compatibility.
  * 
- * Size: ~220 bytes (vs ~3KB for full pipeline backup)
+ * Size: ~300 bytes (vs ~3KB for full pipeline backup)
  */
 struct StateBackupD3D11 {
     // Viewport and scissor
@@ -37,6 +37,12 @@ struct StateBackupD3D11 {
     // Depth/stencil state (for addon compatibility)
     ID3D11DepthStencilState* DepthStencilState = nullptr;
     UINT StencilRef = 0;
+    
+    // Output Merger render targets and depth-stencil view
+    // CRITICAL: ImGui rendering binds its own render target, so we must backup and restore
+    // the game's render targets to prevent breaking rendering
+    ID3D11RenderTargetView* RenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = {};
+    ID3D11DepthStencilView* DepthStencilView = nullptr;
     
     // Shaders (ImGui uses VS and PS only)
     ID3D11PixelShader* PS = nullptr;
@@ -61,11 +67,11 @@ struct StateBackupD3D11 {
 /**
  * @brief Backup D3D11 state from the device context
  * 
- * Only backs up state that ImGui modifies, plus depth/stencil for addon compatibility.
- * This is faster than backing up everything and sufficient for compatibility with
- * addons like ArcDPS, GW2Radial, etc.
+ * Backs up all state that ImGui modifies, including render targets and depth-stencil view.
+ * This is critical for compatibility with the game and other overlays - ImGui binds its own
+ * render target, so we must backup and restore the game's render targets.
  * 
- * Performance: ~15-20 microseconds per backup/restore cycle
+ * Performance: ~20-25 microseconds per backup/restore cycle
  */
 inline void BackupD3D11State(ID3D11DeviceContext* ctx, StateBackupD3D11& backup) {
     backup.ScissorRectsCount = backup.ViewportsCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
@@ -74,6 +80,7 @@ inline void BackupD3D11State(ID3D11DeviceContext* ctx, StateBackupD3D11& backup)
     ctx->RSGetState(&backup.RS);
     ctx->OMGetBlendState(&backup.BlendState, backup.BlendFactor, &backup.SampleMask);
     ctx->OMGetDepthStencilState(&backup.DepthStencilState, &backup.StencilRef);
+    ctx->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, backup.RenderTargetViews, &backup.DepthStencilView);
     ctx->PSGetShaderResources(0, 1, &backup.PSShaderResource);
     ctx->PSGetSamplers(0, 1, &backup.PSSampler);
     ctx->PSGetShader(&backup.PS, nullptr, nullptr);
@@ -90,6 +97,9 @@ inline void BackupD3D11State(ID3D11DeviceContext* ctx, StateBackupD3D11& backup)
  * 
  * Restores the state that was backed up by BackupD3D11State().
  * Properly releases all COM references to avoid memory leaks.
+ * 
+ * CRITICAL: Restores render targets and depth-stencil view to prevent breaking
+ * game rendering or other overlays.
  */
 inline void RestoreD3D11State(ID3D11DeviceContext* ctx, StateBackupD3D11& backup) {
     ctx->RSSetScissorRects(backup.ScissorRectsCount, backup.ScissorRects);
@@ -97,6 +107,14 @@ inline void RestoreD3D11State(ID3D11DeviceContext* ctx, StateBackupD3D11& backup
     ctx->RSSetState(backup.RS); if (backup.RS) backup.RS->Release();
     ctx->OMSetBlendState(backup.BlendState, backup.BlendFactor, backup.SampleMask); if (backup.BlendState) backup.BlendState->Release();
     ctx->OMSetDepthStencilState(backup.DepthStencilState, backup.StencilRef); if (backup.DepthStencilState) backup.DepthStencilState->Release();
+    ctx->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, backup.RenderTargetViews, backup.DepthStencilView);
+    // Release all render target views
+    for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
+        if (backup.RenderTargetViews[i]) {
+            backup.RenderTargetViews[i]->Release();
+        }
+    }
+    if (backup.DepthStencilView) backup.DepthStencilView->Release();
     ctx->PSSetShaderResources(0, 1, &backup.PSShaderResource); if (backup.PSShaderResource) backup.PSShaderResource->Release();
     ctx->PSSetSamplers(0, 1, &backup.PSSampler); if (backup.PSSampler) backup.PSSampler->Release();
     ctx->PSSetShader(backup.PS, nullptr, 0); if (backup.PS) backup.PS->Release();
