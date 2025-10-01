@@ -44,16 +44,25 @@ namespace kx {
         bool renderDot = true;
         bool renderDetails = false;
         
-        // Enhanced gadget filtering using the new enum
-        bool showResourceNodes = true;
-        bool showWaypoints = true;
-        bool showVistas = true;
-        bool showCraftingStations = true;
-        bool showAttackTargets = true;
-        bool showPlayerCreated = true;
-        bool showInteractables = true;
-        bool showDoors = false;
-        bool showPortals = true;
+        // Gadget Type Filters
+        bool showResourceNodes = true;    // Type 19
+        bool showWaypoints = true;        // Type 18
+        bool showVistas = true;           // Type 24
+        bool showCraftingStations = true; // Type 5
+        bool showAttackTargets = true;    // Type 16
+        bool showPlayerCreated = true;    // Type 23
+        bool showInteractables = true;    // Type 12 (covers chests, etc.)
+        bool showDoors = true;            // Type 6
+        bool showPortals = true;          // Type 17 (MapPortal)
+        bool showDestructible = true;     // Type 1
+        bool showPoints = true;           // Type 2 (PvP points)
+        bool showPlayerSpecific = true;   // Type 14
+        bool showProps = true;            // Type 20
+        bool showBuildSites = true;       // Type 25
+        bool showBountyBoards = true;     // Type 11
+        bool showRifts = true;            // Type 13
+        bool showGeneric = false;         // Type 3
+        bool showUnknown = true;          // For any type not explicitly handled
     };
 
     // --- User-configurable settings ---

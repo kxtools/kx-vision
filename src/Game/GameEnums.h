@@ -75,9 +75,12 @@ enum class Attitude : uint32_t {
 enum class GadgetType : uint32_t {
     Destructible = 1,       // Training dummy, siege practice targets
     Point = 2,              // PvP control points, event spawns
+    Generic = 3,            // Generic, often invisible, trigger
     Crafting = 5,           // Crafting stations
     Door = 6,               // Interactive doors, gates
+    BountyBoard = 11,       // Bounty boards
     Interact = 12,          // Chests, portals
+    Rift = 13,              // Reality Rifts
     PlayerSpecific = 14,    // Player-specific objects
     AttackTarget = 16,      // World bosses, fort walls
     MapPortal = 17,         // Map border portals
@@ -278,6 +281,14 @@ namespace EnumHelpers {
             case GadgetType::Interact: return "Interactive";
             case GadgetType::Door: return "Door";
             case GadgetType::MapPortal: return "Portal";
+            case GadgetType::Destructible: return "Destructible";
+            case GadgetType::Point: return "Control Point";
+            case GadgetType::BountyBoard: return "Bounty Board";
+            case GadgetType::Rift: return "Rift";
+            case GadgetType::PlayerSpecific: return "Player Specific";
+            case GadgetType::Prop: return "Prop";
+            case GadgetType::BuildSite: return "Build Site";
+            case GadgetType::Generic: return "Generic Trigger";
             default: return nullptr; // Return nullptr for unknown, caller should handle ID display
         }
     }

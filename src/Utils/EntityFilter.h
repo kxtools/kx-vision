@@ -52,9 +52,24 @@ public:
                 return settings.showDoors;
             case Game::GadgetType::MapPortal:
                 return settings.showPortals;
+            case Game::GadgetType::Destructible:
+                return settings.showDestructible;
+            case Game::GadgetType::Point:
+                return settings.showPoints;
+            case Game::GadgetType::PlayerSpecific:
+                return settings.showPlayerSpecific;
+            case Game::GadgetType::Prop:
+                return settings.showProps;
+            case Game::GadgetType::BuildSite:
+                return settings.showBuildSites;
+            case Game::GadgetType::BountyBoard:
+                return settings.showBountyBoards;
+            case Game::GadgetType::Rift:
+                return settings.showRifts;
+            case Game::GadgetType::Generic:
+                return settings.showGeneric;
             default:
-                // For unknown types, show them by default
-                return true;
+                return settings.showUnknown;
         }
     }
 
