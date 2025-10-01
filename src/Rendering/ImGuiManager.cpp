@@ -12,6 +12,8 @@
 #include "../../libs/ImGui/imgui_impl_win32.h"
 #include "../Core/AppState.h"
 #include "../Core/Config.h"
+#include "../Game/Camera.h"
+#include "../Game/MumbleLinkManager.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 
@@ -24,8 +26,6 @@
 #include "GUI/ValidationTab.h"
 
 // Define static members
-kx::Camera ImGuiManager::m_camera;
-kx::MumbleLinkManager ImGuiManager::m_mumbleLinkManager;
 bool ImGuiManager::m_isInitialized = false;
 
 bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
@@ -39,9 +39,6 @@ bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
 
     if (!ImGui_ImplWin32_Init(hwnd)) return false;
     if (!ImGui_ImplDX11_Init(device, context)) return false;
-    
-    // Initialize ESP renderer with our camera
-    kx::ESPRenderer::Initialize(m_camera);
 
     m_isInitialized = true;
     return true;
@@ -64,7 +61,7 @@ void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* 
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
-void ImGuiManager::RenderESPWindow() {
+void ImGuiManager::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, const kx::MumbleLinkData* mumbleData) {
     // Use AppState singleton instead of global variable
     if (!kx::AppState::Get().IsVisionWindowOpen()) return;
 
@@ -89,9 +86,8 @@ void ImGuiManager::RenderESPWindow() {
     RenderHints();
 
     // Connection status with detailed information
-    bool isConnected = m_mumbleLinkManager.IsInitialized();
-    const kx::MumbleLinkData* mumbleData = m_mumbleLinkManager.GetData();
-    uint32_t mapId = m_mumbleLinkManager.mapId();
+    bool isConnected = mumbleLinkManager.IsInitialized();
+    uint32_t mapId = mumbleLinkManager.mapId();
     
     if (isConnected && mumbleData) {
         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "MumbleLink Status: Connected");
@@ -127,19 +123,18 @@ void ImGuiManager::RenderESPWindow() {
     ImGui::End();
 }
 
-void ImGuiManager::RenderUI() {
-    ImGuiIO& io = ImGui::GetIO();
-
-    // Update MumbleLink and Camera
-    m_mumbleLinkManager.Update();
-    m_camera.Update(m_mumbleLinkManager.GetData(), kx::Hooking::D3DRenderHook::GetWindowHandle());
-
+void ImGuiManager::RenderUI(kx::Camera& camera, 
+                            kx::MumbleLinkManager& mumbleLinkManager,
+                            const kx::MumbleLinkData* mumbleLinkData,
+                            HWND windowHandle,
+                            float displayWidth,
+                            float displayHeight) {
     // Render the ESP overlay
-    kx::ESPRenderer::Render(io.DisplaySize.x, io.DisplaySize.y, m_mumbleLinkManager.GetData());
+    kx::ESPRenderer::Render(displayWidth, displayHeight, mumbleLinkData);
     
     // Render the UI window if it's shown
     if (kx::AppState::Get().GetSettings().showVisionWindow) {
-        RenderESPWindow();
+        RenderESPWindow(mumbleLinkManager, mumbleLinkData);
     }
 }
 

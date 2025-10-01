@@ -3,6 +3,7 @@
 #include <windowsx.h>
 
 #include "../Core/AppState.h"         // For UI visibility state and shutdown coordination
+#include "../Core/AppLifecycleManager.h" // For accessing Camera and MumbleLink data
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"      // To create/remove the hook
 #include "ImGuiManager.h"     // To initialize and render ImGui
@@ -22,6 +23,7 @@ namespace kx::Hooking {
     ID3D11DeviceContext* D3DRenderHook::m_pContext = nullptr;
     ID3D11RenderTargetView* D3DRenderHook::m_pMainRenderTargetView = nullptr;
     WNDPROC D3DRenderHook::m_pOriginalWndProc = nullptr;
+    kx::AppLifecycleManager* D3DRenderHook::m_pLifecycleManager = nullptr;
 
     bool D3DRenderHook::Initialize() {
         if (!FindPresentPointer()) {
@@ -81,6 +83,9 @@ namespace kx::Hooking {
         return m_isInit;
     }
 
+    void D3DRenderHook::SetLifecycleManager(kx::AppLifecycleManager* lifecycleManager) {
+        m_pLifecycleManager = lifecycleManager;
+    }
 
     bool D3DRenderHook::FindPresentPointer() {
         // This logic remains complex but necessary. Keep it encapsulated here.
@@ -243,9 +248,28 @@ namespace kx::Hooking {
             return;
         }
 
+        // Check if we have a lifecycle manager to get game state from
+        if (!m_pLifecycleManager) {
+            OutputDebugStringA("[D3DRenderHook::RenderFrame] No lifecycle manager set\n");
+            return;
+        }
+
         try {
+            // Get game state from lifecycle manager
+            kx::Camera& camera = m_pLifecycleManager->GetCamera();
+            kx::MumbleLinkManager& mumbleLinkManager = m_pLifecycleManager->GetMumbleLinkManager();
+            
+            // Update game state every frame (not just every 100ms in lifecycle manager)
+            mumbleLinkManager.Update();
+            const kx::MumbleLinkData* mumbleLinkData = mumbleLinkManager.GetData();
+            camera.Update(mumbleLinkData, m_hWindow);
+            
+            // Get display size
+            ImGuiIO& io = ImGui::GetIO();
+            
             ImGuiManager::NewFrame();
-            ImGuiManager::RenderUI();
+            ImGuiManager::RenderUI(camera, mumbleLinkManager, mumbleLinkData, 
+                                   m_hWindow, io.DisplaySize.x, io.DisplaySize.y);
             ImGuiManager::Render(m_pContext, m_pMainRenderTargetView);
         }
         catch (const std::exception& e) {

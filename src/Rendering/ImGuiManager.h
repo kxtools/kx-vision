@@ -3,31 +3,49 @@
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 
-#include "../Game/Camera.h"
-#include "../Game/MumbleLinkManager.h"
+// Forward declarations to avoid circular dependencies
+namespace kx {
+    class Camera;
+    class MumbleLinkManager;
+    struct MumbleLinkData;
+}
 
 /**
  * @class ImGuiManager
  * @brief Manages ImGui rendering and user interface for KX-Vision
+ * 
+ * This class is responsible for UI rendering only. It does not own or manage
+ * game state (Camera, MumbleLinkManager). Game state is passed as parameters.
  */
 class ImGuiManager {
 public:
     static bool Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd);
     static void NewFrame();
     static void Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView);
-    static void RenderUI();
+    
+    /**
+     * @brief Render the UI with provided game state
+     * @param camera Reference to the camera for ESP rendering
+     * @param mumbleLinkManager Reference to MumbleLink manager for connection status
+     * @param mumbleLinkData Pointer to current MumbleLink data (can be nullptr)
+     * @param windowHandle Window handle for input handling
+     * @param displayWidth Display width for rendering
+     * @param displayHeight Display height for rendering
+     */
+    static void RenderUI(kx::Camera& camera, 
+                        kx::MumbleLinkManager& mumbleLinkManager,
+                        const kx::MumbleLinkData* mumbleLinkData,
+                        HWND windowHandle,
+                        float displayWidth,
+                        float displayHeight);
+    
     static void Shutdown();
     
-    // Accessors for MumbleLink manager (used by Main.cpp for initialization checks)
-    static kx::MumbleLinkManager& GetMumbleLinkManager() { return m_mumbleLinkManager; }
     static bool IsImGuiInitialized() { return m_isInitialized; }
 
 private:
-    static void RenderESPWindow();
-    
+    static void RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, const kx::MumbleLinkData* mumbleLinkData);
     static void RenderHints();
 
-    static kx::Camera m_camera;
-    static kx::MumbleLinkManager m_mumbleLinkManager;
     static bool m_isInitialized;
 };

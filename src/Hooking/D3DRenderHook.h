@@ -7,6 +7,10 @@
 #include <windows.h>
 #pragma comment(lib, "d3d11.lib")
 
+namespace kx {
+    class AppLifecycleManager;
+}
+
 namespace kx::Hooking {
 
     // Forward declare ImGuiManager to avoid include dependency cycle if needed
@@ -39,6 +43,12 @@ namespace kx::Hooking {
          */
         static bool IsInitialized();
 
+        /**
+         * @brief Sets the AppLifecycleManager for accessing Camera and MumbleLink data
+         * @param lifecycleManager Pointer to the AppLifecycleManager instance
+         */
+        static void SetLifecycleManager(kx::AppLifecycleManager* lifecycleManager);
+
         static ID3D11DeviceContext* GetContext() { return m_pContext; }
 
         static HWND GetWindowHandle() { return m_hWindow; }
@@ -61,6 +71,9 @@ namespace kx::Hooking {
 
         // --- WndProc Hooking ---
         static WNDPROC m_pOriginalWndProc; // Pointer to the game's original WndProc
+
+        // --- Lifecycle Manager ---
+        static kx::AppLifecycleManager* m_pLifecycleManager; // Pointer to AppLifecycleManager for game state
 
         // --- Private Methods ---
         /**

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <windows.h>
+#include "../Game/Camera.h"
+#include "../Game/MumbleLinkManager.h"
+
 namespace kx {
 
 /**
@@ -46,6 +50,24 @@ public:
      */
     const char* GetCurrentStateName() const;
 
+    /**
+     * @brief Get reference to the Camera (for core game state)
+     * @return Reference to Camera instance
+     */
+    Camera& GetCamera() { return m_camera; }
+
+    /**
+     * @brief Get reference to MumbleLinkManager (for core game state)
+     * @return Reference to MumbleLinkManager instance
+     */
+    MumbleLinkManager& GetMumbleLinkManager() { return m_mumbleLinkManager; }
+
+    /**
+     * @brief Get const pointer to current MumbleLink data
+     * @return Pointer to MumbleLinkData, or nullptr if not available
+     */
+    const MumbleLinkData* GetMumbleLinkData() const { return m_mumbleLinkManager.GetData(); }
+
 private:
     /**
      * @brief Application lifecycle states
@@ -61,6 +83,10 @@ private:
 
     State m_currentState = State::PreInit;
     bool m_servicesInitialized = false;
+
+    // Core game state (owned by lifecycle manager)
+    Camera m_camera;
+    MumbleLinkManager m_mumbleLinkManager;
 
     // State transition handlers
     void HandlePreInitState();

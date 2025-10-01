@@ -3,6 +3,8 @@
 #include "AddressManager.h"
 #include "Hooks.h"
 #include "../Rendering/ImGuiManager.h"
+#include "../Rendering/Core/ESPRenderer.h"
+#include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 
 namespace kx {
@@ -15,6 +17,9 @@ bool AppLifecycleManager::Initialize() {
         LOG_ERROR("AppLifecycleManager: Failed to initialize hooks");
         return false;
     }
+    
+    // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
+    kx::Hooking::D3DRenderHook::SetLifecycleManager(this);
     
     LOG_INFO("AppLifecycleManager: Hooks initialized successfully");
     m_currentState = State::WaitingForImGui;
@@ -102,6 +107,12 @@ void AppLifecycleManager::HandleWaitingForImGuiState() {
 }
 
 void AppLifecycleManager::HandleWaitingForGameState() {
+    // Initialize MumbleLink manager (needs to be done before checking if player is in-game)
+    if (!m_mumbleLinkManager.IsInitialized()) {
+        // MumbleLink manager will keep trying until it connects
+        m_mumbleLinkManager.Update();
+    }
+    
     if (IsPlayerInGame()) {
         LOG_INFO("AppLifecycleManager: Player is in-game, transitioning to InitializingServices");
         m_currentState = State::InitializingServices;
@@ -124,6 +135,7 @@ void AppLifecycleManager::HandleInitializingServicesState() {
 
 void AppLifecycleManager::HandleRunningState() {
     // Normal operation - just sleep to avoid busy-waiting
+    // Note: Camera and MumbleLink are updated per-frame in D3DRenderHook::RenderFrame
     Sleep(100);
 }
 
@@ -143,11 +155,10 @@ bool AppLifecycleManager::IsPlayerInGame() const {
         return false;
     }
     
-    MumbleLinkManager& mumbleLinkManager = ImGuiManager::GetMumbleLinkManager();
-    const MumbleLinkData* data = mumbleLinkManager.GetData();
+    const MumbleLinkData* data = m_mumbleLinkManager.GetData();
     
     // Check if MumbleLink is connected and player is in a map (mapId != 0)
-    if (data && mumbleLinkManager.IsInitialized() && data->context.mapId != 0) {
+    if (data && m_mumbleLinkManager.IsInitialized() && data->context.mapId != 0) {
         LOG_INFO("AppLifecycleManager: Player is in-map (Map ID: %u)", data->context.mapId);
         return true;
     }
@@ -161,6 +172,10 @@ bool AppLifecycleManager::InitializeGameServices() {
     // Initialize AddressManager
     AddressManager::Initialize();
     LOG_INFO("AppLifecycleManager: AddressManager initialized");
+    
+    // Initialize ESPRenderer with Camera reference
+    ESPRenderer::Initialize(m_camera);
+    LOG_INFO("AppLifecycleManager: ESPRenderer initialized");
     
     // Initialize the game thread hook (requires AddressManager)
     if (InitializeGameThreadHook()) {
@@ -176,6 +191,9 @@ bool AppLifecycleManager::InitializeGameServices() {
 void AppLifecycleManager::CleanupServices() {
     if (m_servicesInitialized) {
         LOG_INFO("AppLifecycleManager: Cleaning up services");
+        
+        // Clear lifecycle manager pointer in D3DRenderHook
+        kx::Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
         
         // Cleanup hooks and ImGui
         CleanupHooks();
