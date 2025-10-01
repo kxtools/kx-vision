@@ -2,9 +2,9 @@
 
 #include <vector>
 #include <unordered_map>
-#include "RenderableData.h"
-#include "ESPData.h"
-#include "../Utils/ObjectPool.h"
+#include "../Data/RenderableData.h"
+#include "../Data/ESPData.h"
+#include "../../Utils/ObjectPool.h"
 
 namespace kx {
 

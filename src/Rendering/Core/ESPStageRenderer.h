@@ -2,10 +2,10 @@
 
 #include <map>
 #include <vector>
-#include "RenderableData.h"
-#include "ESPData.h"
-#include "../Game/Camera.h"
-#include "../Core/Settings.h"
+#include "../Data/RenderableData.h"
+#include "../Data/ESPData.h"
+#include "../../Game/Camera.h"
+#include "../../Core/Settings.h"
 #include "Generated/EnumsAndStructs.h"
 
 // Forward declarations

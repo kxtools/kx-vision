@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Game/Camera.h"
-#include "../Game/MumbleLink.h"
+#include "../../Game/Camera.h"
+#include "../../Game/MumbleLink.h"
 
 namespace kx {
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ESPData.h"
-#include "../Game/Camera.h"
+#include "../Data/ESPData.h"
+#include "../../Game/Camera.h"
 
 namespace kx {
 

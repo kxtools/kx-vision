@@ -1,9 +1,9 @@
 #include "ESPContextFactory.h"
 
-#include "ESPConstants.h"
-#include "ESPStageRenderer.h"
-#include "ESPStyling.h"
-#include "../Game/GameEnums.h"
+#include "../Utils/ESPConstants.h"
+#include "../Core/ESPStageRenderer.h"
+#include "../Utils/ESPStyling.h"
+#include "../../Game/GameEnums.h"
 
 namespace kx {
 

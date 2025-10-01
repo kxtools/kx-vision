@@ -1,10 +1,10 @@
 #pragma once
 
 #include "glm.hpp"
-#include "../../libs/ImGui/imgui.h"
+#include "../../../libs/ImGui/imgui.h"
 #include <string>
 #include <vector>
-#include "RenderableData.h"
+#include "../Data/RenderableData.h"
 
 namespace kx {
 

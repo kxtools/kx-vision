@@ -5,7 +5,7 @@
 #include <string>
 #include <windows.h>
 
-#include "ESPRenderer.h"
+#include "Core/ESPRenderer.h"
 #include "GuiStyle.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../../libs/ImGui/imgui_impl_dx11.h"

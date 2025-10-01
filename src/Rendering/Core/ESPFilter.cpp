@@ -2,7 +2,7 @@
 
 #include "AppState.h"
 #include "EntityFilter.h"
-#include "RenderableData.h"
+#include "../Data/RenderableData.h"
 
 namespace kx {
 

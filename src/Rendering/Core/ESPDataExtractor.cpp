@@ -1,11 +1,11 @@
 #include "ESPDataExtractor.h"
-#include "Extractors/EntityExtractor.h"
-#include "../Game/AddressManager.h"
-#include "../Game/ReClassStructs.h"
-#include "../Utils/SafeIterators.h"
-#include "../Utils/MemorySafety.h"
-#include "ESPFormatting.h"
-#include "ESPConstants.h"
+#include "../Extractors/EntityExtractor.h"
+#include "../../Game/AddressManager.h"
+#include "../../Game/ReClassStructs.h"
+#include "../../Utils/SafeIterators.h"
+#include "../../Utils/MemorySafety.h"
+#include "../Utils/ESPFormatting.h"
+#include "../Utils/ESPConstants.h"
 
 namespace kx {
 

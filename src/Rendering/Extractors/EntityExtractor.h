@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../RenderableData.h"
+#include "../Data/RenderableData.h"
 #include "../../Game/ReClassStructs.h"
 
 namespace kx {

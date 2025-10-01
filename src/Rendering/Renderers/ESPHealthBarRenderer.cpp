@@ -1,6 +1,6 @@
 #include "ESPHealthBarRenderer.h"
-#include "ESPConstants.h"
-#include "../../libs/ImGui/imgui.h"
+#include "../Utils/ESPConstants.h"
+#include "../../../libs/ImGui/imgui.h"
 
 namespace kx {
 

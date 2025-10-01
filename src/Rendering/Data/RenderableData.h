@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <vec3.hpp>
 #include <vec2.hpp>
-#include "../Game/GameEnums.h"
-#include "../../libs/ImGui/imgui.h"
+#include "../../Game/GameEnums.h"
+#include "../../../libs/ImGui/imgui.h"
 #include "PlayerRenderData.h"
 
 namespace kx {

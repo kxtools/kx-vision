@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "RenderableData.h"
-#include "../Core/Settings.h"
+#include "../Data/RenderableData.h"
+#include "../../Core/Settings.h"
 
 namespace kx {
 

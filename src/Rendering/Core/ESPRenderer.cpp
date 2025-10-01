@@ -1,20 +1,20 @@
 #define NOMINMAX
 
 #include "ESPRenderer.h"
-#include "ESPData.h"
+#include "../Data/ESPData.h"
 
 #include <algorithm>
 #include <Windows.h>
 
-#include "../Core/AppState.h"
-#include "../Utils/SafeIterators.h"
-#include "../Utils/ObjectPool.h"
-#include "ESPMath.h"
-#include "RenderableData.h"
+#include "../../Core/AppState.h"
+#include "../../Utils/SafeIterators.h"
+#include "../../Utils/ObjectPool.h"
+#include "../Utils/ESPMath.h"
+#include "../Data/RenderableData.h"
 #include "ESPDataExtractor.h"
 #include "ESPFilter.h"
 #include "ESPStageRenderer.h"
-#include "../../libs/ImGui/imgui.h"
+#include "../../../libs/ImGui/imgui.h"
 
 namespace kx {
 
