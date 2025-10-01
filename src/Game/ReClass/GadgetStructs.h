@@ -16,7 +16,7 @@ namespace kx {
         public:
             CoKeyFramed(void* ptr) : kx::SafeForeignClass(ptr) {}
 
-            glm::vec3 GetPosition() {
+            glm::vec3 GetPosition() const {
                 LOG_MEMORY("CoKeyFramed", "GetPosition", data(), Offsets::CO_KEYFRAMED_POSITION);
                 
                 glm::vec3 position = ReadMember<glm::vec3>(Offsets::CO_KEYFRAMED_POSITION, glm::vec3{0.0f, 0.0f, 0.0f});
@@ -33,7 +33,7 @@ namespace kx {
         public:
             AgKeyFramed(void* ptr) : kx::SafeForeignClass(ptr) {}
 
-            CoKeyFramed GetCoKeyFramed() {
+            CoKeyFramed GetCoKeyFramed() const {
                 LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), Offsets::AG_KEYFRAMED_CO_KEYFRAMED);
                 
                 CoKeyFramed result = ReadPointer<CoKeyFramed>(Offsets::AG_KEYFRAMED_CO_KEYFRAMED);
@@ -66,7 +66,7 @@ namespace kx {
                 return ReadMember<Game::ResourceNodeType>(Offsets::GD_CLI_GADGET_RESOURCE_NODE_TYPE, Game::ResourceNodeType::None);
             }
 
-            bool IsGatherable() {
+            bool IsGatherable() const {
                 LOG_MEMORY("GdCliGadget", "IsGatherable", data(), Offsets::GD_CLI_GADGET_FLAGS);
                 
                 uint32_t flags = ReadMember<uint32_t>(Offsets::GD_CLI_GADGET_FLAGS, 0);
@@ -76,7 +76,7 @@ namespace kx {
                 return gatherable;
             }
 
-            AgKeyFramed GetAgKeyFramed() {
+            AgKeyFramed GetAgKeyFramed() const {
                 LOG_MEMORY("GdCliGadget", "GetAgKeyFramed", data(), Offsets::GD_CLI_GADGET_AG_KEYFRAMED);
                 
                 AgKeyFramed result = ReadPointer<AgKeyFramed>(Offsets::GD_CLI_GADGET_AG_KEYFRAMED);

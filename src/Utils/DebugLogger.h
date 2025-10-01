@@ -348,7 +348,7 @@ inline bool SafeReadImpl(uintptr_t address, T& result) noexcept {
 }
 
 /**
- * @brief Safe memory access helper (silent version for frequent operations)
+ * @brief Safe memory read with offset calculation
  * @tparam T Type to read from memory
  * @param basePtr Base pointer to read from
  * @param offset Offset from base pointer
@@ -357,6 +357,37 @@ inline bool SafeReadImpl(uintptr_t address, T& result) noexcept {
  */
 template<typename T>
 inline bool SafeRead(void* basePtr, uintptr_t offset, T& result) noexcept {
+    if (!basePtr) {
+        return false;
+    }
+    
+    const uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
+    
+    // Use centralized address validation from SafeAccess
+    if (address == 0xFFFFFFFFFFFFFFFF || 
+        address < SafeAccess::MIN_VALID_MEMORY_ADDRESS || 
+        address > SafeAccess::MAX_VALID_MEMORY_ADDRESS) {
+        return false;
+    }
+    
+    // Use centralized memory safety check
+    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address), sizeof(T))) {
+        return false;
+    }
+    
+    return SafeReadImpl(address, result);
+}
+
+/**
+ * @brief Safe memory read with offset calculation (const overload)
+ * @tparam T Type to read from memory
+ * @param basePtr Const base pointer to read from
+ * @param offset Offset from base pointer
+ * @param result Reference to store the result
+ * @return true if read was successful, false otherwise
+ */
+template<typename T>
+inline bool SafeRead(const void* basePtr, uintptr_t offset, T& result) noexcept {
     if (!basePtr) {
         return false;
     }

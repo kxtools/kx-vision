@@ -93,7 +93,7 @@ namespace kx {
             }
             
             T result;
-            if (!kx::Debug::SafeRead<T>(const_cast<void*>(data()), offset, result)) {
+            if (!kx::Debug::SafeRead<T>(data(), offset, result)) {
                 return defaultValue;
             }
             
@@ -113,7 +113,7 @@ namespace kx {
             }
             
             void* ptr = nullptr;
-            if (!kx::Debug::SafeRead<void*>(const_cast<void*>(data()), offset, ptr)) {
+            if (!kx::Debug::SafeRead<void*>(data(), offset, ptr)) {
                 return WrapperType(nullptr);
             }
             
@@ -134,7 +134,7 @@ namespace kx {
             }
             
             PtrType ptr = nullptr;
-            if (!kx::Debug::SafeRead<PtrType>(const_cast<void*>(data()), offset, ptr)) {
+            if (!kx::Debug::SafeRead<PtrType>(data(), offset, ptr)) {
                 return WrapperType(nullptr);
             }
             
@@ -154,7 +154,7 @@ namespace kx {
             }
             
             ArrayType* arrayPtr = nullptr;
-            if (!kx::Debug::SafeRead<ArrayType*>(const_cast<void*>(data()), offset, arrayPtr)) {
+            if (!kx::Debug::SafeRead<ArrayType*>(data(), offset, arrayPtr)) {
                 return nullptr;
             }
             

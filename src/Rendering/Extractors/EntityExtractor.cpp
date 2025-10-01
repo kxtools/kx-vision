@@ -10,12 +10,9 @@ namespace kx {
         const ReClass::ChCliCharacter& inCharacter,
         const wchar_t* playerName,
         void* localPlayerPtr) {
-        // A const_cast is needed here because some ReClass getters were not marked const.
-        // In a future refactor, the ReClass methods themselves could be made const.
-        auto& mutableCharacter = const_cast<ReClass::ChCliCharacter&>(inCharacter);
 
         // --- Validation and Position ---
-        ReClass::AgChar agent = mutableCharacter.GetAgent();
+        ReClass::AgChar agent = inCharacter.GetAgent();
         if (!agent) return false;
 
         ReClass::CoChar coChar = agent.GetCoChar();
@@ -31,27 +28,27 @@ namespace kx {
             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR
         );
         outPlayer.isValid = true;
-        outPlayer.address = mutableCharacter.data();
+        outPlayer.address = inCharacter.data();
         outPlayer.isLocalPlayer = (outPlayer.address == localPlayerPtr);
         if (playerName) {
             outPlayer.playerName = StringHelpers::WCharToUTF8String(playerName);
         }
 
         // --- Health & Energy ---
-        ReClass::ChCliHealth health = mutableCharacter.GetHealth();
+        ReClass::ChCliHealth health = inCharacter.GetHealth();
         if (health) {
             outPlayer.currentHealth = health.GetCurrent();
             outPlayer.maxHealth = health.GetMax();
         }
 
-        ReClass::ChCliEnergies energies = mutableCharacter.GetEnergies();
+        ReClass::ChCliEnergies energies = inCharacter.GetEnergies();
         if (energies) {
             outPlayer.currentEnergy = energies.GetCurrent();
             outPlayer.maxEnergy = energies.GetMax();
         }
 
         // --- Core Stats ---
-        ReClass::ChCliCoreStats coreStats = mutableCharacter.GetCoreStats();
+        ReClass::ChCliCoreStats coreStats = inCharacter.GetCoreStats();
         if (coreStats) {
             outPlayer.level = coreStats.GetLevel();
             outPlayer.scaledLevel = coreStats.GetScaledLevel();
@@ -70,10 +67,9 @@ namespace kx {
     }
 
     bool EntityExtractor::ExtractNpc(RenderableNpc& outNpc, const ReClass::ChCliCharacter& inCharacter) {
-        auto& mutableCharacter = const_cast<ReClass::ChCliCharacter&>(inCharacter);
 
         // --- Validation and Position ---
-        ReClass::AgChar agent = mutableCharacter.GetAgent();
+        ReClass::AgChar agent = inCharacter.GetAgent();
         if (!agent) return false;
 
         ReClass::CoChar coChar = agent.GetCoChar();
@@ -89,17 +85,17 @@ namespace kx {
             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR
         );
         outNpc.isValid = true;
-        outNpc.address = mutableCharacter.data();
+        outNpc.address = inCharacter.data();
 
         // --- Health ---
-        ReClass::ChCliHealth health = mutableCharacter.GetHealth();
+        ReClass::ChCliHealth health = inCharacter.GetHealth();
         if (health) {
             outNpc.currentHealth = health.GetCurrent();
             outNpc.maxHealth = health.GetMax();
         }
 
         // --- Stats ---
-        ReClass::ChCliCoreStats coreStats = mutableCharacter.GetCoreStats();
+        ReClass::ChCliCoreStats coreStats = inCharacter.GetCoreStats();
         if (coreStats) {
             outNpc.level = coreStats.GetLevel();
         }
@@ -110,10 +106,9 @@ namespace kx {
     }
 
     bool EntityExtractor::ExtractGadget(RenderableGadget& outGadget, const ReClass::GdCliGadget& inGadget) {
-        auto& mutableGadget = const_cast<ReClass::GdCliGadget&>(inGadget);
 
         // --- Validation and Position ---
-        ReClass::AgKeyFramed agKeyFramed = mutableGadget.GetAgKeyFramed();
+        ReClass::AgKeyFramed agKeyFramed = inGadget.GetAgKeyFramed();
         if (!agKeyFramed) return false;
 
         ReClass::CoKeyFramed coKeyFramed = agKeyFramed.GetCoKeyFramed();
@@ -129,9 +124,9 @@ namespace kx {
             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR
         );
         outGadget.isValid = true;
-        outGadget.address = mutableGadget.data();
+        outGadget.address = inGadget.data();
         outGadget.type = inGadget.GetGadgetType();
-        outGadget.isGatherable = mutableGadget.IsGatherable();
+        outGadget.isGatherable = inGadget.IsGatherable();
 
         if (outGadget.type == Game::GadgetType::ResourceNode) {
             outGadget.resourceType = inGadget.GetResourceNodeType();

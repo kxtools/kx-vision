@@ -29,7 +29,7 @@ struct RenderableEntity {
     float visualDistance;            // Distance from camera (for scaling)
     float gameplayDistance;          // Distance from player (for display)
     bool isValid;
-    void* address;
+    const void* address;             // Const pointer since we only use for identification/comparison
 
     RenderableEntity() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr)

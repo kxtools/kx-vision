@@ -18,7 +18,7 @@ namespace kx {
         public:
             CoChar(void* ptr) : kx::SafeForeignClass(ptr) {}
 
-            glm::vec3 GetVisualPosition() {
+            glm::vec3 GetVisualPosition() const {
                 // Only log memory access for successful reads to reduce spam
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
@@ -37,7 +37,7 @@ namespace kx {
         public:
             AgChar(void* ptr) : kx::SafeForeignClass(ptr) {}
 
-            CoChar GetCoChar() {
+            CoChar GetCoChar() const {
                 LOG_MEMORY("AgChar", "GetCoChar", data(), Offsets::AG_CHAR_CO_CHAR);
                 
                 CoChar result = ReadPointer<CoChar>(Offsets::AG_CHAR_CO_CHAR);
@@ -46,7 +46,7 @@ namespace kx {
                 return result;
             }
 
-            uint32_t GetType() {
+            uint32_t GetType() const {
                 LOG_MEMORY("AgChar", "GetType", data(), Offsets::AG_CHAR_TYPE);
                 
                 uint32_t type = ReadMember<uint32_t>(Offsets::AG_CHAR_TYPE, 0);
