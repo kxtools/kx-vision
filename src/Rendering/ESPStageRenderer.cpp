@@ -319,8 +319,12 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
                 details.push_back({ "HP: " + std::to_string(static_cast<int>(npc->currentHealth)) + "/" + std::to_string(static_cast<int>(npc->maxHealth)), DEFAULT_TEXT_COLOR });
             }
 
-            details.push_back({ "Attitude: " + ESPFormatting::AttitudeToString(npc->attitude), DEFAULT_TEXT_COLOR });
-            details.push_back({ "Rank: " + ESPFormatting::RankToString(npc->rank), DEFAULT_TEXT_COLOR });
+            const char* attitudeName = Game::EnumHelpers::GetAttitudeName(npc->attitude);
+            details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "ID: " + std::to_string(static_cast<uint32_t>(npc->attitude))), DEFAULT_TEXT_COLOR });
+            const char* rankName = Game::EnumHelpers::GetRankName(npc->rank);
+            if (rankName && rankName[0] != '\0') {
+                details.push_back({ "Rank: " + std::string(rankName), DEFAULT_TEXT_COLOR });
+            }
 
             if (settings.showDebugAddresses) {
                 char addrStr[32];
@@ -365,7 +369,8 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         std::vector<ColoredDetail> details;
         details.reserve(4);
         if (settings.objectESP.renderDetails) {
-            details.push_back({ "Type: " + ESPFormatting::GadgetTypeToString(gadget->type), DEFAULT_TEXT_COLOR });
+            const char* gadgetName = Game::EnumHelpers::GetGadgetTypeName(gadget->type);
+            details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), DEFAULT_TEXT_COLOR });
 
             if (gadget->type == Game::GadgetType::ResourceNode) {
                 details.push_back({ "Node: " + ESPFormatting::ResourceNodeTypeToString(gadget->resourceType), DEFAULT_TEXT_COLOR });
@@ -423,11 +428,13 @@ std::vector<ColoredDetail> ESPStageRenderer::BuildPlayerDetails(const Renderable
     }
 
     if (player->profession != Game::Profession::None) {
-        details.push_back({ "Prof: " + ESPFormatting::ProfessionToString(player->profession), DEFAULT_TEXT_COLOR });
+        const char* profName = Game::EnumHelpers::GetProfessionName(player->profession);
+        details.push_back({ "Prof: " + (profName ? std::string(profName) : "ID: " + std::to_string(static_cast<uint32_t>(player->profession))), DEFAULT_TEXT_COLOR });
     }
 
     if (player->race != Game::Race::None) {
-        details.push_back({ "Race: " + ESPFormatting::RaceToString(player->race), DEFAULT_TEXT_COLOR });
+        const char* raceName = Game::EnumHelpers::GetRaceName(player->race);
+        details.push_back({ "Race: " + (raceName ? std::string(raceName) : "ID: " + std::to_string(static_cast<uint8_t>(player->race))), DEFAULT_TEXT_COLOR });
     }
 
     if (player->maxHealth > 0) {

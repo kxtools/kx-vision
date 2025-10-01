@@ -70,14 +70,7 @@ public:
         }
     }
 
-    // Get armor weight description
-    static std::string GetArmorWeight(Game::Profession profession) {
-        const char* name = Game::EnumHelpers::GetArmorWeight(profession);
-        if (name != nullptr) {
-            return std::string(name);
-        }
-        return "Armor ID: " + std::to_string(static_cast<uint32_t>(profession));
-    }
+
 };
 
 } // namespace kx

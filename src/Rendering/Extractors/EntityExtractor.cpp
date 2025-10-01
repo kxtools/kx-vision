@@ -2,6 +2,7 @@
 #include "../ESPConstants.h"
 #include "../ESPFormatting.h"
 #include "../../Game/GameEnums.h"
+#include "../../Utils/StringHelpers.h"
 #include <vector>
 
 namespace kx {
@@ -34,7 +35,7 @@ namespace kx {
         outPlayer.address = mutableCharacter.data();
         outPlayer.isLocalPlayer = (outPlayer.address == localPlayerPtr);
         if (playerName) {
-            outPlayer.playerName = ESPFormatting::WStringToString(playerName);
+            outPlayer.playerName = StringHelpers::WCharToUTF8String(playerName);
         }
 
         // --- Health & Energy ---
