@@ -5,6 +5,7 @@
 #include "AppState.h"   // Include for AppState singleton
 #include "Console.h"
 #include "Hooks.h"
+#include "../Game/MumbleLinkManager.h"
 #include "../Utils/DebugLogger.h" // Include for logger initialization
 
 HINSTANCE dll_handle;
@@ -38,18 +39,43 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
 
     LOG_INFO("KX Vision starting up...");
     
-    // Initialize AddressManager FIRST, so pointers are ready before hooks start
-    kx::AddressManager::Initialize();
+    // Create a MumbleLinkManager to check if player is in-game
+    kx::MumbleLinkManager mumbleLinkManager;
+    bool is_fully_initialized = false;
+    
+    LOG_INFO("Waiting for player to enter a map before initializing...");
 
-    if (!kx::InitializeHooks()) {
-        LOG_ERROR("Failed to initialize hooks.");
-        return 1;
-    }
-
-    LOG_INFO("KX Vision hooks initialized successfully");
-
-    // Main loop to keep the hook alive
+    // Main loop - now handles deferred initialization and runtime operation
     while (kx::AppState::Get().IsVisionWindowOpen() && !(GetAsyncKeyState(VK_DELETE) & 0x8000)) {
+        
+        // Deferred initialization: Wait until player is actually in-game
+        if (!is_fully_initialized) {
+            mumbleLinkManager.Update();
+            const kx::MumbleLinkData* data = mumbleLinkManager.GetData();
+            
+            // Check if MumbleLink is connected and player is in a map (mapId != 0)
+            if (data && mumbleLinkManager.IsInitialized() && data->context.mapId != 0) {
+                LOG_INFO("[Main] MumbleLink is active and player is in-map (Map ID: %u). Initializing core components...", 
+                    data->context.mapId);
+                
+                // Initialize AddressManager FIRST, so pointers are ready before hooks start
+                kx::AddressManager::Initialize();
+
+                if (!kx::InitializeHooks()) {
+                    LOG_ERROR("Failed to initialize hooks.");
+                    return 1;
+                }
+
+                LOG_INFO("KX Vision hooks initialized successfully");
+                is_fully_initialized = true; // Set the flag so this block never runs again
+            } else {
+                // Not in-game yet, wait a bit before checking again
+                Sleep(500);
+                continue;
+            }
+        }
+        
+        // Normal operation once initialized
         Sleep(100); // Sleep to avoid busy-waiting
     }
 
@@ -61,7 +87,9 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
     Sleep(250);
 
     // Cleanup hooks and ImGui
-    kx::CleanupHooks();
+    if (is_fully_initialized) {
+        kx::CleanupHooks();
+    }
 
     LOG_INFO("KX Vision shutting down...");
     

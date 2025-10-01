@@ -86,9 +86,25 @@ void ImGuiManager::RenderESPWindow() {
 
     RenderHints();
 
-    // Connection status
-    ImGui::Text("MumbleLink Status: %s", 
-        m_mumbleLinkManager.IsInitialized() ? "Connected" : "Disconnected");
+    // Connection status with detailed information
+    bool isConnected = m_mumbleLinkManager.IsInitialized();
+    const kx::MumbleLinkData* mumbleData = m_mumbleLinkManager.GetData();
+    uint32_t mapId = m_mumbleLinkManager.mapId();
+    
+    if (isConnected && mumbleData) {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "MumbleLink Status: Connected");
+        
+        if (mapId != 0) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "| In-Map (ID: %u)", mapId);
+        } else {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "| Waiting for map...");
+        }
+    } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "MumbleLink Status: Disconnected");
+    }
+    
     ImGui::Separator(); // Add a separator for visual clarity
 
     if (ImGui::BeginTabBar("##ESPCategories")) {
