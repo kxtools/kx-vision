@@ -68,7 +68,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
 
     // Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();
-    float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(context.visualDistance, 
+    float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(context.gameplayDistance,
                                                               settings.espUseDistanceLimit, 
                                                               settings.espRenderDistanceLimit);
     
@@ -82,9 +82,13 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
 
     // For players and NPCs, prioritize natural health bars over artificial boxes
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
-    
-    // Calculate distance-based scaling using settings
-    float rawScale = settings.espDistanceFactor / (settings.espDistanceFactor + pow(context.visualDistance, settings.espScalingExponent));
+
+    // Calculate the effective distance, which only starts counting after the "dead zone"
+    float effectiveDistance = (std::max)(0.0f, context.visualDistance - settings.espScalingStartDistance);
+
+    // Calculate scale using the effective distance
+    float rawScale = settings.espDistanceFactor / (settings.espDistanceFactor + pow(effectiveDistance, settings.espScalingExponent));
+
     float clampedScale = (std::max)(settings.espMinScale, (std::min)(rawScale, settings.espMaxScale));
 
     // Show standalone health bars for living entities when health is available AND setting is enabled
@@ -98,51 +102,47 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     float boxHeight, boxWidth;
     
     const float finalFontSize = (std::max)(settings.espMinFontSize, (std::min)(settings.espBaseFontSize * clampedScale, 40.0f));
-    
-    switch (context.entityType) {
-        case ESPEntityType::Player:
-            // Players: tall rectangle (humanoid) with distance scaling
-            boxHeight = BoxDimensions::PLAYER_HEIGHT * clampedScale;
-            boxWidth = BoxDimensions::PLAYER_WIDTH * clampedScale;
-            // Ensure minimum size for visibility
-            if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
-                boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
-                boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
-            }
-            break;
-        case ESPEntityType::NPC:
-            // NPCs: square box with distance scaling
-            boxHeight = BoxDimensions::NPC_HEIGHT * clampedScale;
-            boxWidth = BoxDimensions::NPC_WIDTH * clampedScale;
-            // Ensure minimum size for visibility
-            if (boxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
-                boxHeight = MinimumSizes::NPC_MIN_HEIGHT;
-                boxWidth = MinimumSizes::NPC_MIN_WIDTH;
-            }
-            break;
-        case ESPEntityType::Gadget:
-            // Gadgets: very small square with half scaling for smaller appearance
-            {
-                float gadgetScale = clampedScale * 0.5f; // Use half scale for gadgets
-                boxHeight = BoxDimensions::GADGET_HEIGHT * gadgetScale;
-                boxWidth = BoxDimensions::GADGET_WIDTH * gadgetScale;
-                // Ensure minimum size for visibility
-                if (boxHeight < MinimumSizes::GADGET_MIN_HEIGHT) {
-                    boxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
-                    boxWidth = MinimumSizes::GADGET_MIN_WIDTH;
-                }
-            }
-            break;
-        default:
-            // Fallback to player dimensions with scaling
-            boxHeight = BoxDimensions::PLAYER_HEIGHT * clampedScale;
-            boxWidth = BoxDimensions::PLAYER_WIDTH * clampedScale;
-            // Apply player minimum size
-            if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
-                boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
-                boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
-            }
-            break;
+
+    switch (context.entityType)
+    {
+    case ESPEntityType::Player:
+	    boxHeight = settings.espBaseBoxHeight * clampedScale; // Use setting
+	    boxWidth = settings.espBaseBoxWidth * clampedScale; // Use setting
+	    if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT)
+	    {
+		    boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
+		    boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
+	    }
+	    break;
+    case ESPEntityType::NPC:
+        // For NPCs, use a square based on a smaller version of the player box WIDTH.
+        // Use width for both height and width to create a square.
+        boxHeight = (settings.espBaseBoxWidth * 0.8f) * clampedScale;
+        boxWidth = (settings.espBaseBoxWidth * 0.8f) * clampedScale;
+        if (boxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
+            boxHeight = MinimumSizes::NPC_MIN_HEIGHT;
+            boxWidth = MinimumSizes::NPC_MIN_WIDTH;
+        }
+        break;
+    case ESPEntityType::Gadget:
+	    // Gadgets can remain very small
+	    boxHeight = (settings.espBaseBoxWidth * 0.3f) * clampedScale;
+	    boxWidth = (settings.espBaseBoxWidth * 0.3f) * clampedScale;
+	    if (boxHeight < MinimumSizes::GADGET_MIN_HEIGHT)
+	    {
+		    boxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
+		    boxWidth = MinimumSizes::GADGET_MIN_WIDTH;
+	    }
+	    break;
+    default:
+	    boxHeight = settings.espBaseBoxHeight * clampedScale;
+	    boxWidth = settings.espBaseBoxWidth * clampedScale;
+	    if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT)
+	    {
+		    boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
+		    boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
+	    }
+	    break;
     }
     
     ImVec2 boxMin(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
@@ -245,11 +245,6 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
         glm::vec2 screenPos;
         if (!ESPMath::WorldToScreen(player->position, camera, screenWidth, screenHeight, screenPos)) {
             continue; // Skip if off-screen
-        }
-
-        float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(player->visualDistance, settings.espUseDistanceLimit, settings.espRenderDistanceLimit);
-        if (distanceFadeAlpha <= 0.0f) {
-            continue; // Skip if fully faded out
         }
 
         float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;

@@ -62,7 +62,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             player->gameplayDistance = glm::length(player->position - playerPos);
             
             // Apply distance filter based on visual distance
-            if (settings.espUseDistanceLimit && player->visualDistance > settings.espRenderDistanceLimit) continue;
+            if (settings.espUseDistanceLimit && player->gameplayDistance > settings.espRenderDistanceLimit) continue;
             
             filteredData.players.push_back(player);
         }
@@ -82,7 +82,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             npc->gameplayDistance = glm::length(npc->position - playerPos);
             
             // Apply distance filter based on visual distance
-            if (settings.espUseDistanceLimit && npc->visualDistance > settings.espRenderDistanceLimit) continue;
+            if (settings.espUseDistanceLimit && npc->gameplayDistance > settings.espRenderDistanceLimit) continue;
             
             // Apply attitude-based filter
             if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, settings.npcESP)) continue;
@@ -102,7 +102,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             gadget->gameplayDistance = glm::length(gadget->position - playerPos);
             
             // Apply distance filter based on visual distance
-            if (settings.espUseDistanceLimit && gadget->visualDistance > settings.espRenderDistanceLimit) continue;
+            if (settings.espUseDistanceLimit && gadget->gameplayDistance > settings.espRenderDistanceLimit) continue;
             
             // Apply gadget type-based filter
             if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, settings.objectESP)) continue;

@@ -5,26 +5,6 @@
 namespace kx {
 
 /**
- * @brief Box dimension constants for different entity types
- * 
- * These constants define the visual bounding box sizes for each entity type
- * in the ESP system, scaled by distance for proper perspective.
- */
-namespace BoxDimensions {
-    // Player box - tall rectangle for humanoid shape
-    constexpr float PLAYER_HEIGHT = 50.0f;
-    constexpr float PLAYER_WIDTH = 30.0f;
-    
-    // NPC box - smaller square for less visual clutter
-    constexpr float NPC_HEIGHT = 30.0f;
-    constexpr float NPC_WIDTH = 30.0f;
-    
-    // Gadget box - very small square for minimal visual impact
-    constexpr float GADGET_HEIGHT = 10.0f;
-    constexpr float GADGET_WIDTH = 10.0f;
-}
-
-/**
  * @brief Minimum size constraints for entity visibility
  * 
  * These constants ensure that entities remain visible even at extreme distances
@@ -40,8 +20,8 @@ namespace MinimumSizes {
     constexpr float NPC_MIN_WIDTH = 15.0f;
     
     // Gadget minimum sizes (very small but still visible)
-    constexpr float GADGET_MIN_HEIGHT = 5.0f;
-    constexpr float GADGET_MIN_WIDTH = 5.0f;
+    constexpr float GADGET_MIN_HEIGHT = 1.0f;
+    constexpr float GADGET_MIN_WIDTH = 1.0f;
 }
 
 /**

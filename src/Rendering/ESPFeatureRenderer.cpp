@@ -6,6 +6,10 @@
 
 namespace kx {
 
+static ImVec4 ImLerp(const ImVec4& a, const ImVec4& b, float t) {
+    return ImVec4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
+}
+
 void ESPFeatureRenderer::RenderAttachedHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, 
                                                  float healthPercent, float fadeAlpha) {
     if (healthPercent < 0.0f || healthPercent > 1.0f) return;
@@ -36,49 +40,55 @@ void ESPFeatureRenderer::RenderAttachedHealthBar(ImDrawList* drawList, const ImV
     drawList->AddRect(barMin, barMax, IM_COL32(255, 255, 255, borderAlpha));
 }
 
-void ESPFeatureRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos, 
-                                                   float healthPercent, unsigned int entityColor, float barWidth, float barHeight) {
+void ESPFeatureRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos,
+    float healthPercent, unsigned int entityColor, float barWidth, float barHeight) {
     if (healthPercent < 0.0f || healthPercent > 1.0f) return;
 
     // Extract alpha from entity color for distance fading
     float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
 
-    // Health bar dimensions - more natural looking
-    const float yOffset = 15.0f; // Distance below the center point
-    
     // Position the health bar below the entity center
+    const float yOffset = 15.0f;
     ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
     ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
-    
-    // Background with subtle transparency and distance fade
-    unsigned int bgAlpha = static_cast<unsigned int>(120 * fadeAlpha);
-    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha), 1.0f);
-    
-    // Health fill - horizontal bar
-    float healthWidth = barWidth * healthPercent;
-    ImVec2 healthBarMin(barMin.x, barMin.y);
-    ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
-    
-    // Health color: green -> yellow -> red based on percentage with distance fade
-    unsigned int healthAlpha = static_cast<unsigned int>(160 * fadeAlpha);
-    unsigned int healthColor;
-    if (healthPercent > 0.66f) {
-        // Green to yellow transition
-        float t = (1.0f - healthPercent) / 0.34f;
-        healthColor = IM_COL32(static_cast<int>(255 * t), 255, 0, healthAlpha);
-    } else if (healthPercent > 0.33f) {
-        // Yellow to orange transition
-        healthColor = IM_COL32(255, static_cast<int>(255 * (healthPercent - 0.33f) / 0.33f), 0, healthAlpha);
-    } else {
-        // Red
-        healthColor = IM_COL32(255, 0, 0, healthAlpha);
+
+    // 1. Render the background with a dark, semi-opaque gray to provide neutral contrast.
+    unsigned int bgAlpha = static_cast<unsigned int>(180 * fadeAlpha);
+    drawList->AddRectFilled(barMin, barMax, IM_COL32(50, 50, 50, bgAlpha), 1.0f);
+
+    // 2. Define our bright color keyframes for the gradient.
+    const ImVec4 VIBRANT_GREEN = ImVec4(0.3f, 1.0f, 0.3f, 1.0f);
+    const ImVec4 VIBRANT_YELLOW = ImVec4(1.0f, 1.0f, 0.2f, 1.0f);
+    const ImVec4 VIBRANT_ORANGE = ImVec4(1.0f, 0.55f, 0.2f, 1.0f);
+    const ImVec4 CRITICAL_RED = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+
+    // 3. Calculate the health color using a multi-stage linear interpolation (lerp).
+    ImVec4 finalColorVec;
+    if (healthPercent > 0.5f) {
+        float t = (healthPercent - 0.5f) / 0.5f;
+        finalColorVec = ImLerp(VIBRANT_YELLOW, VIBRANT_GREEN, t);
     }
-    
-    drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor, 1.0f);
-    
-    // Subtle border using entity color for identification with distance fade
-    unsigned int borderAlpha = static_cast<unsigned int>(80 * fadeAlpha);
-    drawList->AddRect(barMin, barMax, IM_COL32((entityColor >> 16) & 0xFF, (entityColor >> 8) & 0xFF, entityColor & 0xFF, borderAlpha), 1.0f, 0, 1.0f);
+    else if (healthPercent > 0.25f) {
+        float t = (healthPercent - 0.25f) / 0.25f;
+        finalColorVec = ImLerp(VIBRANT_ORANGE, VIBRANT_YELLOW, t);
+    }
+    else {
+        float t = healthPercent / 0.25f;
+        finalColorVec = ImLerp(CRITICAL_RED, VIBRANT_ORANGE, t);
+    }
+
+    // 4. Apply the distance fade alpha to the final calculated color.
+    // Lower the base opacity from 255 (100%) to 220 (~85%) for a more natural feel.
+    unsigned int healthAlpha = static_cast<unsigned int>(220 * fadeAlpha);
+    unsigned int finalHealthColor = ImGui::ColorConvertFloat4ToU32(ImVec4(finalColorVec.x, finalColorVec.y, finalColorVec.z, static_cast<float>(healthAlpha) / 255.0f));
+
+    // 5. Draw the final health fill.
+    float healthWidth = barWidth * healthPercent;
+    drawList->AddRectFilled(barMin, ImVec2(barMin.x + healthWidth, barMax.y), finalHealthColor, 1.0f);
+
+    // 6. Add a subtle black border to frame the bar and improve definition.
+    unsigned int borderAlpha = static_cast<unsigned int>(100 * fadeAlpha);
+    drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, borderAlpha), 1.0f, 0, 1.0f);
 }
 
 void ESPFeatureRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos, 
