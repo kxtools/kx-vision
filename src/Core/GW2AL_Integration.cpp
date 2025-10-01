@@ -60,9 +60,20 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     auto* context = kx::Hooking::D3DRenderHook::GetContext();
     if (!device || !context) return;
 
-    // Use the cached render target view from D3DRenderHook instead of creating one every frame
-    ID3D11RenderTargetView* mainRenderTargetView = kx::Hooking::D3DRenderHook::GetMainRenderTargetView();
-    if (!mainRenderTargetView) return;
+    // Create a render target view from the current back buffer
+    // NOTE: We create this every frame instead of caching because:
+    // 1. Ensures RTV is always valid and matches current back buffer size
+    // 2. Avoids stale cache issues after window resize
+    // 3. Performance impact is negligible (~120 API calls/sec is trivial for modern GPUs)
+    ID3D11Texture2D* pBackBuffer = nullptr;
+    if (FAILED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) return;
+
+    ID3D11RenderTargetView* mainRenderTargetView = nullptr;
+    if (FAILED(device->CreateRenderTargetView(pBackBuffer, NULL, &mainRenderTargetView))) {
+        pBackBuffer->Release();
+        return;
+    }
+    pBackBuffer->Release();
     
     // Get display size from swap chain
     DXGI_SWAP_CHAIN_DESC sd;
@@ -74,6 +85,9 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     // === Centralized per-frame tick (update + render) ===
     // Note: D3D state backup/restore is handled inside RenderTick
     kx::g_App.RenderTick(windowHandle, displayWidth, displayHeight, context, mainRenderTargetView);
+
+    // Clean up render target view
+    mainRenderTargetView->Release();
 }
 
 /**
@@ -89,6 +103,8 @@ void OnResize(D3D9_wrapper_event_data* evd) {
     swc_ResizeBuffers_cp* params = (swc_ResizeBuffers_cp*)evd->stackPtr;
     if (!params || !params->swc) return;
 
+    // Just recreate the RTV with the new back buffer size
+    // The dimensions from params may be unreliable in POST event
     kx::Hooking::D3DRenderHook::OnResize(params->swc);
 }
 
@@ -223,9 +239,6 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting)
 
     // Perform cleanup via the lifecycle manager
     kx::g_App.Shutdown();
-    
-    // Shutdown D3DRenderHook to cleanup WndProc and release D3D resources
-    kx::Hooking::D3DRenderHook::Shutdown();
 
     LOG_INFO("KXVision shut down successfully in GW2AL mode");
     LOG_CLEANUP();
