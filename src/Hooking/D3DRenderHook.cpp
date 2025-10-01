@@ -308,8 +308,9 @@ namespace kx::Hooking {
         bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
         
         if (currentToggleKeyState && !lastToggleKeyState) {
-            auto& settings = kx::AppState::Get().GetSettings();
-            settings.showVisionWindow = !settings.showVisionWindow;
+            // Toggle the window visibility flag (same one ImGui X button uses)
+            bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
+            kx::AppState::Get().SetVisionWindowOpen(!isOpen);
         }
         
         lastToggleKeyState = currentToggleKeyState;
@@ -357,7 +358,20 @@ namespace kx::Hooking {
 #endif // !GW2AL_BUILD
 
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-        // Track mouse buttons
+#ifdef GW2AL_BUILD
+        // Simple WndProc for GW2AL mode - just handle ImGui input
+        // GW2AL loader manages input routing and game/addon separation
+        if (m_isInit && kx::AppState::Get().IsVisionWindowOpen()) {
+            if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
+                ImGuiIO& io = ImGui::GetIO();
+                // Block input to game if ImGui wants it
+                if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
+                    return 1;
+                }
+            }
+        }
+#else
+        // Complex WndProc for DLL injection mode - handle camera rotation conflicts
         static bool rightMouseDown = false;
         static bool leftMouseDown = false;
         static bool wasOverImGuiWindow = false;
@@ -369,7 +383,7 @@ namespace kx::Hooking {
         else if (uMsg == WM_LBUTTONUP) leftMouseDown = false;
 
         // Only process ImGui input if overlay is visible
-        if (m_isInit && kx::AppState::Get().GetSettings().showVisionWindow) {
+        if (m_isInit && kx::AppState::Get().IsVisionWindowOpen()) {
             // First, check if the mouse is over an ImGui window without changing input state
             bool isOverImGuiWindow = false;
 
@@ -407,6 +421,7 @@ namespace kx::Hooking {
                 }
             }
         }
+#endif
 
         // Pass the message to the original game window procedure
         return m_pOriginalWndProc ? CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam)

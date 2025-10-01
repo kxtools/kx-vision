@@ -132,18 +132,24 @@ void ImGuiManager::RenderUI(kx::Camera& camera,
     // Render the ESP overlay
     kx::ESPRenderer::Render(displayWidth, displayHeight, mumbleLinkData);
     
-    // Render the UI window if it's shown
-    if (kx::AppState::Get().GetSettings().showVisionWindow) {
+    // Render the UI window if it's shown (check AppState's unified visibility flag)
+    if (kx::AppState::Get().IsVisionWindowOpen()) {
         RenderESPWindow(mumbleLinkManager, mumbleLinkData);
     }
 }
 
 void ImGuiManager::RenderHints() {
     // Display keyboard shortcuts with consistent styling
+#ifdef GW2AL_BUILD
+    const char* hints[] = {
+        "Press INSERT to show/hide window."
+    };
+#else
     const char* hints[] = {
         "Press INSERT to show/hide window.",
-        "Press DELETE to unload DLL."
+        "Press DELETE to unload addon."
     };
+#endif
     
     for (const auto& hint : hints) {
         ImGui::TextDisabled("Hint: %s", hint);

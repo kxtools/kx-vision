@@ -14,6 +14,7 @@
 #include "Config.h"
 #ifdef GW2AL_BUILD // This entire file will only be compiled when GW2AL_BUILD is defined
 
+#include <cstdio> // For fclose in console cleanup
 #include "AppState.h"
 #include "AppLifecycleManager.h"
 #include <windows.h>
@@ -29,6 +30,7 @@
 #include "../Rendering/ImGuiManager.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
+#include "../Utils/Console.h"
 #include "../Game/AddressManager.h"
 
 // Global pointer to the core API, needed for callbacks
@@ -94,8 +96,9 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
     
     if (currentToggleKeyState && !lastToggleKeyState) {
-        auto& settings = kx::AppState::Get().GetSettings();
-        settings.showVisionWindow = !settings.showVisionWindow;
+        // Toggle the window visibility flag (same one ImGui X button uses)
+        bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
+        kx::AppState::Get().SetVisionWindowOpen(!isOpen);
     }
     
     lastToggleKeyState = currentToggleKeyState;
@@ -173,6 +176,12 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
     g_al_api = core_api;
 
     LOG_INIT();
+    
+    // Setup debug console in debug builds
+#ifdef _DEBUG
+    kx::SetupConsole();
+#endif
+    
     LOG_INFO("KXVision starting up in GW2AL mode...");
 
     // Initialize the application lifecycle manager for GW2AL mode
@@ -266,6 +275,14 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting)
 
     LOG_INFO("KXVision shut down successfully in GW2AL mode");
     LOG_CLEANUP();
+
+#ifdef _DEBUG
+    // Clean up debug console in debug builds
+    if (stdout) fclose(stdout);
+    if (stderr) fclose(stderr);
+    if (stdin) fclose(stdin);
+    FreeConsole();
+#endif
 
     return GW2AL_OK;
 }
