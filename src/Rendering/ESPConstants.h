@@ -20,8 +20,8 @@ namespace MinimumSizes {
     constexpr float NPC_MIN_WIDTH = 15.0f;
     
     // Gadget minimum sizes (very small but still visible)
-    constexpr float GADGET_MIN_HEIGHT = 1.0f;
-    constexpr float GADGET_MIN_WIDTH = 1.0f;
+    constexpr float GADGET_MIN_HEIGHT = 3.0f;
+    constexpr float GADGET_MIN_WIDTH = 3.0f;
 }
 
 /**
