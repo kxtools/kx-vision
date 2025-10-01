@@ -104,7 +104,9 @@
     <ClCompile Include="src\Rendering\Renderers\ESPHealthBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPShapeRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPTextRenderer.cpp" />
+    <ClCompile Include="src\Rendering\Utils\ESPEntityDetailsBuilder.cpp" />
     <ClCompile Include="src\Rendering\Utils\ESPMath.cpp" />
+    <ClCompile Include="src\Rendering\Utils\ESPPlayerDetailsBuilder.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
     <ClCompile Include="src\Rendering\Extractors\EntityExtractor.cpp" />
     <ClCompile Include="src\Rendering\GUI\AppearanceTab.cpp" />
@@ -176,8 +178,10 @@
     <ClInclude Include="src\Rendering\Renderers\ESPShapeRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPTextRenderer.h" />
     <ClInclude Include="src\Rendering\Utils\ESPConstants.h" />
+    <ClInclude Include="src\Rendering\Utils\ESPEntityDetailsBuilder.h" />
     <ClInclude Include="src\Rendering\Utils\ESPFormatting.h" />
     <ClInclude Include="src\Rendering\Utils\ESPMath.h" />
+    <ClInclude Include="src\Rendering\Utils\ESPPlayerDetailsBuilder.h" />
     <ClInclude Include="src\Rendering\Utils\ESPStyling.h" />
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Utils\DebugLogger.h" />

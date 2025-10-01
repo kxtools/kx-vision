@@ -1,16 +1,12 @@
 #pragma once
 
-#include <map>
 #include <vector>
 #include "../Data/RenderableData.h"
 #include "../Data/ESPData.h"
 #include "../../Game/Camera.h"
-#include "../../Core/Settings.h"
-#include "Generated/EnumsAndStructs.h"
 
 // Forward declarations
 struct ImDrawList;
-struct ImVec2;
 
 namespace kx {
 
@@ -22,6 +18,10 @@ struct EntityRenderContext;
  * 
  * This class performs all rendering operations using safe local data structures.
  * It never accesses game memory directly, eliminating the risk of crashes during rendering.
+ * 
+ * Scalability: Detail building logic has been extracted to:
+ * - ESPPlayerDetailsBuilder: Player-specific text generation and gear analysis
+ * - ESPEntityDetailsBuilder: NPC and Gadget detail building
  */
 class ESPStageRenderer {
 public:
@@ -47,19 +47,12 @@ private:
     static void RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                    const std::vector<RenderableGadget*>& gadgets, Camera& camera);
 
-    // Player-specific detail builders
-    static std::vector<ColoredDetail> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings);
-    static std::vector<ColoredDetail> BuildGearDetails(const RenderablePlayer* player);
-    static std::vector<CompactStatInfo> BuildCompactGearSummary(const RenderablePlayer* player);
-    static std::map<kx::data::ApiAttribute, int> BuildAttributeSummary(const RenderablePlayer* player);
-    static std::vector<DominantStat> BuildDominantStats(const RenderablePlayer* player);
-
     /**
      * @brief Universal entity rendering function using context struct
      */
     static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera);
 
-    // Distance fading helper functions
+    // Distance fading helper function
     static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
 };
 
