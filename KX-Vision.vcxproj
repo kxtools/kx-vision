@@ -123,7 +123,9 @@
     <ClCompile Include="src\Rendering\GUI\ValidationTab.cpp" />
     <ClCompile Include="src\Tests\OffsetValidationTests.cpp" />
     <ClCompile Include="src\Utils\Console.cpp" />
-    <ClCompile Include="src\Hooking\D3DRenderHook.cpp" />
+    <ClCompile Include="src\Hooking\D3DRenderHook_Shared.cpp" />
+    <ClCompile Include="src\Hooking\D3DRenderHook_DLL.cpp" />
+    <ClCompile Include="src\Hooking\D3DRenderHook_GW2AL.cpp" />
     <ClCompile Include="src\Rendering\GuiStyle.cpp" />
     <ClCompile Include="src\Hooking\HookManager.cpp" />
     <ClCompile Include="src\Hooking\Hooks.cpp" />

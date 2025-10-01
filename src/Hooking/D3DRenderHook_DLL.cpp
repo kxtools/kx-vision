@@ -1,13 +1,27 @@
+/**
+ * @file D3DRenderHook_DLL.cpp
+ * @brief DLL injection mode specific functionality
+ * 
+ * This file contains DLL-mode specific code:
+ * - Finding the Present function pointer via dummy swap chain
+ * - Creating and enabling the Present hook with MinHook
+ * - DetourPresent implementation with per-frame rendering
+ * - Complex WndProc for handling camera rotation conflicts
+ * 
+ * This file is only compiled when GW2AL_BUILD is NOT defined.
+ */
+
 #include "D3DRenderHook.h"
 
-#include <windowsx.h>
+#ifndef GW2AL_BUILD // Only compile this file in DLL mode
 
-#include "../Core/Config.h"           // For GW2AL_BUILD define
-#include "../Core/AppState.h"         // For UI visibility state and shutdown coordination
-#include "../Core/AppLifecycleManager.h" // For accessing Camera and MumbleLink data
+#include <windowsx.h>
+#include "../Core/Config.h"
+#include "../Core/AppState.h"
+#include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
-#include "HookManager.h"      // To create/remove the hook
-#include "ImGuiManager.h"     // To initialize and render ImGui
+#include "HookManager.h"
+#include "../Rendering/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../../libs/ImGui/imgui_impl_dx11.h"
 
@@ -16,158 +30,34 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 
 namespace kx::Hooking {
 
-    // Initialize static members
-    Present D3DRenderHook::m_pTargetPresent = nullptr;
-    Present D3DRenderHook::m_pOriginalPresent = nullptr;
-    bool D3DRenderHook::m_isInit = false;
-    HWND D3DRenderHook::m_hWindow = NULL;
-    ID3D11Device* D3DRenderHook::m_pDevice = nullptr;
-    ID3D11DeviceContext* D3DRenderHook::m_pContext = nullptr;
-    ID3D11RenderTargetView* D3DRenderHook::m_pMainRenderTargetView = nullptr;
-    WNDPROC D3DRenderHook::m_pOriginalWndProc = nullptr;
-    kx::AppLifecycleManager* D3DRenderHook::m_pLifecycleManager = nullptr;
-
-#ifndef GW2AL_BUILD
     bool D3DRenderHook::Initialize() {
         if (!FindPresentPointer()) {
             LOG_ERROR("[D3DRenderHook] Failed to find Present pointer.");
             return false;
         }
 
-        // Use HookManager to create the hook, but don't enable yet.
-        // Enable happens on first DetourPresent call if needed, or enable here?
-        // Let's create and enable it immediately.
+        // Create and enable the Present hook via HookManager
         if (!HookManager::CreateHook(m_pTargetPresent, DetourPresent, reinterpret_cast<LPVOID*>(&m_pOriginalPresent))) {
             LOG_ERROR("[D3DRenderHook] Failed to create Present hook via HookManager.");
             return false;
         }
         if (!HookManager::EnableHook(m_pTargetPresent)) {
             LOG_ERROR("[D3DRenderHook] Failed to enable Present hook via HookManager.");
-            // HookManager::RemoveHook(m_pTargetPresent); // Attempt cleanup if enable fails
             return false;
         }
 
         LOG_INFO("[D3DRenderHook] Present hook created and enabled.");
-        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK); // Update hook status via singleton
-        return true;
-    }
-#endif // !GW2AL_BUILD
-
-    bool D3DRenderHook::InitializeFromDevice(ID3D11Device* device, IDXGISwapChain* pSwapChain) {
-        if (m_isInit) return true;
-
-        LOG_INFO("[D3DRenderHook] Initializing from provided device (GW2AL mode)");
-
-        m_pDevice = device;
-        m_pDevice->GetImmediateContext(&m_pContext);
-
-        // Get window handle from swap chain
-        DXGI_SWAP_CHAIN_DESC sd;
-        pSwapChain->GetDesc(&sd);
-        m_hWindow = sd.OutputWindow;
-
-        // Create the render target view
-        ID3D11Texture2D* pBackBuffer = nullptr;
-        if (SUCCEEDED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) {
-            m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
-            pBackBuffer->Release();
-        } else {
-            LOG_ERROR("[D3DRenderHook] Failed to get back buffer from GW2AL swap chain.");
-            return false;
-        }
-
-        // Hook WndProc (still needed for input handling)
-        m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
-        if (!m_pOriginalWndProc) {
-            LOG_ERROR("[D3DRenderHook] Failed to hook WndProc in GW2AL mode.");
-            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-            return false;
-        }
-
-        // Initialize ImGui
-        if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
-            LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui in GW2AL mode.");
-            SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)m_pOriginalWndProc); // Restore WndProc
-            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-            return false;
-        }
-
-        m_isInit = true;
-        LOG_INFO("[D3DRenderHook] Initialized successfully via GW2AL.");
         kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK);
         return true;
     }
 
-    void D3DRenderHook::OnResize(IDXGISwapChain* pSwapChain) {
-        if (!m_isInit) return;
-
-        LOG_INFO("[D3DRenderHook] Handling resize event");
-
-        // Release the old render target view
-        if (m_pMainRenderTargetView) {
-            m_pMainRenderTargetView->Release();
-            m_pMainRenderTargetView = nullptr;
-        }
-        ImGui_ImplDX11_InvalidateDeviceObjects();
-
-        // The RTV will be recreated on the next Present call, but we must
-        // tell ImGui about the new size immediately.
-        DXGI_SWAP_CHAIN_DESC sd;
-        pSwapChain->GetDesc(&sd);
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2((float)sd.BufferDesc.Width, (float)sd.BufferDesc.Height);
-
-        ImGui_ImplDX11_CreateDeviceObjects();
-        LOG_INFO("[D3DRenderHook] Swap chain resized to %dx%d.", sd.BufferDesc.Width, sd.BufferDesc.Height);
-    }
-
-    void D3DRenderHook::Shutdown() {
-        // Restore original WndProc FIRST
-        if (m_hWindow && m_pOriginalWndProc) {
-            SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
-            m_pOriginalWndProc = nullptr;
-            LOG_INFO("[D3DRenderHook] Restored original WndProc.");
-        }
-
-        // Shutdown ImGui
-        if (m_isInit) {
-            ImGuiManager::Shutdown();
-            LOG_INFO("[D3DRenderHook] ImGui shutdown.");
-        }
-
-        // Release D3D resources
-        if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-        if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
-        if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-        LOG_INFO("[D3DRenderHook] D3D resources released.");
-
-        // Request HookManager to disable/remove the hook (usually done in HookManager::Shutdown)
-        // HookManager::DisableHook(m_pTargetPresent); // Optionally disable explicitly
-        // HookManager::RemoveHook(m_pTargetPresent); // Optionally remove explicitly
-
-        m_isInit = false;
-        m_hWindow = NULL;
-        m_pOriginalPresent = nullptr;
-        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::Unknown); // Reset status via singleton
-    }
-
-    bool D3DRenderHook::IsInitialized() {
-        return m_isInit;
-    }
-
-    void D3DRenderHook::SetLifecycleManager(kx::AppLifecycleManager* lifecycleManager) {
-        m_pLifecycleManager = lifecycleManager;
-    }
-
-#ifndef GW2AL_BUILD
     bool D3DRenderHook::FindPresentPointer() {
-        // This logic remains complex but necessary. Keep it encapsulated here.
-        const wchar_t* DUMMY_WNDCLASS_NAME = L"KxDummyWindowPresent"; // Use unique name
+        const wchar_t* DUMMY_WNDCLASS_NAME = L"KxDummyWindowPresent";
         HWND dummy_hwnd = NULL;
         WNDCLASSEXW wc = { sizeof(WNDCLASSEX), CS_CLASSDC, DefWindowProcW, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, DUMMY_WNDCLASS_NAME, NULL };
 
         if (!RegisterClassExW(&wc)) {
-            if (GetLastError() != ERROR_CLASS_ALREADY_EXISTS) { // Check if it failed for a real reason
+            if (GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
                 LOG_ERROR("[D3DRenderHook] Failed to register dummy window class. Error: %d", GetLastError());
                 return false;
             }
@@ -190,7 +80,7 @@ namespace kx::Hooking {
         sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
         IDXGISwapChain* pSwapChain = nullptr;
-        ID3D11Device* pDevice = nullptr; // Temporary device
+        ID3D11Device* pDevice = nullptr;
         bool success = false;
 
         const D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0 };
@@ -200,7 +90,7 @@ namespace kx::Hooking {
 
         if (hr == S_OK) {
             void** vTable = *reinterpret_cast<void***>(pSwapChain);
-            m_pTargetPresent = reinterpret_cast<Present>(vTable[8]); // Store the found pointer
+            m_pTargetPresent = reinterpret_cast<Present>(vTable[8]);
             pSwapChain->Release();
             pDevice->Release();
             success = true;
@@ -217,10 +107,8 @@ namespace kx::Hooking {
         return success;
     }
 
-
     HRESULT __stdcall D3DRenderHook::DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
-        // Check the shutdown flag FIRST. If set, immediately call original and exit.
-        // This prevents accessing potentially destroyed resources (ImGui context, etc.)
+        // Check the shutdown flag FIRST
         if (kx::AppState::Get().IsShuttingDown()) {
             return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
         }
@@ -261,7 +149,6 @@ namespace kx::Hooking {
         ID3D11Texture2D* pBackBuffer = nullptr;
         if (FAILED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer)))) {
             LOG_ERROR("[D3DRenderHook] Failed to get back buffer");
-            // Cleanup on failure
             if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
             if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
             m_hWindow = NULL;
@@ -275,7 +162,6 @@ namespace kx::Hooking {
         m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
         if (!m_pOriginalWndProc) {
             LOG_ERROR("[D3DRenderHook] Failed to hook WndProc");
-            // Cleanup on failure
             if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
             if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
             if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
@@ -286,10 +172,8 @@ namespace kx::Hooking {
         // Initialize ImGui
         if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
             LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui");
-            // Restore WndProc on failure
             SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
             m_pOriginalWndProc = nullptr;
-            // Cleanup D3D resources
             if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
             if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
             if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
@@ -308,7 +192,6 @@ namespace kx::Hooking {
         bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
         
         if (currentToggleKeyState && !lastToggleKeyState) {
-            // Toggle the window visibility flag (same one ImGui X button uses)
             bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
             kx::AppState::Get().SetVisionWindowOpen(!isOpen);
         }
@@ -333,7 +216,7 @@ namespace kx::Hooking {
             kx::Camera& camera = m_pLifecycleManager->GetCamera();
             kx::MumbleLinkManager& mumbleLinkManager = m_pLifecycleManager->GetMumbleLinkManager();
             
-            // Update game state every frame (not just every 100ms in lifecycle manager)
+            // Update game state every frame
             mumbleLinkManager.Update();
             const kx::MumbleLinkData* mumbleLinkData = mumbleLinkManager.GetData();
             camera.Update(mumbleLinkData, m_hWindow);
@@ -355,22 +238,8 @@ namespace kx::Hooking {
             OutputDebugStringA("[D3DRenderHook::RenderFrame] Unknown ImGui Exception\n");
         }
     }
-#endif // !GW2AL_BUILD
 
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-#ifdef GW2AL_BUILD
-        // Simple WndProc for GW2AL mode - just handle ImGui input
-        // GW2AL loader manages input routing and game/addon separation
-        if (m_isInit && kx::AppState::Get().IsVisionWindowOpen()) {
-            if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-                ImGuiIO& io = ImGui::GetIO();
-                // Block input to game if ImGui wants it
-                if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
-                    return 1;
-                }
-            }
-        }
-#else
         // Complex WndProc for DLL injection mode - handle camera rotation conflicts
         static bool rightMouseDown = false;
         static bool leftMouseDown = false;
@@ -384,50 +253,41 @@ namespace kx::Hooking {
 
         // Only process ImGui input if overlay is visible
         if (m_isInit && kx::AppState::Get().IsVisionWindowOpen()) {
-            // First, check if the mouse is over an ImGui window without changing input state
+            // Check if the mouse is over an ImGui window
             bool isOverImGuiWindow = false;
 
-            // For mouse events, temporarily pass to ImGui to check if mouse is over a window
             if (uMsg == WM_MOUSEMOVE) {
-                // Check if mouse is over any ImGui window (without handling the input)
                 isOverImGuiWindow = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) ||
                     ImGui::IsAnyItemHovered();
-
-                // Store this for when other messages come in
                 wasOverImGuiWindow = isOverImGuiWindow;
             }
             else {
-                // For non-mousemove events, use the last known hover state
                 isOverImGuiWindow = wasOverImGuiWindow;
             }
 
             // Special handling for left mouse button for camera rotation
             if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP) && !isOverImGuiWindow) {
-                // If LMB and not over ImGui, pass directly to game without ImGui processing
+                // If LMB and not over ImGui, pass directly to game
                 return CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam);
             }
 
-            // Handle other inputs normally - if RMB isn't down OR mouse is over ImGui window
+            // Handle other inputs - if RMB isn't down OR mouse is over ImGui window
             if (!rightMouseDown || isOverImGuiWindow) {
-                // Process through ImGui
-                bool handled = ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-
-                // Get ImGui IO
+                ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
                 ImGuiIO& io = ImGui::GetIO();
 
                 // If ImGui wants the input, don't pass to the game
                 if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
-                    return 1; // Handled by ImGui
+                    return 1;
                 }
             }
         }
-#endif
 
-        // Pass the message to the original game window procedure
+        // Pass to original game window procedure
         return m_pOriginalWndProc ? CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam)
             : DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
 
-
 } // namespace kx::Hooking
 
+#endif // !GW2AL_BUILD
