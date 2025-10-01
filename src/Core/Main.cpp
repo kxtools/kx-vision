@@ -5,7 +5,7 @@
 #include "AppState.h"   // Include for AppState singleton
 #include "Console.h"
 #include "Hooks.h"
-#include "../Game/MumbleLinkManager.h"
+#include "../Rendering/ImGuiManager.h"
 #include "../Utils/DebugLogger.h" // Include for logger initialization
 
 HINSTANCE dll_handle;
@@ -39,37 +39,53 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
 
     LOG_INFO("KX Vision starting up...");
     
-    // Create a MumbleLinkManager to check if player is in-game
-    kx::MumbleLinkManager mumbleLinkManager;
-    bool is_fully_initialized = false;
+    // Initialize hooks first (this sets up D3D hook which creates ImGuiManager)
+    if (!kx::InitializeHooks()) {
+        LOG_ERROR("Failed to initialize hooks.");
+        return 1;
+    }
     
-    LOG_INFO("Waiting for player to enter a map before initializing...");
+    LOG_INFO("KX Vision hooks initialized successfully");
+    
+    // Now wait for player to be in-game before initializing AddressManager
+    bool is_address_manager_initialized = false;
+    LOG_INFO("Waiting for player to enter a map before initializing AddressManager...");
 
-    // Main loop - now handles deferred initialization and runtime operation
+    // Main loop - handles deferred AddressManager initialization and runtime operation
     while (kx::AppState::Get().IsVisionWindowOpen() && !(GetAsyncKeyState(VK_DELETE) & 0x8000)) {
         
-        // Deferred initialization: Wait until player is actually in-game
-        if (!is_fully_initialized) {
-            mumbleLinkManager.Update();
-            const kx::MumbleLinkData* data = mumbleLinkManager.GetData();
-            
-            // Check if MumbleLink is connected and player is in a map (mapId != 0)
-            if (data && mumbleLinkManager.IsInitialized() && data->context.mapId != 0) {
-                LOG_INFO("[Main] MumbleLink is active and player is in-map (Map ID: %u). Initializing core components...", 
-                    data->context.mapId);
+        // Deferred AddressManager initialization: Wait until player is actually in-game
+        if (!is_address_manager_initialized) {
+            // Check if ImGuiManager has been initialized by the Present hook
+            if (ImGuiManager::IsImGuiInitialized()) {
+                // Now we can safely access the MumbleLinkManager
+                kx::MumbleLinkManager& mumbleLinkManager = ImGuiManager::GetMumbleLinkManager();
+                const kx::MumbleLinkData* data = mumbleLinkManager.GetData();
                 
-                // Initialize AddressManager FIRST, so pointers are ready before hooks start
-                kx::AddressManager::Initialize();
-
-                if (!kx::InitializeHooks()) {
-                    LOG_ERROR("Failed to initialize hooks.");
-                    return 1;
+                // Check if MumbleLink is connected and player is in a map (mapId != 0)
+                if (data && mumbleLinkManager.IsInitialized() && data->context.mapId != 0) {
+                    LOG_INFO("[Main] Player is in-map (Map ID: %u). Initializing AddressManager...", 
+                        data->context.mapId);
+                    
+                    // Initialize AddressManager now that we're safely in-game
+                    kx::AddressManager::Initialize();
+                    
+                    // Now initialize the game thread hook (requires AddressManager)
+                    if (kx::InitializeGameThreadHook()) {
+                        LOG_INFO("Game thread hook initialized successfully");
+                    } else {
+                        LOG_WARN("Game thread hook initialization failed - ESP may not work");
+                    }
+                    
+                    is_address_manager_initialized = true;
+                    LOG_INFO("AddressManager initialized successfully");
+                } else {
+                    // Not in-game yet, wait a bit before checking again
+                    Sleep(500);
+                    continue;
                 }
-
-                LOG_INFO("KX Vision hooks initialized successfully");
-                is_fully_initialized = true; // Set the flag so this block never runs again
             } else {
-                // Not in-game yet, wait a bit before checking again
+                // ImGui not initialized yet (waiting for first Present call), wait a bit
                 Sleep(500);
                 continue;
             }
@@ -87,9 +103,7 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
     Sleep(250);
 
     // Cleanup hooks and ImGui
-    if (is_fully_initialized) {
-        kx::CleanupHooks();
-    }
+    kx::CleanupHooks();
 
     LOG_INFO("KX Vision shutting down...");
     

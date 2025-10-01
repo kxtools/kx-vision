@@ -59,29 +59,32 @@ namespace kx {
             return false;
         }
 
+        LOG_INFO("[Hooks] Essential hooks (D3D Present) initialized successfully.");
+        return true;
+    }
+
+    bool InitializeGameThreadHook() {
         uintptr_t gameThreadFuncAddr = AddressManager::GetGameThreadUpdateFunc();
-        if (gameThreadFuncAddr) {
-            if (!Hooking::HookManager::CreateHook(
-                reinterpret_cast<LPVOID>(gameThreadFuncAddr),
-                reinterpret_cast<LPVOID>(Hooking::DetourGameThread),
-                reinterpret_cast<LPVOID*>(&Hooking::pOriginalGameThreadUpdate)
-            )) {
-                LOG_ERROR("[Hooks] Failed to create GameThread hook.");
-            }
-            else {
-                if (Hooking::HookManager::EnableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr))) {
-                    LOG_INFO("[Hooks] GameThread hook created and enabled.");
-                }
-                else {
-                    LOG_ERROR("[Hooks] Failed to enable GameThread hook.");
-                }
-            }
-        }
-        else {
+        if (!gameThreadFuncAddr) {
             LOG_WARN("[Hooks] GameThread hook target not found. Character ESP will be disabled.");
+            return false;
         }
 
-        LOG_INFO("[Hooks] All hooks initialized successfully.");
+        if (!Hooking::HookManager::CreateHook(
+            reinterpret_cast<LPVOID>(gameThreadFuncAddr),
+            reinterpret_cast<LPVOID>(Hooking::DetourGameThread),
+            reinterpret_cast<LPVOID*>(&Hooking::pOriginalGameThreadUpdate)
+        )) {
+            LOG_ERROR("[Hooks] Failed to create GameThread hook.");
+            return false;
+        }
+
+        if (!Hooking::HookManager::EnableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr))) {
+            LOG_ERROR("[Hooks] Failed to enable GameThread hook.");
+            return false;
+        }
+
+        LOG_INFO("[Hooks] GameThread hook created and enabled.");
         return true;
     }
 

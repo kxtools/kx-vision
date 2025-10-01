@@ -26,6 +26,7 @@
 // Define static members
 kx::Camera ImGuiManager::m_camera;
 kx::MumbleLinkManager ImGuiManager::m_mumbleLinkManager;
+bool ImGuiManager::m_isInitialized = false;
 
 bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
     IMGUI_CHECKVERSION();
@@ -42,6 +43,7 @@ bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
     // Initialize ESP renderer with our camera
     kx::ESPRenderer::Initialize(m_camera);
 
+    m_isInitialized = true;
     return true;
 }
 
@@ -160,4 +162,6 @@ void ImGuiManager::Shutdown() {
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+    
+    m_isInitialized = false;
 }

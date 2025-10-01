@@ -17,6 +17,10 @@ public:
     static void Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView);
     static void RenderUI();
     static void Shutdown();
+    
+    // Accessors for MumbleLink manager (used by Main.cpp for initialization checks)
+    static kx::MumbleLinkManager& GetMumbleLinkManager() { return m_mumbleLinkManager; }
+    static bool IsImGuiInitialized() { return m_isInitialized; }
 
 private:
     static void RenderESPWindow();
@@ -25,4 +29,5 @@ private:
 
     static kx::Camera m_camera;
     static kx::MumbleLinkManager m_mumbleLinkManager;
+    static bool m_isInitialized;
 };
