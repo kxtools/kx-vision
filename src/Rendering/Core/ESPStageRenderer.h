@@ -52,6 +52,54 @@ private:
      */
     static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera);
 
+    // === Entity Rendering Helpers ===
+    
+    /**
+     * @brief Check if entity is on screen and calculate screen position
+     * @param position World position
+     * @param camera Camera for projection
+     * @param screenWidth Screen width
+     * @param screenHeight Screen height
+     * @param outScreenPos Output screen position (only valid if returns true)
+     * @return True if entity is visible on screen, false otherwise
+     */
+    static bool IsEntityOnScreen(const glm::vec3& position, Camera& camera, 
+                                float screenWidth, float screenHeight, glm::vec2& outScreenPos);
+
+    /**
+     * @brief Calculate distance-based scale factor for entity rendering
+     * @param visualDistance Visual distance from camera
+     * @return Clamped scale factor (between espMinScale and espMaxScale)
+     */
+    static float CalculateEntityScale(float visualDistance);
+
+    /**
+     * @brief Calculate box dimensions for entity based on type and scale
+     * @param entityType Type of entity (Player, NPC, Gadget)
+     * @param scale Scale factor
+     * @param outBoxWidth Output box width
+     * @param outBoxHeight Output box height
+     */
+    static void CalculateEntityBoxDimensions(ESPEntityType entityType, float scale, 
+                                            float& outBoxWidth, float& outBoxHeight);
+
+    /**
+     * @brief Render all visual components for an entity
+     * @param drawList ImGui draw list
+     * @param context Entity rendering context
+     * @param screenPos Screen position
+     * @param boxMin Bounding box minimum point
+     * @param boxMax Bounding box maximum point
+     * @param center Center point
+     * @param fadedEntityColor Entity color with distance fade
+     * @param distanceFadeAlpha Distance-based alpha
+     * @param scale Scale factor
+     */
+    static void RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
+                                      const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
+                                      const ImVec2& center, unsigned int fadedEntityColor, 
+                                      float distanceFadeAlpha, float scale);
+
     // Distance fading helper function
     static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
 };

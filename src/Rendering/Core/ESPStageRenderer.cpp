@@ -54,103 +54,102 @@ void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, 
     RenderPooledGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera);
 }
 
-void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera) {
+// === Entity Rendering Helper Functions ===
+
+bool ESPStageRenderer::IsEntityOnScreen(const glm::vec3& position, Camera& camera, 
+                                       float screenWidth, float screenHeight, glm::vec2& outScreenPos) {
     // Calculate screen position every frame for smooth movement
-    glm::vec2 screenPos;
-    if (!ESPMath::WorldToScreen(context.position, camera, context.screenWidth, context.screenHeight, screenPos)) {
-        // Entity is off-screen, skip it
-        return;
+    if (!ESPMath::WorldToScreen(position, camera, screenWidth, screenHeight, outScreenPos)) {
+        return false; // Entity is behind camera or invalid projection
     }
     
     // Screen bounds culling with small margin for partially visible entities
     const float margin = 50.0f;
-    if (screenPos.x < -margin || screenPos.x > context.screenWidth + margin || 
-        screenPos.y < -margin || screenPos.y > context.screenHeight + margin) {
-        return; // Entity is off-screen
+    if (outScreenPos.x < -margin || outScreenPos.x > screenWidth + margin || 
+        outScreenPos.y < -margin || outScreenPos.y > screenHeight + margin) {
+        return false; // Entity is off-screen
     }
+    
+    return true;
+}
 
-    // Calculate distance-based fade alpha
+float ESPStageRenderer::CalculateEntityScale(float visualDistance) {
     const auto& settings = AppState::Get().GetSettings();
-    float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(context.gameplayDistance,
-                                                              settings.espUseDistanceLimit, 
-                                                              settings.espRenderDistanceLimit);
     
-    // Early exit if entity is fully transparent
-    if (distanceFadeAlpha <= 0.0f) {
-        return;
-    }
-    
-    // Apply distance fade to entity color
-    unsigned int fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(context.color, distanceFadeAlpha);
-
-    // For players and NPCs, prioritize natural health bars over artificial boxes
-    bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
-
     // Calculate the effective distance, which only starts counting after the "dead zone"
-    float effectiveDistance = (std::max)(0.0f, context.visualDistance - settings.espScalingStartDistance);
+    float effectiveDistance = (std::max)(0.0f, visualDistance - settings.espScalingStartDistance);
 
     // Calculate scale using the effective distance
     float rawScale = settings.espDistanceFactor / (settings.espDistanceFactor + pow(effectiveDistance, settings.espScalingExponent));
 
-    float clampedScale = (std::max)(settings.espMinScale, (std::min)(rawScale, settings.espMaxScale));
+    // Clamp to min/max bounds
+    return (std::max)(settings.espMinScale, (std::min)(rawScale, settings.espMaxScale));
+}
 
-    // Show standalone health bars for living entities when health is available AND setting is enabled
-    if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
-        const float finalHealthBarWidth = (std::max)(10.0f, (std::min)(settings.espBaseHealthBarWidth * clampedScale, 100.0f));
-        const float finalHealthBarHeight = (std::max)(2.0f, (std::min)(settings.espBaseHealthBarHeight * clampedScale, 20.0f));
-        ESPFeatureRenderer::RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight);
-    }
-
-    // Calculate bounding box for entity based on type and distance-based scaling
-    float boxHeight, boxWidth;
+void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, float scale, 
+                                                   float& outBoxWidth, float& outBoxHeight) {
+    const auto& settings = AppState::Get().GetSettings();
     
-    const float finalFontSize = (std::max)(settings.espMinFontSize, (std::min)(settings.espBaseFontSize * clampedScale, 40.0f));
-
-    switch (context.entityType)
-    {
+    switch (entityType) {
     case ESPEntityType::Player:
-	    boxHeight = settings.espBaseBoxHeight * clampedScale; // Use setting
-	    boxWidth = settings.espBaseBoxWidth * clampedScale; // Use setting
-	    if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT)
-	    {
-		    boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
-		    boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
-	    }
-	    break;
-    case ESPEntityType::NPC:
-        // For NPCs, use a square based on a smaller version of the player box WIDTH.
-        // Use width for both height and width to create a square.
-        boxHeight = (settings.espBaseBoxWidth * 0.8f) * clampedScale;
-        boxWidth = (settings.espBaseBoxWidth * 0.8f) * clampedScale;
-        if (boxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
-            boxHeight = MinimumSizes::NPC_MIN_HEIGHT;
-            boxWidth = MinimumSizes::NPC_MIN_WIDTH;
+        outBoxHeight = settings.espBaseBoxHeight * scale;
+        outBoxWidth = settings.espBaseBoxWidth * scale;
+        if (outBoxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
+            outBoxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
+            outBoxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
         }
         break;
+        
+    case ESPEntityType::NPC:
+        // For NPCs, use a square based on a smaller version of the player box WIDTH
+        outBoxHeight = (settings.espBaseBoxWidth * 0.8f) * scale;
+        outBoxWidth = (settings.espBaseBoxWidth * 0.8f) * scale;
+        if (outBoxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
+            outBoxHeight = MinimumSizes::NPC_MIN_HEIGHT;
+            outBoxWidth = MinimumSizes::NPC_MIN_WIDTH;
+        }
+        break;
+        
     case ESPEntityType::Gadget:
-	    // Gadgets can remain very small
-	    boxHeight = (settings.espBaseBoxWidth * 0.3f) * clampedScale;
-	    boxWidth = (settings.espBaseBoxWidth * 0.3f) * clampedScale;
-	    if (boxHeight < MinimumSizes::GADGET_MIN_HEIGHT)
-	    {
-		    boxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
-		    boxWidth = MinimumSizes::GADGET_MIN_WIDTH;
-	    }
-	    break;
+        // Gadgets can remain very small
+        outBoxHeight = (settings.espBaseBoxWidth * 0.3f) * scale;
+        outBoxWidth = (settings.espBaseBoxWidth * 0.3f) * scale;
+        if (outBoxHeight < MinimumSizes::GADGET_MIN_HEIGHT) {
+            outBoxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
+            outBoxWidth = MinimumSizes::GADGET_MIN_WIDTH;
+        }
+        break;
+        
     default:
-	    boxHeight = settings.espBaseBoxHeight * clampedScale;
-	    boxWidth = settings.espBaseBoxWidth * clampedScale;
-	    if (boxHeight < MinimumSizes::PLAYER_MIN_HEIGHT)
-	    {
-		    boxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
-		    boxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
-	    }
-	    break;
+        outBoxHeight = settings.espBaseBoxHeight * scale;
+        outBoxWidth = settings.espBaseBoxWidth * scale;
+        if (outBoxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
+            outBoxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
+            outBoxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
+        }
+        break;
     }
+}
+
+void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
+                                             const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
+                                             const ImVec2& center, unsigned int fadedEntityColor, 
+                                             float distanceFadeAlpha, float scale) {
+    const auto& settings = AppState::Get().GetSettings();
+    bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
     
-    ImVec2 boxMin(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
-    ImVec2 boxMax(screenPos.x + boxWidth / 2, screenPos.y);
-    ImVec2 center(screenPos.x, screenPos.y - boxHeight / 2);
+    // Calculate scaled sizes
+    const float finalFontSize = (std::max)(settings.espMinFontSize, (std::min)(settings.espBaseFontSize * scale, 40.0f));
+    const float finalBoxThickness = (std::max)(1.0f, (std::min)(settings.espBaseBoxThickness * scale, 10.0f));
+    const float finalDotRadius = (std::max)(1.0f, (std::min)(settings.espBaseDotRadius * scale, 15.0f));
+    const float finalHealthBarWidth = (std::max)(10.0f, (std::min)(settings.espBaseHealthBarWidth * scale, 100.0f));
+    const float finalHealthBarHeight = (std::max)(2.0f, (std::min)(settings.espBaseHealthBarHeight * scale, 20.0f));
+    
+    // Render standalone health bars for living entities when health is available AND setting is enabled
+    if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
+        ESPFeatureRenderer::RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, 
+                                                     fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight);
+    }
 
     // Render old-style health bar only if requested and no standalone health bar was shown
     if (context.renderHealthBar && context.healthPercent >= 0.0f && !isLivingEntity) {
@@ -159,23 +158,20 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
 
     // Render bounding box (should be disabled by default for living entities)
     if (context.renderBox) {
-        const float finalBoxThickness = (std::max)(1.0f, (std::min)(settings.espBaseBoxThickness * clampedScale, 10.0f));
         ESPFeatureRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
     }
 
     // Render distance text
     if (context.renderDistance) {
-        ESPFeatureRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, distanceFadeAlpha, finalFontSize);
+        ESPFeatureRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
+                                              distanceFadeAlpha, finalFontSize);
     }
 
     // Render center dot
     if (context.renderDot) {
-        const float finalDotRadius = (std::max)(1.0f, (std::min)(settings.espBaseDotRadius * clampedScale, 15.0f));
         if (context.entityType == ESPEntityType::Gadget) {
-            // Always render natural white dot for gadgets with distance fade
             ESPFeatureRenderer::RenderNaturalWhiteDot(drawList, screenPos, distanceFadeAlpha, finalDotRadius);
         } else {
-            // Use colored dots for players and NPCs with distance fade
             ESPFeatureRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
         }
     }
@@ -185,12 +181,12 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
         ESPFeatureRenderer::RenderPlayerName(drawList, screenPos, context.playerName, fadedEntityColor, finalFontSize);
     }
 
-    // Render details text (for all entities when enabled, but not player names for players)
+    // Render details text (for all entities when enabled)
     if (context.renderDetails && !context.details.empty()) {
         ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, distanceFadeAlpha, finalFontSize);
     }
 
-    // --- Specialized Summary Rendering (Players Only) ---
+    // Specialized Summary Rendering (Players Only)
     if (context.entityType == ESPEntityType::Player && context.player != nullptr) {
         switch (settings.playerESP.gearDisplayMode) {
         case 1: { // Compact (Stat Names)
@@ -204,10 +200,46 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
             break;
         }
         default:
-            // Modes 0 (Off) and 3 (Detailed) do not have a separate summary view.
+            // Modes 0 (Off) and 3 (Detailed) do not have a separate summary view
             break;
         }
     }
+}
+
+void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera) {
+    // 1. Check if entity is on screen
+    glm::vec2 screenPos;
+    if (!IsEntityOnScreen(context.position, camera, context.screenWidth, context.screenHeight, screenPos)) {
+        return; // Entity is not visible
+    }
+
+    // 2. Calculate distance-based fade alpha
+    const auto& settings = AppState::Get().GetSettings();
+    float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(context.gameplayDistance,
+                                                              settings.espUseDistanceLimit, 
+                                                              settings.espRenderDistanceLimit);
+    
+    if (distanceFadeAlpha <= 0.0f) {
+        return; // Entity is fully transparent
+    }
+    
+    // 3. Apply distance fade to entity color
+    unsigned int fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(context.color, distanceFadeAlpha);
+
+    // 4. Calculate distance-based scale
+    float scale = CalculateEntityScale(context.visualDistance);
+
+    // 5. Calculate bounding box dimensions
+    float boxWidth, boxHeight;
+    CalculateEntityBoxDimensions(context.entityType, scale, boxWidth, boxHeight);
+    
+    ImVec2 boxMin(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
+    ImVec2 boxMax(screenPos.x + boxWidth / 2, screenPos.y);
+    ImVec2 center(screenPos.x, screenPos.y - boxHeight / 2);
+
+    // 6. Render all visual components
+    RenderEntityComponents(drawList, context, screenPos, boxMin, boxMax, center, 
+                          fadedEntityColor, distanceFadeAlpha, scale);
 }
 
 void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,
