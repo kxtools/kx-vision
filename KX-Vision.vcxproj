@@ -162,10 +162,12 @@
     <ClInclude Include="src\Game\ReClass\GadgetStructs.h" />
     <ClInclude Include="src\Game\ReClass\ItemStructs.h" />
     <ClInclude Include="src\Game\ReClass\StatStructs.h" />
+    <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Rendering\Core\ESPDataExtractor.h" />
     <ClInclude Include="src\Rendering\Core\ESPFilter.h" />
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
+    <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\ESPData.h" />
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />
