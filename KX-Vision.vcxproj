@@ -99,10 +99,13 @@
     <ClCompile Include="src\Rendering\ESPDataExtractor.cpp" />
     <ClCompile Include="src\Rendering\ESPFeatureRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESPFilter.cpp" />
+    <ClCompile Include="src\Rendering\ESPHealthBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESPRenderer.cpp" />
+    <ClCompile Include="src\Rendering\ESPShapeRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESPStageRenderer.cpp" />
     <ClCompile Include="src\Rendering\ESPMath.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
+    <ClCompile Include="src\Rendering\ESPTextRenderer.cpp" />
     <ClCompile Include="src\Rendering\Extractors\EntityExtractor.cpp" />
     <ClCompile Include="src\Rendering\GUI\AppearanceTab.cpp" />
     <ClCompile Include="src\Rendering\GUI\InfoTab.cpp" />
@@ -156,10 +159,13 @@
     <ClInclude Include="src\Rendering\ESPContextFactory.h" />
     <ClInclude Include="src\Rendering\ESPFeatureRenderer.h" />
     <ClInclude Include="src\Rendering\ESPFilter.h" />
+    <ClInclude Include="src\Rendering\ESPHealthBarRenderer.h" />
+    <ClInclude Include="src\Rendering\ESPShapeRenderer.h" />
     <ClInclude Include="src\Rendering\ESPStyling.h" />
     <ClInclude Include="src\Rendering\ESPData.h" />
     <ClInclude Include="src\Rendering\ESPDataExtractor.h" />
     <ClInclude Include="src\Rendering\ESPStageRenderer.h" />
+    <ClInclude Include="src\Rendering\ESPTextRenderer.h" />
     <ClInclude Include="src\Rendering\Extractors\EntityExtractor.h" />
     <ClInclude Include="src\Rendering\GUI\AppearanceTab.h" />
     <ClInclude Include="src\Rendering\GUI\InfoTab.h" />
