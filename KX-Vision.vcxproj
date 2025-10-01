@@ -109,6 +109,7 @@
     <ClCompile Include="src\Rendering\Utils\ESPEntityDetailsBuilder.cpp" />
     <ClCompile Include="src\Rendering\Utils\ESPMath.cpp" />
     <ClCompile Include="src\Rendering\Utils\ESPPlayerDetailsBuilder.cpp" />
+    <ClCompile Include="src\Core\AppLifecycleManager.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
     <ClCompile Include="src\Rendering\Extractors\EntityExtractor.cpp" />
     <ClCompile Include="src\Rendering\GUI\AppearanceTab.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Game\AddressManager.h" />
+    <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
     <ClInclude Include="src\Game\Camera.h" />
     <ClInclude Include="src\Game\GameConstants.h" />
