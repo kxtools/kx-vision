@@ -85,18 +85,18 @@ namespace kx {
         float espMinScale = 0.1f;
         float espMaxScale = 1.0f;
         float espScalingStartDistance = 0.0f;  // A single, continuous curve starts at 0.
-        float espDistanceFactor = 300.0f;      // Your preferred gentle curve for maximum readability.
+        float espDistanceFactor = 200.0f;      // The balanced, natural curve
         float espScalingExponent = 1.2f;       // A slightly accelerating curve feels most natural.
 
         // Base size settings for scalable elements
         float espMinFontSize = 9.0f;
-        float espBaseFontSize = 17.0f;
-        float espBaseDotRadius = 2.5f;
-        float espBaseHealthBarWidth = 60.0f;
-        float espBaseHealthBarHeight = 6.0f;
-        float espBaseBoxThickness = 1.5f;
-        float espBaseBoxHeight = 60.0f;
-        float espBaseBoxWidth = 35.0f;
+        float espBaseFontSize = 20.0f;         // large, bold font.
+        float espBaseDotRadius = 3.0f;         // Scaled up slightly to match the larger font.
+        float espBaseHealthBarWidth = 65.0f;   // Sized to look good with the 60px box width.
+        float espBaseHealthBarHeight = 7.0f;   // Made slightly thicker to match the new width.
+        float espBaseBoxThickness = 2.0f;      // Increased thickness
+        float espBaseBoxHeight = 100.0f;
+        float espBaseBoxWidth = 60.0f;
         
         // Performance settings
         float espUpdateRate = 60.0f; // ESP updates per second (lower = better performance)
