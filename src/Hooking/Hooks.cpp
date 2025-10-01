@@ -2,6 +2,7 @@
 
 #include <windows.h> // For __try/__except
 
+#include "../Core/Config.h"      // For GW2AL_BUILD define
 #include "../Utils/DebugLogger.h"
 #include "AddressManager.h"
 #include "AppState.h"
@@ -53,13 +54,17 @@ namespace kx {
             return false;
         }
 
+#ifndef GW2AL_BUILD
+        // Only initialize D3D hook in standalone DLL mode
+        // In GW2AL mode, this is handled by GW2AL_Integration.cpp
         if (!kx::Hooking::D3DRenderHook::Initialize()) {
             kx::Hooking::HookManager::Shutdown();
             AppState::Get().SetPresentHookStatus(HookStatus::Failed);
             return false;
         }
+#endif
 
-        LOG_INFO("[Hooks] Essential hooks (D3D Present) initialized successfully.");
+        LOG_INFO("[Hooks] Essential hooks initialized successfully.");
         return true;
     }
 
@@ -99,7 +104,12 @@ namespace kx {
             LOG_INFO("[Hooks] GameThread hook cleaned up.");
         }
 
+#ifndef GW2AL_BUILD
+        // Only shutdown D3D hook in standalone DLL mode
+        // In GW2AL mode, this is handled by GW2AL_Integration.cpp
         kx::Hooking::D3DRenderHook::Shutdown();
+#endif
+
         kx::Hooking::HookManager::Shutdown();
 
         LOG_INFO("[Hooks] Cleanup finished.");

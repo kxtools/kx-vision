@@ -92,6 +92,7 @@
   <ItemGroup>
     <ClCompile Include="libs\Catch2\catch_amalgamated.cpp" />
     <ClCompile Include="libs\ImGui\imgui_stdlib.cpp" />
+    <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
@@ -141,7 +142,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\Catch2\catch_amalgamated.hpp" />
+    <ClInclude Include="libs\gw2al\gw2al_api.h" />
+    <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
     <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
+    <ClInclude Include="src\Core\Integration.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Game\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
@@ -163,10 +167,12 @@
     <ClInclude Include="src\Game\ReClass\ItemStructs.h" />
     <ClInclude Include="src\Game\ReClass\StatStructs.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
+    <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
     <ClInclude Include="src\Rendering\Core\ESPDataExtractor.h" />
     <ClInclude Include="src\Rendering\Core\ESPFilter.h" />
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
+    <ClInclude Include="src\Rendering\D3DState.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\ESPData.h" />
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />

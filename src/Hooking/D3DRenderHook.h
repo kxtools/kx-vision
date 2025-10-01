@@ -32,6 +32,20 @@ namespace kx::Hooking {
         static bool Initialize();
 
         /**
+         * @brief Initialize from an existing D3D device (GW2AL mode)
+         * @param device The D3D11 device provided by GW2AL
+         * @param swapChain The swap chain provided by GW2AL
+         * @return True if successful, false otherwise.
+         */
+        static bool InitializeFromDevice(ID3D11Device* device, IDXGISwapChain* swapChain);
+
+        /**
+         * @brief Handle swap chain resize events
+         * @param pSwapChain The swap chain being resized
+         */
+        static void OnResize(IDXGISwapChain* pSwapChain);
+
+        /**
          * @brief Cleans up resources, restores the original WndProc, and
          *        requests removal of the Present hook via HookManager.
          */
@@ -49,6 +63,7 @@ namespace kx::Hooking {
          */
         static void SetLifecycleManager(kx::AppLifecycleManager* lifecycleManager);
 
+        static ID3D11Device* GetDevice() { return m_pDevice; }
         static ID3D11DeviceContext* GetContext() { return m_pContext; }
 
         static HWND GetWindowHandle() { return m_hWindow; }

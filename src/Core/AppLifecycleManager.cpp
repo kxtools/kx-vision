@@ -1,6 +1,8 @@
 #include "AppLifecycleManager.h"
+#include "Config.h"
 #include "AppState.h"
 #include "AddressManager.h"
+#include "HookManager.h"
 #include "Hooks.h"
 #include "../Rendering/ImGuiManager.h"
 #include "../Rendering/Core/ESPRenderer.h"
@@ -8,6 +10,9 @@
 #include "../Utils/DebugLogger.h"
 
 namespace kx {
+
+// Global instance of AppLifecycleManager
+AppLifecycleManager g_App;
 
 bool AppLifecycleManager::Initialize() {
     LOG_INFO("AppLifecycleManager: Starting initialization");
@@ -27,6 +32,29 @@ bool AppLifecycleManager::Initialize() {
     return true;
 }
 
+bool AppLifecycleManager::InitializeForGW2AL() {
+    LOG_INFO("AppLifecycleManager: Initializing for GW2AL mode");
+    
+    // In GW2AL mode, hooks are managed differently
+    // We don't initialize the Present hook here (GW2AL handles that)
+    // We just set up the lifecycle manager
+    
+    m_currentState = State::WaitingForRenderer;
+    LOG_INFO("AppLifecycleManager: Waiting for renderer initialization from GW2AL");
+    
+    return true;
+}
+
+void AppLifecycleManager::OnRendererInitialized() {
+    LOG_INFO("AppLifecycleManager: Renderer initialized, waiting for player to be in-game");
+    
+    // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
+    kx::Hooking::D3DRenderHook::SetLifecycleManager(this);
+    
+    // Transition to WaitingForGame - we'll check in OnPresent if we should initialize
+    m_currentState = State::WaitingForGame;
+}
+
 void AppLifecycleManager::Update() {
     switch (m_currentState) {
         case State::PreInit:
@@ -35,6 +63,10 @@ void AppLifecycleManager::Update() {
             
         case State::WaitingForImGui:
             HandleWaitingForImGuiState();
+            break;
+            
+        case State::WaitingForRenderer:
+            HandleWaitingForRendererState();
             break;
             
         case State::WaitingForGame:
@@ -80,6 +112,7 @@ const char* AppLifecycleManager::GetCurrentStateName() const {
     switch (m_currentState) {
         case State::PreInit:              return "PreInit";
         case State::WaitingForImGui:      return "WaitingForImGui";
+        case State::WaitingForRenderer:   return "WaitingForRenderer";
         case State::WaitingForGame:       return "WaitingForGame";
         case State::InitializingServices: return "InitializingServices";
         case State::Running:              return "Running";
@@ -106,6 +139,12 @@ void AppLifecycleManager::HandleWaitingForImGuiState() {
     }
 }
 
+void AppLifecycleManager::HandleWaitingForRendererState() {
+    // In GW2AL mode, we just wait here until OnRendererInitialized() is called
+    // This state is transitioned by the GW2AL event callback
+    Sleep(100);
+}
+
 void AppLifecycleManager::HandleWaitingForGameState() {
     // Initialize MumbleLink manager (needs to be done before checking if player is in-game)
     if (!m_mumbleLinkManager.IsInitialized()) {
@@ -119,6 +158,28 @@ void AppLifecycleManager::HandleWaitingForGameState() {
     } else {
         // Not in-game yet, wait before checking again
         Sleep(500);
+    }
+}
+
+void AppLifecycleManager::CheckAndInitializeServices() {
+    // Only run this check if we're in WaitingForGame state
+    if (m_currentState != State::WaitingForGame) {
+        return;
+    }
+
+    // Check if MumbleLink is connected and player is in-game (GW2AL mode only)
+    // In DLL mode, this is handled by the Update() loop via HandleWaitingForGameState()
+    if (m_mumbleLinkManager.IsInitialized() && IsPlayerInGame()) {
+        LOG_INFO("AppLifecycleManager: Player is in-game, initializing services");
+        
+        if (InitializeGameServices()) {
+            LOG_INFO("AppLifecycleManager: Services initialized, transitioning to Running");
+            m_currentState = State::Running;
+            m_servicesInitialized = true;
+        } else {
+            LOG_ERROR("AppLifecycleManager: Service initialization failed");
+            m_currentState = State::ShuttingDown;
+        }
     }
 }
 
@@ -177,15 +238,24 @@ bool AppLifecycleManager::InitializeGameServices() {
     ESPRenderer::Initialize(m_camera);
     LOG_INFO("AppLifecycleManager: ESPRenderer initialized");
     
-    // Initialize the game thread hook (requires AddressManager)
+#ifdef GW2AL_BUILD
+    // In GW2AL mode, MinHook is not initialized by InitializeHooks() (which is DLL-only)
+    // We need to initialize it here so we can create the game thread hook
+    if (!kx::Hooking::HookManager::Initialize()) {
+        LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager in GW2AL mode");
+        return false;
+    }
+    LOG_INFO("AppLifecycleManager: HookManager initialized for GW2AL mode");
+#endif
+    
+    // Initialize the game thread hook (both DLL and GW2AL modes)
     if (InitializeGameThreadHook()) {
         LOG_INFO("AppLifecycleManager: Game thread hook initialized successfully");
-        return true;
     } else {
         LOG_WARN("AppLifecycleManager: Game thread hook initialization failed - ESP may not work");
-        // We still return true as this isn't a fatal error
-        return true;
     }
+    
+    return true;
 }
 
 void AppLifecycleManager::CleanupServices() {
@@ -200,6 +270,10 @@ void AppLifecycleManager::CleanupServices() {
         
         m_servicesInitialized = false;
     }
+}
+
+ID3D11Device* AppLifecycleManager::GetDevice() const {
+    return kx::Hooking::D3DRenderHook::GetDevice();
 }
 
 } // namespace kx
