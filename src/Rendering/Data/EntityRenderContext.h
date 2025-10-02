@@ -69,6 +69,9 @@ struct EntityRenderContext {
     /** Entity type classification for rendering logic */
     ESPEntityType entityType;
     
+    /** Attitude/relationship for NPCs and players (used for health bar coloring) */
+    Game::Attitude attitude;
+    
     // ===== Screen Dimensions =====
     
     /** Screen width for bounds checking */

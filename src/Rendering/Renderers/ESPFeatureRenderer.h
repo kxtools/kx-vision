@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../Data/RenderableData.h"
+#include "Data/ESPData.h"
 
 namespace kx {
 
@@ -24,9 +25,15 @@ public:
      * @param centerPos Center position of the entity
      * @param healthPercent Health percentage (0.0-1.0)
      * @param entityColor Entity color (used for border styling)
+     * @param barWidth Width of the health bar
+     * @param barHeight Height of the health bar
+     * @param entityType Type of entity (Player/NPC/Gadget) for color selection
+     * @param attitude Attitude/relationship for color selection (defaults to Neutral)
      */
     static void RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos, 
-                                         float healthPercent, unsigned int entityColor, float barWidth, float barHeight);
+                                         float healthPercent, unsigned int entityColor, float barWidth, float barHeight,
+                                         ESPEntityType entityType = ESPEntityType::Player, 
+                                         Game::Attitude attitude = Game::Attitude::Neutral);
 
     /**
      * @brief Render a player name below an entity

@@ -11,8 +11,9 @@ namespace kx {
 
 void ESPFeatureRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos,
                                                    float healthPercent, unsigned int entityColor,
-                                                   float barWidth, float barHeight) {
-    ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, centerPos, healthPercent, entityColor, barWidth, barHeight);
+                                                   float barWidth, float barHeight,
+                                                   ESPEntityType entityType, Game::Attitude attitude) {
+    ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, centerPos, healthPercent, entityColor, barWidth, barHeight, entityType, attitude);
 }
 
 void ESPFeatureRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos,

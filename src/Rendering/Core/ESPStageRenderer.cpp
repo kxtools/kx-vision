@@ -116,7 +116,8 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render standalone health bars for living entities when health is available AND setting is enabled
     if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
         ESPFeatureRenderer::RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, 
-                                                     fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight);
+                                                     fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight,
+                                                     context.entityType, context.attitude);
     }
 
     // Render bounding box (should be disabled by default for living entities)

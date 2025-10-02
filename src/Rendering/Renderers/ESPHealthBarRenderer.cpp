@@ -6,7 +6,8 @@ namespace kx {
 
 void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos,
                                                      float healthPercent, unsigned int entityColor,
-                                                     float barWidth, float barHeight) {
+                                                     float barWidth, float barHeight,
+                                                     ESPEntityType entityType, Game::Attitude attitude) {
     if (healthPercent < 0.0f || healthPercent > 1.0f) return;
 
     // Extract alpha from entity color for distance fading
@@ -19,53 +20,67 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
 
     // Background with subtle transparency and distance fade
     float bgAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha;
-    unsigned int bgAlpha = static_cast<unsigned int>(bgAlphaf + 0.5f); // Round for smooth fading
+    unsigned int bgAlpha = static_cast<unsigned int>(bgAlphaf + 0.5f);
     bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha;
     drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-    // Health fill - horizontal bar
+    // Health fill dimensions
     float healthWidth = barWidth * healthPercent;
     ImVec2 healthBarMin(barMin.x, barMin.y);
     ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
 
-    // Health color: green -> yellow -> orange based on percentage with smooth distance fade
+    // Calculate health bar color based on entity type and attitude (informative, not health-based)
     float healthAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha;
-    unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f); // Round for smooth transitions
+    unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f);
     healthAlpha = (healthAlpha > 255) ? 255 : healthAlpha;
     
     unsigned int healthColor;
-    if (healthPercent > 0.66f) {
-        // Green to yellow transition - high health (100% → 66%)
-        float t = (1.0f - healthPercent) / 0.34f;
-        int red = static_cast<int>(255.0f * t + 0.5f);
-        healthColor = IM_COL32(red, 255, 0, healthAlpha);
-    } else if (healthPercent > 0.33f) {
-        // Yellow to orange transition - medium health (66% → 33%)
-        // At 66%: (255, 255, 0) yellow
-        // At 33%: (255, 165, 0) orange
-        float t = (healthPercent - 0.33f) / 0.33f; // 0.0 at 33%, 1.0 at 66%
-        int green = static_cast<int>((165.0f + (255.0f - 165.0f) * t) + 0.5f); // Interpolate 165 → 255
-        healthColor = IM_COL32(255, green, 0, healthAlpha);
+    if (entityType == ESPEntityType::Player) {
+        // Players (The User): Natural light pastel blue
+        healthColor = IM_COL32(135, 206, 250, healthAlpha);
+    } else if (entityType == ESPEntityType::NPC) {
+        // NPCs: Color based on attitude (GW2 convention)
+        switch (attitude) {
+            case Game::Attitude::Hostile:
+                // Immediate threat: Fiery Coral
+                healthColor = IM_COL32(255, 84, 112, healthAlpha);
+                break;
+            case Game::Attitude::Friendly:
+                // Active ally: Vibrant Lime Green
+                healthColor = IM_COL32(50, 255, 50, healthAlpha);
+                break;
+            case Game::Attitude::Neutral:
+                // Non-attackable/passive: Bright Chartreuse
+                healthColor = IM_COL32(127, 255, 0, healthAlpha);
+                break;
+            case Game::Attitude::Indifferent:
+                // Background info: Civilian White
+                healthColor = IM_COL32(240, 240, 240, healthAlpha);
+                break;
+            default:
+                // Unknown: Magenta (debug color)
+                healthColor = IM_COL32(255, 0, 255, healthAlpha);
+                break;
+        }
     } else {
-        // Orange for critical health (below 33%)
-        healthColor = IM_COL32(255, 165, 0, healthAlpha);
+        // Gadgets: Warm orange (shouldn't normally have health bars, but just in case)
+        healthColor = IM_COL32(255, 165, 80, healthAlpha);
     }
     
+    // Draw health fill
     drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-    // Subtle border using entity color for identification - this makes it feel natural and tied to the entity
-    float borderAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha;
-    unsigned int borderAlpha = static_cast<unsigned int>(borderAlphaf + 0.5f);
-    borderAlpha = (borderAlpha > 255) ? 255 : borderAlpha;
-    
-    // Extract RGB from entity color
-    int r = (entityColor >> 16) & 0xFF;
-    int g = (entityColor >> 8) & 0xFF;
-    int b = entityColor & 0xFF;
-    
-    drawList->AddRect(barMin, barMax, IM_COL32(r, g, b, borderAlpha), 
-                     RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ROUNDING, 0, 
-                     RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
+    // Minimal black border for hostile enemies only
+    if (entityType == ESPEntityType::NPC && attitude == Game::Attitude::Hostile) {
+        float borderAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha;
+        unsigned int borderAlpha = static_cast<unsigned int>(borderAlphaf + 0.5f);
+        borderAlpha = (borderAlpha > 255) ? 255 : borderAlpha;
+        
+        // Subtle black border for definition without being intrusive
+        drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, borderAlpha), 
+                         RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ROUNDING, 0, 
+                         RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
+    }
 }
 
 } // namespace kx
