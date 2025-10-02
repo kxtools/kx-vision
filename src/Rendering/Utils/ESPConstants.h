@@ -78,7 +78,7 @@ namespace ESPColors {
     constexpr unsigned int DEFAULT_TEXT = IM_COL32(255, 255, 255, 255);  // White (R:255, G:255, B:255)
 
     // Player colors
-    constexpr unsigned int PLAYER = IM_COL32(255, 200, 100, 220);  // Vivid Sky Blue (#64C8FF) (R:100, G:200, B:255)
+    constexpr unsigned int PLAYER = IM_COL32(255, 144, 30, 230);
     
     // NPC colors based on attitude - unified palette
     constexpr unsigned int NPC_HOSTILE = IM_COL32(80, 80, 255, 210);      // Strong classic red (R:255, G:80, B:80)
