@@ -37,6 +37,10 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         details.push_back({ "Prof: " + (profName ? std::string(profName) : "ID: " + std::to_string(static_cast<uint32_t>(player->profession))), ESPColors::DEFAULT_TEXT });
     }
 
+    // Display player attitude
+    const char* attitudeName = Game::EnumHelpers::GetAttitudeName(player->attitude);
+    details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "Unknown"), ESPColors::DEFAULT_TEXT });
+
     if (player->race != Game::Race::None) {
         const char* raceName = Game::EnumHelpers::GetRaceName(player->race);
         details.push_back({ "Race: " + (raceName ? std::string(raceName) : "ID: " + std::to_string(static_cast<uint8_t>(player->race))), ESPColors::DEFAULT_TEXT });

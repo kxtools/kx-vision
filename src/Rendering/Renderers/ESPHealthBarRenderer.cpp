@@ -29,22 +29,20 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     ImVec2 healthBarMin(barMin.x, barMin.y);
     ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
 
-    // Calculate health bar color based on entity type and attitude (informative, not health-based)
-    // Extract RGB from entityColor (which comes from ESPColors constants) and apply health bar alpha
+    // Calculate health bar color - use entityColor directly with health bar alpha
+    // EntityColor already comes from ESPColors constants with proper RGB values
     float healthAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha;
     unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f);
     healthAlpha = (healthAlpha > 255) ? 255 : healthAlpha;
     
-    int r = (entityColor >> 16) & 0xFF;
-    int g = (entityColor >> 8) & 0xFF;
-    int b = entityColor & 0xFF;
-    unsigned int healthColor = IM_COL32(b, g, r, healthAlpha);
+    // Replace alpha component with health bar alpha, keep RGB unchanged
+    unsigned int healthColor = (entityColor & 0x00FFFFFF) | (healthAlpha << 24);
     
     // Draw health fill
     drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-    // Minimal black border for hostile enemies only
-    if (entityType == ESPEntityType::NPC && attitude == Game::Attitude::Hostile) {
+    // Border for hostile entities - simple black border
+    if (attitude == Game::Attitude::Hostile) {
         float borderAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha;
         unsigned int borderAlpha = static_cast<unsigned int>(borderAlphaf + 0.5f);
         borderAlpha = (borderAlpha > 255) ? 255 : borderAlpha;

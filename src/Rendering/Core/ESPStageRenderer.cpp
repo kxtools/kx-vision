@@ -141,8 +141,13 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     }
 
     // Render player name for natural identification (players only)
-    if (context.entityType == ESPEntityType::Player && context.renderPlayerName && !context.playerName.empty()) {
-        ESPFeatureRenderer::RenderPlayerName(drawList, screenPos, context.playerName, fadedEntityColor, finalFontSize);
+    if (context.entityType == ESPEntityType::Player && context.renderPlayerName) {
+        // For hostile players, display "HOSTILE" label instead of their name
+        std::string displayName = (context.attitude == Game::Attitude::Hostile) ? "HOSTILE" : context.playerName;
+        if (!displayName.empty()) {
+            // Use entity color directly (already attitude-based from ESPContextFactory)
+            ESPFeatureRenderer::RenderPlayerName(drawList, screenPos, displayName, fadedEntityColor, finalFontSize);
+        }
     }
 
     // Render details text (for all entities when enabled)

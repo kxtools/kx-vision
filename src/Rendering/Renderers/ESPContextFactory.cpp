@@ -14,11 +14,31 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
                                                              float screenHeight) {
     float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
     
+    // Use attitude-based coloring for players (same as NPCs for semantic consistency)
+    unsigned int color;
+    switch (player->attitude) {
+        case Game::Attitude::Hostile:
+            color = ESPColors::NPC_HOSTILE;
+            break;
+        case Game::Attitude::Friendly:
+            color = ESPColors::NPC_FRIENDLY;
+            break;
+        case Game::Attitude::Neutral:
+            color = ESPColors::NPC_NEUTRAL;
+            break;
+        case Game::Attitude::Indifferent:
+            color = ESPColors::NPC_INDIFFERENT;
+            break;
+        default:
+            color = ESPColors::NPC_UNKNOWN;
+            break;
+    }
+    
     return EntityRenderContext{
         player->position,
         player->visualDistance,
         player->gameplayDistance,
-        ESPColors::PLAYER,
+        color,
         details,
         healthPercent,
         settings.playerESP.renderBox,

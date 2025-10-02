@@ -112,8 +112,10 @@ TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int e
     style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
     style.fadeAlpha = fadeAlpha;
     
-    // Text
-    style.textColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_TEXT_ALPHA));
+    // Text - use entityColor directly (already has proper RGB values from ESPColors constants)
+    // Just replace the alpha component with our text alpha
+    unsigned int textAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_TEXT_ALPHA);
+    style.textColor = (entityColor & 0x00FFFFFF) | (textAlpha << 24);
     
     // Shadow
     style.enableShadow = true;
