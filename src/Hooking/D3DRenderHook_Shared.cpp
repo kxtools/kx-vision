@@ -15,7 +15,6 @@
 #include "../Utils/DebugLogger.h"
 #include "../Rendering/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
-#include "../../libs/ImGui/imgui_impl_dx11.h"
 
 namespace kx::Hooking {
 

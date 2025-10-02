@@ -2,7 +2,6 @@
 #include "ESPFormatting.h"
 #include "ESPConstants.h"
 #include "../../Game/GameEnums.h"
-#include "../../../libs/ImGui/imgui.h"
 
 namespace kx {
 

@@ -25,12 +25,9 @@
 #include "../../libs/gw2al/gw2al_d3d9_wrapper.h" 
 #include "../Hooking/GW2AL/d3d9_wrapper_structs.h"
 
-#include "Hooks.h"
-#include "../Rendering/ImGuiManager.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 #include "../Utils/Console.h"
-#include "../Game/AddressManager.h"
 
 // Global pointer to the core API, needed for callbacks
 gw2al_core_vtable* g_al_api = nullptr;

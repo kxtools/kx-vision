@@ -2,7 +2,6 @@
 
 #include "../Utils/ESPConstants.h"
 #include "../Core/ESPStageRenderer.h"
-#include "../Utils/ESPStyling.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
 

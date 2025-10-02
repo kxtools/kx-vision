@@ -16,7 +16,6 @@
 
 #include "../Core/AppState.h"
 #include "../../libs/ImGui/imgui.h"
-#include "../../libs/ImGui/imgui_impl_win32.h"
 
 // Declare the external ImGui Win32 handler
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
