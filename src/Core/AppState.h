@@ -57,7 +57,11 @@ namespace kx {
         // Application state members
         Settings m_settings;
         HookStatus m_presentHookStatus = HookStatus::Unknown;
-        bool m_isVisionWindowOpen = true;
+        #ifdef _DEBUG
+        bool m_isVisionWindowOpen = true;   // Debug: Show GUI by default
+        #else
+        bool m_isVisionWindowOpen = false;  // Release: Hide GUI by default (press INSERT to toggle)
+        #endif
         std::atomic<bool> m_isShuttingDown = false;
 
         // Mutex for thread-safe access (if needed for future extensions)
