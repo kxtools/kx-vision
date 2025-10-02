@@ -17,45 +17,45 @@ namespace kx {
             ChCliContext(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             ChCliCharacter** GetCharacterList() const {
-                LOG_MEMORY("ChCliContext", "GetCharacterList", data(), Offsets::CH_CLI_CONTEXT_CHARACTER_LIST);
+                LOG_MEMORY("ChCliContext", "GetCharacterList", data(), Offsets::ChCliContext::CHARACTER_LIST);
                 
-                ChCliCharacter** characterList = ReadArrayPointer<ChCliCharacter*>(Offsets::CH_CLI_CONTEXT_CHARACTER_LIST);
+                ChCliCharacter** characterList = ReadArrayPointer<ChCliCharacter*>(Offsets::ChCliContext::CHARACTER_LIST);
                 
                 LOG_PTR("CharacterList", characterList);
                 return characterList;
             }
 
             uint32_t GetCharacterListCapacity() const {
-                LOG_MEMORY("ChCliContext", "GetCharacterListCapacity", data(), Offsets::CH_CLI_CONTEXT_CHARACTER_LIST_CAPACITY);
+                LOG_MEMORY("ChCliContext", "GetCharacterListCapacity", data(), Offsets::ChCliContext::CHARACTER_LIST_CAPACITY);
                 
-                uint32_t capacity = ReadMember<uint32_t>(Offsets::CH_CLI_CONTEXT_CHARACTER_LIST_CAPACITY, 0);
+                uint32_t capacity = ReadMember<uint32_t>(Offsets::ChCliContext::CHARACTER_LIST_CAPACITY, 0);
                 
                 LOG_DEBUG("ChCliContext::GetCharacterListCapacity - Capacity: %u", capacity);
                 return capacity;
             }
 
             ChCliPlayer** GetPlayerList() const {
-                LOG_MEMORY("ChCliContext", "GetPlayerList", data(), Offsets::CH_CLI_CONTEXT_PLAYER_LIST);
+                LOG_MEMORY("ChCliContext", "GetPlayerList", data(), Offsets::ChCliContext::PLAYER_LIST);
                 
-                ChCliPlayer** playerList = ReadArrayPointer<ChCliPlayer*>(Offsets::CH_CLI_CONTEXT_PLAYER_LIST);
+                ChCliPlayer** playerList = ReadArrayPointer<ChCliPlayer*>(Offsets::ChCliContext::PLAYER_LIST);
                 
                 LOG_PTR("PlayerList", playerList);
                 return playerList;
             }
 
             uint32_t GetPlayerListSize() const {
-                LOG_MEMORY("ChCliContext", "GetPlayerListSize", data(), Offsets::CH_CLI_CONTEXT_PLAYER_LIST_SIZE);
+                LOG_MEMORY("ChCliContext", "GetPlayerListSize", data(), Offsets::ChCliContext::PLAYER_LIST_SIZE);
                 
-                uint32_t size = ReadMember<uint32_t>(Offsets::CH_CLI_CONTEXT_PLAYER_LIST_SIZE, 0);
+                uint32_t size = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_SIZE, 0);
                 
                 LOG_DEBUG("ChCliContext::GetPlayerListSize - Size: %u", size);
                 return size;
             }
 
             ChCliCharacter* GetLocalPlayer() const {
-                LOG_MEMORY("ChCliContext", "GetLocalPlayer", data(), Offsets::CH_CLI_CONTEXT_LOCAL_PLAYER);
+                LOG_MEMORY("ChCliContext", "GetLocalPlayer", data(), Offsets::ChCliContext::LOCAL_PLAYER);
                 
-                ChCliCharacter* result = ReadMember<ChCliCharacter*>(Offsets::CH_CLI_CONTEXT_LOCAL_PLAYER, nullptr);
+                ChCliCharacter* result = ReadMember<ChCliCharacter*>(Offsets::ChCliContext::LOCAL_PLAYER, nullptr);
                 
                 LOG_PTR("LocalPlayer", result);
                 return result;
@@ -70,27 +70,27 @@ namespace kx {
             GdCliContext(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             GdCliGadget** GetGadgetList() const {
-                LOG_MEMORY("GdCliContext", "GetGadgetList", data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST);
+                LOG_MEMORY("GdCliContext", "GetGadgetList", data(), Offsets::GdCliContext::GADGET_LIST);
                 
-                GdCliGadget** gadgetList = ReadArrayPointer<GdCliGadget*>(Offsets::GD_CLI_CONTEXT_GADGET_LIST);
+                GdCliGadget** gadgetList = ReadArrayPointer<GdCliGadget*>(Offsets::GdCliContext::GADGET_LIST);
                 
                 LOG_PTR("GadgetList", gadgetList);
                 return gadgetList;
             }
 
             uint32_t GetGadgetListCapacity() const {
-                LOG_MEMORY("GdCliContext", "GetGadgetListCapacity", data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST_CAPACITY);
+                LOG_MEMORY("GdCliContext", "GetGadgetListCapacity", data(), Offsets::GdCliContext::GADGET_LIST_CAPACITY);
                 
-                uint32_t capacity = ReadMember<uint32_t>(Offsets::GD_CLI_CONTEXT_GADGET_LIST_CAPACITY, 0);
+                uint32_t capacity = ReadMember<uint32_t>(Offsets::GdCliContext::GADGET_LIST_CAPACITY, 0);
                 
                 LOG_DEBUG("GdCliContext::GetGadgetListCapacity - Capacity: %u", capacity);
                 return capacity;
             }
 
             uint32_t GetGadgetListCount() const {
-                LOG_MEMORY("GdCliContext", "GetGadgetListCount", data(), Offsets::GD_CLI_CONTEXT_GADGET_LIST_COUNT);
+                LOG_MEMORY("GdCliContext", "GetGadgetListCount", data(), Offsets::GdCliContext::GADGET_LIST_COUNT);
                 
-                uint32_t count = ReadMember<uint32_t>(Offsets::GD_CLI_CONTEXT_GADGET_LIST_COUNT, 0);
+                uint32_t count = ReadMember<uint32_t>(Offsets::GdCliContext::GADGET_LIST_COUNT, 0);
                 
                 LOG_DEBUG("GdCliContext::GetGadgetListCount - Count: %u", count);
                 return count;
@@ -110,18 +110,18 @@ namespace kx {
             }
 
             ChCliContext GetChCliContext() const {
-                LOG_MEMORY("ContextCollection", "GetChCliContext", data(), Offsets::CONTEXT_COLLECTION_CH_CLI_CONTEXT);
+                LOG_MEMORY("ContextCollection", "GetChCliContext", data(), Offsets::ContextCollection::CH_CLI_CONTEXT);
                 
-                ChCliContext result = ReadPointer<ChCliContext>(Offsets::CONTEXT_COLLECTION_CH_CLI_CONTEXT);
+                ChCliContext result = ReadPointer<ChCliContext>(Offsets::ContextCollection::CH_CLI_CONTEXT);
                 
                 LOG_PTR("ChCliContext", result.data());
                 return result;
             }
 
             GdCliContext GetGdCliContext() const {
-                LOG_MEMORY("ContextCollection", "GetGdCliContext", data(), Offsets::CONTEXT_COLLECTION_GD_CLI_CONTEXT);
+                LOG_MEMORY("ContextCollection", "GetGdCliContext", data(), Offsets::ContextCollection::GD_CLI_CONTEXT);
                 
-                GdCliContext result = ReadPointer<GdCliContext>(Offsets::CONTEXT_COLLECTION_GD_CLI_CONTEXT);
+                GdCliContext result = ReadPointer<GdCliContext>(Offsets::ContextCollection::GD_CLI_CONTEXT);
                 
                 LOG_PTR("GdCliContext", result.data());
                 return result;

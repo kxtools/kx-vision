@@ -24,7 +24,7 @@ namespace kx {
                     return { 0.0f, 0.0f, 0.0f };
                 }
                 
-                glm::vec3 result = ReadMember<glm::vec3>(Offsets::CO_CHAR_VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
+                glm::vec3 result = ReadMember<glm::vec3>(Offsets::CoChar::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
                 
                 return result;
             }
@@ -38,18 +38,18 @@ namespace kx {
             AgChar(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             CoChar GetCoChar() const {
-                LOG_MEMORY("AgChar", "GetCoChar", data(), Offsets::AG_CHAR_CO_CHAR);
+                LOG_MEMORY("AgChar", "GetCoChar", data(), Offsets::AgChar::CO_CHAR);
                 
-                CoChar result = ReadPointer<CoChar>(Offsets::AG_CHAR_CO_CHAR);
+                CoChar result = ReadPointer<CoChar>(Offsets::AgChar::CO_CHAR);
                 
                 LOG_PTR("CoChar", result.data());
                 return result;
             }
 
             uint32_t GetType() const {
-                LOG_MEMORY("AgChar", "GetType", data(), Offsets::AG_CHAR_TYPE);
+                LOG_MEMORY("AgChar", "GetType", data(), Offsets::AgChar::TYPE);
                 
-                uint32_t type = ReadMember<uint32_t>(Offsets::AG_CHAR_TYPE, 0);
+                uint32_t type = ReadMember<uint32_t>(Offsets::AgChar::TYPE, 0);
                 
                 LOG_DEBUG("AgChar::GetType - Type: %u", type);
                 return type;

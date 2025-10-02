@@ -20,15 +20,15 @@ namespace kx {
             EquipSlot(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             ItemDef GetItemDefinition() const {
-                return ReadPointer<ItemDef>(Offsets::EQUIP_SLOT_ITEM_DEF);
+                return ReadPointer<ItemDef>(Offsets::EquipSlot::ITEM_DEF);
             }
 
             Stat GetStatGear() const {
-                return ReadPointer<Stat>(Offsets::EQUIP_SLOT_STAT_GEAR);
+                return ReadPointer<Stat>(Offsets::EquipSlot::STAT_GEAR);
             }
 
             Stat GetStatWeapon() const {
-                return ReadPointer<Stat>(Offsets::EQUIP_SLOT_STAT_WEAPON);
+                return ReadPointer<Stat>(Offsets::EquipSlot::STAT_WEAPON);
             }
         };
 
@@ -46,7 +46,7 @@ namespace kx {
                 }
 
                 // Calculate the base address of the embedded equipment array
-                uintptr_t arrayBaseAddress = reinterpret_cast<uintptr_t>(data()) + Offsets::INVENTORY_EQUIPMENT_ARRAY;
+                uintptr_t arrayBaseAddress = reinterpret_cast<uintptr_t>(data()) + Offsets::Inventory::EQUIPMENT_ARRAY;
 
                 // Now, safely read the pointer for the specific slot FROM the array
                 void* slotPtr = nullptr;

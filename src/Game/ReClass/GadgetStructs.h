@@ -17,9 +17,9 @@ namespace kx {
             CoKeyFramed(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             glm::vec3 GetPosition() const {
-                LOG_MEMORY("CoKeyFramed", "GetPosition", data(), Offsets::CO_KEYFRAMED_POSITION);
+                LOG_MEMORY("CoKeyFramed", "GetPosition", data(), Offsets::CoKeyframed::POSITION);
                 
-                glm::vec3 position = ReadMember<glm::vec3>(Offsets::CO_KEYFRAMED_POSITION, glm::vec3{0.0f, 0.0f, 0.0f});
+                glm::vec3 position = ReadMember<glm::vec3>(Offsets::CoKeyframed::POSITION, glm::vec3{0.0f, 0.0f, 0.0f});
                 
                 LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", position.x, position.y, position.z);
                 return position;
@@ -34,9 +34,9 @@ namespace kx {
             AgKeyFramed(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             CoKeyFramed GetCoKeyFramed() const {
-                LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), Offsets::AG_KEYFRAMED_CO_KEYFRAMED);
+                LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), Offsets::AgKeyframed::CO_KEYFRAMED);
                 
-                CoKeyFramed result = ReadPointer<CoKeyFramed>(Offsets::AG_KEYFRAMED_CO_KEYFRAMED);
+                CoKeyFramed result = ReadPointer<CoKeyFramed>(Offsets::AgKeyframed::CO_KEYFRAMED);
                 
                 LOG_PTR("CoKeyFramed", result.data());
                 return result;
@@ -51,9 +51,9 @@ namespace kx {
             GdCliGadget(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             Game::GadgetType GetGadgetType() const {
-                LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), Offsets::GD_CLI_GADGET_TYPE);
+                LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), Offsets::GdCliGadget::TYPE);
                 
-                uint32_t typeValue = ReadMember<uint32_t>(Offsets::GD_CLI_GADGET_TYPE, 0);
+                uint32_t typeValue = ReadMember<uint32_t>(Offsets::GdCliGadget::TYPE, 0);
                 Game::GadgetType gadgetType = static_cast<Game::GadgetType>(typeValue);
                 
                 LOG_DEBUG("GdCliGadget::GetGadgetType - Type: %u", static_cast<uint32_t>(gadgetType));
@@ -61,25 +61,25 @@ namespace kx {
             }
 
             Game::ResourceNodeType GetResourceNodeType() const {
-                LOG_MEMORY("GdCliGadget", "GetResourceNodeType", data(), Offsets::GD_CLI_GADGET_RESOURCE_NODE_TYPE);
+                LOG_MEMORY("GdCliGadget", "GetResourceNodeType", data(), Offsets::GdCliGadget::RESOURCE_NODE_TYPE);
 
-                return ReadMember<Game::ResourceNodeType>(Offsets::GD_CLI_GADGET_RESOURCE_NODE_TYPE, Game::ResourceNodeType::None);
+                return ReadMember<Game::ResourceNodeType>(Offsets::GdCliGadget::RESOURCE_NODE_TYPE, Game::ResourceNodeType::None);
             }
 
             bool IsGatherable() const {
-                LOG_MEMORY("GdCliGadget", "IsGatherable", data(), Offsets::GD_CLI_GADGET_FLAGS);
+                LOG_MEMORY("GdCliGadget", "IsGatherable", data(), Offsets::GdCliGadget::FLAGS);
                 
-                uint32_t flags = ReadMember<uint32_t>(Offsets::GD_CLI_GADGET_FLAGS, 0);
-                bool gatherable = (flags & Offsets::GADGET_FLAG_GATHERABLE) != 0;
+                uint32_t flags = ReadMember<uint32_t>(Offsets::GdCliGadget::FLAGS, 0);
+                bool gatherable = (flags & Offsets::GdCliGadget::FLAG_GATHERABLE) != 0;
                 
                 LOG_DEBUG("GdCliGadget::IsGatherable - Flags: 0x%X, Gatherable: %s", flags, gatherable ? "true" : "false");
                 return gatherable;
             }
 
             AgKeyFramed GetAgKeyFramed() const {
-                LOG_MEMORY("GdCliGadget", "GetAgKeyFramed", data(), Offsets::GD_CLI_GADGET_AG_KEYFRAMED);
+                LOG_MEMORY("GdCliGadget", "GetAgKeyFramed", data(), Offsets::GdCliGadget::AG_KEYFRAMED);
                 
-                AgKeyFramed result = ReadPointer<AgKeyFramed>(Offsets::GD_CLI_GADGET_AG_KEYFRAMED);
+                AgKeyFramed result = ReadPointer<AgKeyFramed>(Offsets::GdCliGadget::AG_KEYFRAMED);
                 
                 LOG_PTR("AgKeyFramed", result.data());
                 return result;
