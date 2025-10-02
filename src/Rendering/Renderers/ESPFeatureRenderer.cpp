@@ -9,11 +9,6 @@ namespace kx {
 // ESPFeatureRenderer now acts as a facade, delegating to specialized renderers
 // This maintains backwards compatibility while improving code organization
 
-void ESPFeatureRenderer::RenderAttachedHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax,
-                                                 float healthPercent, float fadeAlpha) {
-    ESPHealthBarRenderer::RenderAttachedHealthBar(drawList, boxMin, boxMax, healthPercent, fadeAlpha);
-}
-
 void ESPFeatureRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos,
                                                    float healthPercent, unsigned int entityColor,
                                                    float barWidth, float barHeight) {

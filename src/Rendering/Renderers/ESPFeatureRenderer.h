@@ -19,17 +19,6 @@ namespace kx {
 class ESPFeatureRenderer {
 public:
     /**
-     * @brief Render a health bar attached to the side of a bounding box
-     * @param drawList ImGui draw list for rendering
-     * @param boxMin Upper-left corner of the entity bounding box
-     * @param boxMax Lower-right corner of the entity bounding box
-     * @param healthPercent Health percentage (0.0-1.0)
-     * @param fadeAlpha Distance-based fade alpha (0.0-1.0)
-     */
-    static void RenderAttachedHealthBar(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax, 
-                                       float healthPercent, float fadeAlpha);
-
-    /**
      * @brief Render a standalone health bar below an entity
      * @param drawList ImGui draw list for rendering
      * @param centerPos Center position of the entity

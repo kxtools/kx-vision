@@ -108,7 +108,7 @@ namespace kx {
         float espBaseFontSize = 20.0f;         // large, bold font.
         float espBaseDotRadius = 3.0f;         // Scaled up slightly to match the larger font.
         float espBaseHealthBarWidth = 65.0f;   // Sized to look good with the 60px box width.
-        float espBaseHealthBarHeight = 7.0f;   // Made slightly thicker to match the new width.
+        float espBaseHealthBarHeight = 8.0f;   // Made slightly thicker to match the new width.
         float espBaseBoxThickness = 2.0f;      // Increased thickness
         float espBaseBoxHeight = 100.0f;
         float espBaseBoxWidth = 60.0f;

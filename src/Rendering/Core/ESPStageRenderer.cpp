@@ -119,11 +119,6 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                                      fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight);
     }
 
-    // Render old-style health bar only if requested and no standalone health bar was shown
-    if (context.renderHealthBar && context.healthPercent >= 0.0f && !isLivingEntity) {
-        ESPFeatureRenderer::RenderAttachedHealthBar(drawList, boxMin, boxMax, context.healthPercent, distanceFadeAlpha);
-    }
-
     // Render bounding box (should be disabled by default for living entities)
     if (context.renderBox) {
         ESPFeatureRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
