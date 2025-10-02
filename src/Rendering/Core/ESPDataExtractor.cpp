@@ -19,7 +19,7 @@ namespace kx {
             return;
         }
 
-        // build the map of character pointers to player names.
+        // Build the map of character pointers to player names
         std::unordered_map<void*, const wchar_t*> characterToPlayerNameMap;
         {
             kx::ReClass::ContextCollection ctxCollection(pContextCollection);
@@ -34,17 +34,20 @@ namespace kx {
             }
         }
 
-        // The extraction calls now pass the map.
-        ExtractPlayerData(playerPool, pooledData.players, characterToPlayerNameMap);
-        ExtractNpcData(npcPool, pooledData.npcs, characterToPlayerNameMap); // Pass map to exclude players
+        // Single pass extraction for both players and NPCs
+        ExtractCharacterData(playerPool, npcPool, pooledData.players, pooledData.npcs, characterToPlayerNameMap);
         ExtractGadgetData(gadgetPool, pooledData.gadgets);
     }
 
-    void ESPDataExtractor::ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPool,
+    void ESPDataExtractor::ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
+        ObjectPool<RenderableNpc>& npcPool,
         std::vector<RenderablePlayer*>& players,
+        std::vector<RenderableNpc*>& npcs,
         const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap) {
         players.clear();
+        npcs.clear();
         players.reserve(ExtractionCapacity::PLAYERS_RESERVE);
+        npcs.reserve(ExtractionCapacity::NPCS_RESERVE);
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection) return;
@@ -55,41 +58,26 @@ namespace kx {
 
         void* localPlayerPtr = AddressManager::GetLocalPlayer();
 
+        // Single pass over the character list - process both players and NPCs
         kx::SafeAccess::CharacterList characterList(charContext);
         for (const auto& character : characterList) {
-            // Find if this character is in our player map
-            auto it = characterToPlayerNameMap.find(const_cast<void*>(character.data()));
+            void* charPtr = const_cast<void*>(character.data());
+            
+            // Check if this character is a player
+            auto it = characterToPlayerNameMap.find(charPtr);
             if (it != characterToPlayerNameMap.end()) {
+                // This is a player
                 RenderablePlayer* renderablePlayer = playerPool.Get();
-                if (!renderablePlayer) break; // Pool exhausted
+                if (!renderablePlayer) continue; // Pool exhausted, skip this entity
 
                 // Delegate all extraction logic to the helper class
                 if (EntityExtractor::ExtractPlayer(*renderablePlayer, character, it->second, localPlayerPtr)) {
                     players.push_back(renderablePlayer);
                 }
-            }
-        }
-    }
-
-    void ESPDataExtractor::ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
-        std::vector<RenderableNpc*>& npcs,
-        const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap) {
-        npcs.clear();
-        npcs.reserve(ExtractionCapacity::NPCS_RESERVE);
-
-        void* pContextCollection = AddressManager::GetContextCollectionPtr();
-        if (!pContextCollection) return;
-
-        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-        kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
-        if (!charContext.data()) return;
-
-        kx::SafeAccess::CharacterList characterList(charContext);
-        for (const auto& character : characterList) {
-            // If the character is NOT in the player map, it's an NPC
-            if (characterToPlayerNameMap.find(const_cast<void*>(character.data())) == characterToPlayerNameMap.end()) {
+            } else {
+                // This is an NPC
                 RenderableNpc* renderableNpc = npcPool.Get();
-                if (!renderableNpc) break; // Pool exhausted
+                if (!renderableNpc) continue; // Pool exhausted, skip this entity
 
                 // Delegate all extraction logic to the helper class
                 if (EntityExtractor::ExtractNpc(*renderableNpc, character)) {

@@ -37,11 +37,9 @@ namespace kx {
         /**
          * @brief OPTIMIZED extraction methods - write directly into object pools
          */
-        static void ExtractPlayerData(ObjectPool<RenderablePlayer>& playerPool,
+        static void ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
+            ObjectPool<RenderableNpc>& npcPool,
             std::vector<RenderablePlayer*>& players,
-            const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap);
-
-        static void ExtractNpcData(ObjectPool<RenderableNpc>& npcPool,
             std::vector<RenderableNpc*>& npcs,
             const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap);
 
