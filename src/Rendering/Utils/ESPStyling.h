@@ -16,21 +16,6 @@ namespace kx {
 class ESPHelpers {
 public:
 
-    // Get color based on attitude
-    static unsigned int GetAttitudeColor(Game::Attitude attitude) {
-        switch (attitude) {
-            case Game::Attitude::Friendly: 
-                return 0xDC64FF00; // Green
-            case Game::Attitude::Hostile: 
-                return 0xDC3232FF; // Red
-            case Game::Attitude::Indifferent: 
-                return 0xDCFFFF32; // Yellow
-            case Game::Attitude::Neutral: 
-            default: 
-                return 0xDCFFFFFF; // White
-        }
-    }
-
     static ImU32 GetRarityColor(Game::ItemRarity rarity) {
         switch (rarity) {
             case Game::ItemRarity::Junk:       return IM_COL32(100, 100, 100, 255); // Gray

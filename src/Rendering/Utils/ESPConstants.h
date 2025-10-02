@@ -78,13 +78,13 @@ namespace ESPColors {
     constexpr unsigned int DEFAULT_TEXT = IM_COL32(255, 255, 255, 255);  // White (R:255, G:255, B:255)
 
     // Player colors
-    constexpr unsigned int PLAYER = IM_COL32(255, 200, 100, 220);  // Bright cyan/blue (R:100, G:200, B:255)
+    constexpr unsigned int PLAYER = IM_COL32(255, 200, 100, 220);  // Vivid Sky Blue (#64C8FF) (R:100, G:200, B:255)
     
-    // NPC colors based on attitude
-    constexpr unsigned int NPC_HOSTILE = IM_COL32(80, 80, 255, 210);      // Red - enemies (R:255, G:80, B:80)
-    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Green - allies (R:100, G:255, B:100)
-    constexpr unsigned int NPC_NEUTRAL = IM_COL32(100, 255, 255, 210);    // Yellow - neutral (R:255, G:255, B:100)
-    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(180, 180, 180, 210); // Gray - indifferent (R:180, G:180, B:180)
+    // NPC colors based on attitude - unified palette
+    constexpr unsigned int NPC_HOSTILE = IM_COL32(80, 80, 255, 210);      // Strong classic red (R:255, G:80, B:80)
+    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green (R:100, G:255, B:100)
+    constexpr unsigned int NPC_NEUTRAL = IM_COL32(0, 255, 127, 210);      // Electric chartreuse (R:127, G:255, B:0)
+    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white (R:240, G:240, B:240)
     constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown (R:255, G:0, B:255)
     
     // Gadget colors

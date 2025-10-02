@@ -30,42 +30,15 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
 
     // Calculate health bar color based on entity type and attitude (informative, not health-based)
+    // Extract RGB from entityColor (which comes from ESPColors constants) and apply health bar alpha
     float healthAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha;
     unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f);
     healthAlpha = (healthAlpha > 255) ? 255 : healthAlpha;
     
-    unsigned int healthColor;
-    if (entityType == ESPEntityType::Player) {
-        // Players (The User): Natural light pastel blue
-        healthColor = IM_COL32(135, 206, 250, healthAlpha);
-    } else if (entityType == ESPEntityType::NPC) {
-        // NPCs: Color based on attitude (GW2 convention)
-        switch (attitude) {
-            case Game::Attitude::Hostile:
-                // Immediate threat: Fiery Coral
-                healthColor = IM_COL32(255, 84, 112, healthAlpha);
-                break;
-            case Game::Attitude::Friendly:
-                // Active ally: Vibrant Lime Green
-                healthColor = IM_COL32(50, 255, 50, healthAlpha);
-                break;
-            case Game::Attitude::Neutral:
-                // Non-attackable/passive: Bright Chartreuse
-                healthColor = IM_COL32(127, 255, 0, healthAlpha);
-                break;
-            case Game::Attitude::Indifferent:
-                // Background info: Civilian White
-                healthColor = IM_COL32(240, 240, 240, healthAlpha);
-                break;
-            default:
-                // Unknown: Magenta (debug color)
-                healthColor = IM_COL32(255, 0, 255, healthAlpha);
-                break;
-        }
-    } else {
-        // Gadgets: Warm orange (shouldn't normally have health bars, but just in case)
-        healthColor = IM_COL32(255, 165, 80, healthAlpha);
-    }
+    int r = (entityColor >> 16) & 0xFF;
+    int g = (entityColor >> 8) & 0xFF;
+    int b = entityColor & 0xFF;
+    unsigned int healthColor = IM_COL32(b, g, r, healthAlpha);
     
     // Draw health fill
     drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
