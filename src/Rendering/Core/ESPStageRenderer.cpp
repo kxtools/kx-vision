@@ -14,8 +14,6 @@
 
 namespace kx {
 
-const ImU32 DEFAULT_TEXT_COLOR = IM_COL32(255, 255, 255, 255); // White
-
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                       const PooledFrameRenderData& frameData, Camera& camera) {
     // Simple rendering - no filtering logic, just draw everything that was passed in
@@ -34,7 +32,7 @@ bool ESPStageRenderer::IsEntityOnScreen(const glm::vec3& position, Camera& camer
     }
     
     // Screen bounds culling with small margin for partially visible entities
-    const float margin = 50.0f;
+    const float margin = ScreenCulling::VISIBILITY_MARGIN;
     if (outScreenPos.x < -margin || outScreenPos.x > screenWidth + margin || 
         outScreenPos.y < -margin || outScreenPos.y > screenHeight + margin) {
         return false; // Entity is off-screen
@@ -228,7 +226,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
             auto gearDetails = ESPPlayerDetailsBuilder::BuildGearDetails(player);
             if (!gearDetails.empty()) {
                 if (!details.empty()) {
-                    details.push_back({ "--- Gear Stats ---", DEFAULT_TEXT_COLOR });
+                    details.push_back({ "--- Gear Stats ---", ESPColors::DEFAULT_TEXT });
                 }
                 details.insert(details.end(), gearDetails.begin(), gearDetails.end());
             }

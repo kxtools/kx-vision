@@ -74,6 +74,9 @@ namespace RenderingEffects {
 namespace ESPColors {
     // Colors are defined in (Blue, Green, Red, Alpha) order for IM_COL32.
 
+    // Default text color (used across all detail rendering)
+    constexpr unsigned int DEFAULT_TEXT = IM_COL32(255, 255, 255, 255);  // White (R:255, G:255, B:255)
+
     // Player colors
     constexpr unsigned int PLAYER = IM_COL32(255, 200, 100, 220);  // Bright cyan/blue (R:100, G:200, B:255)
     
@@ -86,6 +89,16 @@ namespace ESPColors {
     
     // Gadget colors
     constexpr unsigned int GADGET = IM_COL32(80, 165, 255, 200);  // Warm orange/amber (R:255, G:165, B:80)
+}
+
+/**
+ * @brief Screen space culling constants
+ * 
+ * Constants used for determining when entities are visible on screen.
+ */
+namespace ScreenCulling {
+    // Margin for screen bounds culling - allows partially visible entities to render
+    constexpr float VISIBILITY_MARGIN = 50.0f;
 }
 
 /**

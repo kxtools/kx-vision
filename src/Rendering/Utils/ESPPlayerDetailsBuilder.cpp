@@ -1,5 +1,6 @@
 #include "ESPPlayerDetailsBuilder.h"
 #include "ESPFormatting.h"
+#include "ESPConstants.h"
 #include "../../Game/GameEnums.h"
 #include "../../Game/Generated/StatData.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -8,8 +9,6 @@
 #include "ESPStyling.h"
 
 namespace kx {
-
-const ImU32 DEFAULT_TEXT_COLOR = IM_COL32(255, 255, 255, 255); // White
 
 std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
@@ -22,7 +21,7 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
     details.reserve(16); // Future-proof: generous reserve for adding new fields
 
     if (!player->playerName.empty()) {
-        details.push_back({ "Player: " + player->playerName, DEFAULT_TEXT_COLOR });
+        details.push_back({ "Player: " + player->playerName, ESPColors::DEFAULT_TEXT });
     }
 
     if (player->level > 0) {
@@ -30,32 +29,32 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {
             levelText += " (" + std::to_string(player->scaledLevel) + ")";
         }
-        details.push_back({ levelText, DEFAULT_TEXT_COLOR });
+        details.push_back({ levelText, ESPColors::DEFAULT_TEXT });
     }
 
     if (player->profession != Game::Profession::None) {
         const char* profName = Game::EnumHelpers::GetProfessionName(player->profession);
-        details.push_back({ "Prof: " + (profName ? std::string(profName) : "ID: " + std::to_string(static_cast<uint32_t>(player->profession))), DEFAULT_TEXT_COLOR });
+        details.push_back({ "Prof: " + (profName ? std::string(profName) : "ID: " + std::to_string(static_cast<uint32_t>(player->profession))), ESPColors::DEFAULT_TEXT });
     }
 
     if (player->race != Game::Race::None) {
         const char* raceName = Game::EnumHelpers::GetRaceName(player->race);
-        details.push_back({ "Race: " + (raceName ? std::string(raceName) : "ID: " + std::to_string(static_cast<uint8_t>(player->race))), DEFAULT_TEXT_COLOR });
+        details.push_back({ "Race: " + (raceName ? std::string(raceName) : "ID: " + std::to_string(static_cast<uint8_t>(player->race))), ESPColors::DEFAULT_TEXT });
     }
 
     if (player->maxHealth > 0) {
-        details.push_back({ "HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)), DEFAULT_TEXT_COLOR });
+        details.push_back({ "HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)), ESPColors::DEFAULT_TEXT });
     }
 
     if (player->maxEnergy > 0) {
         const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
-        details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)", DEFAULT_TEXT_COLOR });
+        details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)", ESPColors::DEFAULT_TEXT });
     }
 
     if (showDebugAddresses) {
         char addrStr[32];
         snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
-        details.push_back({ std::string(addrStr), DEFAULT_TEXT_COLOR });
+        details.push_back({ std::string(addrStr), ESPColors::DEFAULT_TEXT });
     }
 
     return details;
