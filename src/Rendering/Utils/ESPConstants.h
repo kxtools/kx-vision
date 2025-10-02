@@ -133,7 +133,7 @@ namespace RenderingLayout {
     constexpr float PLAYER_NAME_BG_PADDING_Y = 2.0f;
     constexpr float PLAYER_NAME_BG_ROUNDING = 3.0f;
     constexpr float PLAYER_NAME_BORDER_THICKNESS = 1.0f;
-    constexpr float PLAYER_NAME_BG_ALPHA = 100.0f;
+    constexpr float PLAYER_NAME_BG_ALPHA = 60.0f;  // Very gentle, transparent background
     constexpr float PLAYER_NAME_BORDER_ALPHA = 120.0f;
     constexpr float PLAYER_NAME_SHADOW_ALPHA = 180.0f;
     constexpr float PLAYER_NAME_TEXT_ALPHA = 220.0f;
@@ -146,7 +146,7 @@ namespace RenderingLayout {
     constexpr float DISTANCE_TEXT_BG_PADDING_X = 2.0f;
     constexpr float DISTANCE_TEXT_BG_PADDING_Y = 1.0f;
     constexpr float DISTANCE_TEXT_BG_ROUNDING = 2.0f;
-    constexpr float DISTANCE_TEXT_BG_ALPHA = 100.0f;
+    constexpr float DISTANCE_TEXT_BG_ALPHA = 60.0f;  // Gentle, transparent background
     constexpr float DISTANCE_TEXT_SHADOW_ALPHA = 180.0f;
     constexpr float DISTANCE_TEXT_TEXT_ALPHA = 220.0f;
 
@@ -156,7 +156,7 @@ namespace RenderingLayout {
     constexpr float DETAILS_TEXT_BG_PADDING_Y = 1.0f;
     constexpr float DETAILS_TEXT_BG_ROUNDING = 1.0f;
     constexpr float DETAILS_TEXT_LINE_SPACING = 3.0f;
-    constexpr float DETAILS_TEXT_BG_ALPHA = 100.0f;
+    constexpr float DETAILS_TEXT_BG_ALPHA = 60.0f;  // Gentle, transparent background
     constexpr float DETAILS_TEXT_SHADOW_ALPHA = 180.0f;
 
     // Compact Summary Views (Gear, Stats)
@@ -164,7 +164,7 @@ namespace RenderingLayout {
     constexpr float SUMMARY_BG_PADDING_X = 4.0f;
     constexpr float SUMMARY_BG_PADDING_Y = 2.0f;
     constexpr float SUMMARY_BG_ROUNDING = 3.0f;
-    constexpr float SUMMARY_BG_ALPHA = 80.0f;
+    constexpr float SUMMARY_BG_ALPHA = 60.0f;  // Gentle, transparent background
     constexpr float SUMMARY_SHADOW_ALPHA = 160.0f;
     constexpr float SUMMARY_TEXT_ALPHA = 200.0f;
 

@@ -126,13 +126,8 @@ TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int e
     style.backgroundAlpha = RenderingLayout::PLAYER_NAME_BG_ALPHA / 255.0f;
     style.backgroundRounding = RenderingLayout::PLAYER_NAME_BG_ROUNDING;
     
-    // Border with entity color
-    style.enableBorder = true;
-    int r = (entityColor >> 16) & 0xFF;
-    int g = (entityColor >> 8) & 0xFF;
-    int b = entityColor & 0xFF;
-    style.borderColor = IM_COL32(r, g, b, static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_BORDER_ALPHA));
-    style.borderThickness = RenderingLayout::PLAYER_NAME_BORDER_THICKNESS;
+    // No border - keep it clean and natural like game UI
+    style.enableBorder = false;
     
     return style;
 }
