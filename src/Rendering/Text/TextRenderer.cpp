@@ -136,7 +136,10 @@ void TextRenderer::RenderBackground(const ImVec2& textPos, const ImVec2& textSiz
     ImVec2 bgMin(textPos.x - style.backgroundPadding.x, textPos.y - style.backgroundPadding.y);
     ImVec2 bgMax(textPos.x + textSize.x + style.backgroundPadding.x, textPos.y + textSize.y + style.backgroundPadding.y);
     
-    unsigned int bgAlpha = static_cast<unsigned int>(style.backgroundAlpha * style.fadeAlpha * 255.0f);
+    // Use more precise alpha calculation to avoid jitter
+    float alphaf = style.backgroundAlpha * style.fadeAlpha * 255.0f;
+    unsigned int bgAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
+    bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha; // Clamp
     ImU32 bgColor = IM_COL32(0, 0, 0, bgAlpha);
     
     m_drawList->AddRectFilled(bgMin, bgMax, bgColor, style.backgroundRounding);
@@ -158,11 +161,14 @@ void TextRenderer::RenderTextLine(const std::vector<TextSegment>& segments, cons
     for (const auto& segment : segments) {
         if (segment.text.empty()) continue;
         
+        // Calculate segment size with proper scaling
         ImVec2 segmentSize = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, segment.text.c_str());
         
         // Render shadow
         if (style.enableShadow) {
-            unsigned int shadowAlpha = static_cast<unsigned int>(style.shadowAlpha * style.fadeAlpha * 255.0f);
+            float alphaf = style.shadowAlpha * style.fadeAlpha * 255.0f;
+            unsigned int shadowAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
+            shadowAlpha = (shadowAlpha > 255) ? 255 : shadowAlpha; // Clamp
             ImVec2 shadowPos(currentPos.x + style.shadowOffset.x, currentPos.y + style.shadowOffset.y);
             m_drawList->AddText(font, style.fontSize, shadowPos, IM_COL32(0, 0, 0, shadowAlpha), segment.text.c_str());
         }
@@ -183,7 +189,10 @@ ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) const {
     int b = (color >> 16) & 0xFF;
     int a = (color >> 24) & 0xFF;
     
-    unsigned int newAlpha = static_cast<unsigned int>(a * fadeAlpha);
+    // Use rounding for smoother alpha transitions
+    float alphaf = static_cast<float>(a) * fadeAlpha;
+    unsigned int newAlpha = static_cast<unsigned int>(alphaf + 0.5f);
+    newAlpha = (newAlpha > 255) ? 255 : newAlpha; // Clamp
     return IM_COL32(r, g, b, newAlpha);
 }
 
