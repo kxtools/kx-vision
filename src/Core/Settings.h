@@ -148,11 +148,11 @@ namespace kx {
         float baseDotRadius = 3.0f;             // Center dot size (clean, minimal at 2.4px actual with multiplier)
         float baseBoxThickness = 2.0f;          // Bounding box line thickness (optimal visibility)
         float baseBoxHeight = 90.0f;            // Player/NPC box height (realistic proportions)
-        float baseBoxWidth = 40.0f;             // Player/NPC box width (2.25:1 ratio = humanoid shape)
+        float baseBoxWidth = 45.0f;             // Player/NPC box width (2:1 ratio = balanced humanoid shape)
         
         // --- Health Bars ---
-        float baseHealthBarWidth = 40.0f;       // Health bar width (matches box width for consistency)
-        float baseHealthBarHeight = 6.0f;       // Health bar height (subtle, non-obtrusive)
+        float baseHealthBarWidth = 60.0f;       // Health bar width (33% wider than box, maximum prominence)
+        float baseHealthBarHeight = 7.0f;       // Health bar height (~8.5:1 ratio, bold visibility)
     };
 
     struct Settings {
