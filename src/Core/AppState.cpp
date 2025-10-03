@@ -49,7 +49,7 @@ namespace kx {
         float newFarPlane = distances[percentile_index];
         
         // Clamp the value to a reasonable range to prevent extreme outliers
-        newFarPlane = (std::clamp)(newFarPlane, 400.0f, 3000.0f); // 400m minimum (small instances), 3000m maximum (prevent outliers)
+        newFarPlane = (std::clamp)(newFarPlane, 100.0f, 3000.0f); // 100m minimum (small instances), 3000m maximum (prevent outliers)
 
         // 4. Smoothly interpolate to the new value to prevent visual "snapping"
         // This makes the transition invisible to the user if the range changes
