@@ -100,8 +100,11 @@ namespace kx {
         float espMinScale = 0.1f;
         float espMaxScale = 1.0f;
         float espScalingStartDistance = 20.0f; // The recommended value.
-        float espDistanceFactor = 200.0f;      // The balanced, natural curve
-        float espScalingExponent = 1.2f;       // A slightly accelerating curve feels most natural.
+        float espDistanceFactor = 110.0f;      // For LIMIT MODE - The balanced, natural curve
+        float espScalingExponent = 1.2f;       // For LIMIT MODE - A slightly accelerating curve feels most natural.
+        
+        // --- Scaling for "No Limit" Mode ---
+        float noLimitScalingExponent = 1.2f;   // Controls curve shape in No Limit mode (distanceFactor is dynamic)
 
         // Base size settings for scalable elements
         float espMinFontSize = 9.0f;

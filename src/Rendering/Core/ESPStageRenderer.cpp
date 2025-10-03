@@ -47,8 +47,29 @@ float ESPStageRenderer::CalculateEntityScale(float visualDistance) {
     // Calculate the effective distance, which only starts counting after the "dead zone"
     float effectiveDistance = (std::max)(0.0f, visualDistance - settings.espScalingStartDistance);
 
-    // Calculate scale using the effective distance
-    float rawScale = settings.espDistanceFactor / (settings.espDistanceFactor + pow(effectiveDistance, settings.espScalingExponent));
+    float distanceFactor;
+    float scalingExponent;
+
+    if (settings.espUseDistanceLimit) {
+        // --- LIMIT MODE ---
+        // Use the static, user-configured curve for the short 0-90m range
+        distanceFactor = settings.espDistanceFactor;
+        scalingExponent = settings.espScalingExponent;
+    } else {
+        // --- NO LIMIT MODE (FULLY DYNAMIC) ---
+        // The Distance Factor is now calculated dynamically based on the adaptive far plane.
+        // We set the 50% scale point to be halfway to the furthest visible group of entities.
+        float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
+        
+        // Ensure the factor is always a reasonable value (minimum 250m for 50% scale point)
+        distanceFactor = (std::max)(250.0f, adaptiveFarPlane / 2.0f);
+        
+        // The user can still control the shape of the curve
+        scalingExponent = settings.noLimitScalingExponent;
+    }
+    
+    // Calculate scale using the dynamically determined parameters
+    float rawScale = distanceFactor / (distanceFactor + pow(effectiveDistance, scalingExponent));
 
     // Clamp to min/max bounds
     return (std::max)(settings.espMinScale, (std::min)(rawScale, settings.espMaxScale));

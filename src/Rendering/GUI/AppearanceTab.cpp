@@ -31,9 +31,36 @@ namespace kx {
                     ImGui::SetTooltip("The distance at which elements begin to scale down.\nSet to 0.0 for a continuous curve.");
                 }
 
-                ImGui::SliderFloat("Distance Factor", &settings.espDistanceFactor, 50.0f, 500.0f, "%.0f");
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("The main control for the curve's steepness.\nHigher values = gentler slope (slower scaling).");
+                // --- MODE-SPECIFIC CONTROLS ---
+                if (settings.espUseDistanceLimit) {
+                    // --- SETTINGS FOR "LIMIT MODE" ---
+                    ImGui::Separator();
+                    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Render Limit Mode Scaling");
+                    
+                    ImGui::SliderFloat("Distance Factor##Limit", &settings.espDistanceFactor, 50.0f, 500.0f, "%.0f");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("The main control for the curve's steepness.\nHigher values = gentler slope (slower scaling).");
+                    }
+                    
+                    ImGui::SliderFloat("Scaling Exponent##Limit", &settings.espScalingExponent, 0.5f, 2.5f, "%.2f");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Controls the mathematical shape of the curve.\nDefault is 1.2 for natural falloff.");
+                    }
+                } else {
+                    // --- SETTINGS FOR "NO LIMIT MODE" ---
+                    ImGui::Separator();
+                    ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.6f, 1.0f), "Unlimited Mode Scaling (Adaptive)");
+                    ImGui::TextWrapped("Distance Factor is automatic based on scene.");
+                    
+                    ImGui::SliderFloat("Curve Shape (Exponent)##NoLimit", &settings.noLimitScalingExponent, 0.5f, 2.0f, "%.2f");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip(
+                            "Controls how aggressively entities shrink with distance.\n\n"
+                            "0.5-1.0: Gentle scaling, maximum readability\n"
+                            "1.2 (Recommended): Balanced scaling for most scenarios\n"
+                            "1.5-2.0: Aggressive scaling, reduces clutter"
+                        );
+                    }
                 }
 
                 ImGui::Separator();
@@ -44,11 +71,6 @@ namespace kx {
 
                 if (showAdvancedScaling) {
                     ImGui::Indent(); // Indent the advanced options for clarity
-
-                    ImGui::SliderFloat("Scaling Exponent", &settings.espScalingExponent, 0.5f, 2.5f, "%.2f");
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("Controls the mathematical shape of the curve.\nDefault is 1.2.");
-                    }
 
                     ImGui::SliderFloat("Min Scale", &settings.espMinScale, 0.1f, 1.0f, "%.2f");
                     if (ImGui::IsItemHovered()) {
