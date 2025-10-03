@@ -132,6 +132,13 @@ namespace RenderingEffects {
     // Distance fade zone - entities fade out in the last 11% of their distance limit
     // e.g., with 90m limit: fade starts at 80m (90 * 0.89), ends at 90m
     constexpr float FADE_ZONE_PERCENTAGE = 0.11f;
+    
+    // Hostile player visibility enhancement (PvP combat awareness)
+    // This multiplier is applied to ALL hostile player visual elements:
+    // - Box border thickness
+    // - Health bar width/height
+    // - Player name font size
+    constexpr float HOSTILE_PLAYER_VISUAL_MULTIPLIER = 2.0f;
 }
 
 /**

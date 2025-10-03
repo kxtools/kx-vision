@@ -66,24 +66,34 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
                                              settings.distance.useDistanceLimit, context.entityType,
                                              normalizedDistance);
     
+    // Hostile players always render at 100% opacity (critical for PvP combat awareness)
+    bool isHostilePlayer = (context.entityType == ESPEntityType::Player && 
+                           context.attitude == Game::Attitude::Hostile);
+    if (isHostilePlayer) {
+        props.finalAlpha = 1.0f;
+    }
+    
     // Apply final alpha to the entity color
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
     
     // 7. Calculate scaled sizes with limits to prevent extreme values
+    // Apply hostile player multiplier for enhanced visibility (PvP combat awareness)
+    float hostileMultiplier = isHostilePlayer ? RenderingEffects::HOSTILE_PLAYER_VISUAL_MULTIPLIER : 1.0f;
+    
     props.finalFontSize = (std::max)(settings.sizes.minFontSize, 
-                                    (std::min)(settings.sizes.baseFontSize * props.scale, 
+                                    (std::min)(settings.sizes.baseFontSize * props.scale * hostileMultiplier, 
                                               ScalingLimits::MAX_FONT_SIZE));
     props.finalBoxThickness = (std::max)(ScalingLimits::MIN_BOX_THICKNESS, 
-                                        (std::min)(settings.sizes.baseBoxThickness * props.scale, 
+                                        (std::min)(settings.sizes.baseBoxThickness * props.scale * hostileMultiplier, 
                                                   ScalingLimits::MAX_BOX_THICKNESS));
     props.finalDotRadius = (std::max)(ScalingLimits::MIN_DOT_RADIUS, 
                                      (std::min)(settings.sizes.baseDotRadius * props.scale, 
                                                ScalingLimits::MAX_DOT_RADIUS));
     props.finalHealthBarWidth = (std::max)(ScalingLimits::MIN_HEALTH_BAR_WIDTH, 
-                                          (std::min)(settings.sizes.baseHealthBarWidth * props.scale, 
+                                          (std::min)(settings.sizes.baseHealthBarWidth * props.scale * hostileMultiplier, 
                                                     ScalingLimits::MAX_HEALTH_BAR_WIDTH));
     props.finalHealthBarHeight = (std::max)(ScalingLimits::MIN_HEALTH_BAR_HEIGHT, 
-                                           (std::min)(settings.sizes.baseHealthBarHeight * props.scale, 
+                                           (std::min)(settings.sizes.baseHealthBarHeight * props.scale * hostileMultiplier, 
                                                      ScalingLimits::MAX_HEALTH_BAR_HEIGHT));
     
     return props;
