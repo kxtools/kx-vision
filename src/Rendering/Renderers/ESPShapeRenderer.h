@@ -43,6 +43,14 @@ public:
      */
     static void RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos, 
                                      float fadeAlpha, float radius);
+
+    /**
+     * @brief Apply alpha multiplier to a color while preserving RGB values
+     * @param color Original color (RGBA format)
+     * @param alpha Alpha multiplier (0.0-1.0)
+     * @return Modified color with adjusted alpha
+     */
+    static unsigned int ApplyAlphaToColor(unsigned int color, float alpha);
 };
 
 } // namespace kx

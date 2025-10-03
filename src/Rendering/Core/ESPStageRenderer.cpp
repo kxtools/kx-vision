@@ -7,7 +7,9 @@
 #include "../Utils/ESPPlayerDetailsBuilder.h"
 #include "../Utils/ESPEntityDetailsBuilder.h"
 #include "ESPFilter.h"
-#include "../Renderers/ESPFeatureRenderer.h"
+#include "../Renderers/ESPShapeRenderer.h"
+#include "../Renderers/ESPTextRenderer.h"
+#include "../Renderers/ESPHealthBarRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
@@ -210,7 +212,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                              settings.distance.useDistanceLimit, context.entityType, normalizedDistance);
     
     // Apply final alpha to the entity color
-    fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(fadedEntityColor, finalAlpha);
+    fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(fadedEntityColor, finalAlpha);
     
     // Calculate scaled sizes
     const float finalFontSize = (std::max)(settings.sizes.minFontSize, (std::min)(settings.sizes.baseFontSize * scale, 40.0f));
@@ -221,7 +223,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     
     // Render standalone health bars for living entities when health is available AND setting is enabled
     if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
-        ESPFeatureRenderer::RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, 
+        ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, screenPos, context.healthPercent, 
                                                      fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight,
                                                      context.entityType, context.attitude);
     }
@@ -233,7 +235,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
             drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), circleRadius, fadedEntityColor, 0, finalBoxThickness);
         } else {
             // Render traditional box for players/NPCs
-            ESPFeatureRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
+            ESPShapeRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
         }
     }
 
@@ -242,11 +244,11 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
         if (isGadget) {
             // For gadgets, position distance text above the circle
             ImVec2 textAnchor(center.x, center.y - circleRadius);
-            ESPFeatureRenderer::RenderDistanceText(drawList, center, textAnchor, context.gameplayDistance, 
+            ESPTextRenderer::RenderDistanceText(drawList, center, textAnchor, context.gameplayDistance, 
                                                   finalAlpha, finalFontSize);
         } else {
             // For players/NPCs, use traditional positioning
-            ESPFeatureRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
+            ESPTextRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
                                                   finalAlpha, finalFontSize);
         }
     }
@@ -254,9 +256,9 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render center dot
     if (context.renderDot) {
         if (isGadget) {
-            ESPFeatureRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
+            ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
         } else {
-            ESPFeatureRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
+            ESPShapeRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
         }
     }
 
@@ -266,7 +268,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
         std::string displayName = (context.attitude == Game::Attitude::Hostile) ? "HOSTILE" : context.playerName;
         if (!displayName.empty()) {
             // Use entity color directly (already attitude-based from ESPContextFactory)
-            ESPFeatureRenderer::RenderPlayerName(drawList, screenPos, displayName, fadedEntityColor, finalFontSize);
+            ESPTextRenderer::RenderPlayerName(drawList, screenPos, displayName, fadedEntityColor, finalFontSize);
         }
     }
 
@@ -275,10 +277,10 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
         if (isGadget) {
             // For gadgets, position details below the circle
             ImVec2 textAnchor(center.x, center.y + circleRadius);
-            ESPFeatureRenderer::RenderDetailsText(drawList, center, textAnchor, context.details, finalAlpha, finalFontSize);
+            ESPTextRenderer::RenderDetailsText(drawList, center, textAnchor, context.details, finalAlpha, finalFontSize);
         } else {
             // For players/NPCs, use traditional positioning
-            ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, finalAlpha, finalFontSize);
+            ESPTextRenderer::RenderDetailsText(drawList, center, boxMax, context.details, finalAlpha, finalFontSize);
         }
     }
 
@@ -287,12 +289,12 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
         switch (settings.playerESP.gearDisplayMode) {
         case GearDisplayMode::Compact: { // Compact (Stat Names)
             auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
-            ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, compactSummary, finalAlpha, finalFontSize);
+            ESPTextRenderer::RenderGearSummary(drawList, screenPos, compactSummary, finalAlpha, finalFontSize);
             break;
         }
         case GearDisplayMode::Attributes: { // Top 3 Attributes
             auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
-            ESPFeatureRenderer::RenderDominantStats(drawList, screenPos, dominantStats, finalAlpha, finalFontSize);
+            ESPTextRenderer::RenderDominantStats(drawList, screenPos, dominantStats, finalAlpha, finalFontSize);
             break;
         }
         default:
@@ -320,7 +322,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     }
     
     // 3. Apply distance fade to entity color
-    unsigned int fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(context.color, distanceFadeAlpha);
+    unsigned int fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(context.color, distanceFadeAlpha);
 
     // 4. Calculate distance-based scale
     float scale = CalculateEntityScale(context.visualDistance, context.entityType);

@@ -55,4 +55,18 @@ void ESPShapeRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::ve
     drawList->AddCircleFilled(pos, radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, IM_COL32(255, 255, 255, dotAlpha));
 }
 
+unsigned int ESPShapeRenderer::ApplyAlphaToColor(unsigned int color, float alpha) {
+    // Extract RGBA components
+    int r = (color >> 16) & 0xFF;
+    int g = (color >> 8) & 0xFF;
+    int b = color & 0xFF;
+    int originalAlpha = (color >> 24) & 0xFF;
+    
+    // Apply alpha multiplier while preserving original alpha intentions
+    int newAlpha = static_cast<int>(originalAlpha * alpha);
+    newAlpha = (newAlpha < 0) ? 0 : (newAlpha > 255) ? 255 : newAlpha; // Clamp to valid range
+    
+    return IM_COL32(r, g, b, newAlpha);
+}
+
 } // namespace kx
