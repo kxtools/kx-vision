@@ -103,9 +103,21 @@ namespace kx {
                         persistent.previousPosition = persistent.currentPosition;
                     }
                     
+                    // Calculate and smooth velocity using exponential moving average
+                    glm::vec3 instantVelocity = persistent.currentPosition - persistent.previousPosition;
+                    if (persistent.smoothedVelocity == glm::vec3(0.0f)) {
+                        // First velocity calculation - use instant velocity
+                        persistent.smoothedVelocity = instantVelocity;
+                    } else {
+                        // Smooth velocity: EMA = α * new + (1-α) * old
+                        persistent.smoothedVelocity = RenderingEffects::VELOCITY_SMOOTHING_FACTOR * instantVelocity +
+                                                     (1.0f - RenderingEffects::VELOCITY_SMOOTHING_FACTOR) * persistent.smoothedVelocity;
+                    }
+                    
                     // Copy persistent interpolation data to frame object
                     renderablePlayer->currentPosition = persistent.currentPosition;
                     renderablePlayer->previousPosition = persistent.previousPosition;
+                    renderablePlayer->smoothedVelocity = persistent.smoothedVelocity;
                     renderablePlayer->lastUpdateTime = persistent.lastUpdateTime;
                     
                     players.push_back(renderablePlayer);
@@ -137,9 +149,21 @@ namespace kx {
                         persistent.previousPosition = persistent.currentPosition;
                     }
                     
+                    // Calculate and smooth velocity using exponential moving average
+                    glm::vec3 instantVelocity = persistent.currentPosition - persistent.previousPosition;
+                    if (persistent.smoothedVelocity == glm::vec3(0.0f)) {
+                        // First velocity calculation - use instant velocity
+                        persistent.smoothedVelocity = instantVelocity;
+                    } else {
+                        // Smooth velocity: EMA = α * new + (1-α) * old
+                        persistent.smoothedVelocity = RenderingEffects::VELOCITY_SMOOTHING_FACTOR * instantVelocity +
+                                                     (1.0f - RenderingEffects::VELOCITY_SMOOTHING_FACTOR) * persistent.smoothedVelocity;
+                    }
+                    
                     // Copy persistent interpolation data to frame object
                     renderableNpc->currentPosition = persistent.currentPosition;
                     renderableNpc->previousPosition = persistent.previousPosition;
+                    renderableNpc->smoothedVelocity = persistent.smoothedVelocity;
                     renderableNpc->lastUpdateTime = persistent.lastUpdateTime;
                     
                     npcs.push_back(renderableNpc);
@@ -193,9 +217,21 @@ namespace kx {
                     persistent.previousPosition = persistent.currentPosition;
                 }
                 
+                // Calculate and smooth velocity using exponential moving average
+                glm::vec3 instantVelocity = persistent.currentPosition - persistent.previousPosition;
+                if (persistent.smoothedVelocity == glm::vec3(0.0f)) {
+                    // First velocity calculation - use instant velocity
+                    persistent.smoothedVelocity = instantVelocity;
+                } else {
+                    // Smooth velocity: EMA = α * new + (1-α) * old
+                    persistent.smoothedVelocity = RenderingEffects::VELOCITY_SMOOTHING_FACTOR * instantVelocity +
+                                                 (1.0f - RenderingEffects::VELOCITY_SMOOTHING_FACTOR) * persistent.smoothedVelocity;
+                }
+                
                 // Copy persistent interpolation data to frame object
                 renderableGadget->currentPosition = persistent.currentPosition;
                 renderableGadget->previousPosition = persistent.previousPosition;
+                renderableGadget->smoothedVelocity = persistent.smoothedVelocity;
                 renderableGadget->lastUpdateTime = persistent.lastUpdateTime;
                 
                 gadgets.push_back(renderableGadget);

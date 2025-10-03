@@ -33,13 +33,15 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
         double timeSinceUpdate = currentTime - context.entity->lastUpdateTime;
         float alpha = static_cast<float>(timeSinceUpdate / espUpdateInterval);
         
-        // Clamp alpha to [0, 1] to prevent overshooting
-        alpha = std::clamp(alpha, 0.0f, 1.0f);
-        
-        // Linear interpolation between previous and current positions
-        interpolatedPosition = glm::mix(context.entity->previousPosition,
-                                       context.entity->currentPosition,
-                                       alpha);
+        // Use smoothed velocity for extrapolation (reduces jitter)
+        // Allow extrapolation beyond update interval for butter-smooth motion
+        if (alpha <= RenderingEffects::MAX_EXTRAPOLATION_ALPHA) {
+            // Use smoothed velocity for more stable prediction
+            interpolatedPosition = context.entity->previousPosition + context.entity->smoothedVelocity * alpha;
+        } else {
+            // If we're way past the update time, just use current position (failsafe)
+            interpolatedPosition = context.entity->currentPosition;
+        }
     }
     
     // 1. Check if entity is on screen (using interpolated position)
