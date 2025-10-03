@@ -51,8 +51,8 @@ namespace kx {
         std::nth_element(distances.begin(), distances.begin() + percentile_index, distances.end());
         float newFarPlane = distances[percentile_index];
         
-        // Clamp the value to a reasonable range to prevent extreme values if everything is up close
-        newFarPlane = (std::max)(newFarPlane, 400.0f); // Ensure the plane is at least 400m
+        // Clamp the value to a reasonable range to prevent extreme outliers
+        newFarPlane = (std::clamp)(newFarPlane, 400.0f, 3000.0f); // 400m minimum (small instances), 3000m maximum (prevent outliers)
 
         // 4. Smoothly interpolate to the new value to prevent visual "snapping"
         // This makes the transition invisible to the user if the range changes

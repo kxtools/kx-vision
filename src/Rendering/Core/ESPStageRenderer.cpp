@@ -120,6 +120,46 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
     }
 }
 
+float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
+                                               bool useDistanceLimit, float& outNormalizedDistance) {
+    outNormalizedDistance = 0.0f; // Initialize output
+    
+    if (useDistanceLimit) {
+        // --- RENDER LIMIT MODE ---
+        // Goal: Natural Integration - clean, seamless extension of game's UI
+        // Use the pre-calculated distance fade alpha from ESPFilter
+        return distanceFadeAlpha;
+    } else {
+        // --- NO LIMIT MODE (ADAPTIVE SYSTEM) ---
+        // Goal: Maximum Information Clarity - present vast amounts of data readably
+        float finalAlpha = 1.0f; // Default to fully visible
+        
+        const float farPlane = AppState::Get().GetAdaptiveFarPlane(); // Get the intelligent, pre-calculated adaptive range
+        const float effectStartDistance = 90.0f; // Match game's natural entity range - effects begin beyond game's culling distance
+        
+        if (gameplayDistance > effectStartDistance) {
+            // Calculate normalized distance (0.0 at effectStartDistance, 1.0 at farPlane)
+            float range = farPlane - effectStartDistance;
+            if (range > 0.0f) {
+                float progress = (gameplayDistance - effectStartDistance) / range;
+                outNormalizedDistance = (std::clamp)(progress, 0.0f, 1.0f);
+            }
+            
+            // --- TECHNIQUE 1: Far-Distance Alpha Fading (Atmospheric Perspective) ---
+            // Simulates atmospheric haze - objects become fainter with distance
+            // Linearly interpolate alpha from 1.0 (opaque) down to a minimum visibility
+            // In "No Limit" mode, prioritize clarity - even far entities must be readable
+            finalAlpha = 1.0f - outNormalizedDistance;
+            finalAlpha = (std::max)(0.5f, finalAlpha); // Clamp to minimum 50% opacity for readability
+            
+            // Future LOD effects can use normalizedDistance here
+            // For example: reduce detail, simplify rendering, etc.
+        }
+        
+        return finalAlpha;
+    }
+}
+
 void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
                                              const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
                                              const ImVec2& center, unsigned int fadedEntityColor, 
@@ -132,42 +172,9 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // 1. Render Limit Mode (ON): Natural Integration - respects game's rules, uses distance-based fade
     // 2. No Limit Mode (OFF): Maximum Information Clarity - uses adaptive far plane for intelligent scaling
     
-    float finalAlpha = 1.0f;
     float normalizedDistance = 0.0f; // Used for LOD effects in No Limit mode
-    
-    if (settings.distance.useDistanceLimit) {
-        // --- RENDER LIMIT MODE (UNCHANGED) ---
-        // Goal: Natural Integration - clean, seamless extension of game's UI
-        finalAlpha = distanceFadeAlpha;
-        // In this mode, the fade is already calculated by ESPFilter::CalculateDistanceFadeAlpha
-        // which uses the user-specified distance limit
-    } else {
-        // --- NO LIMIT MODE (ADAPTIVE SYSTEM) ---
-        // Goal: Maximum Information Clarity - present vast amounts of data readably
-        finalAlpha = 1.0f; // Default to fully visible
-        
-        const float farPlane = AppState::Get().GetAdaptiveFarPlane(); // Get the intelligent, pre-calculated adaptive range
-        const float effectStartDistance = 150.0f; // Distance where effects begin
-        
-        if (context.gameplayDistance > effectStartDistance) {
-            // Calculate normalized distance (0.0 at effectStartDistance, 1.0 at farPlane)
-            float range = farPlane - effectStartDistance;
-            if (range > 0.0f) {
-                float progress = (context.gameplayDistance - effectStartDistance) / range;
-                normalizedDistance = (std::clamp)(progress, 0.0f, 1.0f);
-            }
-            
-            // --- TECHNIQUE 1: Far-Distance Alpha Fading (Atmospheric Perspective) ---
-            // Simulates atmospheric haze - objects become fainter with distance
-            // Linearly interpolate alpha from 1.0 (opaque) down to a minimum visibility
-            // In "No Limit" mode, prioritize clarity - even far entities must be readable
-            finalAlpha = 1.0f - normalizedDistance;
-            finalAlpha = (std::max)(0.5f, finalAlpha); // Clamp to minimum 50% opacity for readability
-            
-            // Future LOD effects can use normalizedDistance here
-            // For example: reduce detail, simplify rendering, etc.
-        }
-    }
+    float finalAlpha = CalculateAdaptiveAlpha(context.gameplayDistance, distanceFadeAlpha, 
+                                             settings.distance.useDistanceLimit, normalizedDistance);
     
     // Apply final alpha to the entity color
     fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(fadedEntityColor, finalAlpha);

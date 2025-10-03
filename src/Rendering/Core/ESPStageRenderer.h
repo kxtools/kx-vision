@@ -102,6 +102,17 @@ private:
 
     // Distance fading helper function
     static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
+
+    /**
+     * @brief Calculate adaptive alpha based on rendering mode
+     * @param gameplayDistance Distance from player to entity
+     * @param distanceFadeAlpha Pre-calculated distance fade alpha (for Limit Mode)
+     * @param useDistanceLimit Whether distance limit mode is enabled
+     * @param outNormalizedDistance Output normalized distance (0.0-1.0, for future LOD effects)
+     * @return Final alpha value with atmospheric fading applied
+     */
+    static float CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha, 
+                                       bool useDistanceLimit, float& outNormalizedDistance);
 };
 
 } // namespace kx
