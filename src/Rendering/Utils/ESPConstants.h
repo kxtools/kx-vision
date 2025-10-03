@@ -171,7 +171,7 @@ namespace RenderingLayout {
     constexpr float BOX_CORNER_SIZE_MULTIPLIER = 4.0f;        // Corner length = thickness × 4 (8px at 2px thick)
 
     // Distance Text (compact metric label)
-    constexpr float DISTANCE_TEXT_Y_OFFSET = 5.0f;            // 5px gap from anchor
+    constexpr float DISTANCE_TEXT_Y_OFFSET = 15.0f;           // 15px gap from anchor (clean separation from box)
     constexpr float DISTANCE_TEXT_BG_PADDING_X = 3.0f;        // 3px horizontal padding (increased from 2px)
     constexpr float DISTANCE_TEXT_BG_PADDING_Y = 1.0f;        // 1px vertical padding (compact)
     constexpr float DISTANCE_TEXT_BG_ROUNDING = 2.0f;         // 2px rounded corners
