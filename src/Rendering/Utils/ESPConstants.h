@@ -70,25 +70,25 @@ namespace RenderingEffects {
  * - Players: Bright cyan/blue for easy team identification
  * - NPCs: Attitude-based colors following GW2 conventions
  * - Gadgets: Warm orange for interactable objects
+ * 
+ * Note: IM_COL32 takes colors in (R, G, B, A) order - Red, Green, Blue, Alpha
  */
 namespace ESPColors {
-    // Colors are defined in (Blue, Green, Red, Alpha) order for IM_COL32.
-
     // Default text color (used across all detail rendering)
-    constexpr unsigned int DEFAULT_TEXT = IM_COL32(255, 255, 255, 255);  // White (R:255, G:255, B:255)
+    constexpr unsigned int DEFAULT_TEXT = IM_COL32(255, 255, 255, 255);  // White
 
     // Player colors
-    constexpr unsigned int PLAYER = IM_COL32(255, 144, 30, 230);
+    constexpr unsigned int PLAYER = IM_COL32(30, 144, 255, 230);  // Bright cyan/blue (dodger blue)
     
     // NPC colors based on attitude - unified palette
-    constexpr unsigned int NPC_HOSTILE = IM_COL32(80, 80, 255, 210);      // Strong classic red (R:255, G:80, B:80)
-    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green (R:100, G:255, B:100)
-    constexpr unsigned int NPC_NEUTRAL = IM_COL32(0, 255, 127, 210);      // Electric chartreuse (R:127, G:255, B:0)
-    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white (R:240, G:240, B:240)
-    constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown (R:255, G:0, B:255)
+    constexpr unsigned int NPC_HOSTILE = IM_COL32(255, 80, 80, 210);      // Strong classic red
+    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green
+    constexpr unsigned int NPC_NEUTRAL = IM_COL32(127, 255, 0, 210);      // Electric chartreuse (yellow-green)
+    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white
+    constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown
     
     // Gadget colors
-    constexpr unsigned int GADGET = IM_COL32(80, 165, 255, 200);  // Warm orange/amber (R:255, G:165, B:80)
+    constexpr unsigned int GADGET = IM_COL32(255, 165, 80, 200);  // Warm orange/amber
 }
 
 /**
