@@ -58,7 +58,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
     std::vector<TextSegment> segments;
     
     // Add prefix
-    segments.push_back(TextSegment("Stats: ", IM_COL32(200, 210, 255, 255)));
+    segments.push_back(TextSegment("Stats: ", ESPColors::SUMMARY_TEXT_RGB));
     
     // Add each stat with its rarity color
     for (size_t i = 0; i < summary.size(); ++i) {
@@ -69,7 +69,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
         
         // Add separator
         if (i < summary.size() - 1) {
-            segments.push_back(TextSegment(", ", IM_COL32(200, 210, 255, 255)));
+            segments.push_back(TextSegment(", ", ESPColors::SUMMARY_TEXT_RGB));
         }
     }
     
@@ -187,8 +187,8 @@ TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha, float fontSize) {
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     
-    // Text
-    style.textColor = IM_COL32(200, 210, 255, static_cast<unsigned int>(RenderingLayout::SUMMARY_TEXT_ALPHA));
+    // Text - use SUMMARY_TEXT_RGB base color with custom alpha
+    style.textColor = (ESPColors::SUMMARY_TEXT_RGB & 0x00FFFFFF) | (static_cast<unsigned int>(RenderingLayout::SUMMARY_TEXT_ALPHA) << 24);
     
     // Shadow
     style.enableShadow = true;

@@ -160,6 +160,10 @@ namespace ESPColors {
     
     // Gadget colors
     constexpr unsigned int GADGET = IM_COL32(255, 165, 80, 200);  // Warm orange/amber
+    
+    // Summary/gear display colors
+    constexpr unsigned int SUMMARY_TEXT_RGB = IM_COL32(200, 210, 255, 255);  // Light periwinkle (for gear stats/summaries)
+    // Note: Use with custom alpha - RGB(200, 210, 255) is a soft, readable blue-tinted white
 }
 
 /**
