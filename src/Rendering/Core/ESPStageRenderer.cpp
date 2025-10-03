@@ -45,16 +45,16 @@ float ESPStageRenderer::CalculateEntityScale(float visualDistance) {
     const auto& settings = AppState::Get().GetSettings();
     
     // Calculate the effective distance, which only starts counting after the "dead zone"
-    float effectiveDistance = (std::max)(0.0f, visualDistance - settings.espScalingStartDistance);
+    float effectiveDistance = (std::max)(0.0f, visualDistance - settings.scaling.scalingStartDistance);
 
     float distanceFactor;
     float scalingExponent;
 
-    if (settings.espUseDistanceLimit) {
+    if (settings.distance.useDistanceLimit) {
         // --- LIMIT MODE ---
         // Use the static, user-configured curve for the short 0-90m range
-        distanceFactor = settings.espDistanceFactor;
-        scalingExponent = settings.espScalingExponent;
+        distanceFactor = settings.scaling.limitDistanceFactor;
+        scalingExponent = settings.scaling.limitScalingExponent;
     } else {
         // --- NO LIMIT MODE (FULLY DYNAMIC) ---
         // The Distance Factor is now calculated dynamically based on the adaptive far plane.
@@ -65,14 +65,14 @@ float ESPStageRenderer::CalculateEntityScale(float visualDistance) {
         distanceFactor = (std::max)(250.0f, adaptiveFarPlane / 2.0f);
         
         // The user can still control the shape of the curve
-        scalingExponent = settings.noLimitScalingExponent;
+        scalingExponent = settings.scaling.noLimitScalingExponent;
     }
     
     // Calculate scale using the dynamically determined parameters
     float rawScale = distanceFactor / (distanceFactor + pow(effectiveDistance, scalingExponent));
 
     // Clamp to min/max bounds
-    return (std::max)(settings.espMinScale, (std::min)(rawScale, settings.espMaxScale));
+    return (std::max)(settings.scaling.minScale, (std::min)(rawScale, settings.scaling.maxScale));
 }
 
 void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, float scale, 
@@ -81,8 +81,8 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
     
     switch (entityType) {
     case ESPEntityType::Player:
-        outBoxHeight = settings.espBaseBoxHeight * scale;
-        outBoxWidth = settings.espBaseBoxWidth * scale;
+        outBoxHeight = settings.sizes.baseBoxHeight * scale;
+        outBoxWidth = settings.sizes.baseBoxWidth * scale;
         if (outBoxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
@@ -91,8 +91,8 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
         
     case ESPEntityType::NPC:
         // For NPCs, use a square based on a smaller version of the player box WIDTH
-        outBoxHeight = (settings.espBaseBoxWidth * 0.8f) * scale;
-        outBoxWidth = (settings.espBaseBoxWidth * 0.8f) * scale;
+        outBoxHeight = (settings.sizes.baseBoxWidth * 0.8f) * scale;
+        outBoxWidth = (settings.sizes.baseBoxWidth * 0.8f) * scale;
         if (outBoxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::NPC_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::NPC_MIN_WIDTH;
@@ -101,8 +101,8 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
         
     case ESPEntityType::Gadget:
         // Gadgets can remain very small
-        outBoxHeight = (settings.espBaseBoxWidth * 0.3f) * scale;
-        outBoxWidth = (settings.espBaseBoxWidth * 0.3f) * scale;
+        outBoxHeight = (settings.sizes.baseBoxWidth * 0.3f) * scale;
+        outBoxWidth = (settings.sizes.baseBoxWidth * 0.3f) * scale;
         if (outBoxHeight < MinimumSizes::GADGET_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::GADGET_MIN_WIDTH;
@@ -110,8 +110,8 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
         break;
         
     default:
-        outBoxHeight = settings.espBaseBoxHeight * scale;
-        outBoxWidth = settings.espBaseBoxWidth * scale;
+        outBoxHeight = settings.sizes.baseBoxHeight * scale;
+        outBoxWidth = settings.sizes.baseBoxWidth * scale;
         if (outBoxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
@@ -135,7 +135,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     float finalAlpha = 1.0f;
     float normalizedDistance = 0.0f; // Used for LOD effects in No Limit mode
     
-    if (settings.espUseDistanceLimit) {
+    if (settings.distance.useDistanceLimit) {
         // --- RENDER LIMIT MODE (UNCHANGED) ---
         // Goal: Natural Integration - clean, seamless extension of game's UI
         finalAlpha = distanceFadeAlpha;
@@ -173,11 +173,11 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(fadedEntityColor, finalAlpha);
     
     // Calculate scaled sizes
-    const float finalFontSize = (std::max)(settings.espMinFontSize, (std::min)(settings.espBaseFontSize * scale, 40.0f));
-    const float finalBoxThickness = (std::max)(1.0f, (std::min)(settings.espBaseBoxThickness * scale, 10.0f));
-    const float finalDotRadius = (std::max)(1.0f, (std::min)(settings.espBaseDotRadius * scale, 15.0f));
-    const float finalHealthBarWidth = (std::max)(10.0f, (std::min)(settings.espBaseHealthBarWidth * scale, 100.0f));
-    const float finalHealthBarHeight = (std::max)(2.0f, (std::min)(settings.espBaseHealthBarHeight * scale, 20.0f));
+    const float finalFontSize = (std::max)(settings.sizes.minFontSize, (std::min)(settings.sizes.baseFontSize * scale, 40.0f));
+    const float finalBoxThickness = (std::max)(1.0f, (std::min)(settings.sizes.baseBoxThickness * scale, 10.0f));
+    const float finalDotRadius = (std::max)(1.0f, (std::min)(settings.sizes.baseDotRadius * scale, 15.0f));
+    const float finalHealthBarWidth = (std::max)(10.0f, (std::min)(settings.sizes.baseHealthBarWidth * scale, 100.0f));
+    const float finalHealthBarHeight = (std::max)(2.0f, (std::min)(settings.sizes.baseHealthBarHeight * scale, 20.0f));
     
     // Render standalone health bars for living entities when health is available AND setting is enabled
     if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
@@ -251,8 +251,8 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     // 2. Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();
     float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(context.gameplayDistance,
-                                                              settings.espUseDistanceLimit, 
-                                                              settings.espRenderDistanceLimit);
+                                                              settings.distance.useDistanceLimit, 
+                                                              settings.distance.renderDistanceLimit);
     
     if (distanceFadeAlpha <= 0.0f) {
         return; // Entity is fully transparent

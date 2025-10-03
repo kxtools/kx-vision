@@ -86,48 +86,89 @@ namespace kx {
 #endif
     }
 
+    /**
+     * @brief Distance-based rendering configuration
+     * 
+     * Controls how entities are culled and faded based on distance.
+     * Two modes with different philosophies:
+     * - Limit Mode: Natural Integration - mimics game's native behavior
+     * - No Limit Mode: Maximum Information Clarity - adaptive to scene
+     */
+    struct DistanceSettings {
+        // --- Distance Limiting ---
+        bool useDistanceLimit = true;           // Enable/disable distance-based culling
+        float renderDistanceLimit = 90.0f;      // Hard cutoff distance (mimics game's native culling range)
+    };
+
+    /**
+     * @brief Scaling curve configuration
+     * 
+     * Controls how entity sizes shrink with distance using the formula:
+     * scale = distanceFactor / (distanceFactor + distance^exponent)
+     * 
+     * The distanceFactor determines where 50% scale occurs.
+     * The exponent controls the curve shape (higher = more aggressive at distance).
+     */
+    struct ScalingSettings {
+        // --- Shared Settings (Both Modes) ---
+        float scalingStartDistance = 20.0f;     // Distance before scaling begins (mimics game camera-to-player offset)
+        float minScale = 0.1f;                  // Minimum scale multiplier (10% - allows extreme shrinking, protected by min sizes)
+        float maxScale = 1.0f;                  // Maximum scale multiplier (100% - no magnification for natural feel)
+        
+        // --- Limit Mode (90m range) ---
+        float limitDistanceFactor = 110.0f;     // 50% scale at 110m (just past render limit for meaningful scaling)
+        float limitScalingExponent = 1.2f;      // Moderate curve - balanced shrinking over 0-90m range
+        
+        // --- No Limit Mode (Adaptive range) ---
+        float noLimitScalingExponent = 1.2f;    // Balanced curve for long distances (distanceFactor auto-calculated from scene)
+        // Note: distanceFactor = adaptiveFarPlane / 2 (automatic 50% scale at midpoint)
+    };
+
+    /**
+     * @brief Base sizes for ESP elements before scaling
+     * 
+     * These are the "100% scale" sizes. Distance-based scaling multiplies these values.
+     * Minimum size protections prevent elements from becoming unusably small.
+     */
+    struct ElementSizeSettings {
+        // --- Text ---
+        float baseFontSize = 20.0f;             // Large, bold font for readability
+        float minFontSize = 9.0f;               // Absolute minimum font size (readability floor)
+        
+        // --- Shapes ---
+        float baseDotRadius = 3.0f;             // Center dot size (matches font scale)
+        float baseBoxThickness = 2.0f;          // Bounding box line thickness
+        float baseBoxHeight = 100.0f;           // Player/NPC box height
+        float baseBoxWidth = 60.0f;             // Player/NPC box width
+        
+        // --- Health Bars ---
+        float baseHealthBarWidth = 65.0f;       // Health bar width (sized to match box)
+        float baseHealthBarHeight = 8.0f;       // Health bar height (visible but not obtrusive)
+    };
+
     struct Settings {
-        // Replace old flat settings with new structs
+        // Category-specific ESP settings
         PlayerEspSettings playerESP;
         NpcEspSettings npcESP;
         ObjectEspSettings objectESP;
 
-        // Keep global settings
-        bool espUseDistanceLimit = true;
-        float espRenderDistanceLimit = 90.0f;  // For more natural look
-
-        // ESP Scaling Configuration
-        float espMinScale = 0.1f;
-        float espMaxScale = 1.0f;
-        float espScalingStartDistance = 20.0f; // The recommended value.
-        float espDistanceFactor = 110.0f;      // For LIMIT MODE - The balanced, natural curve
-        float espScalingExponent = 1.2f;       // For LIMIT MODE - A slightly accelerating curve feels most natural.
-        
-        // --- Scaling for "No Limit" Mode ---
-        float noLimitScalingExponent = 1.2f;   // Controls curve shape in No Limit mode (distanceFactor is dynamic)
-
-        // Base size settings for scalable elements
-        float espMinFontSize = 9.0f;
-        float espBaseFontSize = 20.0f;         // large, bold font.
-        float espBaseDotRadius = 3.0f;         // Scaled up slightly to match the larger font.
-        float espBaseHealthBarWidth = 65.0f;   // Sized to look good with the 60px box width.
-        float espBaseHealthBarHeight = 8.0f;   // Made slightly thicker to match the new width.
-        float espBaseBoxThickness = 2.0f;      // Increased thickness
-        float espBaseBoxHeight = 100.0f;
-        float espBaseBoxWidth = 60.0f;
+        // Organized configuration groups
+        DistanceSettings distance;
+        ScalingSettings scaling;
+        ElementSizeSettings sizes;
         
         // Performance settings
-        float espUpdateRate = 60.0f; // ESP updates per second (lower = better performance)
+        float espUpdateRate = 60.0f;            // ESP updates per second (60 = smooth, lower = better performance)
         
         // Enhanced filtering options
-        bool hideDepletedNodes = true;    // Hide depleted resource nodes
+        bool hideDepletedNodes = true;          // Hide depleted resource nodes (visual clutter reduction)
         
         // Debug options
 #ifdef _DEBUG
-        bool enableDebugLogging = true;   // Enable verbose logging by default in debug builds
-        bool showDebugAddresses = true; // Show entity memory addresses on ESP
+        bool enableDebugLogging = true;         // Enable verbose logging by default in debug builds
+        bool showDebugAddresses = true;         // Show entity memory addresses on ESP
 #else
-        bool enableDebugLogging = false;  // Disable verbose logging by default in release builds
+        bool enableDebugLogging = false;        // Disable verbose logging by default in release builds
         bool showDebugAddresses = false;
 #endif
     };
