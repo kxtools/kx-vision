@@ -89,17 +89,18 @@ private:
      * @param drawList ImGui draw list
      * @param context Entity rendering context
      * @param screenPos Screen position
-     * @param boxMin Bounding box minimum point
-     * @param boxMax Bounding box maximum point
+     * @param boxMin Bounding box minimum point (or circle bounds for gadgets)
+     * @param boxMax Bounding box maximum point (or circle bounds for gadgets)
      * @param center Center point
      * @param fadedEntityColor Entity color with distance fade
      * @param distanceFadeAlpha Distance-based alpha
      * @param scale Scale factor
+     * @param circleRadius Circle radius for gadgets (0 for players/NPCs)
      */
     static void RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
                                       const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
                                       const ImVec2& center, unsigned int fadedEntityColor, 
-                                      float distanceFadeAlpha, float scale);
+                                      float distanceFadeAlpha, float scale, float circleRadius = 0.0f);
 
     // Distance fading helper function
     static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);

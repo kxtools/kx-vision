@@ -112,7 +112,22 @@ namespace kx {
                     }
 
                     ImGui::Separator();
-                    RenderCategoryStyleSettings("Object Style", settings.objectESP.renderBox, settings.objectESP.renderDistance, settings.objectESP.renderDot, nullptr, &settings.objectESP.renderDetails);
+                    
+                    // Custom rendering of style settings with object-specific tooltips
+                    if (ImGui::CollapsingHeader("Object Style", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::Text("Visual Elements");
+                        
+                        ImGui::Checkbox("Show Circle##ObjectStyle", &settings.objectESP.renderBox);
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Render a circle around objects (not a box - objects are points in space).");
+                        }
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Show Distance##ObjectStyle", &settings.objectESP.renderDistance);
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Show Dot##ObjectStyle", &settings.objectESP.renderDot);
+                        
+                        ImGui::Checkbox("Show Details##ObjectStyle", &settings.objectESP.renderDetails);
+                    }
                 }
                 ImGui::EndTabItem();
             }

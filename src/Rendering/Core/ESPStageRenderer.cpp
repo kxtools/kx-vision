@@ -195,9 +195,10 @@ float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float dis
 void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
                                              const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
                                              const ImVec2& center, unsigned int fadedEntityColor, 
-                                             float distanceFadeAlpha, float scale) {
+                                             float distanceFadeAlpha, float scale, float circleRadius) {
     const auto& settings = AppState::Get().GetSettings();
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
+    bool isGadget = (context.entityType == ESPEntityType::Gadget);
     
     // --- ADAPTIVE DISTANCE EFFECTS (New System) ---
     // This replaces the old "finalAlpha" approach with two distinct modes:
@@ -225,20 +226,34 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                                      context.entityType, context.attitude);
     }
 
-    // Render bounding box (should be disabled by default for living entities)
+    // Render bounding box OR circle
     if (context.renderBox) {
-        ESPFeatureRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
+        if (isGadget) {
+            // Render circle for gadgets (centered at screenPos)
+            drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), circleRadius, fadedEntityColor, 0, finalBoxThickness);
+        } else {
+            // Render traditional box for players/NPCs
+            ESPFeatureRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
+        }
     }
 
     // Render distance text
     if (context.renderDistance) {
-        ESPFeatureRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
-                                              finalAlpha, finalFontSize);
+        if (isGadget) {
+            // For gadgets, position distance text above the circle
+            ImVec2 textAnchor(center.x, center.y - circleRadius);
+            ESPFeatureRenderer::RenderDistanceText(drawList, center, textAnchor, context.gameplayDistance, 
+                                                  finalAlpha, finalFontSize);
+        } else {
+            // For players/NPCs, use traditional positioning
+            ESPFeatureRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
+                                                  finalAlpha, finalFontSize);
+        }
     }
 
     // Render center dot
     if (context.renderDot) {
-        if (context.entityType == ESPEntityType::Gadget) {
+        if (isGadget) {
             ESPFeatureRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
         } else {
             ESPFeatureRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
@@ -257,7 +272,14 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
 
     // Render details text (for all entities when enabled)
     if (context.renderDetails && !context.details.empty()) {
-        ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, finalAlpha, finalFontSize);
+        if (isGadget) {
+            // For gadgets, position details below the circle
+            ImVec2 textAnchor(center.x, center.y + circleRadius);
+            ESPFeatureRenderer::RenderDetailsText(drawList, center, textAnchor, context.details, finalAlpha, finalFontSize);
+        } else {
+            // For players/NPCs, use traditional positioning
+            ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, finalAlpha, finalFontSize);
+        }
     }
 
     // Specialized Summary Rendering (Players Only)
@@ -303,17 +325,33 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     // 4. Calculate distance-based scale
     float scale = CalculateEntityScale(context.visualDistance, context.entityType);
 
-    // 5. Calculate bounding box dimensions
-    float boxWidth, boxHeight;
-    CalculateEntityBoxDimensions(context.entityType, scale, boxWidth, boxHeight);
+    // 5. Calculate rendering dimensions (box or circle)
+    ImVec2 boxMin, boxMax, center;
+    float circleRadius = 0.0f;
     
-    ImVec2 boxMin(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
-    ImVec2 boxMax(screenPos.x + boxWidth / 2, screenPos.y);
-    ImVec2 center(screenPos.x, screenPos.y - boxHeight / 2);
+    if (context.entityType == ESPEntityType::Gadget) {
+        // Gadgets use circle rendering - calculate radius
+        float baseRadius = settings.sizes.baseBoxWidth * 0.15f; // Smaller than old box
+        circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * scale);
+        
+        // For gadgets, screenPos IS the center (no box needed)
+        center = ImVec2(screenPos.x, screenPos.y);
+        // Set dummy box values for text positioning (will be overridden for circles)
+        boxMin = ImVec2(screenPos.x - circleRadius, screenPos.y - circleRadius);
+        boxMax = ImVec2(screenPos.x + circleRadius, screenPos.y + circleRadius);
+    } else {
+        // Players/NPCs use traditional box rendering
+        float boxWidth, boxHeight;
+        CalculateEntityBoxDimensions(context.entityType, scale, boxWidth, boxHeight);
+        
+        boxMin = ImVec2(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
+        boxMax = ImVec2(screenPos.x + boxWidth / 2, screenPos.y);
+        center = ImVec2(screenPos.x, screenPos.y - boxHeight / 2);
+    }
 
     // 6. Render all visual components
     RenderEntityComponents(drawList, context, screenPos, boxMin, boxMax, center, 
-                          fadedEntityColor, distanceFadeAlpha, scale);
+                          fadedEntityColor, distanceFadeAlpha, scale, circleRadius);
 }
 
 void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,
