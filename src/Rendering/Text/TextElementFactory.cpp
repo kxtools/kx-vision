@@ -9,23 +9,23 @@
 namespace kx {
 
 TextElement TextElementFactory::CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
-                                                 unsigned int entityColor, float fadeAlpha) {
+    unsigned int entityColor, float fadeAlpha, float fontSize) {
     TextElement element(playerName, feetPos, glm::vec2(0.0f, RenderingLayout::PLAYER_NAME_Y_OFFSET));
-    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor));
+    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize));
     return element;
 }
 
-TextElement TextElementFactory::CreateDistanceText(float distance, const glm::vec2& anchorPos, float fadeAlpha) {
+TextElement TextElementFactory::CreateDistanceText(float distance, const glm::vec2& anchorPos, float fadeAlpha, float fontSize) {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(1) << distance << "m";
     
     TextElement element(oss.str(), anchorPos, glm::vec2(0.0f, -RenderingLayout::DISTANCE_TEXT_Y_OFFSET));
-    element.SetStyle(GetDistanceStyle(fadeAlpha));
+    element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize));
     return element;
 }
 
 TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetail>& details,
-                                                  const glm::vec2& anchorPos, float fadeAlpha) {
+                                                  const glm::vec2& anchorPos, float fadeAlpha, float fontSize) {
     if (details.empty()) {
         return TextElement("", anchorPos);
     }
@@ -41,7 +41,7 @@ TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetai
     glm::vec2 adjustedAnchor(anchorPos.x, anchorPos.y + RenderingLayout::DETAILS_TEXT_Y_OFFSET);
     TextElement element(lines, adjustedAnchor, TextAnchor::Custom);
     
-    TextStyle style = GetDetailsStyle(fadeAlpha);
+    TextStyle style = GetDetailsStyle(fadeAlpha, fontSize);
     element.SetStyle(style);
     element.SetLineSpacing(RenderingLayout::DETAILS_TEXT_LINE_SPACING);
     
@@ -49,7 +49,7 @@ TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetai
 }
 
 TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatInfo>& summary,
-                                                  const glm::vec2& feetPos, float fadeAlpha) {
+                                                  const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
     if (summary.empty()) {
         return TextElement("", feetPos);
     }
@@ -77,7 +77,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
     glm::vec2 adjustedPos(feetPos.x, feetPos.y + RenderingLayout::SUMMARY_Y_OFFSET);
     TextElement element(segments, adjustedPos, TextAnchor::Custom);
     
-    TextStyle style = GetSummaryStyle(fadeAlpha);
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
     style.useCustomTextColor = true;  // Enable per-segment colors
     element.SetStyle(style);
     
@@ -85,7 +85,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
 }
 
 TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantStat>& stats,
-                                                    const glm::vec2& feetPos, float fadeAlpha) {
+                                                    const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
     if (stats.empty()) {
         return TextElement("", feetPos);
     }
@@ -103,13 +103,13 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
     // Position below feet with proper offset
     glm::vec2 adjustedPos(feetPos.x, feetPos.y + RenderingLayout::SUMMARY_Y_OFFSET);
     TextElement element(summaryText, adjustedPos, TextAnchor::Custom);
-    element.SetStyle(GetSummaryStyle(fadeAlpha));
+    element.SetStyle(GetSummaryStyle(fadeAlpha, fontSize));
     return element;
 }
 
-TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor) {
+TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor, float fontSize) { // Add fontSize
     TextStyle style;
-    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
+    style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     
     // Text - use entityColor directly (already has proper RGB values from ESPColors constants)
@@ -134,9 +134,9 @@ TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int e
     return style;
 }
 
-TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha) {
+TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha, float fontSize) {
     TextStyle style;
-    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
+    style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     
     // Text
@@ -159,9 +159,9 @@ TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha) {
     return style;
 }
 
-TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha) {
+TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha, float fontSize) {
     TextStyle style;
-    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
+    style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     style.useCustomTextColor = true;  // Details have per-line colors
     
@@ -182,9 +182,9 @@ TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha) {
     return style;
 }
 
-TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha) {
+TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha, float fontSize) {
     TextStyle style;
-    style.fontSize = RenderingLayout::TEXT_DEFAULT_FONT_SIZE;
+    style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     
     // Text

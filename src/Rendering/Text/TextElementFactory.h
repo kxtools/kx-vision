@@ -25,69 +25,74 @@ public:
      * @param feetPos Position at player's feet
      * @param entityColor Color for the border
      * @param fadeAlpha Distance-based fade
+     * @param fontSize Font size to use
      * @return Styled text element
      */
     static TextElement CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
-                                       unsigned int entityColor, float fadeAlpha);
+        unsigned int entityColor, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a distance text element (shown above entity)
      * @param distance Distance in meters
      * @param anchorPos Position to anchor to (typically box top)
      * @param fadeAlpha Distance-based fade
+     * @param fontSize Font size to use
      * @return Styled text element
      */
-    static TextElement CreateDistanceText(float distance, const glm::vec2& anchorPos, float fadeAlpha);
+    static TextElement CreateDistanceText(float distance, const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a details text element (multi-line colored details)
      * @param details Vector of colored details
      * @param anchorPos Position to anchor to (typically box bottom)
      * @param fadeAlpha Distance-based fade
+     * @param fontSize Font size to use
      * @return Styled text element
      */
     static TextElement CreateDetailsText(const std::vector<ColoredDetail>& details,
-                                        const glm::vec2& anchorPos, float fadeAlpha);
+                                        const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a gear summary text element (multi-colored stat summary)
      * @param summary Compact stat info
      * @param feetPos Position at player's feet
      * @param fadeAlpha Distance-based fade
+     * @param fontSize Font size to use
      * @return Styled text element
      */
     static TextElement CreateGearSummary(const std::vector<CompactStatInfo>& summary,
-                                        const glm::vec2& feetPos, float fadeAlpha);
+                                        const glm::vec2& feetPos, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a dominant stats text element
      * @param stats Dominant stat information
      * @param feetPos Position at player's feet
      * @param fadeAlpha Distance-based fade
+     * @param fontSize Font size to use
      * @return Styled text element
      */
     static TextElement CreateDominantStats(const std::vector<DominantStat>& stats,
-                                          const glm::vec2& feetPos, float fadeAlpha);
+                                          const glm::vec2& feetPos, float fadeAlpha, float fontSize);
     
     /**
      * @brief Get default style for player names
      */
-    static TextStyle GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor);
+    static TextStyle GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor, float fontSize);
     
     /**
      * @brief Get default style for distance text
      */
-    static TextStyle GetDistanceStyle(float fadeAlpha);
+    static TextStyle GetDistanceStyle(float fadeAlpha, float fontSize);
     
     /**
      * @brief Get default style for details text
      */
-    static TextStyle GetDetailsStyle(float fadeAlpha);
+    static TextStyle GetDetailsStyle(float fadeAlpha, float fontSize);
     
     /**
      * @brief Get default style for gear summary
      */
-    static TextStyle GetSummaryStyle(float fadeAlpha);
+    static TextStyle GetSummaryStyle(float fadeAlpha, float fontSize);
 };
 
 } // namespace kx

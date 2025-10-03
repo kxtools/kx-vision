@@ -13,7 +13,7 @@ void ESPTextRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2& fe
     float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
     
     // Use factory to create styled text element
-    TextElement element = TextElementFactory::CreatePlayerName(playerName, feetPos, entityColor, fadeAlpha);
+    TextElement element = TextElementFactory::CreatePlayerName(playerName, feetPos, entityColor, fadeAlpha, fontSize);
     
     // Create renderer and render the element
     TextRenderer renderer(drawList);
@@ -26,7 +26,7 @@ void ESPTextRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& cen
     glm::vec2 anchorPos(center.x, boxMin.y);
     
     // Use factory to create distance text element
-    TextElement element = TextElementFactory::CreateDistanceText(distance, anchorPos, fadeAlpha);
+    TextElement element = TextElementFactory::CreateDistanceText(distance, anchorPos, fadeAlpha, fontSize);
     
     // Create renderer and render the element
     TextRenderer renderer(drawList);
@@ -41,7 +41,7 @@ void ESPTextRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& cent
     glm::vec2 anchorPos(center.x, boxMax.y);
     
     // Use factory to create details text element
-    TextElement element = TextElementFactory::CreateDetailsText(details, anchorPos, fadeAlpha);
+    TextElement element = TextElementFactory::CreateDetailsText(details, anchorPos, fadeAlpha, fontSize);
     
     // Create renderer and render the element
     TextRenderer renderer(drawList);
@@ -53,7 +53,7 @@ void ESPTextRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2& f
     if (summary.empty()) return;
 
     // Use factory to create gear summary text element
-    TextElement element = TextElementFactory::CreateGearSummary(summary, feetPos, fadeAlpha);
+    TextElement element = TextElementFactory::CreateGearSummary(summary, feetPos, fadeAlpha, fontSize);
     
     // Create renderer and render the element
     TextRenderer renderer(drawList);
@@ -65,7 +65,7 @@ void ESPTextRenderer::RenderDominantStats(ImDrawList* drawList, const glm::vec2&
     if (stats.empty()) return;
 
     // Use factory to create dominant stats text element
-    TextElement element = TextElementFactory::CreateDominantStats(stats, feetPos, fadeAlpha);
+    TextElement element = TextElementFactory::CreateDominantStats(stats, feetPos, fadeAlpha, fontSize);
     
     // Create renderer and render the element
     TextRenderer renderer(drawList);
