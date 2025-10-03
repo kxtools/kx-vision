@@ -106,6 +106,51 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     const auto& settings = AppState::Get().GetSettings();
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
     
+    // --- ADAPTIVE DISTANCE EFFECTS (New System) ---
+    // This replaces the old "finalAlpha" approach with two distinct modes:
+    // 1. Render Limit Mode (ON): Natural Integration - respects game's rules, uses distance-based fade
+    // 2. No Limit Mode (OFF): Maximum Information Clarity - uses adaptive far plane for intelligent scaling
+    
+    float finalAlpha = 1.0f;
+    float normalizedDistance = 0.0f; // Used for LOD effects in No Limit mode
+    
+    if (settings.espUseDistanceLimit) {
+        // --- RENDER LIMIT MODE (UNCHANGED) ---
+        // Goal: Natural Integration - clean, seamless extension of game's UI
+        finalAlpha = distanceFadeAlpha;
+        // In this mode, the fade is already calculated by ESPFilter::CalculateDistanceFadeAlpha
+        // which uses the user-specified distance limit
+    } else {
+        // --- NO LIMIT MODE (ADAPTIVE SYSTEM) ---
+        // Goal: Maximum Information Clarity - present vast amounts of data readably
+        finalAlpha = 1.0f; // Default to fully visible
+        
+        const float farPlane = AppState::Get().GetAdaptiveFarPlane(); // Get the intelligent, pre-calculated adaptive range
+        const float effectStartDistance = 150.0f; // Distance where effects begin
+        
+        if (context.gameplayDistance > effectStartDistance) {
+            // Calculate normalized distance (0.0 at effectStartDistance, 1.0 at farPlane)
+            float range = farPlane - effectStartDistance;
+            if (range > 0.0f) {
+                float progress = (context.gameplayDistance - effectStartDistance) / range;
+                normalizedDistance = (std::clamp)(progress, 0.0f, 1.0f);
+            }
+            
+            // --- TECHNIQUE 1: Far-Distance Alpha Fading (Atmospheric Perspective) ---
+            // Simulates atmospheric haze - objects become fainter with distance
+            // Linearly interpolate alpha from 1.0 (opaque) down to a minimum visibility
+            // In "No Limit" mode, prioritize clarity - even far entities must be readable
+            finalAlpha = 1.0f - normalizedDistance;
+            finalAlpha = (std::max)(0.5f, finalAlpha); // Clamp to minimum 50% opacity for readability
+            
+            // Future LOD effects can use normalizedDistance here
+            // For example: reduce detail, simplify rendering, etc.
+        }
+    }
+    
+    // Apply final alpha to the entity color
+    fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(fadedEntityColor, finalAlpha);
+    
     // Calculate scaled sizes
     const float finalFontSize = (std::max)(settings.espMinFontSize, (std::min)(settings.espBaseFontSize * scale, 40.0f));
     const float finalBoxThickness = (std::max)(1.0f, (std::min)(settings.espBaseBoxThickness * scale, 10.0f));
@@ -128,13 +173,13 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render distance text
     if (context.renderDistance) {
         ESPFeatureRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
-                                              distanceFadeAlpha, finalFontSize);
+                                              finalAlpha, finalFontSize);
     }
 
     // Render center dot
     if (context.renderDot) {
         if (context.entityType == ESPEntityType::Gadget) {
-            ESPFeatureRenderer::RenderNaturalWhiteDot(drawList, screenPos, distanceFadeAlpha, finalDotRadius);
+            ESPFeatureRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
         } else {
             ESPFeatureRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
         }
@@ -152,7 +197,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
 
     // Render details text (for all entities when enabled)
     if (context.renderDetails && !context.details.empty()) {
-        ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, distanceFadeAlpha, finalFontSize);
+        ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, finalAlpha, finalFontSize);
     }
 
     // Specialized Summary Rendering (Players Only)
@@ -160,12 +205,12 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
         switch (settings.playerESP.gearDisplayMode) {
         case GearDisplayMode::Compact: { // Compact (Stat Names)
             auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
-            ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, compactSummary, distanceFadeAlpha, finalFontSize);
+            ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, compactSummary, finalAlpha, finalFontSize);
             break;
         }
         case GearDisplayMode::Attributes: { // Top 3 Attributes
             auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
-            ESPFeatureRenderer::RenderDominantStats(drawList, screenPos, dominantStats, distanceFadeAlpha, finalFontSize);
+            ESPFeatureRenderer::RenderDominantStats(drawList, screenPos, dominantStats, finalAlpha, finalFontSize);
             break;
         }
         default:

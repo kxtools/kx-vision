@@ -2,9 +2,13 @@
 
 #include <atomic>
 #include <mutex>
+#include <chrono>
 #include "Settings.h"
 
 namespace kx {
+
+    // Forward declarations
+    struct PooledFrameRenderData;
 
     // --- Status Information ---
     enum class HookStatus {
@@ -49,6 +53,10 @@ namespace kx {
         // --- Debug Logging Helper ---
         bool IsDebugLoggingEnabled() const { return m_settings.enableDebugLogging; }
 
+        // --- Adaptive Far Plane (for "No Limit" mode) ---
+        float GetAdaptiveFarPlane() const { return m_adaptiveFarPlane; }
+        void UpdateAdaptiveFarPlane(const PooledFrameRenderData& frameData);
+
     private:
         // Private constructor for singleton
         AppState();
@@ -63,6 +71,10 @@ namespace kx {
         bool m_isVisionWindowOpen = false;  // Release: Hide GUI by default (press INSERT to toggle)
         #endif
         std::atomic<bool> m_isShuttingDown = false;
+
+        // Adaptive far plane for "No Limit" mode
+        float m_adaptiveFarPlane = 1500.0f; // Default value on startup
+        std::chrono::steady_clock::time_point m_lastFarPlaneRecalc;
 
         // Mutex for thread-safe access (if needed for future extensions)
         mutable std::mutex m_mutex;
