@@ -141,18 +141,18 @@ namespace kx {
      */
     struct ElementSizeSettings {
         // --- Text ---
-        float baseFontSize = 20.0f;             // Large, bold font for readability
+        float baseFontSize = 16.0f;             // Optimal for Bahnschrift (wide letterforms, good balance)
         float minFontSize = 9.0f;               // Absolute minimum font size (readability floor)
         
         // --- Shapes ---
-        float baseDotRadius = 3.0f;             // Center dot size (matches font scale)
-        float baseBoxThickness = 2.0f;          // Bounding box line thickness
-        float baseBoxHeight = 100.0f;           // Player/NPC box height
-        float baseBoxWidth = 60.0f;             // Player/NPC box width
+        float baseDotRadius = 3.0f;             // Center dot size (clean, minimal at 2.4px actual with multiplier)
+        float baseBoxThickness = 2.0f;          // Bounding box line thickness (optimal visibility)
+        float baseBoxHeight = 90.0f;            // Player/NPC box height (realistic proportions)
+        float baseBoxWidth = 40.0f;             // Player/NPC box width (2.25:1 ratio = humanoid shape)
         
         // --- Health Bars ---
-        float baseHealthBarWidth = 65.0f;       // Health bar width (sized to match box)
-        float baseHealthBarHeight = 8.0f;       // Health bar height (visible but not obtrusive)
+        float baseHealthBarWidth = 40.0f;       // Health bar width (matches box width for consistency)
+        float baseHealthBarHeight = 6.0f;       // Health bar height (subtle, non-obtrusive)
     };
 
     struct Settings {
