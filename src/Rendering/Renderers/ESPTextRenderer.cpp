@@ -15,9 +15,8 @@ void ESPTextRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2& fe
     // Use factory to create styled text element
     TextElement element = TextElementFactory::CreatePlayerName(playerName, feetPos, entityColor, fadeAlpha, fontSize);
     
-    // Create renderer and render the element
-    TextRenderer renderer(drawList);
-    renderer.Render(element);
+    // Render the element using static method
+    TextRenderer::Render(drawList, element);
 }
 
 void ESPTextRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin,
@@ -28,9 +27,8 @@ void ESPTextRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& cen
     // Use factory to create distance text element
     TextElement element = TextElementFactory::CreateDistanceText(distance, anchorPos, fadeAlpha, fontSize);
     
-    // Create renderer and render the element
-    TextRenderer renderer(drawList);
-    renderer.Render(element);
+    // Render the element using static method
+    TextRenderer::Render(drawList, element);
 }
 
 void ESPTextRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax,
@@ -43,9 +41,8 @@ void ESPTextRenderer::RenderDetailsText(ImDrawList* drawList, const ImVec2& cent
     // Use factory to create details text element
     TextElement element = TextElementFactory::CreateDetailsText(details, anchorPos, fadeAlpha, fontSize);
     
-    // Create renderer and render the element
-    TextRenderer renderer(drawList);
-    renderer.Render(element);
+    // Render the element using static method
+    TextRenderer::Render(drawList, element);
 }
 
 void ESPTextRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos,
@@ -55,9 +52,8 @@ void ESPTextRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2& f
     // Use factory to create gear summary text element
     TextElement element = TextElementFactory::CreateGearSummary(summary, feetPos, fadeAlpha, fontSize);
     
-    // Create renderer and render the element
-    TextRenderer renderer(drawList);
-    renderer.Render(element);
+    // Render the element using static method
+    TextRenderer::Render(drawList, element);
 }
 
 void ESPTextRenderer::RenderDominantStats(ImDrawList* drawList, const glm::vec2& feetPos,
@@ -67,9 +63,8 @@ void ESPTextRenderer::RenderDominantStats(ImDrawList* drawList, const glm::vec2&
     // Use factory to create dominant stats text element
     TextElement element = TextElementFactory::CreateDominantStats(stats, feetPos, fadeAlpha, fontSize);
     
-    // Create renderer and render the element
-    TextRenderer renderer(drawList);
-    renderer.Render(element);
+    // Render the element using static method
+    TextRenderer::Render(drawList, element);
 }
 
 } // namespace kx

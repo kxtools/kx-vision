@@ -6,11 +6,8 @@ using namespace kx::RenderingLayout;
 
 namespace kx {
 
-TextRenderer::TextRenderer(ImDrawList* drawList)
-    : m_drawList(drawList) {}
-
-void TextRenderer::Render(const TextElement& element) {
-    if (!m_drawList) return;
+void TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
+    if (!drawList) return;
     
     const auto& lines = element.GetLines();
     if (lines.empty()) return;
@@ -60,29 +57,29 @@ void TextRenderer::Render(const TextElement& element) {
         
         // Render background
         if (style.enableBackground) {
-            RenderBackground(linePos, textSize, style);
+            RenderBackground(drawList, linePos, textSize, style);
         }
         
         // Render border
         if (style.enableBorder) {
-            RenderBorder(linePos, textSize, style);
+            RenderBorder(drawList, linePos, textSize, style);
         }
         
         // Render text
-        RenderTextLine(line, linePos, style);
+        RenderTextLine(drawList, line, linePos, style);
     }
 }
 
-void TextRenderer::RenderBatch(const std::vector<TextElement>& elements) {
+void TextRenderer::RenderBatch(ImDrawList* drawList, const std::vector<TextElement>& elements) {
     for (const auto& element : elements) {
-        Render(element);
+        Render(drawList, element);
     }
 }
 
 ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWidth, float totalHeight,
                                            int lineIndex, float lineHeight, TextAnchor positioning,
                                            const glm::vec2& customOffset, TextAlignment alignment,
-                                           const TextStyle& style) const {
+                                           const TextStyle& style) {
     ImVec2 pos;
     
     // Calculate vertical position based on anchor
@@ -132,7 +129,7 @@ ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWi
     return pos;
 }
 
-void TextRenderer::RenderBackground(const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style) {
+void TextRenderer::RenderBackground(ImDrawList* drawList, const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style) {
     ImVec2 bgMin(textPos.x - style.backgroundPadding.x, textPos.y - style.backgroundPadding.y);
     ImVec2 bgMax(textPos.x + textSize.x + style.backgroundPadding.x, textPos.y + textSize.y + style.backgroundPadding.y);
     
@@ -142,19 +139,19 @@ void TextRenderer::RenderBackground(const ImVec2& textPos, const ImVec2& textSiz
     bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha; // Clamp
     ImU32 bgColor = IM_COL32(0, 0, 0, bgAlpha);
     
-    m_drawList->AddRectFilled(bgMin, bgMax, bgColor, style.backgroundRounding);
+    drawList->AddRectFilled(bgMin, bgMax, bgColor, style.backgroundRounding);
 }
 
-void TextRenderer::RenderBorder(const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style) {
+void TextRenderer::RenderBorder(ImDrawList* drawList, const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style) {
     ImVec2 borderMin(textPos.x - style.backgroundPadding.x, textPos.y - style.backgroundPadding.y);
     ImVec2 borderMax(textPos.x + textSize.x + style.backgroundPadding.x, textPos.y + textSize.y + style.backgroundPadding.y);
     
     ImU32 borderColor = ApplyFade(style.borderColor, style.fadeAlpha);
     
-    m_drawList->AddRect(borderMin, borderMax, borderColor, style.backgroundRounding, 0, style.borderThickness);
+    drawList->AddRect(borderMin, borderMax, borderColor, style.backgroundRounding, 0, style.borderThickness);
 }
 
-void TextRenderer::RenderTextLine(const std::vector<TextSegment>& segments, const ImVec2& basePos, const TextStyle& style) {
+void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& segments, const ImVec2& basePos, const TextStyle& style) {
     ImFont* font = ImGui::GetFont();
     ImVec2 currentPos = basePos;
     
@@ -170,20 +167,20 @@ void TextRenderer::RenderTextLine(const std::vector<TextSegment>& segments, cons
             unsigned int shadowAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
             shadowAlpha = (shadowAlpha > 255) ? 255 : shadowAlpha; // Clamp
             ImVec2 shadowPos(currentPos.x + style.shadowOffset.x, currentPos.y + style.shadowOffset.y);
-            m_drawList->AddText(font, style.fontSize, shadowPos, IM_COL32(0, 0, 0, shadowAlpha), segment.text.c_str());
+            drawList->AddText(font, style.fontSize, shadowPos, IM_COL32(0, 0, 0, shadowAlpha), segment.text.c_str());
         }
         
         // Render main text
         ImU32 textColor = style.useCustomTextColor ? segment.color : style.textColor;
         textColor = ApplyFade(textColor, style.fadeAlpha);
-        m_drawList->AddText(font, style.fontSize, currentPos, textColor, segment.text.c_str());
+        drawList->AddText(font, style.fontSize, currentPos, textColor, segment.text.c_str());
         
         // Move to next segment position
         currentPos.x += segmentSize.x;
     }
 }
 
-ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) const {
+ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) {
     int r = (color >> 0) & 0xFF;
     int g = (color >> 8) & 0xFF;
     int b = (color >> 16) & 0xFF;
@@ -196,7 +193,7 @@ ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) const {
     return IM_COL32(r, g, b, newAlpha);
 }
 
-float TextRenderer::CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize) const {
+float TextRenderer::CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize) {
     ImFont* font = ImGui::GetFont();
     float totalWidth = 0.0f;
     

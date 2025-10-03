@@ -21,39 +21,34 @@ namespace kx {
  * 
  * Usage:
  * ```cpp
- * TextRenderer renderer(drawList);
- * 
  * TextElement nameText("Player Name", anchorPos, TextAnchor::Below);
  * nameText.SetFadeAlpha(0.8f);
- * renderer.Render(nameText);
+ * TextRenderer::Render(drawList, nameText);
  * 
  * TextElement details({"Level: 80", "HP: 100%"}, anchorPos, TextAnchor::Below);
- * renderer.Render(details);
+ * TextRenderer::Render(drawList, details);
  * ```
  */
 class TextRenderer {
 public:
     /**
-     * @brief Construct a text renderer
-     * @param drawList ImGui draw list to render to
-     */
-    explicit TextRenderer(ImDrawList* drawList);
-    
-    /**
      * @brief Render a single text element
+     * @param drawList ImGui draw list to render to
      * @param element The text element to render
      */
-    void Render(const TextElement& element);
+    static void Render(ImDrawList* drawList, const TextElement& element);
     
     /**
      * @brief Render multiple text elements (batch operation)
+     * @param drawList ImGui draw list to render to
      * @param elements Vector of text elements to render
      */
-    void RenderBatch(const std::vector<TextElement>& elements);
+    static void RenderBatch(ImDrawList* drawList, const std::vector<TextElement>& elements);
     
 private:
     /**
      * @brief Calculate the screen position for a line based on anchor and positioning
+     * @param drawList ImGui draw list
      * @param anchor The anchor point
      * @param lineWidth Width of the text line
      * @param totalHeight Total height of all lines
@@ -64,34 +59,37 @@ private:
      * @param style Style configuration
      * @return Final screen position for the line
      */
-    ImVec2 CalculateLinePosition(const glm::vec2& anchor, float lineWidth, float totalHeight,
+    static ImVec2 CalculateLinePosition(const glm::vec2& anchor, float lineWidth, float totalHeight,
                                  int lineIndex, float lineHeight, TextAnchor positioning,
                                  const glm::vec2& customOffset, TextAlignment alignment,
-                                 const TextStyle& style) const;
+                                 const TextStyle& style);
     
     /**
      * @brief Render background for a text line
+     * @param drawList ImGui draw list to render to
      * @param textPos Position of the text
      * @param textSize Size of the text
      * @param style Style configuration
      */
-    void RenderBackground(const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style);
+    static void RenderBackground(ImDrawList* drawList, const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style);
     
     /**
      * @brief Render border for a text line
+     * @param drawList ImGui draw list to render to
      * @param textPos Position of the text
      * @param textSize Size of the text
      * @param style Style configuration
      */
-    void RenderBorder(const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style);
+    static void RenderBorder(ImDrawList* drawList, const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style);
     
     /**
      * @brief Render a single line of text with multiple colored segments
+     * @param drawList ImGui draw list to render to
      * @param segments Text segments to render
      * @param basePos Starting position
      * @param style Style configuration
      */
-    void RenderTextLine(const std::vector<TextSegment>& segments, const ImVec2& basePos, const TextStyle& style);
+    static void RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& segments, const ImVec2& basePos, const TextStyle& style);
     
     /**
      * @brief Apply fade alpha to a color
@@ -99,7 +97,7 @@ private:
      * @param fadeAlpha Fade multiplier (0.0 to 1.0)
      * @return Color with applied fade
      */
-    ImU32 ApplyFade(ImU32 color, float fadeAlpha) const;
+    static ImU32 ApplyFade(ImU32 color, float fadeAlpha);
     
     /**
      * @brief Calculate total width of a line (sum of all segments)
@@ -107,9 +105,7 @@ private:
      * @param fontSize Font size
      * @return Total width in pixels
      */
-    float CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize) const;
-    
-    ImDrawList* m_drawList;
+    static float CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize);
 };
 
 } // namespace kx
