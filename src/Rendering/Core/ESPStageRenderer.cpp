@@ -35,8 +35,8 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
     bool isGadget = (context.entityType == ESPEntityType::Gadget);
     
-    // Apply final alpha to the entity color (already calculated, but apply again for correct rendering)
-    fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(fadedEntityColor, 1.0f); // Already faded in props
+    // fadedEntityColor already has all alphas applied from EntityVisualsCalculator
+    // No need to apply alpha again here
     
     // Render standalone health bars for living entities when health is available AND setting is enabled
     if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
