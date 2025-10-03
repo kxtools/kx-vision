@@ -25,16 +25,13 @@ namespace kx {
         }
         m_lastFarPlaneRecalc = now;
 
-        // 1. Collect all relevant gameplay distances from all entity types
+        // 1. Collect distances from gadgets/objects only
+        // Rationale: Players and NPCs are limited to ~200m by game mechanics,
+        // but objects (waypoints, vistas, resource nodes) can be 1000m+ away.
+        // Using only object distances gives us the true scene depth for intelligent scaling.
         std::vector<float> distances;
-        distances.reserve(frameData.players.size() + frameData.npcs.size() + frameData.gadgets.size()); // Pre-allocate memory
+        distances.reserve(frameData.gadgets.size()); // Pre-allocate memory
         
-        for (const auto* p : frameData.players) {
-            if (p) distances.push_back(p->gameplayDistance);
-        }
-        for (const auto* n : frameData.npcs) {
-            if (n) distances.push_back(n->gameplayDistance);
-        }
         for (const auto* g : frameData.gadgets) {
             if (g) distances.push_back(g->gameplayDistance);
         }

@@ -41,7 +41,7 @@ bool ESPStageRenderer::IsEntityOnScreen(const glm::vec3& position, Camera& camer
     return true;
 }
 
-float ESPStageRenderer::CalculateEntityScale(float visualDistance) {
+float ESPStageRenderer::CalculateEntityScale(float visualDistance, ESPEntityType entityType) {
     const auto& settings = AppState::Get().GetSettings();
     
     // Calculate the effective distance, which only starts counting after the "dead zone"
@@ -56,16 +56,24 @@ float ESPStageRenderer::CalculateEntityScale(float visualDistance) {
         distanceFactor = settings.scaling.limitDistanceFactor;
         scalingExponent = settings.scaling.limitScalingExponent;
     } else {
-        // --- NO LIMIT MODE (FULLY DYNAMIC) ---
-        // The Distance Factor is now calculated dynamically based on the adaptive far plane.
-        // We set the 50% scale point to be halfway to the furthest visible group of entities.
-        float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
-        
-        // Ensure the factor is always a reasonable value (minimum 250m for 50% scale point)
-        distanceFactor = (std::max)(250.0f, adaptiveFarPlane / 2.0f);
-        
-        // The user can still control the shape of the curve
-        scalingExponent = settings.scaling.noLimitScalingExponent;
+        // --- NO LIMIT MODE ---
+        if (entityType == ESPEntityType::Gadget) {
+            // GADGETS: Use fully adaptive system (these can be 1000m+ away)
+            // The Distance Factor is calculated dynamically based on the adaptive far plane.
+            // We set the 50% scale point to be halfway to the furthest visible group of objects.
+            float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
+            
+            // Ensure the factor is always a reasonable value (minimum 250m for 50% scale point)
+            distanceFactor = (std::max)(250.0f, adaptiveFarPlane / 2.0f);
+            
+            // The user can still control the shape of the curve
+            scalingExponent = settings.scaling.noLimitScalingExponent;
+        } else {
+            // PLAYERS & NPCs: Use fixed scaling (they're limited to ~200m by game mechanics)
+            // No need for adaptive system - they never go beyond 200m
+            distanceFactor = 150.0f;  // 50% scale at 150m (reasonable for 0-200m range)
+            scalingExponent = settings.scaling.noLimitScalingExponent;
+        }
     }
     
     // Calculate scale using the dynamically determined parameters
@@ -121,7 +129,7 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
 }
 
 float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
-                                               bool useDistanceLimit, float& outNormalizedDistance) {
+                                               bool useDistanceLimit, ESPEntityType entityType, float& outNormalizedDistance) {
     outNormalizedDistance = 0.0f; // Initialize output
     
     if (useDistanceLimit) {
@@ -130,7 +138,16 @@ float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float dis
         // Use the pre-calculated distance fade alpha from ESPFilter
         return distanceFadeAlpha;
     } else {
-        // --- NO LIMIT MODE (ADAPTIVE SYSTEM) ---
+        // --- NO LIMIT MODE ---
+        // Players & NPCs: Always full visibility (they're limited to ~200m by game)
+        // Gadgets: Use adaptive system (they can be 1000m+ away)
+        
+        if (entityType != ESPEntityType::Gadget) {
+            // Players and NPCs are always close (<200m), no need for adaptive fading
+            return 1.0f; // Full visibility
+        }
+        
+        // --- GADGETS: ADAPTIVE SYSTEM ---
         // Goal: Maximum Information Clarity - present vast amounts of data readably
         float finalAlpha = 1.0f; // Default to fully visible
         
@@ -170,11 +187,11 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // --- ADAPTIVE DISTANCE EFFECTS (New System) ---
     // This replaces the old "finalAlpha" approach with two distinct modes:
     // 1. Render Limit Mode (ON): Natural Integration - respects game's rules, uses distance-based fade
-    // 2. No Limit Mode (OFF): Maximum Information Clarity - uses adaptive far plane for intelligent scaling
+    // 2. No Limit Mode (OFF): Maximum Information Clarity - uses adaptive far plane for gadgets only
     
     float normalizedDistance = 0.0f; // Used for LOD effects in No Limit mode
     float finalAlpha = CalculateAdaptiveAlpha(context.gameplayDistance, distanceFadeAlpha, 
-                                             settings.distance.useDistanceLimit, normalizedDistance);
+                                             settings.distance.useDistanceLimit, context.entityType, normalizedDistance);
     
     // Apply final alpha to the entity color
     fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(fadedEntityColor, finalAlpha);
@@ -269,7 +286,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     unsigned int fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(context.color, distanceFadeAlpha);
 
     // 4. Calculate distance-based scale
-    float scale = CalculateEntityScale(context.visualDistance);
+    float scale = CalculateEntityScale(context.visualDistance, context.entityType);
 
     // 5. Calculate bounding box dimensions
     float boxWidth, boxHeight;

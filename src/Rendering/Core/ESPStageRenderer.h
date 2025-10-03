@@ -69,9 +69,10 @@ private:
     /**
      * @brief Calculate distance-based scale factor for entity rendering
      * @param visualDistance Visual distance from camera
+     * @param entityType Type of entity (affects which scaling curve is used)
      * @return Clamped scale factor (between espMinScale and espMaxScale)
      */
-    static float CalculateEntityScale(float visualDistance);
+    static float CalculateEntityScale(float visualDistance, ESPEntityType entityType);
 
     /**
      * @brief Calculate box dimensions for entity based on type and scale
@@ -104,15 +105,16 @@ private:
     static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
 
     /**
-     * @brief Calculate adaptive alpha based on rendering mode
+     * @brief Calculate adaptive alpha based on rendering mode and entity type
      * @param gameplayDistance Distance from player to entity
      * @param distanceFadeAlpha Pre-calculated distance fade alpha (for Limit Mode)
      * @param useDistanceLimit Whether distance limit mode is enabled
+     * @param entityType Type of entity (adaptive alpha only applied to gadgets)
      * @param outNormalizedDistance Output normalized distance (0.0-1.0, for future LOD effects)
      * @return Final alpha value with atmospheric fading applied
      */
     static float CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha, 
-                                       bool useDistanceLimit, float& outNormalizedDistance);
+                                       bool useDistanceLimit, ESPEntityType entityType, float& outNormalizedDistance);
 };
 
 } // namespace kx
