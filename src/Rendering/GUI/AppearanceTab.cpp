@@ -52,6 +52,18 @@ namespace kx {
                     ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.6f, 1.0f), "Unlimited Mode Scaling (Adaptive)");
                     ImGui::TextWrapped("Distance Factor is automatic based on scene.");
                     
+                    // Display current adaptive far plane value
+                    float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
+                    ImGui::Text("Adaptive Far Plane: %.1fm", adaptiveFarPlane);
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip(
+                            "Auto-calculated from the 95th percentile of entity distances.\n"
+                            "Updated once per second. Shows the maximum render range.\n"
+                            "Distance Factor = %.1fm (50%% scale at this distance)",
+                            adaptiveFarPlane / 2.0f
+                        );
+                    }
+                    
                     ImGui::SliderFloat("Curve Shape (Exponent)##NoLimit", &settings.scaling.noLimitScalingExponent, 0.5f, 2.0f, "%.2f");
                     if (ImGui::IsItemHovered()) {
                         ImGui::SetTooltip(

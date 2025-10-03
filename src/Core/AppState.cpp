@@ -1,6 +1,7 @@
 #include "AppState.h"
 #include "../Rendering/Data/ESPData.h"
 #include "../Rendering/Data/RenderableData.h"
+#include "../Utils/DebugLogger.h"
 #include <vector>
 #include <algorithm>
 
@@ -24,15 +25,18 @@ namespace kx {
         }
         m_lastFarPlaneRecalc = now;
 
-        // 1. Collect all relevant gameplay distances
+        // 1. Collect all relevant gameplay distances from all entity types
         std::vector<float> distances;
-        distances.reserve(frameData.players.size() + frameData.npcs.size()); // Pre-allocate memory
+        distances.reserve(frameData.players.size() + frameData.npcs.size() + frameData.gadgets.size()); // Pre-allocate memory
         
         for (const auto* p : frameData.players) {
             if (p) distances.push_back(p->gameplayDistance);
         }
         for (const auto* n : frameData.npcs) {
             if (n) distances.push_back(n->gameplayDistance);
+        }
+        for (const auto* g : frameData.gadgets) {
+            if (g) distances.push_back(g->gameplayDistance);
         }
 
         // 2. Handle edge cases
@@ -52,7 +56,12 @@ namespace kx {
 
         // 4. Smoothly interpolate to the new value to prevent visual "snapping"
         // This makes the transition invisible to the user if the range changes
+        float oldFarPlane = m_adaptiveFarPlane;
         m_adaptiveFarPlane = m_adaptiveFarPlane + (newFarPlane - m_adaptiveFarPlane) * 0.5f; // LERP
+        
+        // Log the adaptive far plane calculation for debugging (only visible when debug logging enabled)
+        LOG_DEBUG("[AdaptiveFarPlane] Entities: %zu | 95th percentile: %.1fm | Smoothed: %.1fm (was %.1fm)", 
+                  distances.size(), newFarPlane, m_adaptiveFarPlane, oldFarPlane);
     }
 
 } // namespace kx
