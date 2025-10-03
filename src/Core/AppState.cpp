@@ -1,6 +1,7 @@
 #include "AppState.h"
 #include "../Rendering/Data/ESPData.h"
 #include "../Rendering/Data/RenderableData.h"
+#include "../Rendering/Utils/ESPConstants.h"
 #include "../Utils/DebugLogger.h"
 #include <vector>
 #include <algorithm>
@@ -37,10 +38,10 @@ namespace kx {
         }
 
         // 2. Handle edge cases - too few objects for reliable percentile statistics
-        if (distances.size() < 10) {
+        if (distances.size() < AdaptiveScaling::MIN_ENTITIES_FOR_PERCENTILE) {
             // Use average distance of available objects with reasonable bounds
             if (distances.empty()) {
-                m_adaptiveFarPlane = 800.0f; // No objects - use conservative mid-range default
+                m_adaptiveFarPlane = AdaptiveScaling::FAR_PLANE_DEFAULT; // No objects - use conservative mid-range default
                 return;
             }
             
@@ -52,7 +53,7 @@ namespace kx {
             float avgDistance = sum / distances.size();
             
             // Clamp and smooth the result
-            float targetFarPlane = (std::clamp)(avgDistance, 100.0f, 3000.0f);
+            float targetFarPlane = (std::clamp)(avgDistance, AdaptiveScaling::FAR_PLANE_MIN, AdaptiveScaling::FAR_PLANE_MAX);
             float oldFarPlane = m_adaptiveFarPlane;
             m_adaptiveFarPlane = m_adaptiveFarPlane + (targetFarPlane - m_adaptiveFarPlane) * 0.5f; // LERP
             
@@ -67,7 +68,7 @@ namespace kx {
         float newFarPlane = distances[percentile_index];
         
         // Clamp the value to a reasonable range to prevent extreme outliers
-        newFarPlane = (std::clamp)(newFarPlane, 100.0f, 3000.0f); // 100m minimum (small instances), 3000m maximum (prevent outliers)
+        newFarPlane = (std::clamp)(newFarPlane, AdaptiveScaling::FAR_PLANE_MIN, AdaptiveScaling::FAR_PLANE_MAX);
 
         // 4. Smoothly interpolate to the new value to prevent visual "snapping"
         // This makes the transition invisible to the user if the range changes

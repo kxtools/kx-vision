@@ -63,15 +63,15 @@ float ESPStageRenderer::CalculateEntityScale(float visualDistance, ESPEntityType
             // We set the 50% scale point to be halfway to the furthest visible group of objects.
             float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
             
-            // Ensure the factor is always a reasonable value (minimum 250m for 50% scale point)
-            distanceFactor = (std::max)(250.0f, adaptiveFarPlane / 2.0f);
+            // Ensure the factor is always reasonable (minimum matches players/NPCs baseline)
+            distanceFactor = (std::max)(AdaptiveScaling::GADGET_MIN_DISTANCE_FACTOR, adaptiveFarPlane / 2.0f);
             
             // The user can still control the shape of the curve
             scalingExponent = settings.scaling.noLimitScalingExponent;
         } else {
             // PLAYERS & NPCs: Use fixed scaling (they're limited to ~200m by game mechanics)
             // No need for adaptive system - they never go beyond 200m
-            distanceFactor = 150.0f;  // 50% scale at 150m (reasonable for 0-200m range)
+            distanceFactor = AdaptiveScaling::PLAYER_NPC_DISTANCE_FACTOR;
             scalingExponent = settings.scaling.noLimitScalingExponent;
         }
     }
@@ -152,7 +152,7 @@ float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float dis
         float finalAlpha = 1.0f; // Default to fully visible
         
         const float farPlane = AppState::Get().GetAdaptiveFarPlane(); // Get the intelligent, pre-calculated adaptive range
-        const float effectStartDistance = 90.0f; // Match game's natural entity range - effects begin beyond game's culling distance
+        const float effectStartDistance = AdaptiveScaling::FADE_START_DISTANCE; // Match game's natural entity range
         
         if (gameplayDistance > effectStartDistance) {
             // Calculate normalized distance (0.0 at effectStartDistance, 1.0 at farPlane)
@@ -167,7 +167,7 @@ float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float dis
             // Linearly interpolate alpha from 1.0 (opaque) down to a minimum visibility
             // In "No Limit" mode, prioritize clarity - even far entities must be readable
             finalAlpha = 1.0f - outNormalizedDistance;
-            finalAlpha = (std::max)(0.5f, finalAlpha); // Clamp to minimum 50% opacity for readability
+            finalAlpha = (std::max)(AdaptiveScaling::MIN_ALPHA, finalAlpha); // Clamp to minimum opacity for readability
             
             // Future LOD effects can use normalizedDistance here
             // For example: reduce detail, simplify rendering, etc.

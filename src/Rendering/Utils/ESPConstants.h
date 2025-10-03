@@ -52,6 +52,30 @@ namespace ExtractionCapacity {
 }
 
 /**
+ * @brief Adaptive scaling system constants
+ * 
+ * Constants used for the intelligent adaptive far plane and distance-based scaling system.
+ * These values control how the system adapts to different map sizes and entity distributions.
+ */
+namespace AdaptiveScaling {
+    // Adaptive far plane bounds (applies to gadgets/objects only)
+    constexpr float FAR_PLANE_MIN = 100.0f;   // Minimum far plane for small instances/dungeons
+    constexpr float FAR_PLANE_MAX = 3000.0f;  // Maximum far plane to prevent extreme outliers
+    constexpr float FAR_PLANE_DEFAULT = 800.0f; // Fallback when no gadgets present (mid-range)
+    
+    // Minimum sample size for percentile calculation
+    constexpr size_t MIN_ENTITIES_FOR_PERCENTILE = 10; // Need at least 10 entities for meaningful statistics
+    
+    // Distance factors for scaling calculation (50% scale point)
+    constexpr float PLAYER_NPC_DISTANCE_FACTOR = 150.0f;  // Fixed factor for players/NPCs (they're limited to ~200m)
+    constexpr float GADGET_MIN_DISTANCE_FACTOR = 150.0f;  // Minimum factor for gadgets (matches player/NPC baseline)
+    
+    // Alpha fading constants
+    constexpr float FADE_START_DISTANCE = 90.0f; // Start fading beyond game's natural entity culling range
+    constexpr float MIN_ALPHA = 0.5f;            // Minimum opacity for readability (50%)
+}
+
+/**
  * @brief Rendering effect constants
  * 
  * Constants that control visual effects and rendering behaviors in the ESP system.
