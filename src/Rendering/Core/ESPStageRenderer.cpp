@@ -41,17 +41,46 @@ bool ESPStageRenderer::IsEntityOnScreen(const glm::vec3& position, Camera& camer
     return true;
 }
 
-float ESPStageRenderer::CalculateEntityScale(float visualDistance) {
+float ESPStageRenderer::CalculateEntityScale(float visualDistance, ESPEntityType entityType) {
     const auto& settings = AppState::Get().GetSettings();
     
     // Calculate the effective distance, which only starts counting after the "dead zone"
-    float effectiveDistance = (std::max)(0.0f, visualDistance - settings.espScalingStartDistance);
+    float effectiveDistance = (std::max)(0.0f, visualDistance - settings.scaling.scalingStartDistance);
 
-    // Calculate scale using the effective distance
-    float rawScale = settings.espDistanceFactor / (settings.espDistanceFactor + pow(effectiveDistance, settings.espScalingExponent));
+    float distanceFactor;
+    float scalingExponent;
+
+    if (settings.distance.useDistanceLimit) {
+        // --- LIMIT MODE ---
+        // Use the static, user-configured curve for the short 0-90m range
+        distanceFactor = settings.scaling.limitDistanceFactor;
+        scalingExponent = settings.scaling.limitScalingExponent;
+    } else {
+        // --- NO LIMIT MODE ---
+        if (entityType == ESPEntityType::Gadget) {
+            // GADGETS: Use fully adaptive system (these can be 1000m+ away)
+            // The Distance Factor is calculated dynamically based on the adaptive far plane.
+            // We set the 50% scale point to be halfway to the furthest visible group of objects.
+            float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
+            
+            // Ensure the factor is always reasonable (minimum matches players/NPCs baseline)
+            distanceFactor = (std::max)(AdaptiveScaling::GADGET_MIN_DISTANCE_FACTOR, adaptiveFarPlane / 2.0f);
+            
+            // The user can still control the shape of the curve
+            scalingExponent = settings.scaling.noLimitScalingExponent;
+        } else {
+            // PLAYERS & NPCs: Use fixed scaling (they're limited to ~200m by game mechanics)
+            // No need for adaptive system - they never go beyond 200m
+            distanceFactor = AdaptiveScaling::PLAYER_NPC_DISTANCE_FACTOR;
+            scalingExponent = settings.scaling.noLimitScalingExponent;
+        }
+    }
+    
+    // Calculate scale using the dynamically determined parameters
+    float rawScale = distanceFactor / (distanceFactor + pow(effectiveDistance, scalingExponent));
 
     // Clamp to min/max bounds
-    return (std::max)(settings.espMinScale, (std::min)(rawScale, settings.espMaxScale));
+    return (std::max)(settings.scaling.minScale, (std::min)(rawScale, settings.scaling.maxScale));
 }
 
 void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, float scale, 
@@ -60,8 +89,8 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
     
     switch (entityType) {
     case ESPEntityType::Player:
-        outBoxHeight = settings.espBaseBoxHeight * scale;
-        outBoxWidth = settings.espBaseBoxWidth * scale;
+        outBoxHeight = settings.sizes.baseBoxHeight * scale;
+        outBoxWidth = settings.sizes.baseBoxWidth * scale;
         if (outBoxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
@@ -70,8 +99,8 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
         
     case ESPEntityType::NPC:
         // For NPCs, use a square based on a smaller version of the player box WIDTH
-        outBoxHeight = (settings.espBaseBoxWidth * 0.8f) * scale;
-        outBoxWidth = (settings.espBaseBoxWidth * 0.8f) * scale;
+        outBoxHeight = (settings.sizes.baseBoxWidth * 0.8f) * scale;
+        outBoxWidth = (settings.sizes.baseBoxWidth * 0.8f) * scale;
         if (outBoxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::NPC_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::NPC_MIN_WIDTH;
@@ -80,8 +109,8 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
         
     case ESPEntityType::Gadget:
         // Gadgets can remain very small
-        outBoxHeight = (settings.espBaseBoxWidth * 0.3f) * scale;
-        outBoxWidth = (settings.espBaseBoxWidth * 0.3f) * scale;
+        outBoxHeight = (settings.sizes.baseBoxWidth * 0.3f) * scale;
+        outBoxWidth = (settings.sizes.baseBoxWidth * 0.3f) * scale;
         if (outBoxHeight < MinimumSizes::GADGET_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::GADGET_MIN_WIDTH;
@@ -89,13 +118,62 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
         break;
         
     default:
-        outBoxHeight = settings.espBaseBoxHeight * scale;
-        outBoxWidth = settings.espBaseBoxWidth * scale;
+        outBoxHeight = settings.sizes.baseBoxHeight * scale;
+        outBoxWidth = settings.sizes.baseBoxWidth * scale;
         if (outBoxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::PLAYER_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::PLAYER_MIN_WIDTH;
         }
         break;
+    }
+}
+
+float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
+                                               bool useDistanceLimit, ESPEntityType entityType, float& outNormalizedDistance) {
+    outNormalizedDistance = 0.0f; // Initialize output
+    
+    if (useDistanceLimit) {
+        // --- RENDER LIMIT MODE ---
+        // Goal: Natural Integration - clean, seamless extension of game's UI
+        // Use the pre-calculated distance fade alpha from ESPFilter
+        return distanceFadeAlpha;
+    } else {
+        // --- NO LIMIT MODE ---
+        // Players & NPCs: Always full visibility (they're limited to ~200m by game)
+        // Gadgets: Use adaptive system (they can be 1000m+ away)
+        
+        if (entityType != ESPEntityType::Gadget) {
+            // Players and NPCs are always close (<200m), no need for adaptive fading
+            return 1.0f; // Full visibility
+        }
+        
+        // --- GADGETS: ADAPTIVE SYSTEM ---
+        // Goal: Maximum Information Clarity - present vast amounts of data readably
+        float finalAlpha = 1.0f; // Default to fully visible
+        
+        const float farPlane = AppState::Get().GetAdaptiveFarPlane(); // Get the intelligent, pre-calculated adaptive range
+        const float effectStartDistance = AdaptiveScaling::FADE_START_DISTANCE; // Match game's natural entity range
+        
+        if (gameplayDistance > effectStartDistance) {
+            // Calculate normalized distance (0.0 at effectStartDistance, 1.0 at farPlane)
+            float range = farPlane - effectStartDistance;
+            if (range > 0.0f) {
+                float progress = (gameplayDistance - effectStartDistance) / range;
+                outNormalizedDistance = (std::clamp)(progress, 0.0f, 1.0f);
+            }
+            
+            // --- TECHNIQUE 1: Far-Distance Alpha Fading (Atmospheric Perspective) ---
+            // Simulates atmospheric haze - objects become fainter with distance
+            // Linearly interpolate alpha from 1.0 (opaque) down to a minimum visibility
+            // In "No Limit" mode, prioritize clarity - even far entities must be readable
+            finalAlpha = 1.0f - outNormalizedDistance;
+            finalAlpha = (std::max)(AdaptiveScaling::MIN_ALPHA, finalAlpha); // Clamp to minimum opacity for readability
+            
+            // Future LOD effects can use normalizedDistance here
+            // For example: reduce detail, simplify rendering, etc.
+        }
+        
+        return finalAlpha;
     }
 }
 
@@ -106,12 +184,24 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     const auto& settings = AppState::Get().GetSettings();
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
     
+    // --- ADAPTIVE DISTANCE EFFECTS (New System) ---
+    // This replaces the old "finalAlpha" approach with two distinct modes:
+    // 1. Render Limit Mode (ON): Natural Integration - respects game's rules, uses distance-based fade
+    // 2. No Limit Mode (OFF): Maximum Information Clarity - uses adaptive far plane for gadgets only
+    
+    float normalizedDistance = 0.0f; // Used for LOD effects in No Limit mode
+    float finalAlpha = CalculateAdaptiveAlpha(context.gameplayDistance, distanceFadeAlpha, 
+                                             settings.distance.useDistanceLimit, context.entityType, normalizedDistance);
+    
+    // Apply final alpha to the entity color
+    fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(fadedEntityColor, finalAlpha);
+    
     // Calculate scaled sizes
-    const float finalFontSize = (std::max)(settings.espMinFontSize, (std::min)(settings.espBaseFontSize * scale, 40.0f));
-    const float finalBoxThickness = (std::max)(1.0f, (std::min)(settings.espBaseBoxThickness * scale, 10.0f));
-    const float finalDotRadius = (std::max)(1.0f, (std::min)(settings.espBaseDotRadius * scale, 15.0f));
-    const float finalHealthBarWidth = (std::max)(10.0f, (std::min)(settings.espBaseHealthBarWidth * scale, 100.0f));
-    const float finalHealthBarHeight = (std::max)(2.0f, (std::min)(settings.espBaseHealthBarHeight * scale, 20.0f));
+    const float finalFontSize = (std::max)(settings.sizes.minFontSize, (std::min)(settings.sizes.baseFontSize * scale, 40.0f));
+    const float finalBoxThickness = (std::max)(1.0f, (std::min)(settings.sizes.baseBoxThickness * scale, 10.0f));
+    const float finalDotRadius = (std::max)(1.0f, (std::min)(settings.sizes.baseDotRadius * scale, 15.0f));
+    const float finalHealthBarWidth = (std::max)(10.0f, (std::min)(settings.sizes.baseHealthBarWidth * scale, 100.0f));
+    const float finalHealthBarHeight = (std::max)(2.0f, (std::min)(settings.sizes.baseHealthBarHeight * scale, 20.0f));
     
     // Render standalone health bars for living entities when health is available AND setting is enabled
     if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
@@ -128,13 +218,13 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render distance text
     if (context.renderDistance) {
         ESPFeatureRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
-                                              distanceFadeAlpha, finalFontSize);
+                                              finalAlpha, finalFontSize);
     }
 
     // Render center dot
     if (context.renderDot) {
         if (context.entityType == ESPEntityType::Gadget) {
-            ESPFeatureRenderer::RenderNaturalWhiteDot(drawList, screenPos, distanceFadeAlpha, finalDotRadius);
+            ESPFeatureRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
         } else {
             ESPFeatureRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
         }
@@ -152,7 +242,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
 
     // Render details text (for all entities when enabled)
     if (context.renderDetails && !context.details.empty()) {
-        ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, distanceFadeAlpha, finalFontSize);
+        ESPFeatureRenderer::RenderDetailsText(drawList, center, boxMax, context.details, finalAlpha, finalFontSize);
     }
 
     // Specialized Summary Rendering (Players Only)
@@ -160,12 +250,12 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
         switch (settings.playerESP.gearDisplayMode) {
         case GearDisplayMode::Compact: { // Compact (Stat Names)
             auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
-            ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, compactSummary, distanceFadeAlpha, finalFontSize);
+            ESPFeatureRenderer::RenderGearSummary(drawList, screenPos, compactSummary, finalAlpha, finalFontSize);
             break;
         }
         case GearDisplayMode::Attributes: { // Top 3 Attributes
             auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
-            ESPFeatureRenderer::RenderDominantStats(drawList, screenPos, dominantStats, distanceFadeAlpha, finalFontSize);
+            ESPFeatureRenderer::RenderDominantStats(drawList, screenPos, dominantStats, finalAlpha, finalFontSize);
             break;
         }
         default:
@@ -185,8 +275,8 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     // 2. Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();
     float distanceFadeAlpha = CalculateEntityDistanceFadeAlpha(context.gameplayDistance,
-                                                              settings.espUseDistanceLimit, 
-                                                              settings.espRenderDistanceLimit);
+                                                              settings.distance.useDistanceLimit, 
+                                                              settings.distance.renderDistanceLimit);
     
     if (distanceFadeAlpha <= 0.0f) {
         return; // Entity is fully transparent
@@ -196,7 +286,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     unsigned int fadedEntityColor = ESPFeatureRenderer::ApplyAlphaToColor(context.color, distanceFadeAlpha);
 
     // 4. Calculate distance-based scale
-    float scale = CalculateEntityScale(context.visualDistance);
+    float scale = CalculateEntityScale(context.visualDistance, context.entityType);
 
     // 5. Calculate bounding box dimensions
     float boxWidth, boxHeight;

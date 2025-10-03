@@ -52,6 +52,30 @@ namespace ExtractionCapacity {
 }
 
 /**
+ * @brief Adaptive scaling system constants
+ * 
+ * Constants used for the intelligent adaptive far plane and distance-based scaling system.
+ * These values control how the system adapts to different map sizes and entity distributions.
+ */
+namespace AdaptiveScaling {
+    // Adaptive far plane bounds (applies to gadgets/objects only)
+    constexpr float FAR_PLANE_MIN = 100.0f;   // Minimum far plane for small instances/dungeons
+    constexpr float FAR_PLANE_MAX = 3000.0f;  // Maximum far plane to prevent extreme outliers
+    constexpr float FAR_PLANE_DEFAULT = 800.0f; // Fallback when no gadgets present (mid-range)
+    
+    // Minimum sample size for percentile calculation
+    constexpr size_t MIN_ENTITIES_FOR_PERCENTILE = 10; // Need at least 10 entities for meaningful statistics
+    
+    // Distance factors for scaling calculation (50% scale point)
+    constexpr float PLAYER_NPC_DISTANCE_FACTOR = 150.0f;  // Fixed factor for players/NPCs (they're limited to ~200m)
+    constexpr float GADGET_MIN_DISTANCE_FACTOR = 150.0f;  // Minimum factor for gadgets (matches player/NPC baseline)
+    
+    // Alpha fading constants
+    constexpr float FADE_START_DISTANCE = 90.0f; // Start fading beyond game's natural entity culling range
+    constexpr float MIN_ALPHA = 0.5f;            // Minimum opacity for readability (50%)
+}
+
+/**
  * @brief Rendering effect constants
  * 
  * Constants that control visual effects and rendering behaviors in the ESP system.
@@ -70,25 +94,25 @@ namespace RenderingEffects {
  * - Players: Bright cyan/blue for easy team identification
  * - NPCs: Attitude-based colors following GW2 conventions
  * - Gadgets: Warm orange for interactable objects
+ * 
+ * Note: IM_COL32 takes colors in (R, G, B, A) order - Red, Green, Blue, Alpha
  */
 namespace ESPColors {
-    // Colors are defined in (Blue, Green, Red, Alpha) order for IM_COL32.
-
     // Default text color (used across all detail rendering)
-    constexpr unsigned int DEFAULT_TEXT = IM_COL32(255, 255, 255, 255);  // White (R:255, G:255, B:255)
+    constexpr unsigned int DEFAULT_TEXT = IM_COL32(255, 255, 255, 255);  // White
 
     // Player colors
-    constexpr unsigned int PLAYER = IM_COL32(255, 144, 30, 230);
+    constexpr unsigned int PLAYER = IM_COL32(30, 144, 255, 230);  // Bright cyan/blue (dodger blue)
     
     // NPC colors based on attitude - unified palette
-    constexpr unsigned int NPC_HOSTILE = IM_COL32(80, 80, 255, 210);      // Strong classic red (R:255, G:80, B:80)
-    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green (R:100, G:255, B:100)
-    constexpr unsigned int NPC_NEUTRAL = IM_COL32(0, 255, 127, 210);      // Electric chartreuse (R:127, G:255, B:0)
-    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white (R:240, G:240, B:240)
-    constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown (R:255, G:0, B:255)
+    constexpr unsigned int NPC_HOSTILE = IM_COL32(255, 80, 80, 210);      // Strong classic red
+    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green
+    constexpr unsigned int NPC_NEUTRAL = IM_COL32(127, 255, 0, 210);      // Electric chartreuse (yellow-green)
+    constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white
+    constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown
     
     // Gadget colors
-    constexpr unsigned int GADGET = IM_COL32(80, 165, 255, 200);  // Warm orange/amber (R:255, G:165, B:80)
+    constexpr unsigned int GADGET = IM_COL32(255, 165, 80, 200);  // Warm orange/amber
 }
 
 /**

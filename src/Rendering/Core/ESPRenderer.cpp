@@ -63,6 +63,9 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         // Stage 2: Filter the pooled data (safe, configurable operations)  
         ESPFilter::FilterPooledData(extractedData, *s_camera, s_cachedFilteredData);
         
+        // Stage 2.5: Update adaptive far plane for "No Limit" mode (once per second internally)
+        AppState::Get().UpdateAdaptiveFarPlane(s_cachedFilteredData);
+        
         s_lastUpdateTime = currentTime;
     }
     
