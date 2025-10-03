@@ -40,8 +40,8 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
 
     // 5. Calculate rendering dimensions (box or circle)
     if (context.entityType == ESPEntityType::Gadget) {
-        // Gadgets use circle rendering - calculate radius
-        float baseRadius = settings.sizes.baseBoxWidth * 0.15f; // Smaller than old box
+        // Gadgets use circle rendering - calculate radius from base box width
+        float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
         props.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * props.scale);
         
         // For gadgets, screenPos IS the center (no box needed)
@@ -69,12 +69,22 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
     // Apply final alpha to the entity color
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
     
-    // 7. Calculate scaled sizes
-    props.finalFontSize = (std::max)(settings.sizes.minFontSize, (std::min)(settings.sizes.baseFontSize * props.scale, 40.0f));
-    props.finalBoxThickness = (std::max)(1.0f, (std::min)(settings.sizes.baseBoxThickness * props.scale, 10.0f));
-    props.finalDotRadius = (std::max)(1.0f, (std::min)(settings.sizes.baseDotRadius * props.scale, 15.0f));
-    props.finalHealthBarWidth = (std::max)(10.0f, (std::min)(settings.sizes.baseHealthBarWidth * props.scale, 100.0f));
-    props.finalHealthBarHeight = (std::max)(2.0f, (std::min)(settings.sizes.baseHealthBarHeight * props.scale, 20.0f));
+    // 7. Calculate scaled sizes with limits to prevent extreme values
+    props.finalFontSize = (std::max)(settings.sizes.minFontSize, 
+                                    (std::min)(settings.sizes.baseFontSize * props.scale, 
+                                              ScalingLimits::MAX_FONT_SIZE));
+    props.finalBoxThickness = (std::max)(ScalingLimits::MIN_BOX_THICKNESS, 
+                                        (std::min)(settings.sizes.baseBoxThickness * props.scale, 
+                                                  ScalingLimits::MAX_BOX_THICKNESS));
+    props.finalDotRadius = (std::max)(ScalingLimits::MIN_DOT_RADIUS, 
+                                     (std::min)(settings.sizes.baseDotRadius * props.scale, 
+                                               ScalingLimits::MAX_DOT_RADIUS));
+    props.finalHealthBarWidth = (std::max)(ScalingLimits::MIN_HEALTH_BAR_WIDTH, 
+                                          (std::min)(settings.sizes.baseHealthBarWidth * props.scale, 
+                                                    ScalingLimits::MAX_HEALTH_BAR_WIDTH));
+    props.finalHealthBarHeight = (std::max)(ScalingLimits::MIN_HEALTH_BAR_HEIGHT, 
+                                           (std::min)(settings.sizes.baseHealthBarHeight * props.scale, 
+                                                     ScalingLimits::MAX_HEALTH_BAR_HEIGHT));
     
     return props;
 }
@@ -153,9 +163,9 @@ void EntityVisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityT
         break;
         
     case ESPEntityType::NPC:
-        // For NPCs, use a square based on a smaller version of the player box WIDTH
-        outBoxHeight = (settings.sizes.baseBoxWidth * 0.8f) * scale;
-        outBoxWidth = (settings.sizes.baseBoxWidth * 0.8f) * scale;
+        // NPCs use square boxes - same width as players for visual consistency
+        outBoxHeight = settings.sizes.baseBoxWidth * scale;  // Use baseBoxWidth directly (45px)
+        outBoxWidth = settings.sizes.baseBoxWidth * scale;   // Square = width x width
         if (outBoxHeight < MinimumSizes::NPC_MIN_HEIGHT) {
             outBoxHeight = MinimumSizes::NPC_MIN_HEIGHT;
             outBoxWidth = MinimumSizes::NPC_MIN_WIDTH;
@@ -163,7 +173,8 @@ void EntityVisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityT
         break;
         
     case ESPEntityType::Gadget:
-        // Gadgets can remain very small
+        // NOTE: This case is unused - gadgets use circle rendering (see Calculate())
+        // Keeping for safety/fallback, but gadgets are rendered as circles with radius = baseBoxWidth x 0.15
         outBoxHeight = (settings.sizes.baseBoxWidth * 0.3f) * scale;
         outBoxWidth = (settings.sizes.baseBoxWidth * 0.3f) * scale;
         if (outBoxHeight < MinimumSizes::GADGET_MIN_HEIGHT) {

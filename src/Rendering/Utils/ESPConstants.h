@@ -26,6 +26,21 @@ namespace MinimumSizes {
 }
 
 /**
+ * @brief Entity size ratios and proportions
+ * 
+ * Defines the relative sizing and proportions for different entity types.
+ * These ratios determine how entity sizes relate to the base box dimensions.
+ */
+namespace EntitySizeRatios {
+    // Gadget circle sizing (relative to base box width)
+    constexpr float GADGET_CIRCLE_RADIUS_RATIO = 0.15f;  // Circle radius = baseBoxWidth × 0.15 (6.75px from 45px)
+    // Results in 13.5px diameter (30% of player width) - small enough for "objects" not "characters"
+    
+    // NPC box sizing (uses base box width directly - see CalculateEntityBoxDimensions)
+    // NPCs are 45×45 squares (1.0× player width) for visual consistency
+}
+
+/**
  * @brief Coordinate transformation constants
  * 
  * Constants used for converting between game world coordinates and MumbleLink coordinates.
@@ -78,6 +93,33 @@ namespace AdaptiveScaling {
     // Alpha fading constants (Players/NPCs - subtle fixed-range fade)
     constexpr float PLAYER_NPC_FADE_START = 80.0f;  // Start fade at same point as Limit Mode (consistent feel)
     constexpr float PLAYER_NPC_FADE_END = 120.0f;   // End fade at earliest culling distance (game culls at 120-200m)
+}
+
+/**
+ * @brief Scaling limits for ESP elements
+ * 
+ * Maximum and minimum bounds for scaled ESP elements to prevent extreme sizes
+ * at very close or very distant ranges. These limits ensure visual quality and
+ * prevent performance issues from oversized elements.
+ */
+namespace ScalingLimits {
+    // Font size limits (base: 16px)
+    constexpr float MAX_FONT_SIZE = 40.0f;           // Maximum font size (2.5x base, prevents giant text)
+    // Min font size defined in Settings (9px) for user configurability
+    
+    // Box thickness limits (base: 2px)
+    constexpr float MIN_BOX_THICKNESS = 1.0f;        // Minimum line thickness (prevents invisible lines)
+    constexpr float MAX_BOX_THICKNESS = 10.0f;       // Maximum line thickness (5x base, prevents chunky borders)
+    
+    // Dot radius limits (base: 3px)
+    constexpr float MIN_DOT_RADIUS = 1.0f;           // Minimum dot size (visible pixel)
+    constexpr float MAX_DOT_RADIUS = 15.0f;          // Maximum dot size (5x base, prevents giant dots)
+    
+    // Health bar limits (base: 60w × 7h)
+    constexpr float MIN_HEALTH_BAR_WIDTH = 10.0f;    // Minimum readable width
+    constexpr float MAX_HEALTH_BAR_WIDTH = 150.0f;   // Maximum width (2.5x base, matches font scaling)
+    constexpr float MIN_HEALTH_BAR_HEIGHT = 2.0f;    // Minimum visible height
+    constexpr float MAX_HEALTH_BAR_HEIGHT = 18.0f;   // Maximum height (2.57x base, balanced visibility)
 }
 
 /**
