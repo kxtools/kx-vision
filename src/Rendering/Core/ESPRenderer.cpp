@@ -21,6 +21,11 @@ namespace kx {
 // Initialize the static camera pointer
 Camera* ESPRenderer::s_camera = nullptr;
 
+// Persistent entity state for interpolation
+std::unordered_map<const void*, RenderablePlayer> ESPRenderer::s_playerData;
+std::unordered_map<const void*, RenderableNpc> ESPRenderer::s_npcData;
+std::unordered_map<const void*, RenderableGadget> ESPRenderer::s_gadgetData;
+
 // Object pools to eliminate heap churn - pre-allocate reasonable number of entities
 static ObjectPool<RenderablePlayer> s_playerPool(500);
 static ObjectPool<RenderableNpc> s_npcPool(2000);
@@ -29,6 +34,7 @@ static ObjectPool<RenderableGadget> s_gadgetPool(5000);
 // Static variables for frame rate limiting and three-stage pipeline
 static PooledFrameRenderData s_cachedFilteredData; // Filtered data ready for rendering
 static float s_lastUpdateTime = 0.0f;
+static float s_lastCleanupTime = 0.0f; // Track when we last cleaned up stale entities
 
 void ESPRenderer::Initialize(Camera& camera) {
     s_camera = &camera;
@@ -67,10 +73,48 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         AppState::Get().UpdateAdaptiveFarPlane(s_cachedFilteredData);
         
         s_lastUpdateTime = currentTime;
+        
+        // Periodic cleanup of stale entities (every 5 seconds)
+        if (currentTime - s_lastCleanupTime >= 5.0f) {
+            CleanupStaleEntities();
+            s_lastCleanupTime = currentTime;
+        }
     }
     
     // Stage 3: Always render using cached filtered data (safe, fast operation)
     ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFilteredData, *s_camera);
+}
+
+void ESPRenderer::CleanupStaleEntities() {
+    double currentTime = GetTickCount64() / 1000.0;
+    constexpr double STALE_THRESHOLD = 5.0; // Remove entities not seen in 5 seconds
+    
+    // Clean up players
+    for (auto it = s_playerData.begin(); it != s_playerData.end(); ) {
+        if (currentTime - it->second.lastUpdateTime > STALE_THRESHOLD) {
+            it = s_playerData.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    
+    // Clean up NPCs
+    for (auto it = s_npcData.begin(); it != s_npcData.end(); ) {
+        if (currentTime - it->second.lastUpdateTime > STALE_THRESHOLD) {
+            it = s_npcData.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    
+    // Clean up gadgets
+    for (auto it = s_gadgetData.begin(); it != s_gadgetData.end(); ) {
+        if (currentTime - it->second.lastUpdateTime > STALE_THRESHOLD) {
+            it = s_gadgetData.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

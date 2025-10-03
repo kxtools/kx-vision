@@ -52,7 +52,8 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         screenWidth,
         screenHeight,
         player->playerName,
-        player
+        player,
+        player  // entity pointer for interpolation
     };
 }
 
@@ -102,7 +103,8 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         screenWidth,
         screenHeight,
         emptyPlayerName,
-        nullptr
+        nullptr,
+        npc  // entity pointer for interpolation
     };
 }
 
@@ -130,7 +132,8 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         screenWidth,
         screenHeight,
         emptyPlayerName,
-        nullptr
+        nullptr,
+        gadget  // entity pointer for interpolation
     };
 }
 

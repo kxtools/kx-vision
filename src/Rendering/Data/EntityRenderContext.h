@@ -87,6 +87,11 @@ struct EntityRenderContext {
     
     /** Pointer to full player object for summary rendering (nullptr for non-players) */
     const RenderablePlayer* player;
+    
+    // ===== Interpolation Data =====
+    
+    /** Pointer to base entity for interpolation data (always valid) */
+    const RenderableEntity* entity;
 };
 
 } // namespace kx

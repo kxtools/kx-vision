@@ -24,14 +24,24 @@ struct ColoredDetail {
 // Base struct for all renderable entities
 // Contains common fields shared by all entity types
 struct RenderableEntity {
-    glm::vec3 position;
+    // --- Position Data for Interpolation ---
+    glm::vec3 currentPosition;       // The newest position from the game
+    glm::vec3 previousPosition;      // The position from the previous update
+    glm::vec3 renderPosition;        // The interpolated position for smooth rendering
+    double lastUpdateTime;           // Timestamp when currentPosition was last updated (in seconds)
+    
+    // --- Legacy field (kept for compatibility, use renderPosition for rendering) ---
+    glm::vec3 position;              // Deprecated: use renderPosition instead
+    
     glm::vec2 screenPos;             // Pre-calculated screen position
     float visualDistance;            // Distance from camera (for scaling)
     float gameplayDistance;          // Distance from player (for display)
     bool isValid;
     const void* address;             // Const pointer since we only use for identification/comparison
 
-    RenderableEntity() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
+    RenderableEntity() : currentPosition(0.0f), previousPosition(0.0f), renderPosition(0.0f),
+                         lastUpdateTime(0.0), position(0.0f), screenPos(0.0f), 
+                         visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr)
     {
     }

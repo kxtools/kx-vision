@@ -8,6 +8,7 @@
 #include "../Core/ESPFilter.h"
 #include <algorithm>
 #include <cmath>
+#include <Windows.h>
 
 namespace kx {
 
@@ -17,8 +18,32 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
                                                                    float screenHeight) {
     VisualProperties props;
     
-    // 1. Check if entity is on screen
-    if (!IsEntityOnScreen(context.position, camera, screenWidth, screenHeight, props.screenPos)) {
+    // 0. Calculate interpolated position for smooth rendering
+    glm::vec3 interpolatedPosition = context.position; // Default to current position
+    
+    if (context.entity && context.entity->lastUpdateTime > 0.0) {
+        // Get current time in seconds
+        double currentTime = GetTickCount64() / 1000.0;
+        
+        // Get ESP update interval from settings
+        const auto& settings = AppState::Get().GetSettings();
+        float espUpdateInterval = 1.0f / (std::max)(1.0f, settings.espUpdateRate);
+        
+        // Calculate how far we are into the current update interval
+        double timeSinceUpdate = currentTime - context.entity->lastUpdateTime;
+        float alpha = static_cast<float>(timeSinceUpdate / espUpdateInterval);
+        
+        // Clamp alpha to [0, 1] to prevent overshooting
+        alpha = std::clamp(alpha, 0.0f, 1.0f);
+        
+        // Linear interpolation between previous and current positions
+        interpolatedPosition = glm::mix(context.entity->previousPosition,
+                                       context.entity->currentPosition,
+                                       alpha);
+    }
+    
+    // 1. Check if entity is on screen (using interpolated position)
+    if (!IsEntityOnScreen(interpolatedPosition, camera, screenWidth, screenHeight, props.screenPos)) {
         return std::nullopt; // Entity is not visible
     }
 

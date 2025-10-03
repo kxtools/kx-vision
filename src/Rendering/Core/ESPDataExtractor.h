@@ -36,15 +36,19 @@ namespace kx {
     private:
         /**
          * @brief OPTIMIZED extraction methods - write directly into object pools
+         *        Now also updates persistent entity state for interpolation
          */
         static void ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
             ObjectPool<RenderableNpc>& npcPool,
             std::vector<RenderablePlayer*>& players,
             std::vector<RenderableNpc*>& npcs,
-            const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap);
+            const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap,
+            std::unordered_map<const void*, RenderablePlayer>& persistentPlayers,
+            std::unordered_map<const void*, RenderableNpc>& persistentNpcs);
 
         static void ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
-            std::vector<RenderableGadget*>& gadgets);
+            std::vector<RenderableGadget*>& gadgets,
+            std::unordered_map<const void*, RenderableGadget>& persistentGadgets);
     };
 
 } // namespace kx
