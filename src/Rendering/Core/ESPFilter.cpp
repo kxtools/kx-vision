@@ -64,6 +64,9 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply distance filter based on visual distance
             if (settings.distance.useDistanceLimit && player->gameplayDistance > settings.distance.renderDistanceLimit) continue;
             
+            // Apply attitude-based filter
+            if (!Filtering::EntityFilter::ShouldRenderPlayer(player->attitude, settings.playerESP)) continue;
+            
             filteredData.players.push_back(player);
         }
     }

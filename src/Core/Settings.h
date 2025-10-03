@@ -28,6 +28,11 @@ namespace kx {
         bool showArmorWeight = true;
         bool showLocalPlayer = false; // Hide local player by default
         GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
+        // Attitude filtering (same as NPCs)
+        bool showFriendly = true;
+        bool showHostile = true;
+        bool showNeutral = true;
+        bool showIndifferent = true;
     };
 
     struct NpcEspSettings {
