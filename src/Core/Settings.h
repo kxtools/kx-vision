@@ -98,6 +98,10 @@ namespace kx {
         // --- Distance Limiting ---
         bool useDistanceLimit = true;           // Enable/disable distance-based culling
         float renderDistanceLimit = 90.0f;      // Hard cutoff distance (mimics game's native culling range)
+        
+        // --- Advanced Fading (No Limit Mode Only) ---
+        bool enablePlayerNpcFade = true;        // Apply subtle fade to players/NPCs at long range (80m-120m)
+        float playerNpcMinAlpha = 0.5f;         // Minimum opacity for players/NPCs at max range (50% for depth)
     };
 
     /**

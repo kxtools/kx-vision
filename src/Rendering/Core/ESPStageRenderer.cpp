@@ -130,29 +130,25 @@ void ESPStageRenderer::CalculateEntityBoxDimensions(ESPEntityType entityType, fl
 
 float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
                                                bool useDistanceLimit, ESPEntityType entityType, float& outNormalizedDistance) {
+    const auto& settings = AppState::Get().GetSettings();
     outNormalizedDistance = 0.0f; // Initialize output
     
     if (useDistanceLimit) {
-        // --- RENDER LIMIT MODE ---
+        // --- TIER 1: RENDER LIMIT MODE ---
         // Goal: Natural Integration - clean, seamless extension of game's UI
-        // Use the pre-calculated distance fade alpha from ESPFilter
+        // Uses the simple 80-90m fade curve from ESPFilter
         return distanceFadeAlpha;
-    } else {
-        // --- NO LIMIT MODE ---
-        // Players & NPCs: Always full visibility (they're limited to ~200m by game)
-        // Gadgets: Use adaptive system (they can be 1000m+ away)
-        
-        if (entityType != ESPEntityType::Gadget) {
-            // Players and NPCs are always close (<200m), no need for adaptive fading
-            return 1.0f; // Full visibility
-        }
-        
-        // --- GADGETS: ADAPTIVE SYSTEM ---
-        // Goal: Maximum Information Clarity - present vast amounts of data readably
+    }
+
+    // --- "NO LIMIT" MODE LOGIC (THREE-TIERED SYSTEM) ---
+    
+    if (entityType == ESPEntityType::Gadget) {
+        // --- TIER 2: GADGETS (Fully Adaptive Fade) ---
+        // Goal: Maximum Information Clarity - handle extreme distances (1000m+)
         float finalAlpha = 1.0f; // Default to fully visible
         
-        const float farPlane = AppState::Get().GetAdaptiveFarPlane(); // Get the intelligent, pre-calculated adaptive range
-        const float effectStartDistance = AdaptiveScaling::FADE_START_DISTANCE; // Match game's natural entity range
+        const float farPlane = AppState::Get().GetAdaptiveFarPlane(); // Intelligent, scene-aware range
+        const float effectStartDistance = AdaptiveScaling::FADE_START_DISTANCE; // 90m - beyond game's culling
         
         if (gameplayDistance > effectStartDistance) {
             // Calculate normalized distance (0.0 at effectStartDistance, 1.0 at farPlane)
@@ -162,18 +158,37 @@ float ESPStageRenderer::CalculateAdaptiveAlpha(float gameplayDistance, float dis
                 outNormalizedDistance = (std::clamp)(progress, 0.0f, 1.0f);
             }
             
-            // --- TECHNIQUE 1: Far-Distance Alpha Fading (Atmospheric Perspective) ---
-            // Simulates atmospheric haze - objects become fainter with distance
-            // Linearly interpolate alpha from 1.0 (opaque) down to a minimum visibility
-            // In "No Limit" mode, prioritize clarity - even far entities must be readable
+            // Atmospheric perspective: Linear fade from 100% to minimum
             finalAlpha = 1.0f - outNormalizedDistance;
-            finalAlpha = (std::max)(AdaptiveScaling::MIN_ALPHA, finalAlpha); // Clamp to minimum opacity for readability
+            finalAlpha = (std::max)(AdaptiveScaling::MIN_ALPHA, finalAlpha); // 50% minimum for readability
             
-            // Future LOD effects can use normalizedDistance here
-            // For example: reduce detail, simplify rendering, etc.
+            // Future: LOD effects can use normalizedDistance here
         }
         
         return finalAlpha;
+    } 
+    else {
+        // --- TIER 3: PLAYERS & NPCs (Subtle Fixed-Range Fade) ---
+        // Goal: Depth perception without compromising combat clarity
+        
+        if (!settings.distance.enablePlayerNpcFade) {
+            return 1.0f; // Effect disabled - always 100% opaque
+        }
+
+        const float fadeStart = AdaptiveScaling::PLAYER_NPC_FADE_START;
+        const float fadeEnd = AdaptiveScaling::PLAYER_NPC_FADE_END;
+
+        if (gameplayDistance <= fadeStart) {
+            return 1.0f; // Fully opaque up close
+        }
+        if (gameplayDistance >= fadeEnd) {
+            return settings.distance.playerNpcMinAlpha; // Clamp to user-defined minimum at max range
+        }
+
+        // Linear interpolation within the fixed fade zone
+        float fadeRange = fadeEnd - fadeStart;
+        float progress = (gameplayDistance - fadeStart) / fadeRange;
+        return 1.0f - (progress * (1.0f - settings.distance.playerNpcMinAlpha));
     }
 }
 

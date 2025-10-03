@@ -70,9 +70,13 @@ namespace AdaptiveScaling {
     constexpr float PLAYER_NPC_DISTANCE_FACTOR = 150.0f;  // Fixed factor for players/NPCs (they're limited to ~200m)
     constexpr float GADGET_MIN_DISTANCE_FACTOR = 150.0f;  // Minimum factor for gadgets (matches player/NPC baseline)
     
-    // Alpha fading constants
+    // Alpha fading constants (Gadgets - adaptive long-range fade)
     constexpr float FADE_START_DISTANCE = 90.0f; // Start fading beyond game's natural entity culling range
-    constexpr float MIN_ALPHA = 0.5f;            // Minimum opacity for readability (50%)
+    constexpr float MIN_ALPHA = 0.5f;            // Minimum opacity for gadgets at extreme distances (50%)
+    
+    // Alpha fading constants (Players/NPCs - subtle fixed-range fade)
+    constexpr float PLAYER_NPC_FADE_START = 80.0f;  // Start fade at same point as Limit Mode (consistent feel)
+    constexpr float PLAYER_NPC_FADE_END = 120.0f;   // End fade at earliest culling distance (game culls at 120-200m)
 }
 
 /**
