@@ -99,7 +99,7 @@ namespace kx {
         // ESP Scaling Configuration
         float espMinScale = 0.1f;
         float espMaxScale = 1.0f;
-        float espScalingStartDistance = 0.0f;  // A single, continuous curve starts at 0.
+        float espScalingStartDistance = 20.0f; // The recommended value.
         float espDistanceFactor = 200.0f;      // The balanced, natural curve
         float espScalingExponent = 1.2f;       // A slightly accelerating curve feels most natural.
 
