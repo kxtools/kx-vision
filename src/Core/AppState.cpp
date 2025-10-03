@@ -36,10 +36,28 @@ namespace kx {
             if (g) distances.push_back(g->gameplayDistance);
         }
 
-        // 2. Handle edge cases
-        // If we have too few entities, the statistic is meaningless. Fall back to a safe default.
+        // 2. Handle edge cases - too few objects for reliable percentile statistics
         if (distances.size() < 10) {
-            m_adaptiveFarPlane = 1500.0f; // Default far plane
+            // Use average distance of available objects with reasonable bounds
+            if (distances.empty()) {
+                m_adaptiveFarPlane = 800.0f; // No objects - use conservative mid-range default
+                return;
+            }
+            
+            // Calculate average distance from the few objects we have
+            float sum = 0.0f;
+            for (float d : distances) {
+                sum += d;
+            }
+            float avgDistance = sum / distances.size();
+            
+            // Clamp and smooth the result
+            float targetFarPlane = (std::clamp)(avgDistance, 100.0f, 3000.0f);
+            float oldFarPlane = m_adaptiveFarPlane;
+            m_adaptiveFarPlane = m_adaptiveFarPlane + (targetFarPlane - m_adaptiveFarPlane) * 0.5f; // LERP
+            
+            LOG_DEBUG("[AdaptiveFarPlane] Few objects (%zu), using average: %.1fm (was %.1fm)", 
+                      distances.size(), m_adaptiveFarPlane, oldFarPlane);
             return;
         }
 
