@@ -2,43 +2,50 @@
 #include "../../../libs/ImGui/imgui.h"
 #include <string>
 
+// A local helper to encapsulate the ImGui ID generation, cleaning up the main function.
+static void CheckboxWithId(const char* label, const char* categoryName, bool* value) {
+    // This creates a unique ID like "Show Box##Players" to prevent ImGui ID collisions.
+    std::string id_label = std::string(label) + "##" + std::string(categoryName);
+    ImGui::Checkbox(id_label.c_str(), value);
+}
+
 namespace kx {
     namespace GUI {
 
-        void RenderCategoryStyleSettings(const char* categoryName, 
-                                        bool& renderBox, 
-                                        bool& renderDistance, 
-                                        bool& renderDot, 
-                                        bool* renderHealthBar, 
-                                        bool* renderDetails, 
-                                        bool* renderPlayerName) {
+        void RenderCategoryStyleSettings(const char* categoryName,
+            bool& renderBox,
+            bool& renderDistance,
+            bool& renderDot,
+            bool* renderHealthBar,
+            bool* renderDetails,
+            bool* renderPlayerName) {
             if (ImGui::CollapsingHeader(categoryName, ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::Text("Visual Elements");
+                // Group 1: Core geometric visuals. These are fundamental.
+                ImGui::SeparatorText("Core Visuals");
 
-                std::string boxLabel = "Show Box##" + std::string(categoryName);
-                std::string distLabel = "Show Distance##" + std::string(categoryName);
-                std::string dotLabel = "Show Dot##" + std::string(categoryName);
+                CheckboxWithId("Show Box", categoryName, &renderBox);
+                ImGui::SameLine(150); // Use a fixed position for clean alignment
+                CheckboxWithId("Show Distance", categoryName, &renderDistance);
+                ImGui::SameLine(300); // Use a fixed position for clean alignment
+                CheckboxWithId("Show Dot", categoryName, &renderDot);
 
-                ImGui::Checkbox(boxLabel.c_str(), &renderBox);
-                ImGui::SameLine();
-                ImGui::Checkbox(distLabel.c_str(), &renderDistance);
-                ImGui::SameLine();
-                ImGui::Checkbox(dotLabel.c_str(), &renderDot);
+                // Check if there are any informational overlays to show.
+                // If not, we don't even render the separator, keeping the UI clean.
+                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName);
 
-                if (renderHealthBar) {
-                    std::string healthLabel = "Show Health Bar##" + std::string(categoryName);
-                    ImGui::Checkbox(healthLabel.c_str(), renderHealthBar);
-                    if (renderDetails) ImGui::SameLine();
-                }
+                if (hasInfoOverlays) {
+                    // Group 2: Informational text and data overlays.
+                    ImGui::SeparatorText("Informational Overlays");
 
-                if (renderDetails) {
-                    std::string detailsLabel = "Show Details##" + std::string(categoryName);
-                    ImGui::Checkbox(detailsLabel.c_str(), renderDetails);
-                }
-
-                if (renderPlayerName) {
-                    std::string nameLabel = "Show Player Name##" + std::string(categoryName);
-                    ImGui::Checkbox(nameLabel.c_str(), renderPlayerName);
+                    if (renderHealthBar) {
+                        CheckboxWithId("Show Health Bar", categoryName, renderHealthBar);
+                    }
+                    if (renderPlayerName) {
+                        CheckboxWithId("Show Player Name", categoryName, renderPlayerName);
+                    }
+                    if (renderDetails) {
+                        CheckboxWithId("Show Details", categoryName, renderDetails);
+                    }
                 }
             }
         }

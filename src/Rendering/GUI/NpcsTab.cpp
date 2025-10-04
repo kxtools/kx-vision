@@ -14,15 +14,15 @@ namespace kx {
                 
                 if (settings.npcESP.enabled) {
                     ImGui::Separator();
-                    ImGui::Text("Attitude Filter");
-                    
-                    ImGui::Checkbox("Show Friendly", &settings.npcESP.showFriendly);
-                    ImGui::SameLine();
-                    ImGui::Checkbox("Show Hostile", &settings.npcESP.showHostile);
-                    ImGui::SameLine();
-                    ImGui::Checkbox("Show Neutral", &settings.npcESP.showNeutral);
-                    ImGui::Checkbox("Show Indifferent", &settings.npcESP.showIndifferent);
-                    
+                    if (ImGui::CollapsingHeader("Attitude Filter"))
+                    {
+                        ImGui::Checkbox("Show Friendly", &settings.npcESP.showFriendly);
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Show Hostile", &settings.npcESP.showHostile);
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Show Neutral", &settings.npcESP.showNeutral);
+                        ImGui::Checkbox("Show Indifferent", &settings.npcESP.showIndifferent);
+                    }
                     ImGui::Separator();
                     ImGui::Text("Health Filter");
                     ImGui::Checkbox("Show Dead NPCs", &settings.npcESP.showDeadNpcs);

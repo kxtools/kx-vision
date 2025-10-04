@@ -14,15 +14,15 @@ namespace kx {
                 
                 if (settings.playerESP.enabled) {
                     ImGui::Separator();
-                    ImGui::Text("Attitude Filter");
-                    
-                    ImGui::Checkbox("Show Friendly", &settings.playerESP.showFriendly);
-                    ImGui::SameLine();
-                    ImGui::Checkbox("Show Hostile", &settings.playerESP.showHostile);
-                    ImGui::SameLine();
-                    ImGui::Checkbox("Show Neutral", &settings.playerESP.showNeutral);
-                    ImGui::Checkbox("Show Indifferent", &settings.playerESP.showIndifferent);
-                    
+                    if (ImGui::CollapsingHeader("Attitude Filter"))
+                    {
+                        ImGui::Checkbox("Show Friendly", &settings.playerESP.showFriendly);
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Show Hostile", &settings.playerESP.showHostile);
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Show Neutral", &settings.playerESP.showNeutral);
+                        ImGui::Checkbox("Show Indifferent", &settings.playerESP.showIndifferent);
+                    }
                     ImGui::Separator();
                     ImGui::Text("Player Filter Options");
                     ImGui::Checkbox("Show Local Player", &settings.playerESP.showLocalPlayer);
