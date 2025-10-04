@@ -54,6 +54,30 @@ namespace kx {
                 LOG_DEBUG("AgChar::GetType - Type: %u", type);
                 return type;
             }
+
+            /**
+             * @brief Get last grounded/navmesh position (32-bit scaled coordinates)
+             * @return Last position where entity was on ground/navmesh
+             * @note Raw values are scaled by 32 (x/32, y/32, z/-32)
+             * @note This position only updates when entity is grounded - does NOT update during jumps/falls
+             * @note Useful for navmesh validation but NOT for real-time position tracking
+             */
+            glm::vec3 GetGroundedPosition32() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f, 0.0f };
+                }
+                
+                // Read the 32-bit scaled grounded position (last known ground/navmesh contact)
+                glm::vec3 rawPos = ReadMember<glm::vec3>(Offsets::AgChar::GROUNDED_POSITION32, { 0.0f, 0.0f, 0.0f });
+                
+                // Convert from scaled coordinates to world coordinates
+                // x and y are divided by 32, z is divided by -32 (inverted)
+                return glm::vec3(
+                    rawPos.x / 32.0f,
+                    rawPos.y / 32.0f,
+                    rawPos.z / -32.0f
+                );
+            }
         };
 
     } // namespace ReClass

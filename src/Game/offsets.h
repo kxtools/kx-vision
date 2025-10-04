@@ -48,6 +48,7 @@ namespace Offsets {
     struct AgChar {
         static constexpr uintptr_t CO_CHAR = 0x50;  // CoChar* coordinate system
         static constexpr uintptr_t TYPE = 0x08;     // uint32_t type identifier
+        static constexpr uintptr_t GROUNDED_POSITION32 = 0x120;  // glm::vec3 last grounded/navmesh position (scaled by 32)
     };
 
     /**
