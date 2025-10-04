@@ -31,31 +31,6 @@ public:
         }
     }
 
-    // Get color based on gadget type
-    static unsigned int GetGadgetTypeColor(Game::GadgetType type) {
-        switch (type) {
-            case Game::GadgetType::ResourceNode:
-                return 0xDC32FF32; // Bright Green
-            case Game::GadgetType::Waypoint:
-                return 0xDC32FFFF; // Cyan
-            case Game::GadgetType::Vista:
-                return 0xDCFF32FF; // Magenta
-            case Game::GadgetType::Crafting:
-                return 0xDCFF8032; // Orange
-            case Game::GadgetType::AttackTarget:
-                return 0xDCFF3232; // Red
-            case Game::GadgetType::PlayerCreated:
-                return 0xDC8032FF; // Purple
-            case Game::GadgetType::Interact:
-                return 0xDCFFFF32; // Yellow
-            case Game::GadgetType::Door:
-                return 0xDC808080; // Gray
-            default:
-                return 0xDCC8C8C8; // Light Gray
-        }
-    }
-
-
 };
 
 } // namespace kx

@@ -214,12 +214,6 @@ namespace RenderingLayout {
     constexpr float TEXT_SHADOW_OFFSET = 1.0f;       // 1px shadow for crisp text readability
     constexpr float DOT_RADIUS_MULTIPLIER = 0.8f;    // 80% of base radius (2.4px from 3px base)
 
-    // Attached Health Bar (vertical bars attached to box sides)
-    constexpr float ATTACHED_HEALTH_BAR_WIDTH = 4.0f;        // 4px width (visible but not obtrusive)
-    constexpr float ATTACHED_HEALTH_BAR_SPACING = 2.0f;      // 2px gap from box edge
-    constexpr float ATTACHED_HEALTH_BAR_BG_ALPHA = 150.0f;   // ~59% opacity for subtle background
-    constexpr float ATTACHED_HEALTH_BAR_BORDER_ALPHA = 100.0f; // ~39% opacity for soft border
-
     // Standalone Health Bar (horizontal bars below entities)
     constexpr float STANDALONE_HEALTH_BAR_Y_OFFSET = 12.0f;          // 12px below entity (compact spacing)
     constexpr float STANDALONE_HEALTH_BAR_BG_ROUNDING = 1.0f;        // Subtle 1px rounding
