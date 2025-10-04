@@ -40,12 +40,6 @@ namespace kx {
             return true;
         }
 
-        float CalculateScreenDistance(const glm::vec2& p1, const glm::vec2& p2) {
-            float dx = p1.x - p2.x;
-            float dy = p1.y - p2.y;
-            return sqrtf(dx * dx + dy * dy);
-        }
-
     } // namespace ESPUtils
 
 } // namespace kx

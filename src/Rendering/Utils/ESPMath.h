@@ -18,14 +18,6 @@ namespace ESPMath {
      */
     bool WorldToScreen(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight, glm::vec2& outScreenPos);
 
-    /**
-     * @brief Calculate screen distance between two 2D points
-     * @param p1 First point
-     * @param p2 Second point
-     * @return Distance between points
-     */
-    float CalculateScreenDistance(const glm::vec2& p1, const glm::vec2& p2);
-
 } // namespace ESPUtils
 
 } // namespace kx
