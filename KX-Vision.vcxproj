@@ -156,7 +156,6 @@
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
     <ClInclude Include="src\Game\Camera.h" />
-    <ClInclude Include="src\Game\GameConstants.h" />
     <ClInclude Include="src\Game\GameEnums.h" />
     <ClInclude Include="src\Game\Generated\APIData.h" />
     <ClInclude Include="src\Game\Generated\EnumsAndStructs.h" />
