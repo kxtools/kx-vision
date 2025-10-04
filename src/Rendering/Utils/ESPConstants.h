@@ -174,6 +174,26 @@ namespace ESPColors {
 }
 
 /**
+ * @brief Colors for different item rarities, following in-game conventions.
+ *
+ * Provides a standardized color palette for item rarities to be used in gear
+ * displays and other UI elements. Colors are optimized for readability.
+ *
+ * Note: IM_COL32 takes colors in (R, G, B, A) order.
+ */
+namespace RarityColors {
+    constexpr unsigned int JUNK = IM_COL32(170, 170, 170, 255);       // Gray (#AAAAAA)
+    constexpr unsigned int COMMON = IM_COL32(255, 255, 255, 255);     // White (readability over authenticity)
+    constexpr unsigned int FINE = IM_COL32(98, 164, 218, 255);        // Blue (#62A4DA)
+    constexpr unsigned int MASTERWORK = IM_COL32(26, 147, 6, 255);      // Green (#1a9306)
+    constexpr unsigned int RARE = IM_COL32(252, 208, 11, 255);        // Yellow (#fcd00b)
+    constexpr unsigned int EXOTIC = IM_COL32(255, 164, 5, 255);       // Orange (#ffa405)
+    constexpr unsigned int ASCENDED = IM_COL32(251, 62, 141, 255);    // Pink (#fb3e8d)
+    constexpr unsigned int LEGENDARY = IM_COL32(139, 79, 219, 255);   // Bright Purple (#8B4FDB)
+    constexpr unsigned int DEFAULT = COMMON;                         // Default to white
+}
+
+/**
  * @brief Screen space culling constants
  * 
  * Constants used for determining when entities are visible on screen.
