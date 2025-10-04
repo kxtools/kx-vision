@@ -80,13 +80,14 @@ namespace kx {
                 // This is a player - get or create persistent state
                 RenderablePlayer& persistent = persistentPlayers[charPtr];
                 
-                // Store previous position before updating
-                if (persistent.address != nullptr) {
-                    persistent.previousPosition = persistent.currentPosition;
-                } else {
-                    // First time seeing this entity - initialize
+                // Initialize on first encounter
+                if (persistent.address == nullptr) {
                     persistent.address = charPtr;
                 }
+                
+                // CRITICAL: Shift history for BOTH position and time BEFORE extracting new data
+                persistent.previousPosition = persistent.currentPosition;
+                persistent.previousUpdateTime = persistent.lastUpdateTime;
                 
                 // Get pooled object for this frame's rendering
                 RenderablePlayer* renderablePlayer = playerPool.Get();
@@ -94,31 +95,40 @@ namespace kx {
 
                 // Extract fresh data from game memory
                 if (EntityExtractor::ExtractPlayer(*renderablePlayer, character, it->second, localPlayerPtr)) {
-                    // Update persistent state with new position
+                    // Update persistent state with new position and time
                     persistent.currentPosition = renderablePlayer->position;
                     persistent.lastUpdateTime = currentTime;
                     
                     // Initialize previousPosition on first spawn to prevent jumping
                     if (persistent.previousPosition == glm::vec3(0.0f)) {
                         persistent.previousPosition = persistent.currentPosition;
+                        persistent.previousUpdateTime = persistent.lastUpdateTime;
                     }
                     
-                    // Calculate and smooth velocity using exponential moving average
-                    glm::vec3 instantVelocity = persistent.currentPosition - persistent.previousPosition;
-                    if (persistent.smoothedVelocity == glm::vec3(0.0f)) {
-                        // First velocity calculation - use instant velocity
-                        persistent.smoothedVelocity = instantVelocity;
-                    } else {
-                        // Smooth velocity: EMA = α * new + (1-α) * old
-                        persistent.smoothedVelocity = RenderingEffects::VELOCITY_SMOOTHING_FACTOR * instantVelocity +
-                                                     (1.0f - RenderingEffects::VELOCITY_SMOOTHING_FACTOR) * persistent.smoothedVelocity;
+                    // Calculate TRUE VELOCITY (distance / time) in meters per second
+                    double deltaTime = persistent.lastUpdateTime - persistent.previousUpdateTime;
+                    if (deltaTime > 0.001) { // Avoid division by zero
+                        glm::vec3 instantVelocity = (persistent.currentPosition - persistent.previousPosition) / static_cast<float>(deltaTime);
+                        
+                        // Smooth velocity using EMA to reduce jitter from noisy data
+                        if (glm::length(persistent.smoothedVelocity) == 0.0f) {
+                            persistent.smoothedVelocity = instantVelocity;
+                        } else {
+                            // Use glm::mix for cleaner EMA: new = α*instant + (1-α)*old
+                            persistent.smoothedVelocity = glm::mix(
+                                persistent.smoothedVelocity,
+                                instantVelocity,
+                                RenderingEffects::VELOCITY_SMOOTHING_FACTOR
+                            );
+                        }
                     }
                     
-                    // Copy persistent interpolation data to frame object
+                    // Copy ALL persistent data to frame object
                     renderablePlayer->currentPosition = persistent.currentPosition;
                     renderablePlayer->previousPosition = persistent.previousPosition;
                     renderablePlayer->smoothedVelocity = persistent.smoothedVelocity;
                     renderablePlayer->lastUpdateTime = persistent.lastUpdateTime;
+                    renderablePlayer->previousUpdateTime = persistent.previousUpdateTime;
                     
                     players.push_back(renderablePlayer);
                 }
@@ -126,13 +136,14 @@ namespace kx {
                 // This is an NPC - get or create persistent state
                 RenderableNpc& persistent = persistentNpcs[charPtr];
                 
-                // Store previous position before updating
-                if (persistent.address != nullptr) {
-                    persistent.previousPosition = persistent.currentPosition;
-                } else {
-                    // First time seeing this entity - initialize
+                // Initialize on first encounter
+                if (persistent.address == nullptr) {
                     persistent.address = charPtr;
                 }
+                
+                // CRITICAL: Shift history for BOTH position and time BEFORE extracting new data
+                persistent.previousPosition = persistent.currentPosition;
+                persistent.previousUpdateTime = persistent.lastUpdateTime;
                 
                 // Get pooled object for this frame's rendering
                 RenderableNpc* renderableNpc = npcPool.Get();
@@ -140,31 +151,40 @@ namespace kx {
 
                 // Extract fresh data from game memory
                 if (EntityExtractor::ExtractNpc(*renderableNpc, character)) {
-                    // Update persistent state with new position
+                    // Update persistent state with new position and time
                     persistent.currentPosition = renderableNpc->position;
                     persistent.lastUpdateTime = currentTime;
                     
                     // Initialize previousPosition on first spawn to prevent jumping
                     if (persistent.previousPosition == glm::vec3(0.0f)) {
                         persistent.previousPosition = persistent.currentPosition;
+                        persistent.previousUpdateTime = persistent.lastUpdateTime;
                     }
                     
-                    // Calculate and smooth velocity using exponential moving average
-                    glm::vec3 instantVelocity = persistent.currentPosition - persistent.previousPosition;
-                    if (persistent.smoothedVelocity == glm::vec3(0.0f)) {
-                        // First velocity calculation - use instant velocity
-                        persistent.smoothedVelocity = instantVelocity;
-                    } else {
-                        // Smooth velocity: EMA = α * new + (1-α) * old
-                        persistent.smoothedVelocity = RenderingEffects::VELOCITY_SMOOTHING_FACTOR * instantVelocity +
-                                                     (1.0f - RenderingEffects::VELOCITY_SMOOTHING_FACTOR) * persistent.smoothedVelocity;
+                    // Calculate TRUE VELOCITY (distance / time) in meters per second
+                    double deltaTime = persistent.lastUpdateTime - persistent.previousUpdateTime;
+                    if (deltaTime > 0.001) { // Avoid division by zero
+                        glm::vec3 instantVelocity = (persistent.currentPosition - persistent.previousPosition) / static_cast<float>(deltaTime);
+                        
+                        // Smooth velocity using EMA to reduce jitter from noisy data
+                        if (glm::length(persistent.smoothedVelocity) == 0.0f) {
+                            persistent.smoothedVelocity = instantVelocity;
+                        } else {
+                            // Use glm::mix for cleaner EMA: new = α*instant + (1-α)*old
+                            persistent.smoothedVelocity = glm::mix(
+                                persistent.smoothedVelocity,
+                                instantVelocity,
+                                RenderingEffects::VELOCITY_SMOOTHING_FACTOR
+                            );
+                        }
                     }
                     
-                    // Copy persistent interpolation data to frame object
+                    // Copy ALL persistent data to frame object
                     renderableNpc->currentPosition = persistent.currentPosition;
                     renderableNpc->previousPosition = persistent.previousPosition;
                     renderableNpc->smoothedVelocity = persistent.smoothedVelocity;
                     renderableNpc->lastUpdateTime = persistent.lastUpdateTime;
+                    renderableNpc->previousUpdateTime = persistent.previousUpdateTime;
                     
                     npcs.push_back(renderableNpc);
                 }
@@ -194,13 +214,14 @@ namespace kx {
             // Get or create persistent state
             RenderableGadget& persistent = persistentGadgets[gadgetPtr];
             
-            // Store previous position before updating
-            if (persistent.address != nullptr) {
-                persistent.previousPosition = persistent.currentPosition;
-            } else {
-                // First time seeing this entity - initialize
+            // Initialize on first encounter
+            if (persistent.address == nullptr) {
                 persistent.address = gadgetPtr;
             }
+            
+            // CRITICAL: Shift history for BOTH position and time BEFORE extracting new data
+            persistent.previousPosition = persistent.currentPosition;
+            persistent.previousUpdateTime = persistent.lastUpdateTime;
             
             // Get pooled object for this frame's rendering
             RenderableGadget* renderableGadget = gadgetPool.Get();
@@ -208,31 +229,40 @@ namespace kx {
 
             // Extract fresh data from game memory
             if (EntityExtractor::ExtractGadget(*renderableGadget, gadget)) {
-                // Update persistent state with new position
+                // Update persistent state with new position and time
                 persistent.currentPosition = renderableGadget->position;
                 persistent.lastUpdateTime = currentTime;
                 
                 // Initialize previousPosition on first spawn to prevent jumping
                 if (persistent.previousPosition == glm::vec3(0.0f)) {
                     persistent.previousPosition = persistent.currentPosition;
+                    persistent.previousUpdateTime = persistent.lastUpdateTime;
                 }
                 
-                // Calculate and smooth velocity using exponential moving average
-                glm::vec3 instantVelocity = persistent.currentPosition - persistent.previousPosition;
-                if (persistent.smoothedVelocity == glm::vec3(0.0f)) {
-                    // First velocity calculation - use instant velocity
-                    persistent.smoothedVelocity = instantVelocity;
-                } else {
-                    // Smooth velocity: EMA = α * new + (1-α) * old
-                    persistent.smoothedVelocity = RenderingEffects::VELOCITY_SMOOTHING_FACTOR * instantVelocity +
-                                                 (1.0f - RenderingEffects::VELOCITY_SMOOTHING_FACTOR) * persistent.smoothedVelocity;
+                // Calculate TRUE VELOCITY (distance / time) in meters per second
+                double deltaTime = persistent.lastUpdateTime - persistent.previousUpdateTime;
+                if (deltaTime > 0.001) { // Avoid division by zero
+                    glm::vec3 instantVelocity = (persistent.currentPosition - persistent.previousPosition) / static_cast<float>(deltaTime);
+                    
+                    // Smooth velocity using EMA to reduce jitter from noisy data
+                    if (glm::length(persistent.smoothedVelocity) == 0.0f) {
+                        persistent.smoothedVelocity = instantVelocity;
+                    } else {
+                        // Use glm::mix for cleaner EMA: new = α*instant + (1-α)*old
+                        persistent.smoothedVelocity = glm::mix(
+                            persistent.smoothedVelocity,
+                            instantVelocity,
+                            RenderingEffects::VELOCITY_SMOOTHING_FACTOR
+                        );
+                    }
                 }
                 
-                // Copy persistent interpolation data to frame object
+                // Copy ALL persistent data to frame object
                 renderableGadget->currentPosition = persistent.currentPosition;
                 renderableGadget->previousPosition = persistent.previousPosition;
                 renderableGadget->smoothedVelocity = persistent.smoothedVelocity;
                 renderableGadget->lastUpdateTime = persistent.lastUpdateTime;
+                renderableGadget->previousUpdateTime = persistent.previousUpdateTime;
                 
                 gadgets.push_back(renderableGadget);
             }

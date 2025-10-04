@@ -140,15 +140,16 @@ namespace RenderingEffects {
     // - Player name font size
     constexpr float HOSTILE_PLAYER_VISUAL_MULTIPLIER = 2.0f;
     
-    // Position interpolation/extrapolation settings for smooth rendering
-    // Maximum alpha multiplier for extrapolation (1.5 = extrapolate 50% beyond update interval)
-    // Higher values = smoother motion but more prediction error on direction changes
-    constexpr float MAX_EXTRAPOLATION_ALPHA = 1.5f;
+    // Position interpolation/extrapolation settings for hybrid smooth rendering
+    // Interpolation: alpha [0, 1] - lerp between previous and current positions
+    // Extrapolation: alpha [1, MAX] - predict forward using smoothed velocity
+    constexpr float MAX_EXTRAPOLATION_ALPHA = 2.0f; // Allow 100% extrapolation (doubles update interval)
     
     // Velocity smoothing factor for exponential moving average (0.0-1.0)
-    // Lower = smoother but slower to adapt to direction changes
+    // Lower = smoother velocity but slower to adapt to direction changes
     // Higher = more responsive but potentially jittery
-    constexpr float VELOCITY_SMOOTHING_FACTOR = 0.3f; // 30% new velocity, 70% old velocity
+    // 0.1 = 10% new velocity, 90% old velocity (ultra-smooth, prioritizes visual stability)
+    constexpr float VELOCITY_SMOOTHING_FACTOR = 0.1f;
 }
 
 /**

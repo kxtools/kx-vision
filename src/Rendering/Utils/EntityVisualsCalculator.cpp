@@ -18,34 +18,46 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
                                                                    float screenHeight) {
     VisualProperties props;
     
-    // 0. Calculate interpolated position for smooth rendering
-    glm::vec3 interpolatedPosition = context.position; // Default to current position
+    // 0. Calculate interpolated/extrapolated position for smooth rendering (HYBRID MODEL)
+    glm::vec3 renderPosition;
     
     if (context.entity && context.entity->lastUpdateTime > 0.0) {
-        // Get current time in seconds
-        double currentTime = GetTickCount64() / 1000.0;
-        
-        // Get ESP update interval from settings
+        // Get current time and ESP update interval from settings
         const auto& settings = AppState::Get().GetSettings();
+        double currentTime = GetTickCount64() / 1000.0;
         float espUpdateInterval = 1.0f / (std::max)(1.0f, settings.espUpdateRate);
         
         // Calculate how far we are into the current update interval
         double timeSinceUpdate = currentTime - context.entity->lastUpdateTime;
         float alpha = static_cast<float>(timeSinceUpdate / espUpdateInterval);
         
-        // Use smoothed velocity for extrapolation (reduces jitter)
-        // Allow extrapolation beyond update interval for butter-smooth motion
-        if (alpha <= RenderingEffects::MAX_EXTRAPOLATION_ALPHA) {
-            // Use smoothed velocity for more stable prediction
-            interpolatedPosition = context.entity->previousPosition + context.entity->smoothedVelocity * alpha;
+        if (alpha >= 0.0f && alpha <= 1.0f) {
+            // --- INTERPOLATION PATH [0, 1] ---
+            // Perfectly smooth. Lerp between the last two known positions.
+            renderPosition = glm::mix(
+                context.entity->previousPosition,
+                context.entity->currentPosition,
+                alpha
+            );
+        } else if (alpha > 1.0f && alpha <= RenderingEffects::MAX_EXTRAPOLATION_ALPHA) {
+            // --- EXTRAPOLATION PATH (1, 2.0] ---
+            // Predict forward using ultra-smoothed velocity for maximum visual fluidity
+            // Calculate the exact amount of time we need to predict forward
+            float timeToExtrapolate = static_cast<float>(timeSinceUpdate) - espUpdateInterval;
+            renderPosition = context.entity->currentPosition + 
+                           (context.entity->smoothedVelocity * timeToExtrapolate);
         } else {
-            // If we're way past the update time, just use current position (failsafe)
-            interpolatedPosition = context.entity->currentPosition;
+            // --- FAILSAFE PATH > 2.0 ---
+            // Too much time has passed to make a good prediction. Snap to last known position.
+            renderPosition = context.entity->currentPosition;
         }
+    } else {
+        // Fallback for entities without interpolation data
+        renderPosition = context.position;
     }
     
-    // 1. Check if entity is on screen (using interpolated position)
-    if (!IsEntityOnScreen(interpolatedPosition, camera, screenWidth, screenHeight, props.screenPos)) {
+    // 1. Check if entity is on screen (using hybrid interpolated/extrapolated position)
+    if (!IsEntityOnScreen(renderPosition, camera, screenWidth, screenHeight, props.screenPos)) {
         return std::nullopt; // Entity is not visible
     }
 

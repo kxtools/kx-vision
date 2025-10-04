@@ -24,15 +24,15 @@ struct ColoredDetail {
 // Base struct for all renderable entities
 // Contains common fields shared by all entity types
 struct RenderableEntity {
-    // --- Position Data for Interpolation ---
-    glm::vec3 currentPosition;       // The newest position from the game
-    glm::vec3 previousPosition;      // The position from the previous update
-    glm::vec3 renderPosition;        // The interpolated position for smooth rendering
-    glm::vec3 smoothedVelocity;      // Smoothed velocity for better extrapolation
+    // --- Position Data for Interpolation/Extrapolation ---
+    glm::vec3 currentPosition;       // The newest position from the game (interpolation target)
+    glm::vec3 previousPosition;      // The position from the previous update (interpolation start)
+    glm::vec3 smoothedVelocity;      // Smoothed velocity in meters/second for extrapolation
     double lastUpdateTime;           // Timestamp when currentPosition was last updated (in seconds)
+    double previousUpdateTime;       // Timestamp of the previous update (for true velocity calculation)
     
-    // --- Legacy field (kept for compatibility, use renderPosition for rendering) ---
-    glm::vec3 position;              // Deprecated: use renderPosition instead
+    // --- Legacy field (kept for compatibility, use interpolated position for rendering) ---
+    glm::vec3 position;              // Deprecated: extractor still populates this
     
     glm::vec2 screenPos;             // Pre-calculated screen position
     float visualDistance;            // Distance from camera (for scaling)
@@ -40,9 +40,9 @@ struct RenderableEntity {
     bool isValid;
     const void* address;             // Const pointer since we only use for identification/comparison
 
-    RenderableEntity() : currentPosition(0.0f), previousPosition(0.0f), renderPosition(0.0f),
-                         smoothedVelocity(0.0f), lastUpdateTime(0.0), position(0.0f), screenPos(0.0f), 
-                         visualDistance(0.0f), gameplayDistance(0.0f),
+    RenderableEntity() : currentPosition(0.0f), previousPosition(0.0f), 
+                         smoothedVelocity(0.0f), lastUpdateTime(0.0), previousUpdateTime(0.0),
+                         position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr)
     {
     }
