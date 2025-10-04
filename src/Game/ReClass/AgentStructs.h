@@ -16,12 +16,14 @@ namespace kx {
 
         /**
          * @brief Havok physics phantom object - contains physics-simulated position
+         * TESTED: Physics position updates similarly to Primary - smooth and accurate
          */
         class HkpSimpleShapePhantom : public kx::SafeForeignClass {
         public:
             HkpSimpleShapePhantom(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             glm::vec3 GetPhysicsPosition() const {
+                // TESTED: Updates similarly to Primary position - smooth and accurate
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
@@ -31,12 +33,18 @@ namespace kx {
 
         /**
          * @brief Unknown object accessed via CoChar->0x88 containing alternative positions
+         * 
+         * TEST RESULTS:
+         * - GetPositionAlt1(): Updates similarly to Primary - smooth and accurate
+         * - GetPositionAlt2(): LAGS BEHIND visual position - not recommended for real-time rendering
+         * - GetPhysicsPhantom()->GetPhysicsPosition(): Updates similarly to Primary - smooth and accurate
          */
         class CoCharUnknown : public kx::SafeForeignClass {
         public:
             CoCharUnknown(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             glm::vec3 GetPositionAlt1() const {
+                // TESTED: Updates similarly to Primary position - smooth and accurate
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
@@ -44,6 +52,8 @@ namespace kx {
             }
 
             glm::vec3 GetPositionAlt2() const {
+                // WARNING: TESTED - This position LAGS BEHIND the visual position
+                // Not recommended for real-time rendering - causes visual delay
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
@@ -63,6 +73,7 @@ namespace kx {
             CoChar(void* ptr) : kx::SafeForeignClass(ptr) {}
 
             glm::vec3 GetVisualPosition() const {
+                // TESTED: Primary position source - smooth and accurate for real-time rendering
                 // Only log memory access for successful reads to reduce spam
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
