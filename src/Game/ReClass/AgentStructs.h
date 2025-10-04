@@ -10,6 +10,50 @@ namespace kx {
 
         // Forward declarations
         class AgChar;
+        class CoChar;
+        class CoCharUnknown;
+        class HkpSimpleShapePhantom;
+
+        /**
+         * @brief Havok physics phantom object - contains physics-simulated position
+         */
+        class HkpSimpleShapePhantom : public kx::SafeForeignClass {
+        public:
+            HkpSimpleShapePhantom(void* ptr) : kx::SafeForeignClass(ptr) {}
+
+            glm::vec3 GetPhysicsPosition() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f, 0.0f };
+                }
+                return ReadMember<glm::vec3>(Offsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
+            }
+        };
+
+        /**
+         * @brief Unknown object accessed via CoChar->0x88 containing alternative positions
+         */
+        class CoCharUnknown : public kx::SafeForeignClass {
+        public:
+            CoCharUnknown(void* ptr) : kx::SafeForeignClass(ptr) {}
+
+            glm::vec3 GetPositionAlt1() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f, 0.0f };
+                }
+                return ReadMember<glm::vec3>(Offsets::CoCharUnknown::POSITION_ALT1, { 0.0f, 0.0f, 0.0f });
+            }
+
+            glm::vec3 GetPositionAlt2() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f, 0.0f };
+                }
+                return ReadMember<glm::vec3>(Offsets::CoCharUnknown::POSITION_ALT2, { 0.0f, 0.0f, 0.0f });
+            }
+
+            HkpSimpleShapePhantom GetPhysicsPhantom() const {
+                return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharUnknown::PHYSICS_PHANTOM);
+            }
+        };
 
         /**
          * @brief Coordinate/Object wrapper for character positioning
@@ -27,6 +71,10 @@ namespace kx {
                 glm::vec3 result = ReadMember<glm::vec3>(Offsets::CoChar::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
                 
                 return result;
+            }
+
+            CoCharUnknown GetUnknownObject() const {
+                return ReadPointer<CoCharUnknown>(Offsets::CoChar::UNKNOWN_OBJECT);
             }
         };
 

@@ -26,9 +26,42 @@ namespace Offsets {
 
     /**
      * @brief CoChar - Character coordinate system for visual positioning
+     * 
+     * VISUAL_POSITION (0x30) is the primary position source and works well.
+     * Testing shows it updates smoothly and accurately for real-time rendering.
      */
     struct CoChar {
-        static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position
+        static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary - TESTED: Good, smooth updates)
+        static constexpr uintptr_t UNKNOWN_OBJECT = 0x88;   // Unknown* - contains additional position data
+    };
+
+    /**
+     * @brief Unknown intermediate object accessed via CoChar->0x88
+     * Contains alternative position sources that may update at different rates
+     * 
+     * TEST RESULTS:
+     * - POSITION_ALT1 (0xB8): Updates similarly to Primary - smooth and accurate
+     * - POSITION_ALT2 (0x118): LAGS BEHIND - visual delay, not recommended
+     * - PHYSICS_PHANTOM->POSITION (0x78->0x120): Updates similarly to Primary - smooth and accurate
+     * 
+     * RECOMMENDATION: Use Primary (CoChar::VISUAL_POSITION) or Alt1 for best results
+     * Primary, Alt1, and Physics all update at similar rates with good smoothness
+     */
+    struct CoCharUnknown {
+        static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1 (TESTED: Good, similar to Primary)
+        static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (TESTED: Lags behind, not recommended)
+        static constexpr uintptr_t PHYSICS_PHANTOM = 0x78;  // hkpSimpleShapePhantom* physics object (TESTED: Good, similar to Primary)
+    };
+
+    /**
+     * @brief hkpSimpleShapePhantom - Havok physics phantom object
+     * Contains physics-driven position that updates similarly to Primary position.
+     * 
+     * TESTED: Physics position (0x120) updates smoothly and accurately, similar to Primary.
+     * Can be used as alternative to Primary position if needed.
+     */
+    struct HkpSimpleShapePhantom {
+        static constexpr uintptr_t PHYSICS_POSITION = 0x120;  // glm::vec3 physics position (TESTED: Good, similar to Primary)
     };
 
     /**
