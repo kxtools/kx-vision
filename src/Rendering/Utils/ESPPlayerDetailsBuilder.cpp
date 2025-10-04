@@ -33,16 +33,16 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
     }
 
     if (player->profession != Game::Profession::None) {
-        const char* profName = Game::EnumHelpers::GetProfessionName(player->profession);
+        const char* profName = ESPFormatting::GetProfessionName(player->profession);
         details.push_back({ "Prof: " + (profName ? std::string(profName) : "ID: " + std::to_string(static_cast<uint32_t>(player->profession))), ESPColors::DEFAULT_TEXT });
     }
 
     // Display player attitude
-    const char* attitudeName = Game::EnumHelpers::GetAttitudeName(player->attitude);
+    const char* attitudeName = ESPFormatting::GetAttitudeName(player->attitude);
     details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "Unknown"), ESPColors::DEFAULT_TEXT });
 
     if (player->race != Game::Race::None) {
-        const char* raceName = Game::EnumHelpers::GetRaceName(player->race);
+        const char* raceName = ESPFormatting::GetRaceName(player->race);
         details.push_back({ "Race: " + (raceName ? std::string(raceName) : "ID: " + std::to_string(static_cast<uint8_t>(player->race))), ESPColors::DEFAULT_TEXT });
     }
 
@@ -203,7 +203,7 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildGearDetails(const Rende
         if (gearIt != player->gear.end()) {
             const char* slotName = ESPFormatting::EquipmentSlotToString(gearIt->first);
             const GearSlotInfo& info = gearIt->second;
-            ImU32 rarityColor = ESPHelpers::GetRarityColor(info.rarity);
+            ImU32 rarityColor = ESPStyling::GetRarityColor(info.rarity);
 
             std::string statName = "No Stats";
             if (info.statId > 0) {

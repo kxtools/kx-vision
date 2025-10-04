@@ -13,11 +13,9 @@ namespace Filtering {
 
 namespace kx {
 
-// Enhanced helper functions using the new enums
-class ESPHelpers {
-public:
+namespace ESPStyling {
 
-    static ImU32 GetRarityColor(Game::ItemRarity rarity) {
+    inline ImU32 GetRarityColor(Game::ItemRarity rarity) {
         switch (rarity) {
             case Game::ItemRarity::Junk:       return kx::RarityColors::JUNK;
             case Game::ItemRarity::Common:     return kx::RarityColors::COMMON;
@@ -31,6 +29,9 @@ public:
         }
     }
 
-};
+    // You can add more mapping functions here in the future, e.g.:
+    // inline const char* GetIconForProfession(Game::Profession prof) { ... }
+
+} // namespace ESPStyling
 
 } // namespace kx

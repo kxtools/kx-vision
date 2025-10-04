@@ -26,10 +26,10 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
         details.push_back({ "HP: " + std::to_string(static_cast<int>(npc->currentHealth)) + "/" + std::to_string(static_cast<int>(npc->maxHealth)), ESPColors::DEFAULT_TEXT });
     }
 
-    const char* attitudeName = Game::EnumHelpers::GetAttitudeName(npc->attitude);
+    const char* attitudeName = ESPFormatting::GetAttitudeName(npc->attitude);
     details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "ID: " + std::to_string(static_cast<uint32_t>(npc->attitude))), ESPColors::DEFAULT_TEXT });
     
-    const char* rankName = Game::EnumHelpers::GetRankName(npc->rank);
+    const char* rankName = ESPFormatting::GetRankName(npc->rank);
     if (rankName && rankName[0] != '\0') {
         details.push_back({ "Rank: " + std::string(rankName), ESPColors::DEFAULT_TEXT });
     }
@@ -52,7 +52,7 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
 
     details.reserve(8); // Future-proof: generous reserve for adding new fields
 
-    const char* gadgetName = Game::EnumHelpers::GetGadgetTypeName(gadget->type);
+    const char* gadgetName = ESPFormatting::GetGadgetTypeName(gadget->type);
     details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), ESPColors::DEFAULT_TEXT });
 
     if (gadget->type == Game::GadgetType::ResourceNode) {

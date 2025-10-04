@@ -1,5 +1,6 @@
 #include "EntityExtractor.h"
 #include "Utils/ESPConstants.h"
+#include "Utils/ESPFormatting.h"
 #include "../../Game/GameEnums.h"
 #include "../../Utils/StringHelpers.h"
 #include <vector>
@@ -158,7 +159,7 @@ namespace kx {
             slotInfo.itemId = itemDef.GetId();
             slotInfo.rarity = itemDef.GetRarity();
 
-            if (Game::EnumHelpers::IsWeaponSlot(slotEnum)) {
+            if (ESPFormatting::IsWeaponSlot(slotEnum)) {
                 ReClass::Stat stat = slot.GetStatWeapon();
                 if (stat) slotInfo.statId = stat.GetId();
             }

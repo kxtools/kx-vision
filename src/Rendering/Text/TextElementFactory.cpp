@@ -64,7 +64,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
     for (size_t i = 0; i < summary.size(); ++i) {
         const auto& info = summary[i];
         std::string segment = std::to_string(info.count) + "x " + info.statName;
-        ImU32 rarityColor = ESPHelpers::GetRarityColor(info.highestRarity);
+        ImU32 rarityColor = ESPStyling::GetRarityColor(info.highestRarity);
         segments.push_back(TextSegment(segment, rarityColor));
         
         // Add separator
