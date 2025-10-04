@@ -42,8 +42,9 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
         } else if (alpha > 1.0f && alpha <= RenderingEffects::MAX_EXTRAPOLATION_ALPHA) {
             // --- EXTRAPOLATION PATH (1, 2.0] ---
             // We are past our last known point. Predict forward to keep movement fluid.
-            // Use the full time since the last update for prediction from the last known point.
-            float timeToExtrapolate = static_cast<float>(timeSinceUpdate);
+            // CRITICAL FIX: Only extrapolate for the time BEYOND the last interval, not the full timeSinceUpdate
+            // This prevents drift accumulation and keeps extrapolation bounded
+            float timeToExtrapolate = static_cast<float>(timeSinceUpdate - espUpdateInterval);
             renderPosition = context.entity->currentPosition + 
                            (context.entity->smoothedVelocity * timeToExtrapolate);
         } else {

@@ -115,21 +115,32 @@ namespace kx {
                             persistent.smoothedVelocity = instantVelocity;
                         } else {
                             // --- ADAPTIVE SMOOTHING LOGIC ---
-                            // Compare the direction of the new velocity with the old smoothed velocity.
+                            // Compare both DIRECTION and MAGNITUDE to detect all types of velocity changes
                             glm::vec3 normInstant = glm::normalize(instantVelocity);
                             glm::vec3 normSmoothed = glm::normalize(persistent.smoothedVelocity);
                             float directionSimilarity = glm::dot(normInstant, normSmoothed);
 
-                            // Remap the dot product [-1, 1] to a [0, 1] range.
-                            // 1.0 = same direction, 0.0 = opposite direction.
-                            float responsiveness = (1.0f - directionSimilarity) / 2.0f; // Inverted: 0 for same dir, 1 for opposite
+                            // Calculate magnitude change ratio (0 = no change, 1+ = significant change)
+                            float instantSpeed = glm::length(instantVelocity);
+                            float smoothedSpeed = glm::length(persistent.smoothedVelocity);
+                            float speedRatio = smoothedSpeed > 0.001f ? (instantSpeed / smoothedSpeed) : 1.0f;
+                            float speedChange = (std::abs)(speedRatio - 1.0f); // 0 = no change, 1+ = 100%+ change
 
-                            // Mix between min and max smoothing factors based on responsiveness.
-                            // If direction is the same, use MIN factor. If opposite, use MAX factor.
+                            // Direction responsiveness: 0 for same dir, 1 for opposite
+                            float directionResponsiveness = (1.0f - directionSimilarity) / 2.0f;
+                            
+                            // Speed responsiveness: clamp to [0, 1] range
+                            float speedResponsiveness = (std::min)(speedChange, 1.0f);
+                            
+                            // Combined responsiveness: use the MAXIMUM of the two (most responsive)
+                            // This ensures we react quickly to EITHER direction OR speed changes
+                            float combinedResponsiveness = (std::max)(directionResponsiveness, speedResponsiveness);
+
+                            // Mix between min and max smoothing factors based on combined responsiveness
                             float dynamicSmoothingFactor = glm::mix(
                                 RenderingEffects::MIN_VELOCITY_SMOOTHING_FACTOR,
                                 RenderingEffects::MAX_VELOCITY_SMOOTHING_FACTOR,
-                                responsiveness
+                                combinedResponsiveness
                             );
 
                             // Apply the dynamic smoothing factor to the EMA.
@@ -189,21 +200,32 @@ namespace kx {
                             persistent.smoothedVelocity = instantVelocity;
                         } else {
                             // --- ADAPTIVE SMOOTHING LOGIC ---
-                            // Compare the direction of the new velocity with the old smoothed velocity.
+                            // Compare both DIRECTION and MAGNITUDE to detect all types of velocity changes
                             glm::vec3 normInstant = glm::normalize(instantVelocity);
                             glm::vec3 normSmoothed = glm::normalize(persistent.smoothedVelocity);
                             float directionSimilarity = glm::dot(normInstant, normSmoothed);
 
-                            // Remap the dot product [-1, 1] to a [0, 1] range.
-                            // 1.0 = same direction, 0.0 = opposite direction.
-                            float responsiveness = (1.0f - directionSimilarity) / 2.0f; // Inverted: 0 for same dir, 1 for opposite
+                            // Calculate magnitude change ratio (0 = no change, 1+ = significant change)
+                            float instantSpeed = glm::length(instantVelocity);
+                            float smoothedSpeed = glm::length(persistent.smoothedVelocity);
+                            float speedRatio = smoothedSpeed > 0.001f ? (instantSpeed / smoothedSpeed) : 1.0f;
+                            float speedChange = (std::abs)(speedRatio - 1.0f); // 0 = no change, 1+ = 100%+ change
 
-                            // Mix between min and max smoothing factors based on responsiveness.
-                            // If direction is the same, use MIN factor. If opposite, use MAX factor.
+                            // Direction responsiveness: 0 for same dir, 1 for opposite
+                            float directionResponsiveness = (1.0f - directionSimilarity) / 2.0f;
+                            
+                            // Speed responsiveness: clamp to [0, 1] range
+                            float speedResponsiveness = (std::min)(speedChange, 1.0f);
+                            
+                            // Combined responsiveness: use the MAXIMUM of the two (most responsive)
+                            // This ensures we react quickly to EITHER direction OR speed changes
+                            float combinedResponsiveness = (std::max)(directionResponsiveness, speedResponsiveness);
+
+                            // Mix between min and max smoothing factors based on combined responsiveness
                             float dynamicSmoothingFactor = glm::mix(
                                 RenderingEffects::MIN_VELOCITY_SMOOTHING_FACTOR,
                                 RenderingEffects::MAX_VELOCITY_SMOOTHING_FACTOR,
-                                responsiveness
+                                combinedResponsiveness
                             );
 
                             // Apply the dynamic smoothing factor to the EMA.
@@ -285,21 +307,32 @@ namespace kx {
                         persistent.smoothedVelocity = instantVelocity;
                     } else {
                         // --- ADAPTIVE SMOOTHING LOGIC ---
-                        // Compare the direction of the new velocity with the old smoothed velocity.
+                        // Compare both DIRECTION and MAGNITUDE to detect all types of velocity changes
                         glm::vec3 normInstant = glm::normalize(instantVelocity);
                         glm::vec3 normSmoothed = glm::normalize(persistent.smoothedVelocity);
                         float directionSimilarity = glm::dot(normInstant, normSmoothed);
 
-                        // Remap the dot product [-1, 1] to a [0, 1] range.
-                        // 1.0 = same direction, 0.0 = opposite direction.
-                        float responsiveness = (1.0f - directionSimilarity) / 2.0f; // Inverted: 0 for same dir, 1 for opposite
+                        // Calculate magnitude change ratio (0 = no change, 1+ = significant change)
+                        float instantSpeed = glm::length(instantVelocity);
+                        float smoothedSpeed = glm::length(persistent.smoothedVelocity);
+                        float speedRatio = smoothedSpeed > 0.001f ? (instantSpeed / smoothedSpeed) : 1.0f;
+                        float speedChange = (std::abs)(speedRatio - 1.0f); // 0 = no change, 1+ = 100%+ change
 
-                        // Mix between min and max smoothing factors based on responsiveness.
-                        // If direction is the same, use MIN factor. If opposite, use MAX factor.
+                        // Direction responsiveness: 0 for same dir, 1 for opposite
+                        float directionResponsiveness = (1.0f - directionSimilarity) / 2.0f;
+                        
+                        // Speed responsiveness: clamp to [0, 1] range
+                        float speedResponsiveness = (std::min)(speedChange, 1.0f);
+                        
+                        // Combined responsiveness: use the MAXIMUM of the two (most responsive)
+                        // This ensures we react quickly to EITHER direction OR speed changes
+                        float combinedResponsiveness = (std::max)(directionResponsiveness, speedResponsiveness);
+
+                        // Mix between min and max smoothing factors based on combined responsiveness
                         float dynamicSmoothingFactor = glm::mix(
                             RenderingEffects::MIN_VELOCITY_SMOOTHING_FACTOR,
                             RenderingEffects::MAX_VELOCITY_SMOOTHING_FACTOR,
-                            responsiveness
+                            combinedResponsiveness
                         );
 
                         // Apply the dynamic smoothing factor to the EMA.
