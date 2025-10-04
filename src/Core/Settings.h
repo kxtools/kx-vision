@@ -23,9 +23,6 @@ namespace kx {
         bool renderDetails = false;
         bool renderHealthBar = true;
         bool renderPlayerName = true;  // Show player names by default for natural identification
-        bool showProfession = true;
-        bool showRace = true;
-        bool showArmorWeight = true;
         bool showLocalPlayer = false; // Hide local player by default
         GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
         // Attitude filtering (same as NPCs)
