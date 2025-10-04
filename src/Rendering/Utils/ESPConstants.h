@@ -145,11 +145,12 @@ namespace RenderingEffects {
     // Extrapolation: alpha [1, MAX] - predict forward using smoothed velocity
     constexpr float MAX_EXTRAPOLATION_ALPHA = 2.0f; // Allow 100% extrapolation (doubles update interval)
     
-    // Velocity smoothing factor for exponential moving average (0.0-1.0)
-    // Lower = smoother velocity but slower to adapt to direction changes
-    // Higher = more responsive but potentially jittery
-    // 0.1 = 10% new velocity, 90% old velocity (ultra-smooth, prioritizes visual stability)
-    constexpr float VELOCITY_SMOOTHING_FACTOR = 0.1f;
+    // Adaptive Velocity Smoothing factors for exponential moving average (0.0-1.0)
+    // The smoothing factor dynamically adjusts based on direction change magnitude
+    // - When moving straight: uses MIN factor for maximum stability
+    // - When changing direction: uses MAX factor for instant responsiveness
+    constexpr float MIN_VELOCITY_SMOOTHING_FACTOR = 0.1f;  // Heavy smoothing for stable movement
+    constexpr float MAX_VELOCITY_SMOOTHING_FACTOR = 0.6f;  // Light smoothing for rapid direction changes
 }
 
 /**

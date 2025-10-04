@@ -85,7 +85,7 @@ namespace kx {
                     persistent.address = charPtr;
                 }
                 
-                // CRITICAL: Shift history for BOTH position and time BEFORE extracting new data
+                // 1. SHIFT HISTORY: The most recent data from last tick becomes the "previous" data for this tick.
                 persistent.previousPosition = persistent.currentPosition;
                 persistent.previousUpdateTime = persistent.lastUpdateTime;
                 
@@ -95,35 +95,53 @@ namespace kx {
 
                 // Extract fresh data from game memory
                 if (EntityExtractor::ExtractPlayer(*renderablePlayer, character, it->second, localPlayerPtr)) {
-                    // Update persistent state with new position and time
+                    // 2. UPDATE PERSISTENT: Store the brand new data.
                     persistent.currentPosition = renderablePlayer->position;
                     persistent.lastUpdateTime = currentTime;
                     
-                    // Initialize previousPosition on first spawn to prevent jumping
-                    if (persistent.previousPosition == glm::vec3(0.0f)) {
+                    // 3. HANDLE SPAWN: Prevent lerping from (0,0,0) on the first frame an entity is seen.
+                    if (persistent.previousUpdateTime == 0.0) {
                         persistent.previousPosition = persistent.currentPosition;
                         persistent.previousUpdateTime = persistent.lastUpdateTime;
                     }
                     
-                    // Calculate TRUE VELOCITY (distance / time) in meters per second
+                    // 4. CALCULATE ADAPTIVE SMOOTHED VELOCITY: (distance / time)
                     double deltaTime = persistent.lastUpdateTime - persistent.previousUpdateTime;
                     if (deltaTime > 0.001) { // Avoid division by zero
                         glm::vec3 instantVelocity = (persistent.currentPosition - persistent.previousPosition) / static_cast<float>(deltaTime);
                         
-                        // Smooth velocity using EMA to reduce jitter from noisy data
-                        if (glm::length(persistent.smoothedVelocity) == 0.0f) {
+                        if (glm::length(persistent.smoothedVelocity) < 0.001f) {
+                            // If there's no previous velocity, start with the new one.
                             persistent.smoothedVelocity = instantVelocity;
                         } else {
-                            // Use glm::mix for cleaner EMA: new = α*instant + (1-α)*old
+                            // --- ADAPTIVE SMOOTHING LOGIC ---
+                            // Compare the direction of the new velocity with the old smoothed velocity.
+                            glm::vec3 normInstant = glm::normalize(instantVelocity);
+                            glm::vec3 normSmoothed = glm::normalize(persistent.smoothedVelocity);
+                            float directionSimilarity = glm::dot(normInstant, normSmoothed);
+
+                            // Remap the dot product [-1, 1] to a [0, 1] range.
+                            // 1.0 = same direction, 0.0 = opposite direction.
+                            float responsiveness = (1.0f - directionSimilarity) / 2.0f; // Inverted: 0 for same dir, 1 for opposite
+
+                            // Mix between min and max smoothing factors based on responsiveness.
+                            // If direction is the same, use MIN factor. If opposite, use MAX factor.
+                            float dynamicSmoothingFactor = glm::mix(
+                                RenderingEffects::MIN_VELOCITY_SMOOTHING_FACTOR,
+                                RenderingEffects::MAX_VELOCITY_SMOOTHING_FACTOR,
+                                responsiveness
+                            );
+
+                            // Apply the dynamic smoothing factor to the EMA.
                             persistent.smoothedVelocity = glm::mix(
                                 persistent.smoothedVelocity,
                                 instantVelocity,
-                                RenderingEffects::VELOCITY_SMOOTHING_FACTOR
+                                dynamicSmoothingFactor
                             );
                         }
                     }
                     
-                    // Copy ALL persistent data to frame object
+                    // 5. COPY ALL DATA to the frame object for this frame's render pass.
                     renderablePlayer->currentPosition = persistent.currentPosition;
                     renderablePlayer->previousPosition = persistent.previousPosition;
                     renderablePlayer->smoothedVelocity = persistent.smoothedVelocity;
@@ -141,7 +159,7 @@ namespace kx {
                     persistent.address = charPtr;
                 }
                 
-                // CRITICAL: Shift history for BOTH position and time BEFORE extracting new data
+                // 1. SHIFT HISTORY: The most recent data from last tick becomes the "previous" data for this tick.
                 persistent.previousPosition = persistent.currentPosition;
                 persistent.previousUpdateTime = persistent.lastUpdateTime;
                 
@@ -151,35 +169,53 @@ namespace kx {
 
                 // Extract fresh data from game memory
                 if (EntityExtractor::ExtractNpc(*renderableNpc, character)) {
-                    // Update persistent state with new position and time
+                    // 2. UPDATE PERSISTENT: Store the brand new data.
                     persistent.currentPosition = renderableNpc->position;
                     persistent.lastUpdateTime = currentTime;
                     
-                    // Initialize previousPosition on first spawn to prevent jumping
-                    if (persistent.previousPosition == glm::vec3(0.0f)) {
+                    // 3. HANDLE SPAWN: Prevent lerping from (0,0,0) on the first frame an entity is seen.
+                    if (persistent.previousUpdateTime == 0.0) {
                         persistent.previousPosition = persistent.currentPosition;
                         persistent.previousUpdateTime = persistent.lastUpdateTime;
                     }
                     
-                    // Calculate TRUE VELOCITY (distance / time) in meters per second
+                    // 4. CALCULATE ADAPTIVE SMOOTHED VELOCITY: (distance / time)
                     double deltaTime = persistent.lastUpdateTime - persistent.previousUpdateTime;
                     if (deltaTime > 0.001) { // Avoid division by zero
                         glm::vec3 instantVelocity = (persistent.currentPosition - persistent.previousPosition) / static_cast<float>(deltaTime);
                         
-                        // Smooth velocity using EMA to reduce jitter from noisy data
-                        if (glm::length(persistent.smoothedVelocity) == 0.0f) {
+                        if (glm::length(persistent.smoothedVelocity) < 0.001f) {
+                            // If there's no previous velocity, start with the new one.
                             persistent.smoothedVelocity = instantVelocity;
                         } else {
-                            // Use glm::mix for cleaner EMA: new = α*instant + (1-α)*old
+                            // --- ADAPTIVE SMOOTHING LOGIC ---
+                            // Compare the direction of the new velocity with the old smoothed velocity.
+                            glm::vec3 normInstant = glm::normalize(instantVelocity);
+                            glm::vec3 normSmoothed = glm::normalize(persistent.smoothedVelocity);
+                            float directionSimilarity = glm::dot(normInstant, normSmoothed);
+
+                            // Remap the dot product [-1, 1] to a [0, 1] range.
+                            // 1.0 = same direction, 0.0 = opposite direction.
+                            float responsiveness = (1.0f - directionSimilarity) / 2.0f; // Inverted: 0 for same dir, 1 for opposite
+
+                            // Mix between min and max smoothing factors based on responsiveness.
+                            // If direction is the same, use MIN factor. If opposite, use MAX factor.
+                            float dynamicSmoothingFactor = glm::mix(
+                                RenderingEffects::MIN_VELOCITY_SMOOTHING_FACTOR,
+                                RenderingEffects::MAX_VELOCITY_SMOOTHING_FACTOR,
+                                responsiveness
+                            );
+
+                            // Apply the dynamic smoothing factor to the EMA.
                             persistent.smoothedVelocity = glm::mix(
                                 persistent.smoothedVelocity,
                                 instantVelocity,
-                                RenderingEffects::VELOCITY_SMOOTHING_FACTOR
+                                dynamicSmoothingFactor
                             );
                         }
                     }
                     
-                    // Copy ALL persistent data to frame object
+                    // 5. COPY ALL DATA to the frame object for this frame's render pass.
                     renderableNpc->currentPosition = persistent.currentPosition;
                     renderableNpc->previousPosition = persistent.previousPosition;
                     renderableNpc->smoothedVelocity = persistent.smoothedVelocity;
@@ -219,7 +255,7 @@ namespace kx {
                 persistent.address = gadgetPtr;
             }
             
-            // CRITICAL: Shift history for BOTH position and time BEFORE extracting new data
+            // 1. SHIFT HISTORY: The most recent data from last tick becomes the "previous" data for this tick.
             persistent.previousPosition = persistent.currentPosition;
             persistent.previousUpdateTime = persistent.lastUpdateTime;
             
@@ -229,35 +265,53 @@ namespace kx {
 
             // Extract fresh data from game memory
             if (EntityExtractor::ExtractGadget(*renderableGadget, gadget)) {
-                // Update persistent state with new position and time
+                // 2. UPDATE PERSISTENT: Store the brand new data.
                 persistent.currentPosition = renderableGadget->position;
                 persistent.lastUpdateTime = currentTime;
                 
-                // Initialize previousPosition on first spawn to prevent jumping
-                if (persistent.previousPosition == glm::vec3(0.0f)) {
+                // 3. HANDLE SPAWN: Prevent lerping from (0,0,0) on the first frame an entity is seen.
+                if (persistent.previousUpdateTime == 0.0) {
                     persistent.previousPosition = persistent.currentPosition;
                     persistent.previousUpdateTime = persistent.lastUpdateTime;
                 }
                 
-                // Calculate TRUE VELOCITY (distance / time) in meters per second
+                // 4. CALCULATE ADAPTIVE SMOOTHED VELOCITY: (distance / time)
                 double deltaTime = persistent.lastUpdateTime - persistent.previousUpdateTime;
                 if (deltaTime > 0.001) { // Avoid division by zero
                     glm::vec3 instantVelocity = (persistent.currentPosition - persistent.previousPosition) / static_cast<float>(deltaTime);
                     
-                    // Smooth velocity using EMA to reduce jitter from noisy data
-                    if (glm::length(persistent.smoothedVelocity) == 0.0f) {
+                    if (glm::length(persistent.smoothedVelocity) < 0.001f) {
+                        // If there's no previous velocity, start with the new one.
                         persistent.smoothedVelocity = instantVelocity;
                     } else {
-                        // Use glm::mix for cleaner EMA: new = α*instant + (1-α)*old
+                        // --- ADAPTIVE SMOOTHING LOGIC ---
+                        // Compare the direction of the new velocity with the old smoothed velocity.
+                        glm::vec3 normInstant = glm::normalize(instantVelocity);
+                        glm::vec3 normSmoothed = glm::normalize(persistent.smoothedVelocity);
+                        float directionSimilarity = glm::dot(normInstant, normSmoothed);
+
+                        // Remap the dot product [-1, 1] to a [0, 1] range.
+                        // 1.0 = same direction, 0.0 = opposite direction.
+                        float responsiveness = (1.0f - directionSimilarity) / 2.0f; // Inverted: 0 for same dir, 1 for opposite
+
+                        // Mix between min and max smoothing factors based on responsiveness.
+                        // If direction is the same, use MIN factor. If opposite, use MAX factor.
+                        float dynamicSmoothingFactor = glm::mix(
+                            RenderingEffects::MIN_VELOCITY_SMOOTHING_FACTOR,
+                            RenderingEffects::MAX_VELOCITY_SMOOTHING_FACTOR,
+                            responsiveness
+                        );
+
+                        // Apply the dynamic smoothing factor to the EMA.
                         persistent.smoothedVelocity = glm::mix(
                             persistent.smoothedVelocity,
                             instantVelocity,
-                            RenderingEffects::VELOCITY_SMOOTHING_FACTOR
+                            dynamicSmoothingFactor
                         );
                     }
                 }
                 
-                // Copy ALL persistent data to frame object
+                // 5. COPY ALL DATA to the frame object for this frame's render pass.
                 renderableGadget->currentPosition = persistent.currentPosition;
                 renderableGadget->previousPosition = persistent.previousPosition;
                 renderableGadget->smoothedVelocity = persistent.smoothedVelocity;

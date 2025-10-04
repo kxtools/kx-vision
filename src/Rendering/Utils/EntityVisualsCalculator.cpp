@@ -31,9 +31,9 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
         double timeSinceUpdate = currentTime - context.entity->lastUpdateTime;
         float alpha = static_cast<float>(timeSinceUpdate / espUpdateInterval);
         
-        if (alpha >= 0.0f && alpha <= 1.0f) {
+        if (alpha <= 1.0f) {
             // --- INTERPOLATION PATH [0, 1] ---
-            // Perfectly smooth. Lerp between the last two known positions.
+            // We are between two known points. This is 100% stable.
             renderPosition = glm::mix(
                 context.entity->previousPosition,
                 context.entity->currentPosition,
@@ -41,14 +41,14 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
             );
         } else if (alpha > 1.0f && alpha <= RenderingEffects::MAX_EXTRAPOLATION_ALPHA) {
             // --- EXTRAPOLATION PATH (1, 2.0] ---
-            // Predict forward using ultra-smoothed velocity for maximum visual fluidity
-            // Calculate the exact amount of time we need to predict forward
-            float timeToExtrapolate = static_cast<float>(timeSinceUpdate) - espUpdateInterval;
+            // We are past our last known point. Predict forward to keep movement fluid.
+            // Use the full time since the last update for prediction from the last known point.
+            float timeToExtrapolate = static_cast<float>(timeSinceUpdate);
             renderPosition = context.entity->currentPosition + 
                            (context.entity->smoothedVelocity * timeToExtrapolate);
         } else {
             // --- FAILSAFE PATH > 2.0 ---
-            // Too much time has passed to make a good prediction. Snap to last known position.
+            // Too much time has passed. Snap to the last known position.
             renderPosition = context.entity->currentPosition;
         }
     } else {
