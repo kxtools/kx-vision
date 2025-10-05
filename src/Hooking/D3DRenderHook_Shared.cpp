@@ -64,7 +64,6 @@ namespace kx::Hooking {
             hr = pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
             if (FAILED(hr) || !pBackBuffer) {
                 LOG_ERROR("[D3DRenderHook] Failed to get back buffer from swap chain. HRESULT: 0x%08X", hr);
-                if (pBackBuffer) pBackBuffer->Release();
                 return false;
             }
 

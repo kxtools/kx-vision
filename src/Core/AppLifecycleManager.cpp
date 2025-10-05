@@ -201,17 +201,16 @@ void AppLifecycleManager::CheckAndInitializeServices() {
 
 void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, float displayHeight,
     ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView) {
-    // Early exit if shutting down
+
     if (m_currentState == State::ShuttingDown) {
         return;
     }
 
-    // ADD THIS: Safety check for context and RTV
     if (!context || !renderTargetView) {
         return;
     }
 
-    // === Handle input (INSERT key toggle for UI visibility) ===
+    // Handle input for UI toggle
     static bool lastToggleKeyState = false;
     bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
 
@@ -219,27 +218,24 @@ void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, floa
         bool isOpen = AppState::Get().IsVisionWindowOpen();
         AppState::Get().SetVisionWindowOpen(!isOpen);
     }
-
     lastToggleKeyState = currentToggleKeyState;
+
+    // Declare state backup here to ensure it's available in the catch block
+    StateBackupD3D11 d3dState;
 
     try {
         // CRITICAL: Backup D3D state before rendering
-        StateBackupD3D11 d3dState;
         BackupD3D11State(context, d3dState);
 
-        // Update MumbleLink every frame (it will auto-initialize on first call)
         m_mumbleLinkManager.Update();
         const MumbleLinkData* mumbleLinkData = m_mumbleLinkManager.GetData();
 
-        // Check and initialize services if ready (for GW2AL mode)
         CheckAndInitializeServices();
 
-        // Update camera with latest MumbleLink data
-        if (mumbleLinkData) { // Check if mumbleLinkData is valid before updating
+        if (mumbleLinkData) {
             m_camera.Update(mumbleLinkData, windowHandle);
         }
 
-        // Render ImGui UI
         ImGuiManager::NewFrame();
         ImGuiManager::RenderUI(m_camera, m_mumbleLinkManager, mumbleLinkData,
             windowHandle, displayWidth, displayHeight);
@@ -250,10 +246,8 @@ void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, floa
     }
     catch (...) {
         LOG_ERROR("Exception caught in RenderTick");
-        // Attempt to restore D3D state even if an exception occurs
-        StateBackupD3D11 emergencyState;
-        BackupD3D11State(context, emergencyState);
-        RestoreD3D11State(context, emergencyState);
+        // Attempt to restore the original D3D state to prevent a game crash
+        RestoreD3D11State(context, d3dState);
     }
 }
 
