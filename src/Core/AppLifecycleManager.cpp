@@ -200,48 +200,55 @@ void AppLifecycleManager::CheckAndInitializeServices() {
 }
 
 void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, float displayHeight,
-                                      ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView) {
-    // Early exit if shutting down
+    ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView) {
+
     if (m_currentState == State::ShuttingDown) {
         return;
     }
 
-    // === Handle input (INSERT key toggle for UI visibility) ===
+    if (!context || !renderTargetView) {
+        return;
+    }
+
+    // Handle input for UI toggle
     static bool lastToggleKeyState = false;
     bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
-    
+
     if (currentToggleKeyState && !lastToggleKeyState) {
         bool isOpen = AppState::Get().IsVisionWindowOpen();
         AppState::Get().SetVisionWindowOpen(!isOpen);
     }
-    
     lastToggleKeyState = currentToggleKeyState;
 
-    // CRITICAL: Backup D3D state before rendering
-    // This is essential for compatibility with other overlays (Discord, Steam, etc.)
-    // and in GW2AL mode where we share the pipeline with the game and other addons
+    // Declare state backup here to ensure it's available in the catch block
     StateBackupD3D11 d3dState;
-    BackupD3D11State(context, d3dState);
 
-    // Update MumbleLink every frame (it will auto-initialize on first call)
-    m_mumbleLinkManager.Update();
-    const MumbleLinkData* mumbleLinkData = m_mumbleLinkManager.GetData();
-    
-    // Check and initialize services if ready (for GW2AL mode)
-    CheckAndInitializeServices();
-    
-    // Update camera with latest MumbleLink data
-    m_camera.Update(mumbleLinkData, windowHandle);
-    
-    // Render ImGui UI
-    ImGuiManager::NewFrame();
-    ImGuiManager::RenderUI(m_camera, m_mumbleLinkManager, mumbleLinkData, 
-                           windowHandle, displayWidth, displayHeight);
-    ImGuiManager::Render(context, renderTargetView);
+    try {
+        // CRITICAL: Backup D3D state before rendering
+        BackupD3D11State(context, d3dState);
 
-    // CRITICAL: Restore D3D state after rendering
-    // This ensures we don't interfere with game rendering or other overlays
-    RestoreD3D11State(context, d3dState);
+        m_mumbleLinkManager.Update();
+        const MumbleLinkData* mumbleLinkData = m_mumbleLinkManager.GetData();
+
+        CheckAndInitializeServices();
+
+        if (mumbleLinkData) {
+            m_camera.Update(mumbleLinkData, windowHandle);
+        }
+
+        ImGuiManager::NewFrame();
+        ImGuiManager::RenderUI(m_camera, m_mumbleLinkManager, mumbleLinkData,
+            windowHandle, displayWidth, displayHeight);
+        ImGuiManager::Render(context, renderTargetView);
+
+        // CRITICAL: Restore D3D state after rendering
+        RestoreD3D11State(context, d3dState);
+    }
+    catch (...) {
+        LOG_ERROR("Exception caught in RenderTick");
+        // Attempt to restore the original D3D state to prevent a game crash
+        RestoreD3D11State(context, d3dState);
+    }
 }
 
 void AppLifecycleManager::HandleInitializingServicesState() {

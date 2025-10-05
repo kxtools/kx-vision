@@ -1,7 +1,7 @@
 /**
  * @file D3DRenderHook_Shared.cpp
  * @brief Shared D3D11 rendering functionality used by both DLL and GW2AL modes
- * 
+ *
  * This file contains code that is common to both build modes:
  * - Device initialization from swap chain (GW2AL mode)
  * - Resize event handling
@@ -34,45 +34,79 @@ namespace kx::Hooking {
 
         LOG_INFO("[D3DRenderHook] Initializing from provided device (GW2AL mode)");
 
-        m_pDevice = device;
-        m_pDevice->AddRef(); // Must AddRef since we Release in Shutdown()
-        m_pDevice->GetImmediateContext(&m_pContext);
+        // 1. Check for null pointers immediately to prevent crashes.
+        if (!device || !pSwapChain) {
+            LOG_ERROR("[D3DRenderHook] Null device or swap chain provided during initialization");
+            return false;
+        }
 
-        // Get window handle from swap chain
-        DXGI_SWAP_CHAIN_DESC sd;
-        pSwapChain->GetDesc(&sd);
-        m_hWindow = sd.OutputWindow;
+        // 2. Use a try-catch block as a safety net against any unexpected C++ exceptions.
+        try {
+            m_pDevice = device;
+            // 3. CRITICAL: We must increment the reference count because we are storing our own
+            // copy of the device pointer. Our Shutdown() function will call Release().
+            m_pDevice->AddRef();
 
-        // Create the render target view
-        ID3D11Texture2D* pBackBuffer = nullptr;
-        if (SUCCEEDED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) {
-            m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
+            m_pDevice->GetImmediateContext(&m_pContext);
+
+            // Get window handle from swap chain description
+            DXGI_SWAP_CHAIN_DESC sd;
+            HRESULT hr = pSwapChain->GetDesc(&sd);
+            if (FAILED(hr)) {
+                LOG_ERROR("[D3DRenderHook] Failed to get swap chain description. HRESULT: 0x%08X", hr);
+                // No resources to clean up yet, just return.
+                return false;
+            }
+            m_hWindow = sd.OutputWindow;
+
+            // Create the render target view (RTV) for rendering our UI
+            ID3D11Texture2D* pBackBuffer = nullptr;
+            hr = pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
+            if (FAILED(hr) || !pBackBuffer) {
+                LOG_ERROR("[D3DRenderHook] Failed to get back buffer from swap chain. HRESULT: 0x%08X", hr);
+                return false;
+            }
+
+            hr = m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
+            // 4. IMPORTANT: Release the back buffer immediately after creating the RTV from it.
             pBackBuffer->Release();
-        } else {
-            LOG_ERROR("[D3DRenderHook] Failed to get back buffer from GW2AL swap chain.");
+
+            if (FAILED(hr) || !m_pMainRenderTargetView) {
+                LOG_ERROR("[D3DRenderHook] Failed to create render target view. HRESULT: 0x%08X", hr);
+                return false;
+            }
+
+            // Hook the window procedure to handle input for our UI
+            m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
+            if (!m_pOriginalWndProc) {
+                LOG_ERROR("[D3DRenderHook] Failed to hook WndProc in GW2AL mode.");
+                // 5. Cleanup: If this step fails, release the RTV we just created.
+                if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
+                return false;
+            }
+
+            // Initialize ImGui
+            if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
+                LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui in GW2AL mode.");
+                // 6. Cleanup: If ImGui fails, we must restore the original WndProc and release the RTV.
+                SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)m_pOriginalWndProc);
+                if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
+                return false;
+            }
+
+            m_isInit = true;
+            LOG_INFO("[D3DRenderHook] Initialized successfully via GW2AL.");
+            kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK);
+            return true;
+        }
+        catch (const std::exception& e) {
+            LOG_ERROR("[D3DRenderHook] Exception during D3D initialization: %s", e.what());
             return false;
         }
-
-        // Hook WndProc (still needed for input handling)
-        m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
-        if (!m_pOriginalWndProc) {
-            LOG_ERROR("[D3DRenderHook] Failed to hook WndProc in GW2AL mode.");
-            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
+        catch (...) {
+            LOG_ERROR("[D3DRenderHook] Unknown exception during D3D initialization.");
             return false;
         }
-
-        // Initialize ImGui
-        if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
-            LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui in GW2AL mode.");
-            SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)m_pOriginalWndProc); // Restore WndProc
-            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-            return false;
-        }
-
-        m_isInit = true;
-        LOG_INFO("[D3DRenderHook] Initialized successfully via GW2AL.");
-        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK);
-        return true;
     }
 
     void D3DRenderHook::OnResize(IDXGISwapChain* pSwapChain) {

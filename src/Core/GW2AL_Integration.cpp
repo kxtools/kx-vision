@@ -49,29 +49,29 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     if (!kx::Hooking::D3DRenderHook::IsInitialized()) return;
     if (kx::AppState::Get().IsShuttingDown()) return;
 
-    // Extract the swap chain from the event data
-    IDXGISwapChain* pSwapChain = (IDXGISwapChain*)((void**)evd->stackPtr)[0];
+    // Correctly get the swapchain from the wrapped object
+    wrapped_com_obj* wrapObj = reinterpret_cast<wrapped_com_obj*>(evd->stackPtr[0]);
+    if (!wrapObj) return;
+
+    IDXGISwapChain* pSwapChain = wrapObj->orig_swc;
     if (!pSwapChain) return;
 
     auto* device = kx::Hooking::D3DRenderHook::GetDevice();
     auto* context = kx::Hooking::D3DRenderHook::GetContext();
     if (!device || !context) return;
 
-    // Create a render target view from the current back buffer
-    // NOTE: We create this every frame instead of caching because:
-    // 1. Ensures RTV is always valid and matches current back buffer size
-    // 2. Avoids stale cache issues after window resize
-    // 3. Performance impact is negligible (~120 API calls/sec is trivial for modern GPUs)
+    // Create a render target view from the current back buffer for robustness
     ID3D11Texture2D* pBackBuffer = nullptr;
     if (FAILED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) return;
 
     ID3D11RenderTargetView* mainRenderTargetView = nullptr;
-    if (FAILED(device->CreateRenderTargetView(pBackBuffer, NULL, &mainRenderTargetView))) {
-        pBackBuffer->Release();
+    HRESULT hr = device->CreateRenderTargetView(pBackBuffer, NULL, &mainRenderTargetView);
+    pBackBuffer->Release();
+
+    if (FAILED(hr) || !mainRenderTargetView) {
         return;
     }
-    pBackBuffer->Release();
-    
+
     // Get display size from swap chain
     DXGI_SWAP_CHAIN_DESC sd;
     pSwapChain->GetDesc(&sd);
@@ -79,12 +79,50 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     float displayHeight = static_cast<float>(sd.BufferDesc.Height);
     HWND windowHandle = kx::Hooking::D3DRenderHook::GetWindowHandle();
 
-    // === Centralized per-frame tick (update + render) ===
-    // Note: D3D state backup/restore is handled inside RenderTick
+    // Centralized per-frame tick (update + render)
     kx::g_App.RenderTick(windowHandle, displayWidth, displayHeight, context, mainRenderTargetView);
 
-    // Clean up render target view
+    // Clean up the per-frame render target view
     mainRenderTargetView->Release();
+}
+
+void OnDXGIPostCreateSwapChain(D3D9_wrapper_event_data* evd) {
+    if (!evd || !evd->stackPtr) {
+        LOG_ERROR("[GW2AL] Invalid event data in OnDXGIPostCreateSwapChain");
+        return;
+    }
+
+    dxgi_CreateSwapChain_cp* params = reinterpret_cast<dxgi_CreateSwapChain_cp*>(evd->stackPtr);
+    if (!params->inDevice || !params->ppSwapchain || !*params->ppSwapchain) {
+        LOG_ERROR("[GW2AL] Null parameter in CreateSwapChain event");
+        return;
+    }
+
+    // Safely get the D3D11 device interface using QueryInterface
+    ID3D11Device* device = nullptr;
+    HRESULT hr = params->inDevice->QueryInterface(__uuidof(ID3D11Device), (void**)&device);
+
+    if (FAILED(hr) || !device) {
+        LOG_ERROR("[GW2AL] Failed to query D3D11Device interface: 0x%08X", hr);
+        return;
+    }
+
+    // Initialize with device and swap chain
+    bool initResult = kx::Hooking::D3DRenderHook::InitializeFromDevice(
+        device,
+        *params->ppSwapchain
+    );
+
+    // Always release our reference to the device
+    device->Release();
+
+    if (initResult) {
+        LOG_INFO("[GW2AL] D3DRenderHook initialized successfully");
+        kx::g_App.OnRendererInitialized();
+    }
+    else {
+        LOG_ERROR("[GW2AL] Failed to initialize D3DRenderHook");
+    }
 }
 
 /**
@@ -93,15 +131,21 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
  * Called when the game window is resized. We need to update our render target.
  */
 void OnResize(D3D9_wrapper_event_data* evd) {
-    if (!evd || !evd->stackPtr) return;
-    if (!kx::Hooking::D3DRenderHook::IsInitialized()) return;
+    if (!evd || !evd->stackPtr) {
+        return;
+    }
+    if (!kx::Hooking::D3DRenderHook::IsInitialized()) {
+        return;
+    }
 
-    // Get the swap chain pointer from the event data (using shared struct from d3d9_wrapper_structs.h)
-    swc_ResizeBuffers_cp* params = (swc_ResizeBuffers_cp*)evd->stackPtr;
-    if (!params || !params->swc) return;
+    // Get the swap chain pointer from the event data
+    // Note: In a POST event, the parameters reflect the state AFTER the call.
+    swc_ResizeBuffers_cp* params = reinterpret_cast<swc_ResizeBuffers_cp*>(evd->stackPtr);
+    if (!params || !params->swc) {
+        return;
+    }
 
-    // Just recreate the RTV with the new back buffer size
-    // The dimensions from params may be unreliable in POST event
+    // Delegate to the D3DRenderHook to handle the resource cleanup.
     kx::Hooking::D3DRenderHook::OnResize(params->swc);
 }
 
@@ -140,58 +184,33 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
     g_al_api = core_api;
 
     LOG_INIT();
-    
-    // Setup debug console in debug builds
+
 #ifdef _DEBUG
     kx::SetupConsole();
 #endif
-    
+
     LOG_INFO("KXVision starting up in GW2AL mode...");
 
-    // Initialize the application lifecycle manager for GW2AL mode
     if (!kx::g_App.InitializeForGW2AL()) {
         LOG_ERROR("Failed to initialize AppLifecycleManager for GW2AL mode");
         return GW2AL_FAIL;
     }
 
-    // Get the function pointer from d3d9_wrapper to enable events
     pD3D9_wrapper_enable_event enable_event = (pD3D9_wrapper_enable_event)g_al_api->query_function(
         g_al_api->hash_name((wchar_t*)D3D9_WRAPPER_ENABLE_EVENT_FNAME)
     );
 
-    // Enable ONLY the events we need to kickstart our initialization and rendering
     enable_event(METH_DXGI_CreateSwapChain, WRAP_CB_POST);
     enable_event(METH_SWC_Present, WRAP_CB_PRE);
     enable_event(METH_SWC_ResizeBuffers, WRAP_CB_POST);
 
-    // Watch for the swap chain creation event. This is our main initialization point.
+    // Watch for swap chain creation. This is our main initialization point.
+    // We DO NOT unwatch this event, so we can re-initialize if needed.
     g_al_api->watch_event(
         g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_DXGI_CreateSwapChain")),
         g_al_api->hash_name(L"kxvision_init"),
-        [](void* data) { // Lambda function for our callback
-            D3D9_wrapper_event_data* evd = (D3D9_wrapper_event_data*)data;
-            dxgi_CreateSwapChain_cp* params = (dxgi_CreateSwapChain_cp*)evd->stackPtr;
-
-            // This is the FIRST point where we have a D3D device. Initialize our renderer.
-            if (kx::Hooking::D3DRenderHook::InitializeFromDevice(
-                (ID3D11Device*)params->inDevice,
-                *params->ppSwapchain
-            )) {
-                LOG_INFO("D3DRenderHook initialized successfully from GW2AL");
-                
-                // Notify the lifecycle manager that the renderer is ready
-                kx::g_App.OnRendererInitialized();
-                
-                // Now that the renderer is initialized, we can unwatch this event.
-                g_al_api->unwatch_event(
-                    g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_DXGI_CreateSwapChain")), 
-                    g_al_api->hash_name(L"kxvision_init")
-                );
-            } else {
-                LOG_ERROR("Failed to initialize D3DRenderHook from GW2AL");
-            }
-        },
-        -1 // High priority to initialize as early as possible
+        (gw2al_api_event_handler)&OnDXGIPostCreateSwapChain,
+        -1 // High priority
     );
 
     // Watch for the Present call every frame. This is our render loop.
@@ -199,7 +218,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
         g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_Present")),
         g_al_api->hash_name(L"kxvision_present"),
         (gw2al_api_event_handler)&OnPresent,
-        0
+        10
     );
 
     // Watch for the ResizeBuffers event to handle window size changes.
@@ -207,7 +226,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
         g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_SWC_ResizeBuffers")),
         g_al_api->hash_name(L"kxvision_resize"),
         (gw2al_api_event_handler)&OnResize,
-        0
+        10
     );
 
     LOG_INFO("KXVision GW2AL event handlers registered successfully");
