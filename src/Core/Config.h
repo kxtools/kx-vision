@@ -5,7 +5,7 @@
 // ===== Build Configuration =====
 // Uncomment the line below to build for GW2AL (addon loader) mode.
 // Comment it out to build as a standalone DLL for manual injection.
-//#define GW2AL_BUILD
+#define GW2AL_BUILD
 // ==============================
 
 namespace kx {
