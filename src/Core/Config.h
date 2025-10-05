@@ -9,7 +9,7 @@
 // ==============================
 
 namespace kx {
-    constexpr std::string_view APP_VERSION = "0.6";
+    constexpr std::string_view APP_VERSION = "0.7";
 
     // Configuration for the target process and function signature
     constexpr std::string_view TARGET_PROCESS_NAME = "Gw2-64.exe";
