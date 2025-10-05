@@ -12,6 +12,7 @@
 #include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
 #include "../Data/EntityRenderContext.h"
+#include "../Utils/ESPFormatting.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
 
@@ -81,8 +82,17 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
 
     // Render player name for natural identification (players only)
     if (context.entityType == ESPEntityType::Player && context.renderPlayerName) {
-        // For hostile players, display "HOSTILE" label instead of their name
-        std::string displayName = (context.attitude == Game::Attitude::Hostile) ? "HOSTILE" : context.playerName;
+        // For hostile players with an empty name, display their profession
+        std::string displayName = context.playerName;
+        if (displayName.empty() && context.attitude == Game::Attitude::Hostile) {
+            if (context.player) {
+                const char* prof = ESPFormatting::GetProfessionName(context.player->profession);
+                if (prof) {
+                    displayName = prof;
+                }
+            }
+        }
+
         if (!displayName.empty()) {
             // Use entity color directly (already attitude-based from ESPContextFactory)
             ESPTextRenderer::RenderPlayerName(drawList, screenPos, displayName, fadedEntityColor, finalFontSize);
