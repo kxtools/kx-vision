@@ -129,6 +129,13 @@ namespace kx {
         outGadget.type = inGadget.GetGadgetType();
         outGadget.isGatherable = inGadget.IsGatherable();
 
+        // --- Health ---
+        ReClass::ChCliHealth health = inGadget.GetHealth();
+        if (health) {
+            outGadget.currentHealth = health.GetCurrent();
+            outGadget.maxHealth = health.GetMax();
+        }
+
         if (outGadget.type == Game::GadgetType::ResourceNode) {
             outGadget.resourceType = inGadget.GetResourceNodeType();
         }

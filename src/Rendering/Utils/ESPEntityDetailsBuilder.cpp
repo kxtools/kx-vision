@@ -55,6 +55,10 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
     const char* gadgetName = ESPFormatting::GetGadgetTypeName(gadget->type);
     details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), ESPColors::DEFAULT_TEXT });
 
+    if (gadget->maxHealth > 0) {
+        details.push_back({ "HP: " + std::to_string(static_cast<int>(gadget->currentHealth)) + "/" + std::to_string(static_cast<int>(gadget->maxHealth)), ESPColors::DEFAULT_TEXT });
+    }
+
     if (gadget->type == Game::GadgetType::ResourceNode) {
         details.push_back({ "Node: " + ESPFormatting::ResourceNodeTypeToString(gadget->resourceType), ESPColors::DEFAULT_TEXT });
     }

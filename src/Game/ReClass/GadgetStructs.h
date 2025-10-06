@@ -4,6 +4,7 @@
 #include "../../Utils/SafeForeignClass.h"
 #include "../GameEnums.h"
 #include "../offsets.h"
+#include "CharacterStructs.h"
 #include <glm.hpp>
 
 namespace kx {
@@ -58,6 +59,15 @@ namespace kx {
                 
                 LOG_DEBUG("GdCliGadget::GetGadgetType - Type: %u", static_cast<uint32_t>(gadgetType));
                 return gadgetType;
+            }
+
+            ChCliHealth GetHealth() const {
+                LOG_MEMORY("GdCliGadget", "GetHealth", data(), Offsets::GdCliGadget::HEALTH);
+
+                ChCliHealth result = ReadPointer<ChCliHealth>(Offsets::GdCliGadget::HEALTH);
+
+                LOG_PTR("Health", result.data());
+                return result;
             }
 
             Game::ResourceNodeType GetResourceNodeType() const {
