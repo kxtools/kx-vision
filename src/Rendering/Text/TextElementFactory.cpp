@@ -85,6 +85,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
 }
 
 TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantStat>& stats,
+                                                    Game::ItemRarity topRarity,
                                                     const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
     if (stats.empty()) {
         return TextElement("", feetPos);
@@ -103,7 +104,14 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
     // Position below feet with proper offset
     glm::vec2 adjustedPos(feetPos.x, feetPos.y + RenderingLayout::SUMMARY_Y_OFFSET);
     TextElement element(summaryText, adjustedPos, TextAnchor::Custom);
-    element.SetStyle(GetSummaryStyle(fadeAlpha, fontSize));
+    
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
+    // Override text color if the top rarity is high enough
+    if (topRarity >= Game::ItemRarity::Rare) {
+        style.textColor = ESPStyling::GetRarityColor(topRarity);
+    }
+    element.SetStyle(style);
+    
     return element;
 }
 

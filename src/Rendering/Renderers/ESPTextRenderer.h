@@ -71,7 +71,9 @@ public:
      * @param fontSize Font size to use
      */
     static void RenderDominantStats(ImDrawList* drawList, const glm::vec2& feetPos,
-                                   const std::vector<DominantStat>& stats, float fadeAlpha, float fontSize);
+                                   const std::vector<DominantStat>& stats,
+                                   Game::ItemRarity topRarity,
+                                   float fadeAlpha, float fontSize);
 };
 
 } // namespace kx

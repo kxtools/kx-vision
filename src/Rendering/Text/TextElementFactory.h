@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "GameEnums.h"
+
 namespace kx {
 
 // Forward declarations
@@ -72,6 +74,7 @@ public:
      * @return Styled text element
      */
     static TextElement CreateDominantStats(const std::vector<DominantStat>& stats,
+                                          Game::ItemRarity topRarity,
                                           const glm::vec2& feetPos, float fadeAlpha, float fontSize);
     
     /**

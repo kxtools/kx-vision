@@ -121,7 +121,8 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
         }
         case GearDisplayMode::Attributes: { // Top 3 Attributes
             auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
-            ESPTextRenderer::RenderDominantStats(drawList, screenPos, dominantStats, finalAlpha, finalFontSize);
+            auto topRarity = ESPPlayerDetailsBuilder::GetHighestRarity(context.player);
+            ESPTextRenderer::RenderDominantStats(drawList, screenPos, dominantStats, topRarity, finalAlpha, finalFontSize);
             break;
         }
         default:

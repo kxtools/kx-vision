@@ -57,11 +57,13 @@ void ESPTextRenderer::RenderGearSummary(ImDrawList* drawList, const glm::vec2& f
 }
 
 void ESPTextRenderer::RenderDominantStats(ImDrawList* drawList, const glm::vec2& feetPos,
-                                         const std::vector<DominantStat>& stats, float fadeAlpha, float fontSize) {
+                                         const std::vector<DominantStat>& stats,
+                                         Game::ItemRarity topRarity,
+                                         float fadeAlpha, float fontSize) {
     if (stats.empty()) return;
 
     // Use factory to create dominant stats text element
-    TextElement element = TextElementFactory::CreateDominantStats(stats, feetPos, fadeAlpha, fontSize);
+    TextElement element = TextElementFactory::CreateDominantStats(stats, topRarity, feetPos, fadeAlpha, fontSize);
     
     // Render the element using static method
     TextRenderer::Render(drawList, element);

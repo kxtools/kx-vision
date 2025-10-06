@@ -222,4 +222,18 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildGearDetails(const Rende
     return gearDetails;
 }
 
+Game::ItemRarity ESPPlayerDetailsBuilder::GetHighestRarity(const RenderablePlayer* player) {
+    if (!player || player->gear.empty()) {
+        return Game::ItemRarity::None;
+    }
+
+    Game::ItemRarity highestRarity = Game::ItemRarity::None;
+    for (const auto& pair : player->gear) {
+        if (pair.second.rarity > highestRarity) {
+            highestRarity = pair.second.rarity;
+        }
+    }
+    return highestRarity;
+}
+
 } // namespace kx
