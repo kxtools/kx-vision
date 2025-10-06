@@ -71,6 +71,9 @@ struct EntityRenderContext {
     
     /** Attitude/relationship for NPCs and players (used for health bar coloring) */
     Game::Attitude attitude;
+
+    /** Character rank for NPCs (used for visual scaling) */
+    Game::CharacterRank rank;
     
     // ===== Screen Dimensions =====
     

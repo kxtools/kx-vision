@@ -117,9 +117,9 @@ namespace ScalingLimits {
     
     // Health bar limits (base: 60w × 7h)
     constexpr float MIN_HEALTH_BAR_WIDTH = 10.0f;    // Minimum readable width
-    constexpr float MAX_HEALTH_BAR_WIDTH = 150.0f;   // Maximum width (2.5x base, matches font scaling)
+    constexpr float MAX_HEALTH_BAR_WIDTH = 200.0f;   // Maximum width (3.33x base, allows for rank multipliers)
     constexpr float MIN_HEALTH_BAR_HEIGHT = 2.0f;    // Minimum visible height
-    constexpr float MAX_HEALTH_BAR_HEIGHT = 18.0f;   // Maximum height (2.57x base, balanced visibility)
+    constexpr float MAX_HEALTH_BAR_HEIGHT = 25.0f;   // Maximum height (3.57x base, allows for rank multipliers)
 }
 
 /**

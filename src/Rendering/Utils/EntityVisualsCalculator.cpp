@@ -11,6 +11,25 @@
 
 namespace kx {
 
+namespace {
+    // Helper to get a size multiplier based on NPC rank
+    float GetRankMultiplier(Game::CharacterRank rank) {
+        switch (rank) {
+            case Game::CharacterRank::Veteran:    return 1.5f;
+            case Game::CharacterRank::Elite:      return 2.0f;
+            case Game::CharacterRank::Champion:   return 2.5f;
+            case Game::CharacterRank::Legendary:  return 3.0f;
+            default:                              return 1.0f;
+        }
+    }
+
+    // Helper to calculate final scaled size with clamping and multipliers
+    float CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier = 1.0f) {
+        float scaledSize = baseSize * scale * multiplier;
+        return std::clamp(scaledSize, minLimit, maxLimit);
+    }
+}
+
 std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityRenderContext& context,
                                                                    Camera& camera,
                                                                    float screenWidth,
@@ -67,35 +86,32 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
                                              normalizedDistance);
     
     // Hostile players always render at 100% opacity (critical for PvP combat awareness)
-    bool isHostilePlayer = (context.entityType == ESPEntityType::Player && 
-                           context.attitude == Game::Attitude::Hostile);
-    if (isHostilePlayer) {
+    if (context.entityType == ESPEntityType::Player && context.attitude == Game::Attitude::Hostile) {
         props.finalAlpha = 1.0f;
     }
     
     // Apply final alpha to the entity color
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
     
-    // 7. Calculate scaled sizes with limits to prevent extreme values
-    // Apply hostile player multiplier for enhanced visibility (PvP combat awareness)
-    float hostileMultiplier = isHostilePlayer ? RenderingEffects::HOSTILE_PLAYER_VISUAL_MULTIPLIER : 1.0f;
-    
-    props.finalFontSize = (std::max)(settings.sizes.minFontSize, 
-                                    (std::min)(settings.sizes.baseFontSize * props.scale * hostileMultiplier, 
-                                              ScalingLimits::MAX_FONT_SIZE));
-    props.finalBoxThickness = (std::max)(ScalingLimits::MIN_BOX_THICKNESS, 
-                                        (std::min)(settings.sizes.baseBoxThickness * props.scale * hostileMultiplier, 
-                                                  ScalingLimits::MAX_BOX_THICKNESS));
-    props.finalDotRadius = (std::max)(ScalingLimits::MIN_DOT_RADIUS, 
-                                     (std::min)(settings.sizes.baseDotRadius * props.scale, 
-                                               ScalingLimits::MAX_DOT_RADIUS));
-    props.finalHealthBarWidth = (std::max)(ScalingLimits::MIN_HEALTH_BAR_WIDTH, 
-                                          (std::min)(settings.sizes.baseHealthBarWidth * props.scale * hostileMultiplier, 
-                                                    ScalingLimits::MAX_HEALTH_BAR_WIDTH));
-    props.finalHealthBarHeight = (std::max)(ScalingLimits::MIN_HEALTH_BAR_HEIGHT, 
-                                           (std::min)(settings.sizes.baseHealthBarHeight * props.scale * hostileMultiplier, 
-                                                     ScalingLimits::MAX_HEALTH_BAR_HEIGHT));
-    
+    // 7. Calculate scaled sizes with limits
+    // Determine multipliers
+    float hostileMultiplier = (context.entityType == ESPEntityType::Player && context.attitude == Game::Attitude::Hostile)
+                              ? RenderingEffects::HOSTILE_PLAYER_VISUAL_MULTIPLIER
+                              : 1.0f;
+
+    float rankMultiplier = (context.entityType == ESPEntityType::NPC)
+                           ? GetRankMultiplier(context.rank)
+                           : 1.0f;
+
+    // Calculate final sizes using the helper
+    props.finalFontSize = CalculateFinalSize(settings.sizes.baseFontSize, props.scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, hostileMultiplier);
+    props.finalBoxThickness = CalculateFinalSize(settings.sizes.baseBoxThickness, props.scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, hostileMultiplier);
+    props.finalDotRadius = CalculateFinalSize(settings.sizes.baseDotRadius, props.scale, ScalingLimits::MIN_DOT_RADIUS, ScalingLimits::MAX_DOT_RADIUS);
+
+    float healthBarMultiplier = hostileMultiplier * rankMultiplier;
+    props.finalHealthBarWidth = CalculateFinalSize(settings.sizes.baseHealthBarWidth, props.scale, ScalingLimits::MIN_HEALTH_BAR_WIDTH, ScalingLimits::MAX_HEALTH_BAR_WIDTH, healthBarMultiplier);
+    props.finalHealthBarHeight = CalculateFinalSize(settings.sizes.baseHealthBarHeight, props.scale, ScalingLimits::MIN_HEALTH_BAR_HEIGHT, ScalingLimits::MAX_HEALTH_BAR_HEIGHT, healthBarMultiplier);
+
     return props;
 }
 

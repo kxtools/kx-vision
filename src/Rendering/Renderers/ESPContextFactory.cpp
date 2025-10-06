@@ -49,6 +49,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         settings.playerESP.renderPlayerName,
         ESPEntityType::Player,
         player->attitude,
+        Game::CharacterRank::Normal, // Players don't have ranks in the same way
         screenWidth,
         screenHeight,
         player->playerName,
@@ -99,6 +100,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         false,
         ESPEntityType::NPC,
         npc->attitude,
+        npc->rank,
         screenWidth,
         screenHeight,
         emptyPlayerName,
@@ -127,6 +129,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         false,
         ESPEntityType::Gadget,
         Game::Attitude::Neutral,
+        Game::CharacterRank::Normal, // Gadgets don't have ranks
         screenWidth,
         screenHeight,
         emptyPlayerName,
