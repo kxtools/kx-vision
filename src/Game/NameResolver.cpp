@@ -5,61 +5,61 @@
 #include <windows.h>
 #include <unordered_map>
 #include <mutex>
+#include <atomic>
 
 namespace kx {
     namespace NameResolver {
 
-        // Thread-safe cache for agent names
+        // --- Asynchronous Request Management ---
+
+        // A unique ID for each name request
+        static std::atomic<uint64_t> s_nextRequestId = 1;
+
+        // Stores the agent pointer and the resulting name for a pending request
+        struct PendingRequest {
+            void* agentPtr;
+            std::string result;
+        };
+
+        // Thread-safe map of pending requests
+        static std::unordered_map<uint64_t, PendingRequest> s_pendingRequests;
+        static std::mutex s_requestsMutex;
+
+        // --- Caching ---
         static std::unordered_map<void*, std::string> s_nameCache;
         static std::mutex s_nameCacheMutex;
 
-        // A POD struct to pass as context to the callback.
-        struct DecodedNameContext {
-            wchar_t buffer[1024];
-            bool success;
-        };
-
-        // CORRECT VTable function signature: takes a 'this' pointer, returns a pointer to the coded name structure.
+        // --- Game Function Signatures ---
         typedef void* (__fastcall* GetCodedName_t)(void* this_ptr);
-
-        // The game's text decoding function.
         typedef void(__fastcall* DecodeGameText_t)(void* codedTxt, void* callback, void* ctx);
 
-        // The callback type that DecodeGameText expects
-        typedef void(__fastcall* DecodeCallback_t)(void* ctx, wchar_t* decodedText);
-
-
-        // SEH-wrapped helper to safely copy the decoded string.
-        static void SafeCopyDecodedString(wchar_t* dest, size_t destSize, const wchar_t* src) {
-            __try {
-                if (src && src[0] != L'\0') {
-                    wcsncpy_s(dest, destSize, src, _TRUNCATE);
-                }
-            }
-            __except (EXCEPTION_EXECUTE_HANDLER) {
-                // Ensure buffer is null-terminated on failure.
-                if (destSize > 0) {
-                    dest[0] = L'\0';
-                }
-            }
-        }
-
-        // The callback for DecodeGameText. This itself is fine.
-        static void __fastcall DecodeNameCallback(DecodedNameContext* ctx, wchar_t* decodedText) {
-            if (!ctx) {
+        // The callback from the game. 'ctx' will be our request ID.
+        void __fastcall DecodeNameCallback(void* ctx, wchar_t* decodedText) {
+            if (!ctx || !decodedText || decodedText[0] == L'\0') {
                 return;
             }
-            ctx->success = false;
-            ctx->buffer[0] = L'\0';
 
-            SafeCopyDecodedString(ctx->buffer, _countof(ctx->buffer), decodedText);
+            // --- FIX: Immediately copy the temporary game buffer into a stable wstring ---
+            // The 'decodedText' pointer is only guaranteed to be valid during this function call.
+            // By copying it instantly, we protect against the original buffer being overwritten.
+            std::wstring safeDecodedText(decodedText);
 
-            if (ctx->buffer[0] != L'\0') {
-                ctx->success = true;
+            // Now, perform the conversion using our safe, local copy.
+            std::string utf8Name = StringHelpers::WCharToUTF8String(safeDecodedText.c_str());
+            if (utf8Name.empty()) {
+                return;
+            }
+
+            // Lock the mutex to safely update the pending request map
+            std::lock_guard<std::mutex> lock(s_requestsMutex);
+            uint64_t requestId = reinterpret_cast<uint64_t>(ctx);
+            auto it = s_pendingRequests.find(requestId);
+            if (it != s_pendingRequests.end()) {
+                it->second.result = std::move(utf8Name);
             }
         }
 
-        // Helper function to get the pointer to the coded name structure from the VTable.
+        // Helper to get the coded name pointer
         static void* GetCodedNamePointerSEH(void* agent_ptr) {
             __try {
                 uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(agent_ptr);
@@ -68,7 +68,6 @@ namespace kx {
                 GetCodedName_t pGetCodedName = reinterpret_cast<GetCodedName_t>(vtable[0]);
                 if (!SafeAccess::IsMemorySafe((void*)pGetCodedName)) return nullptr;
 
-                // Call the function and get the pointer to the game's coded name structure
                 return pGetCodedName(agent_ptr);
             }
             __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -76,91 +75,119 @@ namespace kx {
             }
         }
 
-        // Helper function to validate the coded name structure, based on hacklib/decode.c
-        static bool IsCodedNameValid(void* pCodedName) {
+        // Helper function to isolate the __try block
+        static bool CallDecodeTextSEH(DecodeGameText_t pDecodeGameText, void* pCodedName, void* callback, void* ctx) {
             __try {
-                if (!pCodedName || !SafeAccess::IsMemorySafe(pCodedName, sizeof(uint16_t))) return false;
-
-                // The decompiled code checks if the first ushort is non-zero and passes other checks
-                uint16_t firstWord = *reinterpret_cast<uint16_t*>(pCodedName);
-                if (firstWord == 0) return false;
-                if ((firstWord & 0x7fff) <= 0xff) return false;
-
-                return true;
+                pDecodeGameText(pCodedName, callback, ctx);
+                return true; // Indicate success
             }
             __except (EXCEPTION_EXECUTE_HANDLER) {
-                return false;
+                return false; // Indicate failure
             }
         }
 
-        // Helper function to isolate the SEH block for the DecodeText call.
-        static bool DecodeNameSEH(DecodeGameText_t pDecodeGameText, void* pCodedName, DecodedNameContext* pod_ctx) {
-            __try {
-                // Validate the pointer before passing it to the game's function
-                if (!IsCodedNameValid(pCodedName)) {
-                    return false;
-                }
-
-                DecodeCallback_t callbackPtr = reinterpret_cast<DecodeCallback_t>(&DecodeNameCallback);
-                pDecodeGameText(pCodedName, reinterpret_cast<void*>(callbackPtr), pod_ctx);
-                return true;
-            }
-            __except (EXCEPTION_EXECUTE_HANDLER) {
-                return false;
-            }
-        }
-
-        std::string GetNameFromAgent(void* agent_ptr) {
-            if (!SafeAccess::IsVTablePointerValid(agent_ptr)) {
-                return "";
+        // This function NO LONGER returns a name. It just starts the decoding process.
+        void RequestNameForAgent(void* agent_ptr) {
+            if (!SafeAccess::IsVTablePointerValid(agent_ptr) || !AddressManager::GetContextCollectionPtr()) {
+                return;
             }
 
-            if (!AddressManager::GetContextCollectionPtr()) {
-                return "";
-            }
-
-            // Step 1: Get the POINTER to the coded name from the game's VTable function.
-            void* pCodedName = GetCodedNamePointerSEH(agent_ptr);
-            if (!pCodedName) {
-                return ""; // The VTable call failed or returned null.
-            }
-
-            // Step 2: Get the DecodeText function pointer.
             auto pDecodeGameText = reinterpret_cast<DecodeGameText_t>(AddressManager::GetDecodeTextFunc());
             if (!pDecodeGameText) {
-                return "";
+                return;
             }
 
-            // Step 3: Call DecodeNameSEH, passing the pointer we received from the game.
-            DecodedNameContext name_ctx = {};
-            if (!DecodeNameSEH(pDecodeGameText, pCodedName, &name_ctx)) {
-                return ""; // Decode failed.
+            void* pCodedName = GetCodedNamePointerSEH(agent_ptr);
+            if (!pCodedName) {
+                return;
             }
 
-            // Step 4: Convert the result.
-            if (name_ctx.success) {
-                return StringHelpers::WCharToUTF8String(name_ctx.buffer);
+            // Generate a unique ID for this request
+            uint64_t requestId = s_nextRequestId++;
+
+            {
+                // Store the agent pointer so we know who this request is for
+                std::lock_guard<std::mutex> lock(s_requestsMutex);
+                s_pendingRequests[requestId] = { agent_ptr, "" };
             }
 
-            return "";
+            // Call the game function via our safe helper
+            bool success = CallDecodeTextSEH(
+                pDecodeGameText,
+                pCodedName,
+                reinterpret_cast<void*>(&DecodeNameCallback),
+                reinterpret_cast<void*>(requestId)
+            );
+
+            // If the call failed, remove the pending request to prevent it from sitting there forever
+            if (!success) {
+                std::lock_guard<std::mutex> lock(s_requestsMutex);
+                s_pendingRequests.erase(requestId);
+            }
+        }
+
+        // This function processes completed requests and moves them to the main cache.
+        void ProcessCompletedNameRequests() {
+            std::vector<std::pair<void*, std::string>> completed;
+
+            // Safely find and remove completed requests
+            {
+                std::lock_guard<std::mutex> lock(s_requestsMutex);
+                for (auto it = s_pendingRequests.begin(); it != s_pendingRequests.end(); ) {
+                    if (!it->second.result.empty()) {
+                        completed.push_back({ it->second.agentPtr, std::move(it->second.result) });
+                        it = s_pendingRequests.erase(it);
+                    }
+                    else {
+                        ++it;
+                    }
+                }
+            }
+
+            // Add completed names to the main cache
+            if (!completed.empty()) {
+                std::lock_guard<std::mutex> lock(s_nameCacheMutex);
+                for (const auto& pair : completed) {
+                    s_nameCache[pair.first] = std::move(pair.second);
+                }
+            }
         }
 
         void CacheNamesForAgents(const std::vector<void*>& agentPointers) {
-            std::unordered_map<void*, std::string> newNames;
+            // 1. Process any requests that were completed since the last frame
+            ProcessCompletedNameRequests();
 
+            // 2. Request names for any new agents
             for (void* agentPtr : agentPointers) {
                 if (!agentPtr) continue;
 
-                std::string name = GetNameFromAgent(agentPtr);
-                if (!name.empty()) {
-                    newNames[agentPtr] = std::move(name);
+                // --- FIX: Check both the main cache AND pending requests ---
+                bool alreadyProcessed = false;
+                {
+                    // Check if it's already in the final cache
+                    std::lock_guard<std::mutex> lock(s_nameCacheMutex);
+                    if (s_nameCache.count(agentPtr)) {
+                        alreadyProcessed = true;
+                    }
                 }
-            }
 
-            if (!newNames.empty()) {
-                std::lock_guard<std::mutex> lock(s_nameCacheMutex);
-                for (auto& pair : newNames) {
-                    s_nameCache[pair.first] = std::move(pair.second);
+                if (alreadyProcessed) {
+                    continue; // Skip if we have the name
+                }
+
+                {
+                    // Check if a request is already pending for this agent
+                    std::lock_guard<std::mutex> lock(s_requestsMutex);
+                    for (const auto& pair : s_pendingRequests) {
+                        if (pair.second.agentPtr == agentPtr) {
+                            alreadyProcessed = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!alreadyProcessed) {
+                    RequestNameForAgent(agentPtr); // Only request if not cached and not pending
                 }
             }
         }
@@ -179,6 +206,17 @@ namespace kx {
         void ClearNameCache() {
             std::lock_guard<std::mutex> lock(s_nameCacheMutex);
             s_nameCache.clear();
+
+            // Also clear any pending requests that might now be stale
+            std::lock_guard<std::mutex> req_lock(s_requestsMutex);
+            s_pendingRequests.clear();
+        }
+
+        // This function is no longer used by the main loop but is kept for reference.
+        std::string GetNameFromAgent(void* agent_ptr) {
+            // The process is now asynchronous, so we can't get the name immediately.
+            // We can only request it and check the cache later.
+            return GetCachedName(agent_ptr);
         }
 
     } // namespace NameResolver
