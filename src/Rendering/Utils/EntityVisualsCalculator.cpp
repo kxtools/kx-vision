@@ -15,10 +15,10 @@ namespace {
     // Helper to get a size multiplier based on NPC rank
     float GetRankMultiplier(Game::CharacterRank rank) {
         switch (rank) {
-            case Game::CharacterRank::Veteran:    return 1.5f;
-            case Game::CharacterRank::Elite:      return 2.0f;
-            case Game::CharacterRank::Champion:   return 2.5f;
-            case Game::CharacterRank::Legendary:  return 3.0f;
+            case Game::CharacterRank::Veteran:    return 1.25f;
+            case Game::CharacterRank::Elite:      return 1.5f;
+            case Game::CharacterRank::Champion:   return 1.75f;
+            case Game::CharacterRank::Legendary:  return 2.0f;
             default:                              return 1.0f;
         }
     }

@@ -49,7 +49,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         settings.playerESP.renderPlayerName,
         ESPEntityType::Player,
         player->attitude,
-        Game::CharacterRank::Normal, // Players don't have ranks in the same way
+        Game::CharacterRank::Ambient, // Players are considered Ambient for rank purposes
         screenWidth,
         screenHeight,
         player->playerName,
