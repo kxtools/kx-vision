@@ -100,6 +100,7 @@
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
+    <ClCompile Include="src\Game\NameResolver.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPDataExtractor.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="src\Game\Generated\StatData.h" />
     <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
+    <ClInclude Include="src\Game\NameResolver.h" />
     <ClInclude Include="src\Game\ReClassStructs.h" />
     <ClInclude Include="src\Game\ReClass\AgentStructs.h" />
     <ClInclude Include="src\Game\ReClass\CharacterStructs.h" />

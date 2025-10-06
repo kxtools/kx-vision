@@ -1,10 +1,15 @@
 #include "Hooks.h"
 
 #include <windows.h> // For __try/__except
+#include <vector>
 
 #include "../Core/Config.h"      // For GW2AL_BUILD define
 #include "../Utils/DebugLogger.h"
-#include "AddressManager.h"
+#include "../Utils/SafeIterators.h"
+#include "../Utils/MemorySafety.h"
+#include "../Game/AddressManager.h"
+#include "../Game/NameResolver.h"
+#include "../Game/ReClassStructs.h"
 #include "AppState.h"
 #include "D3DRenderHook.h"
 #include "HookManager.h"
@@ -17,25 +22,77 @@ namespace kx {
         typedef void(__fastcall* GameThreadUpdateFunc)(void*, int);
         GameThreadUpdateFunc pOriginalGameThreadUpdate = nullptr;
 
-        // This is our detour function. It will be executed on the GAME'S LOGIC THREAD.
-        void __fastcall DetourGameThread(void* pInst, int frame_time) {
+        // Helper function to call the game's GetContextCollection within an SEH block.
+        // This isolates the unsafe call and prevents C2712 errors.
+        void* GetContextCollection_SEH() {
             // Define the type for GetContextCollection
             using GetContextCollectionFn = void* (*)();
 
             // Get the function pointer from our AddressManager
             uintptr_t funcAddr = AddressManager::GetContextCollectionFunc();
-            if (funcAddr) {
-                auto getContextCollection = reinterpret_cast<GetContextCollectionFn>(funcAddr);
+            if (!funcAddr) {
+                return nullptr;
+            }
 
-                // CAPTURE the pointer and store it in our shared static variable.
-                // This is a call into game code, so we wrap it in a __try/__except block
-                // to prevent a crash in the game's function from crashing our tool.
-                __try {
-                    AddressManager::SetContextCollectionPtr(getContextCollection());
+            auto getContextCollection = reinterpret_cast<GetContextCollectionFn>(funcAddr);
+
+            __try {
+                return getContextCollection();
+            }
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+                return nullptr;
+            }
+        }
+
+        // This is our detour function. It will be executed on the GAME'S LOGIC THREAD.
+        void __fastcall DetourGameThread(void* pInst, int frame_time) {
+            // Periodically clear old cache entries (every ~300 frames / ~5 seconds at 60fps)
+            static int frameCounter = 0;
+            if (++frameCounter >= 300) {
+                frameCounter = 0;
+                NameResolver::ClearNameCache();
+            }
+
+            // Safely get the context collection pointer using the SEH-wrapped helper.
+            void* pContextCollection = GetContextCollection_SEH();
+            AddressManager::SetContextCollectionPtr(pContextCollection);
+
+            // NOW we're on the game thread with valid TLS context!
+            // We can safely use C++ objects outside of the __try block.
+            if (pContextCollection && kx::SafeAccess::IsMemorySafe(pContextCollection)) {
+                std::vector<void*> agentPointers;
+                agentPointers.reserve(512); // Reserve space for typical agent count
+
+                kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+
+                // Collect character agents
+                kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+                if (charContext.data()) {
+                    kx::SafeAccess::CharacterList charList(charContext);
+                    for (const auto& character : charList) {
+                        auto agent = character.GetAgent();
+                        if (agent.data()) {
+                            agentPointers.push_back(agent.data());
+                        }
+                    }
                 }
-                __except (EXCEPTION_EXECUTE_HANDLER) {
-                    // If the game function crashes, we'll just get a nullptr this frame.
-                    AddressManager::SetContextCollectionPtr(nullptr);
+
+                // Collect gadget agents
+                kx::ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
+                if (gadgetContext.data()) {
+                    kx::SafeAccess::GadgetList gadgetList(gadgetContext);
+                    for (const auto& gadget : gadgetList) {
+                        // *** THIS IS THE FIX ***
+                        auto agent = gadget.GetAgKeyFramed(); // Corrected from GetAgKeyframed
+                        if (agent.data()) {
+                            agentPointers.push_back(agent.data());
+                        }
+                    }
+                }
+
+                // Resolve and cache all names (this is safe here on game thread)
+                if (!agentPointers.empty()) {
+                    NameResolver::CacheNamesForAgents(agentPointers);
                 }
             }
 

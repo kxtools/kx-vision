@@ -22,4 +22,8 @@ namespace kx {
     constexpr std::string_view CONTEXT_COLLECTION_FUNC_PATTERN = "8B ? ? ? ? ? 65 ? ? ? ? ? ? ? ? BA ? ? ? ? 48 ? ? ? 48 ? ? ? C3";
     constexpr std::string_view ALERT_CONTEXT_LOCATOR_PATTERN = "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 41 0F 28 CA 48 8B 08 48 8B 51 58"; // "ViewAdvanceAlert"
 
+    // This pattern needs to be found for the string \"resultFunc\" to locate the DecodeText function.
+    // It is required for NPC/Object name decoding.
+    constexpr std::string_view DECODE_TEXT_PATTERN = "? ? 48 8B F2 48 8B F9 48 85 C9 ? ? 41 B8 D7";
+
 } // namespace kx

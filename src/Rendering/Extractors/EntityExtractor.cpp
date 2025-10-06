@@ -3,6 +3,7 @@
 #include "Utils/ESPFormatting.h"
 #include "../../Game/GameEnums.h"
 #include "../../Utils/StringHelpers.h"
+#include "../../Game/NameResolver.h"
 #include <vector>
 
 namespace kx {
@@ -87,6 +88,9 @@ namespace kx {
         );
         outNpc.isValid = true;
         outNpc.address = inCharacter.data();
+        // Extract name using cached name resolution (thread-safe)
+        // Names are resolved on the game thread and cached for render thread access
+        outNpc.name = NameResolver::GetCachedName(agent.data());
 
         // --- Health ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
@@ -126,6 +130,9 @@ namespace kx {
         );
         outGadget.isValid = true;
         outGadget.address = inGadget.data();
+        // Extract name using cached name resolution (thread-safe)
+        // Names are resolved on the game thread and cached for render thread access
+        outGadget.name = NameResolver::GetCachedName(agKeyFramed.data());
         outGadget.type = inGadget.GetGadgetType();
         outGadget.isGatherable = inGadget.IsGatherable();
 

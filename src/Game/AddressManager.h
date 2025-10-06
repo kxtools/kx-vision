@@ -42,6 +42,7 @@ struct GamePointers {
     uintptr_t bgfxContextFunc = 0;
     uintptr_t contextCollectionFunc = 0;
     uintptr_t gameThreadUpdateFunc = 0;
+    uintptr_t decodeTextFunc = 0;
     void* pContextCollection = nullptr;
     
     // Module information for VTable validation
@@ -62,6 +63,7 @@ public:
     static uintptr_t GetBgfxContextFunc() { return s_pointers.bgfxContextFunc; }
     static uintptr_t GetContextCollectionFunc() { return s_pointers.contextCollectionFunc; }
     static uintptr_t GetGameThreadUpdateFunc() { return s_pointers.gameThreadUpdateFunc; }
+    static uintptr_t GetDecodeTextFunc() { return s_pointers.decodeTextFunc; }
     static void* GetContextCollectionPtr() { return s_pointers.pContextCollection; }
     
     // Module information getters for VTable validation
@@ -80,6 +82,7 @@ private:
     static void ScanBgfxContextFunc();
     static void ScanContextCollectionFunc();
     static void ScanGameThreadUpdateFunc();
+    static void ScanDecodeTextFunc();
 
     // Single static struct instance holding all pointers.
     static GamePointers s_pointers;

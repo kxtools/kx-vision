@@ -50,7 +50,12 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
         return details;
     }
 
-    details.reserve(8); // Future-proof: generous reserve for adding new fields
+    details.reserve(8);
+
+    // Show the specific object name if it exists
+    if (!gadget->name.empty()) {
+        details.push_back({ gadget->name, ESPColors::DEFAULT_TEXT });
+    }
 
     const char* gadgetName = ESPFormatting::GetGadgetTypeName(gadget->type);
     details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), ESPColors::DEFAULT_TEXT });
