@@ -5,41 +5,44 @@
 
 namespace kx {
     void CombatStateManager::Update(const std::vector<RenderableEntity*>& entities) {
-        uint64_t now = GetTickCount64();
+    uint64_t now = GetTickCount64();
 
-        for (const auto* entity : entities) {
-            if (!entity || !entity->isValid) continue;
+    for (const auto* entity : entities) {
+        if (!entity || !entity->isValid) continue;
 
-            // Only track entities with health
-            if (entity->maxHealth <= 0.0f) continue;
+        // Only track entities with health
+        if (entity->maxHealth <= 0.0f) continue;
 
-            const void* entityId = entity->address;
-            float currentHealth = entity->currentHealth;
+        const void* entityId = entity->address;
+        float currentHealth = entity->currentHealth;
 
-            auto& state = m_entityStates[entityId];
+        auto& state = m_entityStates[entityId];
 
-            if (state.lastSeenTimestamp > 0) {
-                if (currentHealth < state.lastKnownHealth) {
-                    // --- Damage Logic ---
-                    state.lastDamageTaken = state.lastKnownHealth - currentHealth;
-                    state.lastHitTimestamp = now;
-                }
-                else if (currentHealth > state.lastKnownHealth) {
-                    // --- Healing Logic ---
-                    if (now - state.lastHealTimestamp > CombatEffects::HEAL_OVERLAY_DURATION_MS) {
-                        state.healStartHealth = state.lastKnownHealth;
-                    }
-                    // Always update the timestamp to extend/start the overlay's duration
-                    state.lastHealTimestamp = now;
-                    state.lastHealFlashTimestamp = now; // <-- ADD THIS LINE to trigger the flash
-                }
+        if (state.lastSeenTimestamp > 0) {
+            if (currentHealth < state.lastKnownHealth) {
+                // --- Damage Logic ---
+                state.lastDamageTaken = state.lastKnownHealth - currentHealth;
+                state.lastHitTimestamp = now;
             }
-            
-            // Update the state for the next frame
-            state.lastKnownHealth = currentHealth;
-            state.lastSeenTimestamp = now;
+            else if (currentHealth > state.lastKnownHealth) {
+                // --- FINAL, PERFECTED HEALING LOGIC ---
+                // If the last heal was a little while ago, this starts a NEW burst event.
+                if (now - state.lastHealTimestamp > CombatEffects::BURST_HEAL_WINDOW_MS) {
+                    // This is a new heal. Reset the "floor" of the overlay.
+                    state.healStartHealth = state.lastKnownHealth;
+                }
+                
+                // Always update the timestamps to keep the effects active during the heal.
+                state.lastHealTimestamp = now;
+                state.lastHealFlashTimestamp = now;
+            }
         }
+        
+        // Update the state for the next frame
+        state.lastKnownHealth = currentHealth;
+        state.lastSeenTimestamp = now;
     }
+}
 
     const EntityCombatState* CombatStateManager::GetState(const void* entityId) const {
         auto it = m_entityStates.find(entityId);

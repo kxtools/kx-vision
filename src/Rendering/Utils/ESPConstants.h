@@ -8,6 +8,7 @@ namespace kx {
         constexpr uint64_t DAMAGE_FLASH_DURATION_MS = 220;
         constexpr uint64_t HEAL_FLASH_DURATION_MS = 150;
         constexpr uint64_t HEAL_OVERLAY_DURATION_MS = 2000;
+        constexpr uint64_t BURST_HEAL_WINDOW_MS = 350; // <-- ADD THIS CONSTANT
         constexpr uint64_t STATE_CLEANUP_THRESHOLD_MS = 3000;
     }
 
