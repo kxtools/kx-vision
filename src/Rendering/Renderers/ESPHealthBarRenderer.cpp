@@ -133,7 +133,7 @@ void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList, const EntityCom
         float burstProgress = (float)timeSinceDeath / CombatEffects::DEATH_BURST_DURATION_MS;
         float burstAlpha = 1.0f - burstProgress;
         float currentBurstWidth = barWidth * burstProgress; // Expands from 0 to full width
-        ImU32 burstColor = IM_COL32(200, 255, 255, (int)(burstAlpha * 255));
+        ImU32 burstColor = IM_COL32(200, 255, 255, (int)(burstAlpha * 255 * fadeAlpha));
         float barHeight = barMax.y - barMin.y;
         
         ImVec2 centerPoint(barMin.x + barWidth * 0.5f, barMin.y + barHeight * 0.5f);
