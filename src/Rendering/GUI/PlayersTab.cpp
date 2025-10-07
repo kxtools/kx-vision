@@ -30,6 +30,14 @@ namespace kx {
                         ImGui::SetTooltip("Show your own character in the ESP overlay.");
                     }
 
+                    const char* energyTypes[] = { "Dodge", "Special/Mount" };
+                    int energyTypeInt = static_cast<int>(settings.playerESP.energyDisplayType);
+                    ImGui::PushItemWidth(250.0f);
+                    if (ImGui::Combo("Energy Bar Source", &energyTypeInt, energyTypes, IM_ARRAYSIZE(energyTypes))) {
+                        settings.playerESP.energyDisplayType = static_cast<EnergyDisplayType>(energyTypeInt);
+                    }
+                    ImGui::PopItemWidth();
+
                     const char* gearModes[] = { "Off", "Compact (Stat Names)", "Compact (Top 3 Attributes)", "Detailed" };
                     ImGui::PushItemWidth(250.0f);
                     int gearModeInt = static_cast<int>(settings.playerESP.gearDisplayMode);

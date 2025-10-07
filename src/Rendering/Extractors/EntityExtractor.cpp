@@ -42,10 +42,18 @@ namespace kx {
             outPlayer.maxHealth = health.GetMax();
         }
 
+        // Dodge Energy
         ReClass::ChCliEnergies energies = inCharacter.GetEnergies();
         if (energies) {
             outPlayer.currentEnergy = energies.GetCurrent();
             outPlayer.maxEnergy = energies.GetMax();
+        }
+
+        // Special Energy
+        ReClass::ChCliSpecialEnergies specialEnergies = inCharacter.GetSpecialEnergies();
+        if (specialEnergies) {
+            outPlayer.currentSpecialEnergy = specialEnergies.GetCurrent();
+            outPlayer.maxSpecialEnergy = specialEnergies.GetMax();
         }
 
         // --- Core Stats ---

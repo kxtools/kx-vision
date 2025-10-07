@@ -37,7 +37,33 @@ namespace kx {
         };
 
         /**
-         * @brief Character energy management wrapper
+         * @brief Character mount/special energy management wrapper
+         */
+        class ChCliSpecialEnergies : public kx::SafeForeignClass {
+        public:
+            ChCliSpecialEnergies(void* ptr) : kx::SafeForeignClass(ptr) {}
+            
+            float GetCurrent() const { 
+                LOG_MEMORY("ChCliSpecialEnergies", "GetCurrent", data(), Offsets::ChCliSpecialEnergies::CURRENT);
+                
+                float current = ReadMember<float>(Offsets::ChCliSpecialEnergies::CURRENT, 0.0f);
+                
+                LOG_DEBUG("ChCliSpecialEnergies::GetCurrent - Current: %.2f", current);
+                return current;
+            }
+            
+            float GetMax() const { 
+                LOG_MEMORY("ChCliSpecialEnergies", "GetMax", data(), Offsets::ChCliSpecialEnergies::MAX);
+                
+                float max = ReadMember<float>(Offsets::ChCliSpecialEnergies::MAX, 0.0f);
+                
+                LOG_DEBUG("ChCliSpecialEnergies::GetMax - Max: %.2f", max);
+                return max;
+            }
+        };
+
+        /**
+         * @brief Character dodge/endurance management wrapper
          */
         class ChCliEnergies : public kx::SafeForeignClass {
         public:
@@ -143,6 +169,15 @@ namespace kx {
                 ChCliEnergies result = ReadPointer<ChCliEnergies>(Offsets::ChCliCharacter::ENERGIES);
                 
                 LOG_PTR("Energies", result.data());
+                return result;
+            }
+
+            ChCliSpecialEnergies GetSpecialEnergies() const { 
+                LOG_MEMORY("ChCliCharacter", "GetSpecialEnergies", data(), Offsets::ChCliCharacter::SPECIAL_ENERGIES);
+                
+                ChCliSpecialEnergies result = ReadPointer<ChCliSpecialEnergies>(Offsets::ChCliCharacter::SPECIAL_ENERGIES);
+                
+                LOG_PTR("SpecialEnergies", result.data());
                 return result;
             }
 

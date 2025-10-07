@@ -13,7 +13,17 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
                                                              float screenWidth,
                                                              float screenHeight) {
     float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
-    float energyPercent = (player->maxEnergy > 0) ? (player->currentEnergy / player->maxEnergy) : -1.0f;
+    
+    float energyPercent = -1.0f;
+    if (settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
+        if (player->maxEnergy > 0) {
+            energyPercent = player->currentEnergy / player->maxEnergy;
+        }
+    } else { // Special
+        if (player->maxSpecialEnergy > 0) {
+            energyPercent = player->currentSpecialEnergy / player->maxSpecialEnergy;
+        }
+    }
     
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
     unsigned int color;

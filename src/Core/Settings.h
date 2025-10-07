@@ -14,6 +14,14 @@ namespace kx {
         Detailed = 3    // Detailed view: Full list of all gear slots and stats
     };
 
+    /**
+     * @brief Energy source to display for the player energy bar
+     */
+    enum class EnergyDisplayType {
+        Dodge = 0,      // Player's dodge endurance
+        Special = 1     // Mount or other special energy
+    };
+
     // --- Category-specific settings ---
     struct PlayerEspSettings {
         bool enabled = true;
@@ -26,6 +34,7 @@ namespace kx {
         bool renderPlayerName = true;  // Show player names by default for natural identification
         bool showLocalPlayer = false; // Hide local player by default
         GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
+        EnergyDisplayType energyDisplayType = EnergyDisplayType::Special;
         // Attitude filtering (same as NPCs)
         bool showFriendly = true;
         bool showHostile = true;

@@ -104,11 +104,20 @@ namespace Offsets {
     };
 
     /**
-     * @brief ChCliEnergies - Character energy/endurance management
+     * @brief ChCliSpecialEnergies - Character mount/special energy management
      */
-    struct ChCliEnergies {
+    struct ChCliSpecialEnergies {
         static constexpr uintptr_t CURRENT = 0x0C;  // float current energy
         static constexpr uintptr_t MAX = 0x10;      // float maximum energy
+    };
+
+    /**
+     * @brief ChCliEnergies - Character dodge/endurance management
+     */
+    struct ChCliEnergies {
+        static constexpr uintptr_t CURRENT = 0x10;  // float current endurance
+        static constexpr uintptr_t MAX = 0x14;      // float maximum endurance
+        // Note: A second pool might exist at offsets 0x18/0x20
     };
 
     /**
@@ -173,7 +182,8 @@ namespace Offsets {
         static constexpr uintptr_t ATTITUDE = 0x00C0;     // uint32_t attitude flags
         static constexpr uintptr_t RANK_FLAGS = 0x0264;   // uint32_t rank flags (veteran, elite, etc.)
         static constexpr uintptr_t CORE_STATS = 0x0388;   // ChCliCoreStats* stats subsystem
-        static constexpr uintptr_t ENERGIES = 0x03D8;     // ChCliEnergies* energy subsystem
+        static constexpr uintptr_t ENERGIES = 0x03D0;     // ChCliEnergies* dodge/endurance subsystem
+        static constexpr uintptr_t SPECIAL_ENERGIES = 0x03D8; // ChCliSpecialEnergies* mount/special energy subsystem
         static constexpr uintptr_t HEALTH = 0x03E8;       // ChCliHealth* health subsystem
         static constexpr uintptr_t INVENTORY = 0x3F0;     // Inventory* inventory subsystem
     };
