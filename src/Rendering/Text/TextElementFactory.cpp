@@ -63,7 +63,11 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
     // Add each stat with its rarity color
     for (size_t i = 0; i < summary.size(); ++i) {
         const auto& info = summary[i];
-        std::string segment = std::to_string(info.count) + "x " + info.statName;
+        
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(0) << info.percentage << "% " << info.statName;
+        std::string segment = oss.str();
+
         ImU32 rarityColor = ESPStyling::GetRarityColor(info.highestRarity);
         segments.push_back(TextSegment(segment, rarityColor));
         

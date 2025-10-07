@@ -80,9 +80,11 @@ std::vector<CompactStatInfo> ESPPlayerDetailsBuilder::BuildCompactGearSummary(co
 
     // Use a map to group stats and find the highest rarity for each
     std::map<std::string, CompactStatInfo> statSummary;
+    int totalItems = 0;
     for (const auto& pair : player->gear) {
         const GearSlotInfo& info = pair.second;
         if (info.statId > 0) {
+            totalItems++;
             auto statIt = kx::data::stat::DATA.find(info.statId);
             if (statIt != kx::data::stat::DATA.end()) {
                 std::string statName = statIt->second.name;
@@ -103,12 +105,21 @@ std::vector<CompactStatInfo> ESPPlayerDetailsBuilder::BuildCompactGearSummary(co
         return {};
     }
 
-    // Convert the map to a vector for ordered rendering
+    // Convert the map to a vector and calculate percentages
     std::vector<CompactStatInfo> result;
     result.reserve(statSummary.size());
-    for (const auto& pair : statSummary) {
-        result.push_back(pair.second);
+    if (totalItems > 0) {
+        for (auto& pair : statSummary) {
+            pair.second.percentage = (static_cast<float>(pair.second.count) / totalItems) * 100.0f;
+            result.push_back(pair.second);
+        }
     }
+
+    // Sort by percentage descending
+    std::sort(result.begin(), result.end(), [](const CompactStatInfo& a, const CompactStatInfo& b) {
+        return a.percentage > b.percentage;
+    });
+    
     return result;
 }
 

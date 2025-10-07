@@ -18,6 +18,7 @@ struct GearSlotInfo {
 struct CompactStatInfo {
     std::string statName;
     int count = 0;
+    float percentage = 0.0f;
     Game::ItemRarity highestRarity = Game::ItemRarity::None;
 };
 
