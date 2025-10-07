@@ -200,6 +200,7 @@
     <ClInclude Include="src\Rendering\Text\TextElement.h" />
     <ClInclude Include="src\Rendering\Text\TextElementFactory.h" />
     <ClInclude Include="src\Rendering\Text\TextRenderer.h" />
+    <ClInclude Include="src\Rendering\Utils\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Utils\EntityVisualsCalculator.h" />
     <ClInclude Include="src\Rendering\Utils\ESPConstants.h" />
     <ClInclude Include="src\Rendering\Utils\ESPEntityDetailsBuilder.h" />
