@@ -83,17 +83,18 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply health filter
             bool isAlive = npc->currentHealth > 0.0f;
             if (!isAlive && !settings.npcESP.showDeadNpcs) {
+                // This NPC is dead, and the user wants to hide dead NPCs.
+                // EXCEPTION: Keep it if the death animation is still playing.
                 const EntityCombatState* state = stateManager.GetState(npc->address);
-                if (state && state->deathTimestamp > 0) {
-                    uint64_t timeSinceDeath = GetTickCount64() - state->deathTimestamp;
-                    if (timeSinceDeath < (CombatEffects::DEATH_BURST_DURATION_MS + CombatEffects::DEATH_FINAL_FADE_DURATION_MS)) {
-                        // This is a fresh corpse, keep it for the animation.
-                    } else {
-                        continue; // Animation is over, filter it out.
-                    }
-                } else {
-                    continue; // Dead, but no recent death event, filter it.
+                uint64_t totalAnimationDuration = CombatEffects::DEATH_BURST_DURATION_MS + CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
+
+                // We filter it out ONLY IF:
+                // 1. We have no combat state for it (it was dead before we saw it).
+                // OR 2. The time since death is longer than our animation's total duration.
+                if (!state || (GetTickCount64() - state->deathTimestamp) > totalAnimationDuration) {
+                    continue; // Animation is over (or never started), so hide it.
                 }
+                // Otherwise, we fall through and let it render so the animation can play.
             }
             
             // Calculate distances
