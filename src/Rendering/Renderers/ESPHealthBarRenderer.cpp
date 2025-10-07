@@ -42,7 +42,7 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
     ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
     unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha + 0.5f);
-    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, (std::min)(bgAlpha, 255u)), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, ClampAlpha(bgAlpha)), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
     // --- 4. Delegate to the Correct Specialist ---
     if (state && state->deathTimestamp > 0) {
@@ -54,7 +54,7 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     // --- 5. Draw Final Border ---
     if (context.attitude == Game::Attitude::Hostile) {
         unsigned int borderAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha + 0.5f);
-        drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, (std::min)(borderAlpha, 255u)), 
+        drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, ClampAlpha(borderAlpha)), 
                          RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING, 0, 
                          RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
     }
@@ -72,7 +72,7 @@ void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList, const EntityRe
     ImVec2 healthBarMin = barMin;
     ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
     unsigned int healthAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha + 0.5f);
-    unsigned int baseHealthColor = (entityColor & 0x00FFFFFF) | ((std::min)(healthAlpha, 255u) << 24);
+    unsigned int baseHealthColor = (entityColor & 0x00FFFFFF) | (ClampAlpha(healthAlpha) << 24);
 
     // Draw base health fill
     drawList->AddRectFilled(healthBarMin, healthBarMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
@@ -157,7 +157,7 @@ void ESPHealthBarRenderer::RenderStandaloneEnergyBar(ImDrawList* drawList, const
     // Background
     float bgAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha;
     unsigned int bgAlpha = static_cast<unsigned int>(bgAlphaf + 0.5f);
-    bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha;
+    bgAlpha = ClampAlpha(bgAlpha);
     drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
     // Energy fill
@@ -170,10 +170,14 @@ void ESPHealthBarRenderer::RenderStandaloneEnergyBar(ImDrawList* drawList, const
     float colorAlphaF = ((energyColor >> 24) & 0xFF) / 255.0f; // Get alpha from the constant
     colorAlphaF *= fadeAlpha; // Apply distance fade
     unsigned int finalAlpha = static_cast<unsigned int>(colorAlphaF * 255.0f + 0.5f);
-    finalAlpha = (finalAlpha > 255) ? 255 : finalAlpha;
+    finalAlpha = ClampAlpha(finalAlpha);
     unsigned int finalColor = (energyColor & 0x00FFFFFF) | (finalAlpha << 24);
     
     drawList->AddRectFilled(energyBarMin, energyBarMax, finalColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+}
+
+unsigned int ESPHealthBarRenderer::ClampAlpha(unsigned int alpha) {
+    return (std::min)(alpha, 255u);
 }
 
 } // namespace kx

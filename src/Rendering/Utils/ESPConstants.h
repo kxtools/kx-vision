@@ -7,6 +7,7 @@ namespace kx {
     namespace CombatEffects {
         constexpr uint64_t DEATH_BURST_DURATION_MS = 1000;     // A quick energy burst
         constexpr uint64_t DEATH_FINAL_FADE_DURATION_MS = 1000;  // Bar fades out over x seconds after burst
+        constexpr uint64_t DEATH_ANIMATION_TOTAL_DURATION_MS = CombatEffects::DEATH_BURST_DURATION_MS + CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
         constexpr uint64_t DAMAGE_FLASH_DURATION_MS = 220;
         constexpr uint64_t HEAL_FLASH_DURATION_MS = 150;
         constexpr uint64_t HEAL_OVERLAY_DURATION_MS = 2000;

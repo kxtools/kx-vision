@@ -8,7 +8,7 @@
 namespace kx {
     class CombatStateManager {
     public:
-        void Update(const std::vector<RenderableEntity*>& entities);
+        void Update(const std::vector<RenderableEntity*>& entities, uint64_t now);
         void Cleanup();
         const EntityCombatState* GetState(const void* entityId) const;
 

@@ -57,6 +57,9 @@ private:
     // Specialist function for rendering the death animation
     static void RenderDeadState(ImDrawList* drawList, const EntityCombatState* state,
                                 const ImVec2& barMin, const ImVec2& barMax, float barWidth, float fadeAlpha);
+
+    // Helper function to clamp alpha values to 255
+    static unsigned int ClampAlpha(unsigned int alpha);
 };
 
 } // namespace kx

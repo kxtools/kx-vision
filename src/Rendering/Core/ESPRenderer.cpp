@@ -69,7 +69,7 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         allEntities.insert(allEntities.end(), extractedData.players.begin(), extractedData.players.end());
         allEntities.insert(allEntities.end(), extractedData.npcs.begin(), extractedData.npcs.end());
         allEntities.insert(allEntities.end(), extractedData.gadgets.begin(), extractedData.gadgets.end());
-        g_combatStateManager.Update(allEntities);
+        g_combatStateManager.Update(allEntities, GetTickCount64());
         
         // Stage 2: Filter the pooled data (safe, configurable operations)  
         ESPFilter::FilterPooledData(extractedData, *s_camera, s_cachedFilteredData, g_combatStateManager);
