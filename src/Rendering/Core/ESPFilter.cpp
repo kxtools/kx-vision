@@ -30,16 +30,6 @@ float ESPFilter::CalculateDistanceFadeAlpha(float distance, bool useDistanceLimi
     }
 }
 
-bool ESPFilter::IsHealthValid(float currentHealth, bool showDeadEntities) {
-    // If showing dead entities is enabled, accept all health values
-    if (showDeadEntities) {
-        return true;
-    }
-    
-    // Otherwise, filter out dead entities (0 HP or negative HP)
-    return currentHealth > 0.0f;
-}
-
 void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
                                  PooledFrameRenderData& filteredData, const CombatStateManager& stateManager) {
     filteredData.Reset();
@@ -58,7 +48,16 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             if (player->isLocalPlayer && !settings.playerESP.showLocalPlayer) continue;
             
             // Apply health filter
-            if (!IsHealthValid(player->currentHealth)) continue;
+            bool isAlive = player->currentHealth > 0.0f;
+            if (!isAlive) { // Player is defeated (or downed and we can't tell, but HP is 0)
+                // The user wants to hide dead players, so we should filter this one out...
+                // UNLESS the death animation is still playing.
+                const EntityCombatState* state = stateManager.GetState(player->address);
+                if (!state || (GetTickCount64() - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
+                    continue; // Animation is over (or never started), so hide the player now.
+                }
+                // Otherwise, keep the player in the list so the animation can render.
+            }
             
             // Calculate distances
             player->visualDistance = glm::length(player->position - cameraPos);

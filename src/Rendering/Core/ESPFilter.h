@@ -35,16 +35,6 @@ public:
     static void FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager);
 
-private:
-    /**
-     * @brief Check if entity has valid health (configurable for dead entities)
-     * @param currentHealth Entity's current health
-     * @param showDeadEntities Whether to show entities with 0 HP
-     * @return true if entity should be rendered based on health
-     */
-    static bool IsHealthValid(float currentHealth, bool showDeadEntities = false);
-
-public:
     /**
      * @brief Calculate alpha value for distance-based fading
      * @param distance Actual distance to entity
