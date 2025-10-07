@@ -6,9 +6,12 @@ namespace kx {
 
     namespace CombatEffects {
         // --- Core Combat Feedback ---
-        constexpr uint64_t DAMAGE_FLASH_DURATION_MS = 300;
-        constexpr uint64_t HEAL_FLASH_DURATION_MS = 150;
+        constexpr uint64_t DAMAGE_FLASH_HOLD_DURATION_MS = 150; // Solid impact freeze
+        constexpr uint64_t DAMAGE_FLASH_FADE_DURATION_MS = 300; // Rapid fade-out
+        constexpr uint64_t DAMAGE_FLASH_TOTAL_DURATION_MS = DAMAGE_FLASH_HOLD_DURATION_MS + DAMAGE_FLASH_FADE_DURATION_MS; // = 450ms
 
+        constexpr uint64_t HEAL_FLASH_DURATION_MS = 150;
+        
         // --- Healing Overlay ---
         constexpr uint64_t HEAL_OVERLAY_DURATION_MS = 2000;
         constexpr uint64_t HEAL_OVERLAY_FADE_DURATION_MS = 400;

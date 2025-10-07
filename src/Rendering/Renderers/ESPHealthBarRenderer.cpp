@@ -124,20 +124,28 @@ void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList, const EntityRe
         }
     }
 
-    // Render Damage Flash
-    if (state->lastHitTimestamp > 0 && (now - state->lastHitTimestamp < CombatEffects::DAMAGE_FLASH_DURATION_MS)) {
-        uint64_t timeSinceHit = now - state->lastHitTimestamp;
-        float linearProgress = (float)timeSinceHit / CombatEffects::DAMAGE_FLASH_DURATION_MS;
-        float flashAlpha = 1.0f - Animation::EaseOutCubic(linearProgress);
-        ImU32 flashColor = IM_COL32(255, 255, 0, (int)(flashAlpha * 255));
-        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
-        float previousHealthPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
-        ImVec2 flashMin = ImVec2(barMin.x + barWidth * currentHealthPercent, barMin.y);
-        ImVec2 flashMax = ImVec2(barMin.x + barWidth * (previousHealthPercent < 1.0f ? previousHealthPercent : 1.0f), barMax.y);
-        if (flashMin.x < flashMax.x) {
-            drawList->AddRectFilled(flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-        }
+// Render Damage Flash
+if (state->lastHitTimestamp > 0 && (now - state->lastHitTimestamp < CombatEffects::DAMAGE_FLASH_TOTAL_DURATION_MS)) {
+    uint64_t timeSinceHit = now - state->lastHitTimestamp;
+    float flashAlpha = 1.0f; // Default to solid
+
+    // Check if we are in the "Fade" phase
+    if (timeSinceHit > CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS) {
+        uint64_t timeIntoFade = timeSinceHit - CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS;
+        float fadeProgress = (float)timeIntoFade / CombatEffects::DAMAGE_FLASH_FADE_DURATION_MS;
+        flashAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
     }
+    // Otherwise, we are in the "Hold" phase, and alpha remains 1.0f
+
+    ImU32 flashColor = IM_COL32(255, 255, 0, (int)(flashAlpha * 255));
+    float currentHealthPercent = entity->currentHealth / entity->maxHealth;
+    float previousHealthPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
+    ImVec2 flashMin = ImVec2(barMin.x + barWidth * currentHealthPercent, barMin.y);
+    ImVec2 flashMax = ImVec2(barMin.x + barWidth * (previousHealthPercent < 1.0f ? previousHealthPercent : 1.0f), barMax.y);
+    if (flashMin.x < flashMax.x) {
+        drawList->AddRectFilled(flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+    }
+}
 }
 
 void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList, const EntityCombatState* state,
