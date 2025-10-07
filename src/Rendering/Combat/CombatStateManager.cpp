@@ -6,59 +6,55 @@
 namespace kx {
 	void CombatStateManager::Update(const std::vector<RenderableEntity*>& entities, uint64_t now)
 	{
-		for (const auto* entity : entities)
-		{
-			if (!entity || !entity->isValid) continue;
+        for (const auto* entity : entities) {
+            if (!entity || !entity->isValid || entity->maxHealth <= 0.0f) {
+                continue;
+            }
 
-			// Only track entities with health
-			if (entity->maxHealth <= 0.0f) continue;
+            const void* entityId = entity->address;
+            float currentHealth = entity->currentHealth;
 
-			const void* entityId = entity->address;
-			float currentHealth = entity->currentHealth;
+            // Find or create the state for this entity. The [] operator does this automatically.
+            auto& state = m_entityStates[entityId];
 
-			auto& state = m_entityStates[entityId];
+            // Only process changes if we have a history for this entity.
+            if (state.lastSeenTimestamp > 0) {
+                // Check for a health change
+                if (currentHealth < state.lastKnownHealth) {
+                    // --- DAMAGE & DEATH LOGIC ---
+                    state.lastDamageTaken = state.lastKnownHealth - currentHealth;
+                    state.lastHitTimestamp = now;
 
-			if (state.lastSeenTimestamp > 0)
-			{
-				// --- NEW: DEATH DETECTION LOGIC ---
-				// Check if the entity just died THIS frame.
-				if (currentHealth <= 0.0f && state.lastKnownHealth > 0.0f)
-				{
-					state.deathTimestamp = now;
-				}
-				// If the entity is alive, make sure the death timestamp is cleared
-				// (in case they resurrect).
-				else if (currentHealth > 0.0f)
-				{
-					state.deathTimestamp = 0;
-				}
+                    // Check if this damage event was the one that killed the entity.
+                    if (currentHealth <= 0.0f) {
+                        state.deathTimestamp = now;
+                    }
+                }
+                else if (currentHealth > state.lastKnownHealth) {
+                    // --- HEALING & RESPAWN LOGIC ---
 
-				if (currentHealth < state.lastKnownHealth)
-				{
-					// --- Damage Logic ---
-					state.lastDamageTaken = state.lastKnownHealth - currentHealth;
-					state.lastHitTimestamp = now;
-				}
-				else if (currentHealth > state.lastKnownHealth)
-				{
-					// --- FINAL, PERFECTED HEALING LOGIC ---
-					// If the last heal was a little while ago, this starts a NEW burst event.
-					if (now - state.lastHealTimestamp > CombatEffects::BURST_HEAL_WINDOW_MS)
-					{
-						// This is a new heal. Reset the "floor" of the overlay.
-						state.healStartHealth = state.lastKnownHealth;
-					}
+                    // This is the CRITICAL FIX: Check if the last known health was zero.
+                    // This is the only reliable way to detect a respawn or resurrection.
+                    if (state.lastKnownHealth <= 0.0f) {
+                        // RESPAWN/REUSE DETECTED.
+                        // This is not a heal. Reset the entire state to start fresh.
+                        state = {};
+                    }
+                    else {
+                        // This is a genuine heal on a living entity.
+                        if (now - state.lastHealTimestamp > CombatEffects::BURST_HEAL_WINDOW_MS) {
+                            state.healStartHealth = state.lastKnownHealth;
+                        }
+                        state.lastHealTimestamp = now;
+                        state.lastHealFlashTimestamp = now;
+                    }
+                }
+            }
 
-					// Always update the timestamps to keep the effects active during the heal.
-					state.lastHealTimestamp = now;
-					state.lastHealFlashTimestamp = now;
-				}
-			}
-
-			// Update the state for the next frame
-			state.lastKnownHealth = currentHealth;
-			state.lastSeenTimestamp = now;
-		}
+            // Always update the state for the next frame
+            state.lastKnownHealth = currentHealth;
+            state.lastSeenTimestamp = now;
+        }
 	}
 
     const EntityCombatState* CombatStateManager::GetState(const void* entityId) const {
