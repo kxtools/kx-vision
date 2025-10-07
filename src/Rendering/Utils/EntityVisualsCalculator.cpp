@@ -5,7 +5,6 @@
 #include "ESPConstants.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Renderers/ESPShapeRenderer.h"
-#include "../Core/ESPFilter.h"
 #include <algorithm>
 #include <cmath>
 
@@ -28,7 +27,30 @@ namespace {
         float scaledSize = baseSize * scale * multiplier;
         return std::clamp(scaledSize, minLimit, maxLimit);
     }
-}
+
+    // Calculates the alpha value for distance-based fading.
+    float CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
+        if (!useDistanceLimit) {
+            return 1.0f; // Fully visible when no distance limit
+        }
+        
+        // Calculate fade zone distances
+        const float fadeZonePercentage = 0.11f; // RenderingEffects::FADE_ZONE_PERCENTAGE
+        const float fadeZoneDistance = distanceLimit * fadeZonePercentage;
+        const float fadeStartDistance = distanceLimit - fadeZoneDistance; // e.g., 80m for 90m limit
+        const float fadeEndDistance = distanceLimit; // e.g., 90m for 90m limit
+        
+        if (distance <= fadeStartDistance) {
+            return 1.0f; // Fully visible
+        } else if (distance >= fadeEndDistance) {
+            return 0.0f; // Fully transparent (should be culled in filter)
+        } else {
+            // Linear interpolation in fade zone
+            const float fadeProgress = (distance - fadeStartDistance) / fadeZoneDistance;
+            return 1.0f - fadeProgress; // Fade from 1.0 to 0.0
+        }
+    }
+} // anonymous namespace
 
 std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityRenderContext& context,
                                                                    Camera& camera,
@@ -43,9 +65,9 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
 
     // 2. Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();
-    props.distanceFadeAlpha = ESPFilter::CalculateDistanceFadeAlpha(context.gameplayDistance,
-                                                                    settings.distance.useDistanceLimit,
-                                                                    settings.distance.renderDistanceLimit);
+    props.distanceFadeAlpha = CalculateDistanceFadeAlpha(context.gameplayDistance,
+                                                         settings.distance.useDistanceLimit,
+                                                         settings.distance.renderDistanceLimit);
     
     if (props.distanceFadeAlpha <= 0.0f) {
         return std::nullopt; // Entity is fully transparent

@@ -87,8 +87,6 @@ private:
                                       float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
                                       const CombatStateManager& stateManager);
 
-    // Distance fading helper function
-    static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
 };
 
 } // namespace kx

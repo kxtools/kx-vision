@@ -220,9 +220,4 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
     }
 }
 
-float ESPStageRenderer::CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
-    // Use the same logic as ESPFilter for consistency
-    return ESPFilter::CalculateDistanceFadeAlpha(distance, useDistanceLimit, distanceLimit);
-}
-
 } // namespace kx

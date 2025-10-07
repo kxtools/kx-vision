@@ -9,27 +9,6 @@
 
 namespace kx {
 
-float ESPFilter::CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
-    if (!useDistanceLimit) {
-        return 1.0f; // Fully visible when no distance limit
-    }
-    
-    // Calculate fade zone distances
-    const float fadeZoneDistance = distanceLimit * 0.11f; // RenderingEffects::FADE_ZONE_PERCENTAGE
-    const float fadeStartDistance = distanceLimit - fadeZoneDistance; // e.g., 80m for 90m limit
-    const float fadeEndDistance = distanceLimit; // e.g., 90m for 90m limit
-    
-    if (distance <= fadeStartDistance) {
-        return 1.0f; // Fully visible
-    } else if (distance >= fadeEndDistance) {
-        return 0.0f; // Fully transparent (should be culled in filter)
-    } else {
-        // Linear interpolation in fade zone
-        const float fadeProgress = (distance - fadeStartDistance) / fadeZoneDistance;
-        return 1.0f - fadeProgress; // Fade from 1.0 to 0.0
-    }
-}
-
 void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
                                  PooledFrameRenderData& filteredData, const CombatStateManager& stateManager) {
     filteredData.Reset();
