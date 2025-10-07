@@ -13,110 +13,148 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
                                                      const EntityRenderContext& context, unsigned int entityColor,
                                                      float barWidth, float barHeight,
                                                      const CombatStateManager& stateManager) {
-    if (context.healthPercent < 0.0f || context.healthPercent > 1.0f) return;
+    if (context.healthPercent < -1.0f) return; // Allow 0 health for dead entities
 
-    // Extract alpha from entity color for distance fading
+    // --- Initial Setup ---
     float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
+    float timeFade = 1.0f;
 
-    // Position the health bar below the entity center
+    const RenderableEntity* entity = context.entity;
+    const EntityCombatState* state = stateManager.GetState(entity ? entity->address : nullptr);
+    uint64_t now = GetTickCount64();
+
+    // --- CHECK IF ENTITY IS DEAD and handle final fade-out ---
+    if (state && state->deathTimestamp > 0) {
+        uint64_t timeSinceDeath = now - state->deathTimestamp;
+        
+        // Check if we are in the final fade-out period
+        if (timeSinceDeath > CombatEffects::DEATH_EMBER_FADE_DURATION_MS) {
+            uint64_t timeIntoFade = timeSinceDeath - CombatEffects::DEATH_EMBER_FADE_DURATION_MS;
+            if (timeIntoFade < CombatEffects::DEATH_FINAL_FADE_DURATION_MS) {
+                float fadeProgress = (float)timeIntoFade / CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
+                timeFade = 1.0f - fadeProgress;
+            } else {
+                timeFade = 0.0f; // Fully faded
+            }
+        }
+    }
+
+    if (timeFade <= 0.0f) return; // Early exit if fully faded
+
+    // Apply time fade to overall alpha
+    fadeAlpha *= timeFade;
+
+    // --- Drawing ---
     const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
     ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
     ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
-
-    // Background with subtle transparency and distance fade
     float bgAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha;
     unsigned int bgAlpha = static_cast<unsigned int>(bgAlphaf + 0.5f);
     bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha;
+
+    // --- Draw the Background (always visible, alive or dead) ---
     drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-    // Health fill dimensions
-    float healthWidth = barWidth * context.healthPercent;
-    ImVec2 healthBarMin(barMin.x, barMin.y);
-    ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
-    float healthAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha;
-    unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f);
-    healthAlpha = (healthAlpha > 255) ? 255 : healthAlpha;
-    unsigned int baseHealthColor = (entityColor & 0x00FFFFFF) | (healthAlpha << 24);
+    // --- Handle Dead/Alive states ---
+    if (state && state->deathTimestamp > 0) {
+        uint64_t timeSinceDeath = now - state->deathTimestamp;
 
-    // --- Draw the BASE health fill (always draw the full bar in its normal color) ---
-    drawList->AddRectFilled(healthBarMin, healthBarMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-    
-    const RenderableEntity* entity = context.entity;
-    if (!entity || entity->maxHealth <= 0) return;
+        // --- PHASE 1: THE SHATTER ---
+        if (timeSinceDeath < CombatEffects::DEATH_SHATTER_DURATION_MS) {
+            float fadeProgress = (float)timeSinceDeath / CombatEffects::DEATH_SHATTER_DURATION_MS;
+            float flashAlpha = 1.0f - fadeProgress;
+            ImU32 shatterColor = IM_COL32(255, 255, 255, (int)(flashAlpha * 255));
+            float thickness = 2.0f;
 
-    const EntityCombatState* state = stateManager.GetState(entity->address);
-    if (!state) return;
+            // Draw a bright, fading 'X' over the empty bar
+            drawList->AddLine(barMin, barMax, shatterColor, thickness);
+            drawList->AddLine(ImVec2(barMin.x, barMax.y), ImVec2(barMax.x, barMin.y), shatterColor, thickness);
+        }
+        // --- PHASE 2: THE EMBER ---
+        else if (timeSinceDeath < CombatEffects::DEATH_EMBER_FADE_DURATION_MS) {
+            float fadeProgress = (float)timeSinceDeath / CombatEffects::DEATH_EMBER_FADE_DURATION_MS;
+            float emberAlpha = 1.0f - fadeProgress;
 
-    uint64_t now = GetTickCount64();
+            // Interpolate color from bright orange to dark red
+            ImVec4 orange = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
+            ImVec4 darkRed = ImVec4(0.4f, 0.0f, 0.0f, 1.0f);
+            ImVec4 emberColorVec;
+            emberColorVec.x = orange.x + (darkRed.x - orange.x) * fadeProgress;
+            emberColorVec.y = orange.y + (darkRed.y - orange.y) * fadeProgress;
+            emberColorVec.z = orange.z + (darkRed.z - orange.z) * fadeProgress;
+            emberColorVec.w = emberAlpha;
+            ImU32 emberColor = ImGui::ColorConvertFloat4ToU32(emberColorVec);
 
-    // --- NEW: HEAL ABSORPTION OVERLAY LOGIC ---
-    if (state->lastHealTimestamp > 0 && (now - state->lastHealTimestamp < CombatEffects::HEAL_OVERLAY_DURATION_MS)) {
-        // Calculate the start and end percentages for the overlay
-        float healStartPercent = state->healStartHealth / entity->maxHealth;
-        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
+            // Draw a single-pixel line at the start of the bar
+            drawList->AddLine(ImVec2(barMin.x, barMin.y), ImVec2(barMin.x, barMax.y), emberColor, 1.5f);
+        }
+    }
+    // --- ELSE, ENTITY IS ALIVE: RENDER NORMAL HEALTH BAR ---
+    else {
+        if (!entity || entity->maxHealth <= 0) return;
 
-        // Don't draw if the heal was negligible or there's an issue
-        if (currentHealthPercent > healStartPercent) {
-            // Define the vibrant green overlay color
-            ImU32 healOverlayColor = IM_COL32(100, 255, 100, 200); // Vibrant green with some transparency
+        // Health fill dimensions
+        float healthWidth = barWidth * context.healthPercent;
+        ImVec2 healthBarMin(barMin.x, barMin.y);
+        ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
+        float healthAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha;
+        unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f);
+        healthAlpha = (healthAlpha > 255) ? 255 : healthAlpha;
+        unsigned int baseHealthColor = (entityColor & 0x00FFFFFF) | (healthAlpha << 24);
 
-            // Calculate the screen coordinates for the overlay segment
-            ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
-            ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
+        // --- Draw the BASE health fill (always draw the full bar in its normal color) ---
+        drawList->AddRectFilled(healthBarMin, healthBarMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-            // Draw the green overlay ON TOP of the base health bar
-            drawList->AddRectFilled(healOverlayMin, healOverlayMax, healOverlayColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+        if (!state) return;
+
+        // --- HEAL ABSORPTION OVERLAY LOGIC ---
+        if (state->lastHealTimestamp > 0 && (now - state->lastHealTimestamp < CombatEffects::HEAL_OVERLAY_DURATION_MS)) {
+            float healStartPercent = state->healStartHealth / entity->maxHealth;
+            float currentHealthPercent = entity->currentHealth / entity->maxHealth;
+            if (currentHealthPercent > healStartPercent) {
+                ImU32 healOverlayColor = IM_COL32(100, 255, 100, 200);
+                ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
+                ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
+                drawList->AddRectFilled(healOverlayMin, healOverlayMax, healOverlayColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            }
+        }
+
+        // --- HEAL FLASH EVENT LOGIC ---
+        if (state->lastHealFlashTimestamp > 0 && (now - state->lastHealFlashTimestamp < CombatEffects::HEAL_FLASH_DURATION_MS)) {
+            uint64_t timeSinceHealFlash = now - state->lastHealFlashTimestamp;
+            float fadeProgress = (float)timeSinceHealFlash / CombatEffects::HEAL_FLASH_DURATION_MS;
+            float flashAlpha = 1.0f - fadeProgress;
+            ImU32 healFlashColor = IM_COL32(200, 255, 255, (int)(flashAlpha * 255));
+            float healStartPercent = state->healStartHealth / entity->maxHealth;
+            float currentHealthPercent = entity->currentHealth / entity->maxHealth;
+            if (currentHealthPercent > healStartPercent) {
+                ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
+                ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
+                drawList->AddRectFilled(healOverlayMin, healOverlayMax, healFlashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            }
+        }
+
+        // --- DAMAGE FLASH LOGIC ---
+        if (state->lastHitTimestamp > 0 && (now - state->lastHitTimestamp < CombatEffects::DAMAGE_FLASH_DURATION_MS)) {
+            uint64_t timeSinceHit = now - state->lastHitTimestamp;
+            float fadeProgress = (float)timeSinceHit / CombatEffects::DAMAGE_FLASH_DURATION_MS;
+            float flashAlpha = 1.0f - (fadeProgress * fadeProgress);
+            ImU32 flashColor = IM_COL32(255, 255, 0, (int)(flashAlpha * 255));
+            float currentHealthPercent = entity->currentHealth / entity->maxHealth;
+            float previousHealthPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
+            ImVec2 flashMin = ImVec2(barMin.x + barWidth * currentHealthPercent, barMin.y);
+            ImVec2 flashMax = ImVec2(barMin.x + barWidth * (std::min)(1.0f, previousHealthPercent), barMax.y);
+            if (flashMin.x < flashMax.x) {
+                drawList->AddRectFilled(flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            }
         }
     }
 
-    // --- NEW: HEAL FLASH EVENT LOGIC ---
-    // This draws ON TOP of the overlay for maximum punch
-    if (state->lastHealFlashTimestamp > 0 && (now - state->lastHealFlashTimestamp < CombatEffects::HEAL_FLASH_DURATION_MS)) {
-        uint64_t timeSinceHealFlash = now - state->lastHealFlashTimestamp;
-        float fadeProgress = (float)timeSinceHealFlash / CombatEffects::HEAL_FLASH_DURATION_MS;
-        float flashAlpha = 1.0f - fadeProgress; // A simple linear fade is fine for a fast flash
-
-        // Use a bright, almost pure white-cyan for the flash color. It will pop against the green overlay.
-        ImU32 healFlashColor = IM_COL32(200, 255, 255, (int)(flashAlpha * 255));
-
-        // The flash covers the same area as the overlay.
-        float healStartPercent = state->healStartHealth / entity->maxHealth;
-        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
-
-        if (currentHealthPercent > healStartPercent) {
-            ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
-            ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
-            
-            drawList->AddRectFilled(healOverlayMin, healOverlayMax, healFlashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-        }
-    }
-
-    // --- DAMAGE FLASH LOGIC (draws on top of everything else for max visibility) ---
-    if (state->lastHitTimestamp > 0 && (now - state->lastHitTimestamp < CombatEffects::DAMAGE_FLASH_DURATION_MS)) {
-        uint64_t timeSinceHit = now - state->lastHitTimestamp;
-        float fadeProgress = (float)timeSinceHit / CombatEffects::DAMAGE_FLASH_DURATION_MS;
-        float flashAlpha = 1.0f - (fadeProgress * fadeProgress);
-
-        ImU32 flashColor = IM_COL32(255, 255, 0, (int)(flashAlpha * 255));
-
-        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
-        float previousHealthPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
-
-        ImVec2 flashMin = ImVec2(barMin.x + barWidth * currentHealthPercent, barMin.y);
-        ImVec2 flashMax = ImVec2(barMin.x + barWidth * (std::min)(1.0f, previousHealthPercent), barMax.y);
-
-        if (flashMin.x < flashMax.x) {
-            drawList->AddRectFilled(flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-        }
-    }
-
-    // Border for hostile entities - simple black border
+    // --- Draw the Border (always visible, alive or dead) ---
     if (context.attitude == Game::Attitude::Hostile) {
         float borderAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha;
         unsigned int borderAlpha = static_cast<unsigned int>(borderAlphaf + 0.5f);
         borderAlpha = (borderAlpha > 255) ? 255 : borderAlpha;
-        
-        // Subtle black border for definition without being intrusive
         drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, borderAlpha), 
                          RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ROUNDING, 0, 
                          RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);

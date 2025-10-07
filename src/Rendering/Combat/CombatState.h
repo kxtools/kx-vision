@@ -12,6 +12,7 @@ namespace kx {
         float healStartHealth = 0.0f;   // Health value before the heal started
         uint64_t lastHealTimestamp = 0; // Timestamp of the last healing event
         uint64_t lastHealFlashTimestamp = 0; // Timestamp for the FAST flash effect
+        uint64_t deathTimestamp = 0; // Timestamp for when health first hit zero
 
         uint64_t lastSeenTimestamp = 0; // Time the entity was last seen in a frame
     };

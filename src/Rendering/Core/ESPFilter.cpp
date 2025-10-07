@@ -3,6 +3,9 @@
 #include "AppState.h"
 #include "EntityFilter.h"
 #include "../Data/RenderableData.h"
+#include "../Combat/CombatStateManager.h"
+#include "../Utils/ESPConstants.h"
+#include <Windows.h>
 
 namespace kx {
 
@@ -38,7 +41,7 @@ bool ESPFilter::IsHealthValid(float currentHealth, bool showDeadEntities) {
 }
 
 void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
-                                 PooledFrameRenderData& filteredData) {
+                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager) {
     filteredData.Reset();
     
     const auto& settings = AppState::Get().GetSettings();
@@ -78,7 +81,20 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             if (!npc || !npc->isValid) continue;
             
             // Apply health filter
-            if (!IsHealthValid(npc->currentHealth, settings.npcESP.showDeadNpcs)) continue;
+            bool isAlive = npc->currentHealth > 0.0f;
+            if (!isAlive && !settings.npcESP.showDeadNpcs) {
+                const EntityCombatState* state = stateManager.GetState(npc->address);
+                if (state && state->deathTimestamp > 0) {
+                    uint64_t timeSinceDeath = GetTickCount64() - state->deathTimestamp;
+                    if (timeSinceDeath < (CombatEffects::DEATH_EMBER_FADE_DURATION_MS + CombatEffects::DEATH_FINAL_FADE_DURATION_MS)) {
+                        // This is a fresh corpse, keep it for the animation.
+                    } else {
+                        continue; // Animation is over, filter it out.
+                    }
+                } else {
+                    continue; // Dead, but no recent death event, filter it.
+                }
+            }
             
             // Calculate distances
             npc->visualDistance = glm::length(npc->position - cameraPos);

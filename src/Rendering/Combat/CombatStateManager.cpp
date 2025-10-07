@@ -19,6 +19,17 @@ namespace kx {
         auto& state = m_entityStates[entityId];
 
         if (state.lastSeenTimestamp > 0) {
+            // --- NEW: DEATH DETECTION LOGIC ---
+            // Check if the entity just died THIS frame.
+            if (currentHealth <= 0.0f && state.lastKnownHealth > 0.0f) {
+                state.deathTimestamp = now;
+            }
+            // If the entity is alive, make sure the death timestamp is cleared
+            // (in case they resurrect).
+            else if (currentHealth > 0.0f) {
+                state.deathTimestamp = 0;
+            }
+
             if (currentHealth < state.lastKnownHealth) {
                 // --- Damage Logic ---
                 state.lastDamageTaken = state.lastKnownHealth - currentHealth;
