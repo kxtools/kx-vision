@@ -7,9 +7,10 @@
 
 namespace kx {
 
-// Forward declarations
-class CombatStateManager;
-struct EntityRenderContext;
+	// Forward declarations
+	class CombatStateManager;
+	struct EntityRenderContext;
+	struct EntityCombatState;
 
 /**
  * @brief Utility functions for rendering health bars
@@ -47,6 +48,15 @@ public:
     static void RenderStandaloneEnergyBar(ImDrawList* drawList, const glm::vec2& centerPos,
                                          float energyPercent, float fadeAlpha,
                                          float barWidth, float barHeight, float healthBarHeight);
+
+private:
+    // Specialist function for rendering a living entity's health bar and effects
+    static void RenderAliveState(ImDrawList* drawList, const EntityRenderContext& context, const EntityCombatState* state,
+                                 const ImVec2& barMin, const ImVec2& barMax, float barWidth, unsigned int entityColor, float fadeAlpha);
+
+    // Specialist function for rendering the death animation
+    static void RenderDeadState(ImDrawList* drawList, const EntityCombatState* state,
+                                const ImVec2& barMin, const ImVec2& barMax, float barWidth, float fadeAlpha);
 };
 
 } // namespace kx
