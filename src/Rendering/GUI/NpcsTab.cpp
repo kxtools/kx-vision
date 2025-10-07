@@ -31,7 +31,7 @@ namespace kx {
                     }
 
                     ImGui::Separator();
-                    RenderCategoryStyleSettings("NPC Style", settings.npcESP.renderBox, settings.npcESP.renderDistance, settings.npcESP.renderDot, &settings.npcESP.renderHealthBar, &settings.npcESP.renderDetails);
+                    RenderCategoryStyleSettings("NPC Style", settings.npcESP.renderBox, settings.npcESP.renderDistance, settings.npcESP.renderDot, &settings.npcESP.renderHealthBar, nullptr, &settings.npcESP.renderDetails);
                 }
                 ImGui::EndTabItem();
             }

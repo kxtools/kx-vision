@@ -22,6 +22,7 @@ namespace kx {
         bool renderDot = false;
         bool renderDetails = false;
         bool renderHealthBar = true;
+        bool renderEnergyBar = false;
         bool renderPlayerName = true;  // Show player names by default for natural identification
         bool showLocalPlayer = false; // Hide local player by default
         GearDisplayMode gearDisplayMode = GearDisplayMode::Off;

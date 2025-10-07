@@ -17,6 +17,7 @@ namespace kx {
             bool& renderDistance,
             bool& renderDot,
             bool* renderHealthBar,
+            bool* renderEnergyBar,
             bool* renderDetails,
             bool* renderPlayerName) {
             if (ImGui::CollapsingHeader(categoryName, ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -39,6 +40,9 @@ namespace kx {
 
                     if (renderHealthBar) {
                         CheckboxWithId("Show Health Bar", categoryName, renderHealthBar);
+                    }
+                    if (renderEnergyBar) {
+                        CheckboxWithId("Show Energy Bar", categoryName, renderEnergyBar);
                     }
                     if (renderPlayerName) {
                         CheckboxWithId("Show Player Name", categoryName, renderPlayerName);

@@ -30,6 +30,20 @@ public:
                                          float healthPercent, unsigned int entityColor, 
                                          float barWidth, float barHeight,
                                          ESPEntityType entityType, Game::Attitude attitude = Game::Attitude::Neutral);
+
+    /**
+     * @brief Render a standalone energy bar below the health bar
+     * @param drawList ImGui draw list for rendering
+     * @param centerPos Center position of the entity
+     * @param energyPercent Energy percentage (0.0-1.0)
+     * @param fadeAlpha Distance-based fade alpha
+     * @param barWidth Width of the bar
+     * @param barHeight Height of the bar
+     * @param healthBarHeight Height of the health bar (for correct vertical positioning)
+     */
+    static void RenderStandaloneEnergyBar(ImDrawList* drawList, const glm::vec2& centerPos,
+                                         float energyPercent, float fadeAlpha,
+                                         float barWidth, float barHeight, float healthBarHeight);
 };
 
 } // namespace kx

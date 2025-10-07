@@ -13,6 +13,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
                                                              float screenWidth,
                                                              float screenHeight) {
     float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
+    float energyPercent = (player->maxEnergy > 0) ? (player->currentEnergy / player->maxEnergy) : -1.0f;
     
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
     unsigned int color;
@@ -41,11 +42,13 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         color,
         details,
         healthPercent,
+        energyPercent,
         settings.playerESP.renderBox,
         settings.playerESP.renderDistance,
         settings.playerESP.renderDot,
         !details.empty(),
         settings.playerESP.renderHealthBar,
+        settings.playerESP.renderEnergyBar,
         settings.playerESP.renderPlayerName,
         ESPEntityType::Player,
         player->attitude,
@@ -92,11 +95,13 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         color,
         details,
         healthPercent,
+        -1.0f, // No energy for NPCs
         settings.npcESP.renderBox,
         settings.npcESP.renderDistance,
         settings.npcESP.renderDot,
         settings.npcESP.renderDetails,
         settings.npcESP.renderHealthBar,
+        false, // No energy bar for NPCs
         false,
         ESPEntityType::NPC,
         npc->attitude,
@@ -120,12 +125,14 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         gadget->gameplayDistance,
         ESPColors::GADGET,
         details,
-        -1.0f,
+        gadget->maxHealth > 0 ? (gadget->currentHealth / gadget->maxHealth) : -1.0f,
+        -1.0f, // No energy for gadgets
         settings.objectESP.renderBox,
         settings.objectESP.renderDistance,
         settings.objectESP.renderDot,
         settings.objectESP.renderDetails,
-        false,
+        false, // No health bar for gadgets
+        false, // No energy bar for gadgets
         false,
         ESPEntityType::Gadget,
         Game::Attitude::Neutral,

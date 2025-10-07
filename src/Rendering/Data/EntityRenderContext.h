@@ -46,6 +46,9 @@ struct EntityRenderContext {
     /** Health percentage [0.0 - 1.0], or -1.0f if not applicable */
     float healthPercent;
 
+    /** Energy percentage [0.0 - 1.0], or -1.0f if not applicable */
+    float energyPercent;
+
     // ===== Style and Settings =====
     
     /** Whether to render bounding box */
@@ -62,6 +65,9 @@ struct EntityRenderContext {
     
     /** Whether to render health bar */
     bool renderHealthBar;
+
+    /** Whether to render energy bar */
+    bool renderEnergyBar;
     
     /** Whether to render player name (separate from details) */
     bool renderPlayerName;

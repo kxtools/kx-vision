@@ -22,6 +22,7 @@ namespace kx {
                                         bool& renderDistance, 
                                         bool& renderDot, 
                                         bool* renderHealthBar = nullptr, 
+                                        bool* renderEnergyBar = nullptr,
                                         bool* renderDetails = nullptr, 
                                         bool* renderPlayerName = nullptr);
 

@@ -46,6 +46,13 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                                      context.entityType, context.attitude);
     }
 
+    // Render energy bar for players
+    if (context.entityType == ESPEntityType::Player && context.energyPercent >= 0.0f && context.renderEnergyBar) {
+        ESPHealthBarRenderer::RenderStandaloneEnergyBar(drawList, screenPos, context.energyPercent, 
+                                                     finalAlpha, finalHealthBarWidth, finalHealthBarHeight,
+                                                     finalHealthBarHeight);
+    }
+
     // Render bounding box OR circle
     if (context.renderBox) {
         if (isGadget) {

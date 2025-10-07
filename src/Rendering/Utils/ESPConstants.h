@@ -167,6 +167,9 @@ namespace ESPColors {
     
     // Gadget colors
     constexpr unsigned int GADGET = IM_COL32(255, 165, 80, 200);  // Warm orange/amber
+
+    // Bar colors
+    constexpr unsigned int ENERGY_BAR = IM_COL32(0, 120, 255, 220); // Bright blue for energy
     
     // Summary/gear display colors
     constexpr unsigned int SUMMARY_TEXT_RGB = IM_COL32(200, 210, 255, 255);  // Light periwinkle (for gear stats/summaries)

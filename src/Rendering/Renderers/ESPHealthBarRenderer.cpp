@@ -54,4 +54,36 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     }
 }
 
+void ESPHealthBarRenderer::RenderStandaloneEnergyBar(ImDrawList* drawList, const glm::vec2& centerPos,
+                                                     float energyPercent, float fadeAlpha,
+                                                     float barWidth, float barHeight, float healthBarHeight) {
+    if (energyPercent < 0.0f || energyPercent > 1.0f) return;
+
+    // Position below health bar, with a 2px gap
+    const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET + healthBarHeight + 2.0f;
+    ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
+    ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
+
+    // Background
+    float bgAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha;
+    unsigned int bgAlpha = static_cast<unsigned int>(bgAlphaf + 0.5f);
+    bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha;
+    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+
+    // Energy fill
+    float energyWidth = barWidth * energyPercent;
+    ImVec2 energyBarMin(barMin.x, barMin.y);
+    ImVec2 energyBarMax(barMin.x + energyWidth, barMax.y);
+
+    // Color
+    unsigned int energyColor = ESPColors::ENERGY_BAR;
+    float colorAlphaF = ((energyColor >> 24) & 0xFF) / 255.0f; // Get alpha from the constant
+    colorAlphaF *= fadeAlpha; // Apply distance fade
+    unsigned int finalAlpha = static_cast<unsigned int>(colorAlphaF * 255.0f + 0.5f);
+    finalAlpha = (finalAlpha > 255) ? 255 : finalAlpha;
+    unsigned int finalColor = (energyColor & 0x00FFFFFF) | (finalAlpha << 24);
+    
+    drawList->AddRectFilled(energyBarMin, energyBarMax, finalColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+}
+
 } // namespace kx
