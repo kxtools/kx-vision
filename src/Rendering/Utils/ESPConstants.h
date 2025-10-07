@@ -170,7 +170,7 @@ namespace ESPColors {
     constexpr unsigned int PLAYER = IM_COL32(30, 144, 255, 230);  // Bright cyan/blue (dodger blue)
     
     // NPC colors based on attitude - unified palette
-    constexpr unsigned int NPC_HOSTILE = IM_COL32(255, 80, 80, 210);      // Strong classic red
+    constexpr unsigned int NPC_HOSTILE = IM_COL32(220, 50, 40, 210);      // Thematic, high-contrast crimson
     constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green
     constexpr unsigned int NPC_NEUTRAL = IM_COL32(127, 255, 0, 210);      // Electric chartreuse (yellow-green)
     constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white
@@ -232,7 +232,7 @@ namespace RenderingLayout {
     constexpr float STANDALONE_HEALTH_BAR_Y_OFFSET = 12.0f;          // 12px below entity (compact spacing)
     constexpr float STANDALONE_HEALTH_BAR_BG_ROUNDING = 1.0f;        // Subtle 1px rounding
     constexpr float STANDALONE_HEALTH_BAR_BORDER_ROUNDING = 1.0f;    // Matches background
-    constexpr float STANDALONE_HEALTH_BAR_BORDER_THICKNESS = 1.0f;   // 1px crisp border
+    constexpr float STANDALONE_HEALTH_BAR_BORDER_THICKNESS = 2.0f;   // crisp border
     constexpr float STANDALONE_HEALTH_BAR_BG_ALPHA = 180.0f;         // ~71% opacity (readable)
     constexpr float STANDALONE_HEALTH_BAR_HEALTH_ALPHA = 220.0f;     // ~86% opacity (prominent)
     constexpr float STANDALONE_HEALTH_BAR_BORDER_ALPHA = 100.0f;     // ~39% opacity (subtle)
