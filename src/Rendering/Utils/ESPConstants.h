@@ -4,6 +4,13 @@
 
 namespace kx {
 
+namespace CombatEffects {
+    constexpr uint64_t DAMAGE_FLASH_DURATION_MS = 250;
+    constexpr uint64_t HEAL_PULSE_DURATION_MS = 400;
+    constexpr uint64_t STATE_CLEANUP_THRESHOLD_MS = 5000;
+}
+
+
 /**
  * @brief Minimum size constraints for entity visibility
  * 

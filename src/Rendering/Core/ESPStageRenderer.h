@@ -12,6 +12,7 @@ namespace kx {
 
 // Forward declaration for context struct
 struct EntityRenderContext;
+class CombatStateManager;
 
 /**
  * @brief Handles safe rendering from extracted data (Stage 2 of rendering pipeline)
@@ -32,25 +33,31 @@ public:
      * @param screenHeight Screen height in pixels
      * @param frameData Pooled extracted data for this frame (contains pointers)
      * @param camera Camera reference for world-to-screen calculations
+     * @param stateManager Reference to the combat state manager
      */
     static void RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                               const PooledFrameRenderData& frameData, Camera& camera);
+                               const PooledFrameRenderData& frameData, Camera& camera, 
+                               const CombatStateManager& stateManager);
 
 private:
     // Pooled rendering functions for optimized performance
     static void RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                   const std::vector<RenderablePlayer*>& players, Camera& camera);
+                                   const std::vector<RenderablePlayer*>& players, Camera& camera, 
+                                   const CombatStateManager& stateManager);
 
     static void RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                const std::vector<RenderableNpc*>& npcs, Camera& camera);
+                                const std::vector<RenderableNpc*>& npcs, Camera& camera, 
+                                const CombatStateManager& stateManager);
 
     static void RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                   const std::vector<RenderableGadget*>& gadgets, Camera& camera);
+                                   const std::vector<RenderableGadget*>& gadgets, Camera& camera, 
+                                   const CombatStateManager& stateManager);
 
     /**
      * @brief Universal entity rendering function using context struct
      */
-    static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera);
+    static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, 
+                           const CombatStateManager& stateManager);
 
     /**
      * @brief Render all visual components for an entity
@@ -70,13 +77,15 @@ private:
      * @param finalDotRadius Final scaled dot radius
      * @param finalHealthBarWidth Final scaled health bar width
      * @param finalHealthBarHeight Final scaled health bar height
+     * @param stateManager Reference to the combat state manager
      */
     static void RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
                                       const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
                                       const ImVec2& center, unsigned int fadedEntityColor, 
                                       float distanceFadeAlpha, float scale, float circleRadius,
                                       float finalAlpha, float finalFontSize, float finalBoxThickness,
-                                      float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight);
+                                      float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
+                                      const CombatStateManager& stateManager);
 
     // Distance fading helper function
     static float CalculateEntityDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);

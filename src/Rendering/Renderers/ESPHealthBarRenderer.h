@@ -7,6 +7,10 @@
 
 namespace kx {
 
+// Forward declarations
+class CombatStateManager;
+struct EntityRenderContext;
+
 /**
  * @brief Utility functions for rendering health bars
  * 
@@ -23,13 +27,12 @@ public:
      * @param entityColor Entity color (contains alpha for distance fading)
      * @param barWidth Width of the health bar
      * @param barHeight Height of the health bar
-     * @param entityType Type of entity (Player/NPC/Gadget) - determines color scheme
-     * @param attitude Entity attitude (Hostile/Friendly/Neutral) - for NPCs
+     * @param stateManager Reference to the combat state manager for damage flash effects
      */
     static void RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos,
-                                         float healthPercent, unsigned int entityColor, 
+                                         const EntityRenderContext& context, unsigned int entityColor, 
                                          float barWidth, float barHeight,
-                                         ESPEntityType entityType, Game::Attitude attitude = Game::Attitude::Neutral);
+                                         const CombatStateManager& stateManager);
 
     /**
      * @brief Render a standalone energy bar below the health bar
