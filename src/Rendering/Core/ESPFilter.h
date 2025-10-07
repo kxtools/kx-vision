@@ -5,6 +5,8 @@
 
 namespace kx {
 
+class CombatStateManager; // Forward declaration
+
 /**
  * @brief Filtering stage for the ESP rendering pipeline
  * 
@@ -28,9 +30,10 @@ public:
      * @param extractedData Input pooled data from extraction
      * @param camera Camera for distance calculations
      * @param filteredData Output filtered pooled data
+     * @param stateManager The combat state manager for state-aware filtering
      */
     static void FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
-                                PooledFrameRenderData& filteredData);
+                                PooledFrameRenderData& filteredData, const CombatStateManager& stateManager);
 
 private:
     /**

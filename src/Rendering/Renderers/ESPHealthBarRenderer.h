@@ -7,6 +7,11 @@
 
 namespace kx {
 
+	// Forward declarations
+	class CombatStateManager;
+	struct EntityRenderContext;
+	struct EntityCombatState;
+
 /**
  * @brief Utility functions for rendering health bars
  * 
@@ -23,13 +28,12 @@ public:
      * @param entityColor Entity color (contains alpha for distance fading)
      * @param barWidth Width of the health bar
      * @param barHeight Height of the health bar
-     * @param entityType Type of entity (Player/NPC/Gadget) - determines color scheme
-     * @param attitude Entity attitude (Hostile/Friendly/Neutral) - for NPCs
+     * @param stateManager Reference to the combat state manager for damage flash effects
      */
     static void RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos,
-                                         float healthPercent, unsigned int entityColor, 
+                                         const EntityRenderContext& context, unsigned int entityColor, 
                                          float barWidth, float barHeight,
-                                         ESPEntityType entityType, Game::Attitude attitude = Game::Attitude::Neutral);
+                                         const CombatStateManager& stateManager);
 
     /**
      * @brief Render a standalone energy bar below the health bar
@@ -44,6 +48,18 @@ public:
     static void RenderStandaloneEnergyBar(ImDrawList* drawList, const glm::vec2& centerPos,
                                          float energyPercent, float fadeAlpha,
                                          float barWidth, float barHeight, float healthBarHeight);
+
+private:
+    // Specialist function for rendering a living entity's health bar and effects
+    static void RenderAliveState(ImDrawList* drawList, const EntityRenderContext& context, const EntityCombatState* state,
+                                 const ImVec2& barMin, const ImVec2& barMax, float barWidth, unsigned int entityColor, float fadeAlpha);
+
+    // Specialist function for rendering the death animation
+    static void RenderDeadState(ImDrawList* drawList, const EntityCombatState* state,
+                                const ImVec2& barMin, const ImVec2& barMax, float barWidth, float fadeAlpha);
+
+    // Helper function to clamp alpha values to 255
+    static unsigned int ClampAlpha(unsigned int alpha);
 };
 
 } // namespace kx

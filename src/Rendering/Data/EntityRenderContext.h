@@ -89,8 +89,11 @@ struct EntityRenderContext {
     /** Screen height for bounds checking */
     float screenHeight;
     
-    // ===== Player-Specific Data =====
+    // ===== Entity-Specific Data =====
     
+    /** Pointer to the original entity for state lookup */
+    const RenderableEntity* entity;
+
     /** Player name (empty string for non-players) */
     const std::string& playerName;
     

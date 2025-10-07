@@ -65,6 +65,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         Game::CharacterRank::Ambient, // Players are considered Ambient for rank purposes
         screenWidth,
         screenHeight,
+        player, // entity pointer
         player->playerName,
         player
     };
@@ -118,6 +119,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         npc->rank,
         screenWidth,
         screenHeight,
+        npc, // entity pointer
         emptyPlayerName,
         nullptr
     };
@@ -149,6 +151,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         Game::CharacterRank::Normal, // Gadgets don't have ranks
         screenWidth,
         screenHeight,
+        gadget, // entity pointer
         emptyPlayerName,
         nullptr
     };

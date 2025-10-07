@@ -3,6 +3,9 @@
 #include "AppState.h"
 #include "EntityFilter.h"
 #include "../Data/RenderableData.h"
+#include "../Combat/CombatStateManager.h"
+#include "../Utils/ESPConstants.h"
+#include <Windows.h>
 
 namespace kx {
 
@@ -38,7 +41,7 @@ bool ESPFilter::IsHealthValid(float currentHealth, bool showDeadEntities) {
 }
 
 void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
-                                 PooledFrameRenderData& filteredData) {
+                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager) {
     filteredData.Reset();
     
     const auto& settings = AppState::Get().GetSettings();
@@ -78,7 +81,16 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             if (!npc || !npc->isValid) continue;
             
             // Apply health filter
-            if (!IsHealthValid(npc->currentHealth, settings.npcESP.showDeadNpcs)) continue;
+            bool isAlive = npc->currentHealth > 0.0f;
+            if (!isAlive && !settings.npcESP.showDeadNpcs) {
+                // This NPC is dead, and the user wants to hide dead NPCs.
+                // EXCEPTION: Keep it if the death animation is still playing.
+                const EntityCombatState* state = stateManager.GetState(npc->address);
+                if (!state || (GetTickCount64() - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
+                    continue; // Animation is over (or never started), so hide it.
+                }
+                // Otherwise, we fall through and let it render so the animation can play.
+            }
             
             // Calculate distances
             npc->visualDistance = glm::length(npc->position - cameraPos);
