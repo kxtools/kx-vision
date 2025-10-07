@@ -5,6 +5,8 @@
 #include "../../Game/Generated/StatData.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
 
 #include "ESPStyling.h"
 
@@ -54,6 +56,13 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
         details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)", ESPColors::DEFAULT_TEXT });
     }
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(1)
+        << "Pos: (" << player->position.x
+        << ", " << player->position.y
+        << ", " << player->position.z << ")";
+    details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
 
     if (showDebugAddresses) {
         char addrStr[32];

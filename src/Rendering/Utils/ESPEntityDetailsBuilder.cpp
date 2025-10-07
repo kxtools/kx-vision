@@ -2,6 +2,8 @@
 #include "ESPFormatting.h"
 #include "ESPConstants.h"
 #include "../../Game/GameEnums.h"
+#include <sstream>
+#include <iomanip>
 
 namespace kx {
 
@@ -33,6 +35,13 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
     if (rankName && rankName[0] != '\0') {
         details.push_back({ "Rank: " + std::string(rankName), ESPColors::DEFAULT_TEXT });
     }
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(1)
+        << "Pos: (" << npc->position.x
+        << ", " << npc->position.y
+        << ", " << npc->position.z << ")";
+    details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
 
     if (showDebugAddresses) {
         char addrStr[32];
@@ -66,6 +75,13 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
     if (gadget->isGatherable) {
         details.push_back({ "Status: Gatherable", ESPColors::DEFAULT_TEXT });
     }
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(1)
+        << "Pos: (" << gadget->position.x
+        << ", " << gadget->position.y
+        << ", " << gadget->position.z << ")";
+    details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
 
     if (showDebugAddresses) {
         char addrStr[32];
