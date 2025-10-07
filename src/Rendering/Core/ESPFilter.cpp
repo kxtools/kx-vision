@@ -86,7 +86,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
                 const EntityCombatState* state = stateManager.GetState(npc->address);
                 if (state && state->deathTimestamp > 0) {
                     uint64_t timeSinceDeath = GetTickCount64() - state->deathTimestamp;
-                    if (timeSinceDeath < (CombatEffects::DEATH_EMBER_FADE_DURATION_MS + CombatEffects::DEATH_FINAL_FADE_DURATION_MS)) {
+                    if (timeSinceDeath < (CombatEffects::DEATH_BURST_DURATION_MS + CombatEffects::DEATH_FINAL_FADE_DURATION_MS)) {
                         // This is a fresh corpse, keep it for the animation.
                     } else {
                         continue; // Animation is over, filter it out.

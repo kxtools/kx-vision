@@ -27,9 +27,9 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     if (state && state->deathTimestamp > 0) {
         uint64_t timeSinceDeath = now - state->deathTimestamp;
         
-        // Check if we are in the final fade-out period
-        if (timeSinceDeath > CombatEffects::DEATH_EMBER_FADE_DURATION_MS) {
-            uint64_t timeIntoFade = timeSinceDeath - CombatEffects::DEATH_EMBER_FADE_DURATION_MS;
+        // Check if we are in the final fade-out period after the burst
+        if (timeSinceDeath > CombatEffects::DEATH_BURST_DURATION_MS) {
+            uint64_t timeIntoFade = timeSinceDeath - CombatEffects::DEATH_BURST_DURATION_MS;
             if (timeIntoFade < CombatEffects::DEATH_FINAL_FADE_DURATION_MS) {
                 float fadeProgress = (float)timeIntoFade / CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
                 timeFade = 1.0f - fadeProgress;
@@ -50,7 +50,7 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
     float bgAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha;
     unsigned int bgAlpha = static_cast<unsigned int>(bgAlphaf + 0.5f);
-    bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha;
+    bgAlpha = (std::min)(bgAlpha, 255u);
 
     // --- Draw the Background (always visible, alive or dead) ---
     drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
@@ -59,34 +59,19 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     if (state && state->deathTimestamp > 0) {
         uint64_t timeSinceDeath = now - state->deathTimestamp;
 
-        // --- PHASE 1: THE SHATTER ---
-        if (timeSinceDeath < CombatEffects::DEATH_SHATTER_DURATION_MS) {
-            float fadeProgress = (float)timeSinceDeath / CombatEffects::DEATH_SHATTER_DURATION_MS;
-            float flashAlpha = 1.0f - fadeProgress;
-            ImU32 shatterColor = IM_COL32(255, 255, 255, (int)(flashAlpha * 255));
-            float thickness = 2.0f;
+        // --- PHASE 1: THE ENERGY BURST ---
+        if (timeSinceDeath < CombatEffects::DEATH_BURST_DURATION_MS) {
+            float burstProgress = (float)timeSinceDeath / CombatEffects::DEATH_BURST_DURATION_MS;
+            float burstAlpha = 1.0f - burstProgress;
+            float burstWidth = barWidth * burstProgress; // Expands from 0 to full width
+            
+            ImU32 burstColor = IM_COL32(200, 255, 255, (int)(burstAlpha * 255));
+            ImVec2 centerPoint(barMin.x + barWidth * 0.5f, barMin.y + barHeight * 0.5f);
 
-            // Draw a bright, fading 'X' over the empty bar
-            drawList->AddLine(barMin, barMax, shatterColor, thickness);
-            drawList->AddLine(ImVec2(barMin.x, barMax.y), ImVec2(barMax.x, barMin.y), shatterColor, thickness);
-        }
-        // --- PHASE 2: THE EMBER ---
-        else if (timeSinceDeath < CombatEffects::DEATH_EMBER_FADE_DURATION_MS) {
-            float fadeProgress = (float)timeSinceDeath / CombatEffects::DEATH_EMBER_FADE_DURATION_MS;
-            float emberAlpha = 1.0f - fadeProgress;
-
-            // Interpolate color from bright orange to dark red
-            ImVec4 orange = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
-            ImVec4 darkRed = ImVec4(0.4f, 0.0f, 0.0f, 1.0f);
-            ImVec4 emberColorVec;
-            emberColorVec.x = orange.x + (darkRed.x - orange.x) * fadeProgress;
-            emberColorVec.y = orange.y + (darkRed.y - orange.y) * fadeProgress;
-            emberColorVec.z = orange.z + (darkRed.z - orange.z) * fadeProgress;
-            emberColorVec.w = emberAlpha;
-            ImU32 emberColor = ImGui::ColorConvertFloat4ToU32(emberColorVec);
-
-            // Draw a single-pixel line at the start of the bar
-            drawList->AddLine(ImVec2(barMin.x, barMin.y), ImVec2(barMin.x, barMax.y), emberColor, 1.5f);
+            ImVec2 burstMin(centerPoint.x - burstWidth * 0.5f, barMin.y);
+            ImVec2 burstMax(centerPoint.x + burstWidth * 0.5f, barMax.y);
+            
+            drawList->AddRectFilled(burstMin, burstMax, burstColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
         }
     }
     // --- ELSE, ENTITY IS ALIVE: RENDER NORMAL HEALTH BAR ---
@@ -99,7 +84,7 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
         ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
         float healthAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha;
         unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f);
-        healthAlpha = (healthAlpha > 255) ? 255 : healthAlpha;
+        healthAlpha = (std::min)(healthAlpha, 255u);
         unsigned int baseHealthColor = (entityColor & 0x00FFFFFF) | (healthAlpha << 24);
 
         // --- Draw the BASE health fill (always draw the full bar in its normal color) ---
@@ -154,7 +139,7 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     if (context.attitude == Game::Attitude::Hostile) {
         float borderAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha;
         unsigned int borderAlpha = static_cast<unsigned int>(borderAlphaf + 0.5f);
-        borderAlpha = (borderAlpha > 255) ? 255 : borderAlpha;
+        borderAlpha = (std::min)(borderAlpha, 255u);
         drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, borderAlpha), 
                          RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ROUNDING, 0, 
                          RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
