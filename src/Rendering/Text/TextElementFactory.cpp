@@ -89,31 +89,40 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
 }
 
 TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantStat>& stats,
-                                                    Game::ItemRarity topRarity,
+                                                    Game::ItemRarity topRarity, // topRarity is no longer used for coloring, but kept for signature compatibility
                                                     const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
     if (stats.empty()) {
         return TextElement("", feetPos);
     }
-    
-    // Build the display string
-    std::string summaryText = "[";
+
+    // Build multi-colored segments for the summary
+    std::vector<TextSegment> segments;
+    segments.push_back(TextSegment("[", ESPColors::SUMMARY_TEXT_RGB));
+
     for (size_t i = 0; i < stats.size(); ++i) {
-        summaryText += stats[i].name;
+        const auto& stat = stats[i];
+
+        // Format the string with name and percentage
+        std::ostringstream oss;
+        oss << stat.name << " " << std::fixed << std::setprecision(0) << stat.percentage << "%";
+        
+        // Add the segment with its specific tactical color
+        segments.push_back(TextSegment(oss.str(), stat.color));
+
+        // Add separator if not the last element
         if (i < stats.size() - 1) {
-            summaryText += " | ";
+            segments.push_back(TextSegment(" | ", ESPColors::SUMMARY_TEXT_RGB));
         }
     }
-    summaryText += "]";
+
+    segments.push_back(TextSegment("]", ESPColors::SUMMARY_TEXT_RGB));
     
     // Position below feet with proper offset
     glm::vec2 adjustedPos(feetPos.x, feetPos.y + RenderingLayout::SUMMARY_Y_OFFSET);
-    TextElement element(summaryText, adjustedPos, TextAnchor::Custom);
-    
+    TextElement element(segments, adjustedPos, TextAnchor::Custom);
+
     TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
-    // Override text color if the top rarity is high enough
-    if (topRarity >= Game::ItemRarity::Rare) {
-        style.textColor = ESPStyling::GetRarityColor(topRarity);
-    }
+    style.useCustomTextColor = true; // IMPORTANT: Enable per-segment coloring
     element.SetStyle(style);
     
     return element;

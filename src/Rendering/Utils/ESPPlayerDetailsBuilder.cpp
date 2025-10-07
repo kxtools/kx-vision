@@ -164,7 +164,7 @@ std::vector<DominantStat> ESPPlayerDetailsBuilder::BuildDominantStats(const Rend
     }
     if (totalAttributes == 0) return result;
 
-    // 3. Convert to a vector of DominantStat with percentages
+    // 3. Convert to a vector of DominantStat with percentages and tactical colors
     std::vector<DominantStat> allStats;
     allStats.reserve(attributeCounts.size());
     for (const auto& pair : attributeCounts) {
@@ -177,16 +177,18 @@ std::vector<DominantStat> ESPPlayerDetailsBuilder::BuildDominantStats(const Rend
         case kx::data::ApiAttribute::CritDamage:      name = "Ferocity"; break;
         case kx::data::ApiAttribute::Healing:         name = "Healing"; break;
         case kx::data::ApiAttribute::ConditionDamage: name = "Condi Dmg"; break;
-        case kx::data::ApiAttribute::BoonDuration:    name = "Boon Dmg"; break;
+        case kx::data::ApiAttribute::BoonDuration:    name = "Boon Dura"; break;
         case kx::data::ApiAttribute::ConditionDuration: name = "Condi Dura"; break;
         }
-        allStats.push_back({ name, (pair.second / totalAttributes) * 100.0f });
+        
+        // Assign the name, percentage, AND the new tactical color
+        allStats.push_back({ name, (pair.second / totalAttributes) * 100.0f, ESPStyling::GetTacticalColor(pair.first) });
     }
 
     // 4. Sort the vector in descending order of percentage
     std::sort(allStats.begin(), allStats.end(), [](const DominantStat& a, const DominantStat& b) {
         return a.percentage > b.percentage;
-        });
+    });
 
     // 5. Return the top 3
     result.reserve(3);

@@ -3,6 +3,7 @@
 #include "../Game/GameEnums.h"
 #include "../../libs/ImGui/imgui.h"
 #include "ESPConstants.h"
+#include "Generated/EnumsAndStructs.h" // <-- ADD THIS INCLUDE
 
 // Forward declaration to avoid circular dependency
 namespace kx {
@@ -29,8 +30,31 @@ namespace ESPStyling {
         }
     }
 
-    // You can add more mapping functions here in the future, e.g.:
-    // inline const char* GetIconForProfession(Game::Profession prof) { ... }
+    // Get color based on tactical role
+    inline ImU32 GetTacticalColor(kx::data::ApiAttribute attribute) {
+        switch (attribute) {
+            // Offensive Stats -> Red
+            case kx::data::ApiAttribute::Power:
+            case kx::data::ApiAttribute::Precision:
+            case kx::data::ApiAttribute::CritDamage:
+            case kx::data::ApiAttribute::ConditionDamage:
+                return IM_COL32(255, 80, 80, 255); // Red
+
+            // Defensive Stats -> Blue
+            case kx::data::ApiAttribute::Toughness:
+            case kx::data::ApiAttribute::Vitality:
+                return IM_COL32(30, 144, 255, 255); // Blue
+
+            // Support Stats -> Green
+            case kx::data::ApiAttribute::Healing:
+            case kx::data::ApiAttribute::BoonDuration:
+            case kx::data::ApiAttribute::ConditionDuration:
+                return IM_COL32(100, 255, 100, 255); // Green
+
+            default:
+                return ESPColors::DEFAULT_TEXT;
+        }
+    }
 
 } // namespace ESPStyling
 

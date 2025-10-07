@@ -2,6 +2,7 @@
 
 #include <string>
 #include "../Game/GameEnums.h"
+#include "../../../libs/ImGui/imgui.h"
 
 namespace kx {
 
@@ -25,6 +26,7 @@ struct CompactStatInfo {
 struct DominantStat {
     std::string name;
     float percentage;
+    ImU32 color;
 };
 
 } // namespace kx
