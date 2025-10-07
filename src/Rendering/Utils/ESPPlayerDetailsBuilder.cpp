@@ -119,6 +119,11 @@ std::vector<CompactStatInfo> ESPPlayerDetailsBuilder::BuildCompactGearSummary(co
     std::sort(result.begin(), result.end(), [](const CompactStatInfo& a, const CompactStatInfo& b) {
         return a.percentage > b.percentage;
     });
+
+    // Keep only top 3
+    if (result.size() > 3) {
+        result.resize(3);
+    }
     
     return result;
 }

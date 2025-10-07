@@ -9,7 +9,7 @@ namespace kx {
      */
     enum class GearDisplayMode {
         Off = 0,        // No gear information displayed
-        Compact = 1,    // Compact view: Show stat names with counts
+        Compact = 1,    // Compact view: Show top 3 stat sets with percentages
         Attributes = 2, // Show top 3 dominant attributes with percentages
         Detailed = 3    // Detailed view: Full list of all gear slots and stats
     };

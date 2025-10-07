@@ -38,7 +38,7 @@ namespace kx {
                     }
                     ImGui::PopItemWidth();
 
-                    const char* gearModes[] = { "Off", "Compact (Stat Names)", "Compact (Top 3 Attributes)", "Detailed" };
+                    const char* gearModes[] = { "Off", "Compact (Top 3 Stat Sets)", "Compact (Top 3 Attributes)", "Detailed" };
                     ImGui::PushItemWidth(250.0f);
                     int gearModeInt = static_cast<int>(settings.playerESP.gearDisplayMode);
                     if (ImGui::Combo("Gear Display", &gearModeInt, gearModes, IM_ARRAYSIZE(gearModes))) {
