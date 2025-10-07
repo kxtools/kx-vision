@@ -33,64 +33,80 @@ void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const
     float healthWidth = barWidth * context.healthPercent;
     ImVec2 healthBarMin(barMin.x, barMin.y);
     ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
-
-    // Calculate health bar color - use entityColor directly with health bar alpha
-    // EntityColor already comes from ESPColors constants with proper RGB values
     float healthAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha;
     unsigned int healthAlpha = static_cast<unsigned int>(healthAlphaf + 0.5f);
     healthAlpha = (healthAlpha > 255) ? 255 : healthAlpha;
+    unsigned int baseHealthColor = (entityColor & 0x00FFFFFF) | (healthAlpha << 24);
+
+    // --- Draw the BASE health fill (always draw the full bar in its normal color) ---
+    drawList->AddRectFilled(healthBarMin, healthBarMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     
-    // Replace alpha component with health bar alpha, keep RGB unchanged
-    unsigned int healthColor = (entityColor & 0x00FFFFFF) | (healthAlpha << 24);
-
-    // --- NEW HEALING PULSE LOGIC ---
     const RenderableEntity* entity = context.entity;
-    if (!entity) return; // Should not happen if health bar is drawn
+    if (!entity || entity->maxHealth <= 0) return;
+
     const EntityCombatState* state = stateManager.GetState(entity->address);
-    if (state && state->lastHealTimestamp > 0) {
-        uint64_t timeSinceHeal = GetTickCount64() - state->lastHealTimestamp;
+    if (!state) return;
 
-        if (timeSinceHeal < CombatEffects::HEAL_PULSE_DURATION_MS) {
-            // Use a sine wave that completes one full pulse over the duration
-            float pulseProgress = (float)timeSinceHeal / CombatEffects::HEAL_PULSE_DURATION_MS;
-            float pulse = sin(pulseProgress * 3.14159f); // A single hump from 0 -> 1 -> 0
+    uint64_t now = GetTickCount64();
 
-            // Interpolate the health bar color towards a bright, vibrant green
-            int r = (healthColor >> 0) & 0xFF;
-            int g = (healthColor >> 8) & 0xFF;
-            int b = (healthColor >> 16) & 0xFF;
-            int a = (healthColor >> 24) & 0xFF;
+    // --- NEW: HEAL ABSORPTION OVERLAY LOGIC ---
+    if (state->lastHealTimestamp > 0 && (now - state->lastHealTimestamp < CombatEffects::HEAL_OVERLAY_DURATION_MS)) {
+        // Calculate the start and end percentages for the overlay
+        float healStartPercent = state->healStartHealth / entity->maxHealth;
+        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
 
-            r -= (int)(r * pulse * 0.8f); // Pull red down
-            g = g + (int)((255 - g) * pulse); // Push green to max
-            b -= (int)(b * pulse * 0.8f); // Pull blue down
+        // Don't draw if the heal was negligible or there's an issue
+        if (currentHealthPercent > healStartPercent) {
+            // Define the vibrant green overlay color
+            ImU32 healOverlayColor = IM_COL32(100, 255, 100, 200); // Vibrant green with some transparency
 
-            healthColor = IM_COL32(r, g, b, a);
+            // Calculate the screen coordinates for the overlay segment
+            ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
+            ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
+
+            // Draw the green overlay ON TOP of the base health bar
+            drawList->AddRectFilled(healOverlayMin, healOverlayMax, healOverlayColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
         }
     }
-    
-    // Draw health fill
-    drawList->AddRectFilled(healthBarMin, healthBarMax, healthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-    // --- ENHANCED DAMAGE FLASH LOGIC ---
-    if (state && state->lastHitTimestamp > 0) {
-        uint64_t timeSinceHit = GetTickCount64() - state->lastHitTimestamp;
+    // --- NEW: HEAL FLASH EVENT LOGIC ---
+    // This draws ON TOP of the overlay for maximum punch
+    if (state->lastHealFlashTimestamp > 0 && (now - state->lastHealFlashTimestamp < CombatEffects::HEAL_FLASH_DURATION_MS)) {
+        uint64_t timeSinceHealFlash = now - state->lastHealFlashTimestamp;
+        float fadeProgress = (float)timeSinceHealFlash / CombatEffects::HEAL_FLASH_DURATION_MS;
+        float flashAlpha = 1.0f - fadeProgress; // A simple linear fade is fine for a fast flash
 
-        if (timeSinceHit < CombatEffects::DAMAGE_FLASH_DURATION_MS) {
-            float fadeProgress = (float)timeSinceHit / CombatEffects::DAMAGE_FLASH_DURATION_MS;
-            float flashAlpha = 1.0f - (fadeProgress * fadeProgress);
+        // Use a bright, almost pure white-cyan for the flash color. It will pop against the green overlay.
+        ImU32 healFlashColor = IM_COL32(200, 255, 255, (int)(flashAlpha * 255));
 
-            ImU32 flashColor = IM_COL32(255, 255, 0, (int)(flashAlpha * 255));
+        // The flash covers the same area as the overlay.
+        float healStartPercent = state->healStartHealth / entity->maxHealth;
+        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
 
-            float currentHealthPercent = entity->currentHealth / entity->maxHealth;
-            float previousHealthPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
+        if (currentHealthPercent > healStartPercent) {
+            ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
+            ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
+            
+            drawList->AddRectFilled(healOverlayMin, healOverlayMax, healFlashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+        }
+    }
 
-            ImVec2 flashMin = ImVec2(barMin.x + barWidth * currentHealthPercent, barMin.y);
-            ImVec2 flashMax = ImVec2(barMin.x + barWidth * (std::min)(1.0f, previousHealthPercent), barMax.y);
+    // --- DAMAGE FLASH LOGIC (draws on top of everything else for max visibility) ---
+    if (state->lastHitTimestamp > 0 && (now - state->lastHitTimestamp < CombatEffects::DAMAGE_FLASH_DURATION_MS)) {
+        uint64_t timeSinceHit = now - state->lastHitTimestamp;
+        float fadeProgress = (float)timeSinceHit / CombatEffects::DAMAGE_FLASH_DURATION_MS;
+        float flashAlpha = 1.0f - (fadeProgress * fadeProgress);
 
-            if (flashMin.x < flashMax.x) {
-                drawList->AddRectFilled(flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-            }
+        ImU32 flashColor = IM_COL32(255, 255, 0, (int)(flashAlpha * 255));
+
+        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
+        float previousHealthPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
+
+        ImVec2 flashMin = ImVec2(barMin.x + barWidth * currentHealthPercent, barMin.y);
+        ImVec2 flashMax = ImVec2(barMin.x + barWidth * (std::min)(1.0f, previousHealthPercent), barMax.y);
+
+        if (flashMin.x < flashMax.x) {
+            drawList->AddRectFilled(flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
         }
     }
 

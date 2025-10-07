@@ -20,13 +20,22 @@ namespace kx {
 
             if (state.lastSeenTimestamp > 0) {
                 if (currentHealth < state.lastKnownHealth) {
+                    // --- Damage Logic ---
                     state.lastDamageTaken = state.lastKnownHealth - currentHealth;
                     state.lastHitTimestamp = now;
-                } else if (currentHealth > state.lastKnownHealth) {
+                }
+                else if (currentHealth > state.lastKnownHealth) {
+                    // --- Healing Logic ---
+                    if (now - state.lastHealTimestamp > CombatEffects::HEAL_OVERLAY_DURATION_MS) {
+                        state.healStartHealth = state.lastKnownHealth;
+                    }
+                    // Always update the timestamp to extend/start the overlay's duration
                     state.lastHealTimestamp = now;
+                    state.lastHealFlashTimestamp = now; // <-- ADD THIS LINE to trigger the flash
                 }
             }
             
+            // Update the state for the next frame
             state.lastKnownHealth = currentHealth;
             state.lastSeenTimestamp = now;
         }
