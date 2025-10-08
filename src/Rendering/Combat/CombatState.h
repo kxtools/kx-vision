@@ -15,5 +15,9 @@ namespace kx {
         uint64_t deathTimestamp = 0; // Timestamp for when health first hit zero
 
         uint64_t lastSeenTimestamp = 0; // Time the entity was last seen in a frame
+
+        // --- NEW MEMBERS FOR DAMAGE ACCUMULATION ---
+        float accumulatedDamage = 0.0f;     // Stores damage received since the last flush.
+        uint64_t lastFlushTimestamp = 0;    // Tracks the time of the last flush event.
     };
 }

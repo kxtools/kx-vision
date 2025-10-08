@@ -17,15 +17,31 @@ namespace kx {
             // Find or create the state for this entity. The [] operator does this automatically.
             auto& state = m_entityStates[entityId];
 
+            // --- DAMAGE ACCUMULATOR FLUSH LOGIC ---
+            if (state.accumulatedDamage > 0 && (now - state.lastFlushTimestamp > CombatEffects::DAMAGE_ACCUMULATOR_FLUSH_INTERVAL_MS)) {
+                state.accumulatedDamage = 0.0f;
+                state.lastFlushTimestamp = now;
+            }
+
             // Only process changes if we have a history for this entity.
             if (state.lastSeenTimestamp > 0) {
                 // Check for a health change
                 if (currentHealth < state.lastKnownHealth) {
                     // --- DAMAGE & DEATH LOGIC ---
-                    state.lastDamageTaken = state.lastKnownHealth - currentHealth;
-                    state.lastHitTimestamp = now;
+                    float damageTakenThisFrame = state.lastKnownHealth - currentHealth;
 
-                    // Check if this damage event was the one that killed the entity.
+                    // *** THE CRITICAL FIX IS HERE ***
+                    // If this is the FIRST hit of a new burst (accumulator was empty), start the flush timer.
+                    if (state.accumulatedDamage == 0.0f) {
+                        state.lastFlushTimestamp = now;
+                    }
+
+                    // Now, add the damage to the accumulator.
+                    state.accumulatedDamage += damageTakenThisFrame;
+
+                    state.lastDamageTaken = damageTakenThisFrame;
+                    state.lastHitTimestamp = now; // Keep this for the "Hit Sparkle"
+
                     if (currentHealth <= 0.0f) {
                         state.deathTimestamp = now;
                     }

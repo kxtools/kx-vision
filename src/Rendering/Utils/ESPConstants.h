@@ -5,6 +5,9 @@
 namespace kx {
 
     namespace CombatEffects {
+        // --- Damage Accumulator ---
+        constexpr uint64_t DAMAGE_ACCUMULATOR_FLUSH_INTERVAL_MS = 400;
+
         // --- Core Combat Feedback ---
         constexpr uint64_t DAMAGE_FLASH_HOLD_DURATION_MS = 200;
         constexpr uint64_t DAMAGE_FLASH_FADE_DURATION_MS = 400;
