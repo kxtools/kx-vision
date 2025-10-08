@@ -230,16 +230,13 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
     // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
 
     // --- 1. LOD (Level of Detail) Calculation ---
-    const float LOD_TRANSITION_START = 180.0f;
-    const float LOD_TRANSITION_END = 200.0f;
-
     float gyroscopeAlpha = 1.0f;
     float circleAlpha = 0.0f;
 
-    if (context.gameplayDistance > LOD_TRANSITION_START) {
+    if (context.gameplayDistance > GadgetSphere::LOD_TRANSITION_START) {
         // We are in or past the transition zone.
-        float range = LOD_TRANSITION_END - LOD_TRANSITION_START;
-        float progress = std::clamp((context.gameplayDistance - LOD_TRANSITION_START) / range, 0.0f, 1.0f);
+        float range = GadgetSphere::LOD_TRANSITION_END - GadgetSphere::LOD_TRANSITION_START;
+        float progress = std::clamp((context.gameplayDistance - GadgetSphere::LOD_TRANSITION_START) / range, 0.0f, 1.0f);
 
         gyroscopeAlpha = 1.0f - progress; // Fades out from 1.0 to 0.0
         circleAlpha = progress;          // Fades in from 0.0 to 1.0
@@ -248,12 +245,11 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
     // --- RENDER THE 3D GYROSCOPE (if it's visible) ---
     if (gyroscopeAlpha > 0.0f) {
         // --- Define the 3D sphere's properties ---
-        const int NUM_RING_POINTS = 16;
+        const int NUM_RING_POINTS = GadgetSphere::NUM_RING_POINTS;
         const float PI = 3.14159265359f;
-        const float baseThickness = 2.5f;
-        const float finalLineThickness = std::clamp(baseThickness * scale, 1.0f, 5.0f);
-        const float VERTICAL_RADIUS = 0.35f;
-        const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * 0.9f;
+        const float finalLineThickness = std::clamp(GadgetSphere::BASE_THICKNESS * scale, GadgetSphere::MIN_THICKNESS, GadgetSphere::MAX_THICKNESS);
+        const float VERTICAL_RADIUS = GadgetSphere::VERTICAL_RADIUS;
+        const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * GadgetSphere::HORIZONTAL_RADIUS_RATIO;
 
         // --- Define vertices ---
         std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
@@ -294,11 +290,11 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
 
             ImU32 brightColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
             ImVec4 dimColorVec = ImGui::ColorConvertU32ToFloat4(brightColor);
-            dimColorVec.x *= 0.7f; dimColorVec.y *= 0.7f; dimColorVec.z *= 0.7f;
+            dimColorVec.x *= GadgetSphere::DIM_COLOR_MULTIPLIER; dimColorVec.y *= GadgetSphere::DIM_COLOR_MULTIPLIER; dimColorVec.z *= GadgetSphere::DIM_COLOR_MULTIPLIER;
             ImU32 dimColor = ImGui::ColorConvertFloat4ToU32(dimColorVec);
 
             const float equatorThickness = finalLineThickness;
-            const float verticalThickness = finalLineThickness * 0.7f;
+            const float verticalThickness = finalLineThickness * GadgetSphere::VERTICAL_THICKNESS_RATIO;
 
             if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), dimColor, false, verticalThickness);
             if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), dimColor, false, verticalThickness);
@@ -309,7 +305,7 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
     // --- RENDER THE 2D CIRCLE (if it's visible) ---
     if (circleAlpha > 0.0f) {
         // Calculate the radius for the 2D circle based on scale
-        float circleRadius = std::clamp(10.0f * scale, 2.0f, 15.0f);
+        float circleRadius = std::clamp(GadgetSphere::CIRCLE_RADIUS_BASE * scale, GadgetSphere::CIRCLE_RADIUS_MIN, GadgetSphere::CIRCLE_RADIUS_MAX);
 
         // Create the color with the calculated LOD alpha
         unsigned int masterAlpha = ((fadedEntityColor & 0xFF000000) >> 24);
@@ -317,8 +313,8 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
         ImU32 circleColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
 
         // Use the simple "Holographic Disc" from our earlier discussion for a nice look
-        ImU32 glowColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * 0.3f) << 24);
-        ImU32 coreColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * 0.7f) << 24);
+        ImU32 glowColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::GLOW_ALPHA_RATIO) << 24);
+        ImU32 coreColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::CORE_ALPHA_RATIO) << 24);
         ImU32 hotspotColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(255 * circleAlpha * finalAlpha));
 
         drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius, glowColor);
