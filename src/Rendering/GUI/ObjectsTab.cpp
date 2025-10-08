@@ -114,6 +114,18 @@ namespace kx {
 
                         ImGui::SeparatorText("Informational Overlays");
                         CheckboxWithTooltip("Show Details", "ObjectStyle", &settings.objectESP.renderDetails, "Show detailed information like the object type.");
+                        if (settings.objectESP.renderDetails) {
+                            if (ImGui::CollapsingHeader("Object Details Filters")) {
+                                CheckboxWithTooltip("Type", "ObjectDetails", &settings.objectESP.showDetailGadgetType, "Show the type of gadget (e.g., Resource Node, Waypoint).");
+                                ImGui::SameLine(column1);
+                                CheckboxWithTooltip("HP", "ObjectDetails", &settings.objectESP.showDetailHealth, "Show current and maximum health if applicable.");
+                                ImGui::SameLine(column2);
+                                CheckboxWithTooltip("Pos", "ObjectDetails", &settings.objectESP.showDetailPosition, "Show the object's world coordinates.");
+                                CheckboxWithTooltip("Node Type", "ObjectDetails", &settings.objectESP.showDetailResourceInfo, "Show resource node type.");
+                                ImGui::SameLine(column1);
+                                CheckboxWithTooltip("Status", "ObjectDetails", &settings.objectESP.showDetailGatherableStatus, "Show if a resource node is currently gatherable.");
+							}
+						}
                     }
                 }
                 ImGui::EndTabItem();

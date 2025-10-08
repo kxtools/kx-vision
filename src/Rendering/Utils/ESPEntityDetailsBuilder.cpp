@@ -68,27 +68,31 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
 
     details.reserve(8); // Future-proof: generous reserve for adding new fields
 
-    const char* gadgetName = ESPFormatting::GetGadgetTypeName(gadget->type);
-    details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), ESPColors::DEFAULT_TEXT });
+    if (settings.showDetailGadgetType) {
+        const char* gadgetName = ESPFormatting::GetGadgetTypeName(gadget->type);
+        details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), ESPColors::DEFAULT_TEXT });
+    }
 
-    if (gadget->maxHealth > 0) {
+    if (settings.showDetailHealth && gadget->maxHealth > 0) {
         details.push_back({ "HP: " + std::to_string(static_cast<int>(gadget->currentHealth)) + "/" + std::to_string(static_cast<int>(gadget->maxHealth)), ESPColors::DEFAULT_TEXT });
     }
 
-    if (gadget->type == Game::GadgetType::ResourceNode) {
+    if (settings.showDetailResourceInfo && gadget->type == Game::GadgetType::ResourceNode) {
         details.push_back({ "Node: " + ESPFormatting::ResourceNodeTypeToString(gadget->resourceType), ESPColors::DEFAULT_TEXT });
     }
 
-    if (gadget->isGatherable) {
+    if (settings.showDetailGatherableStatus && gadget->isGatherable) {
         details.push_back({ "Status: Gatherable", ESPColors::DEFAULT_TEXT });
     }
 
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(1)
-        << "Pos: (" << gadget->position.x
-        << ", " << gadget->position.y
-        << ", " << gadget->position.z << ")";
-    details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+    if (settings.showDetailPosition) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(1)
+            << "Pos: (" << gadget->position.x
+            << ", " << gadget->position.y
+            << ", " << gadget->position.z << ")";
+        details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+    }
 
     if (showDebugAddresses) {
         char addrStr[32];

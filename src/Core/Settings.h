@@ -104,6 +104,13 @@ namespace kx {
         bool showRifts = true;            // Type 13
         bool showGeneric = false;         // Type 3
         bool showUnknown = true;          // For any type not explicitly handled
+
+		// Detail-field filters
+		bool showDetailGadgetType = true;
+		bool showDetailHealth = true;
+        bool showDetailPosition = true;
+        bool showDetailResourceInfo = true;
+		bool showDetailGatherableStatus = true;
     };
 
     // --- User-configurable settings ---
