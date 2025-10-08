@@ -40,6 +40,17 @@ namespace kx {
         bool showHostile = true;
         bool showNeutral = true;
         bool showIndifferent = true;
+
+		// Detail-field filters
+        bool showDetailLevel = true;
+        bool showDetailHp = true;
+        bool showDetailAttitude = true;
+        bool showDetailEnergy = true;
+		bool showDetailPosition = true;
+		bool showDetailRank = true;
+		bool showDetailProfession = true;
+		bool showDetailRace = true;
+		bool showDetailName = true;
     };
 
     struct NpcEspSettings {

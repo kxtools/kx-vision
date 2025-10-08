@@ -47,6 +47,23 @@ namespace kx {
                     ImGui::PopItemWidth();
 
                     ImGui::Separator();
+					if (ImGui::CollapsingHeader("Player Details Filter"))
+                    {
+					    ImGui::Checkbox("Level", &settings.playerESP.showDetailLevel);
+					    ImGui::SameLine();
+					    ImGui::Checkbox("Prof", &settings.playerESP.showDetailProfession);
+					    ImGui::SameLine();
+					    ImGui::Checkbox("Attitude", &settings.playerESP.showDetailAttitude);
+					    ImGui::SameLine();
+					    ImGui::Checkbox("Race", &settings.playerESP.showDetailRace);
+					    ImGui::Checkbox("HP", &settings.playerESP.showDetailHp);
+					    ImGui::SameLine();
+					    ImGui::Checkbox("Energy", &settings.playerESP.showDetailEnergy);
+					    ImGui::SameLine();
+					    ImGui::Checkbox("Pos", &settings.playerESP.showDetailPosition);
+					}
+
+                    ImGui::Separator();
                     RenderCategoryStyleSettings("Player Style", settings.playerESP.renderBox, settings.playerESP.renderDistance, settings.playerESP.renderDot, &settings.playerESP.renderHealthBar, &settings.playerESP.renderEnergyBar, &settings.playerESP.renderDetails, &settings.playerESP.renderPlayerName);
                 }
                 ImGui::EndTabItem();

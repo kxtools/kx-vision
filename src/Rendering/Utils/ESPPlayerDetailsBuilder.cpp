@@ -22,11 +22,11 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
     
     details.reserve(16); // Future-proof: generous reserve for adding new fields
 
-    if (!player->playerName.empty()) {
+    if (settings.showDetailName && !player->playerName.empty()) {
         details.push_back({ "Player: " + player->playerName, ESPColors::DEFAULT_TEXT });
     }
 
-    if (player->level > 0) {
+    if (settings.showDetailLevel && player->level > 0) {
         std::string levelText = "Level: " + std::to_string(player->level);
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {
             levelText += " (" + std::to_string(player->scaledLevel) + ")";
@@ -34,35 +34,39 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         details.push_back({ levelText, ESPColors::DEFAULT_TEXT });
     }
 
-    if (player->profession != Game::Profession::None) {
+    if (settings.showDetailProfession && player->profession != Game::Profession::None) {
         const char* profName = ESPFormatting::GetProfessionName(player->profession);
         details.push_back({ "Prof: " + (profName ? std::string(profName) : "ID: " + std::to_string(static_cast<uint32_t>(player->profession))), ESPColors::DEFAULT_TEXT });
     }
 
     // Display player attitude
-    const char* attitudeName = ESPFormatting::GetAttitudeName(player->attitude);
-    details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "Unknown"), ESPColors::DEFAULT_TEXT });
+    if (settings.showDetailAttitude) {
+        const char* attitudeName = ESPFormatting::GetAttitudeName(player->attitude);
+        details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "Unknown"), ESPColors::DEFAULT_TEXT });
+	}
 
-    if (player->race != Game::Race::None) {
+    if (settings.showDetailRace && player->race != Game::Race::None) {
         const char* raceName = ESPFormatting::GetRaceName(player->race);
         details.push_back({ "Race: " + (raceName ? std::string(raceName) : "ID: " + std::to_string(static_cast<uint8_t>(player->race))), ESPColors::DEFAULT_TEXT });
     }
 
-    if (player->maxHealth > 0) {
+    if (settings.showDetailHp && player->maxHealth > 0) {
         details.push_back({ "HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)), ESPColors::DEFAULT_TEXT });
     }
 
-    if (player->maxEnergy > 0) {
+    if (settings.showDetailEnergy && player->maxEnergy > 0) {
         const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
         details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)", ESPColors::DEFAULT_TEXT });
     }
 
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(1)
-        << "Pos: (" << player->position.x
-        << ", " << player->position.y
-        << ", " << player->position.z << ")";
-    details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+    if (settings.showDetailPosition) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(1)
+            << "Pos: (" << player->position.x
+            << ", " << player->position.y
+            << ", " << player->position.z << ")";
+        details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+    }
 
     if (showDebugAddresses) {
         char addrStr[32];
