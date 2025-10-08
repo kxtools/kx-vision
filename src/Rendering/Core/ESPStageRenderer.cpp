@@ -29,6 +29,7 @@ void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, 
 }
 
 void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
+                                             Camera& camera,
                                              const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
                                              const ImVec2& center, unsigned int fadedEntityColor, 
                                              float distanceFadeAlpha, float scale, float circleRadius,
@@ -59,8 +60,98 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render bounding box OR circle
     if (context.renderBox) {
         if (isGadget) {
-            // Render circle for gadgets (centered at screenPos)
-            drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), circleRadius, fadedEntityColor, 0, finalBoxThickness);
+            // --- 3D Holographic Sphere ---
+            (void)circleRadius; // Unused
+            (void)finalBoxThickness; // Unused
+
+            const float dist = context.gameplayDistance;
+
+            // LOD 1: Far Range (> 80m) - Dot only
+            if (dist > 80.0f) {
+                if (context.renderDot) {
+                    ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
+                }
+            }
+            // LOD 2 & 3: Mid & Close Range
+            else {
+                // --- 1. Define the 3D sphere's properties ---
+                const int NUM_RING_POINTS = 16; // More points for a smoother circle
+                const float SHAPE_RADIUS = 0.3f; // Smaller radius
+                const float PI = 3.14159265359f;
+                const float finalLineThickness = 1.5f; // Thicker constant thickness
+
+                // --- 2. Define vertices for the three rings in LOCAL space ---
+                std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
+                localRingXY.reserve(NUM_RING_POINTS + 1);
+                localRingXZ.reserve(NUM_RING_POINTS + 1);
+                localRingYZ.reserve(NUM_RING_POINTS + 1);
+
+                for (int i = 0; i <= NUM_RING_POINTS; ++i) {
+                    float angle = 2.0f * PI * i / NUM_RING_POINTS;
+                    float s = sin(angle) * SHAPE_RADIUS;
+                    float c = cos(angle) * SHAPE_RADIUS;
+
+                    localRingXY.emplace_back(c, s, 0); // Horizontal (Equator)
+                    if (dist <= 30.0f) { // Only define vertical rings for close range
+                        localRingXZ.emplace_back(c, 0, s); // Vertical (Depth)
+                        localRingYZ.emplace_back(0, c, s); // Vertical (Side-to-side)
+                    }
+                }
+
+                // --- 3. Project all points to screen space ---
+                std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
+                bool projection_ok = true;
+
+                auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
+                    if (!projection_ok || local_points.empty()) return;
+                    screen_points.reserve(local_points.size());
+                    for (const auto& point : local_points) {
+                        glm::vec2 screen_point;
+                        if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, screen_point)) {
+                            screen_points.push_back(ImVec2(screen_point.x, screen_point.y));
+                        } else {
+                            projection_ok = false;
+                            screen_points.clear();
+                            return;
+                        }
+                    }
+                };
+
+                project_ring(localRingXY, screenRingXY);
+                if (dist <= 30.0f) { // Only project vertical rings for close range
+                    project_ring(localRingXZ, screenRingXZ);
+                    project_ring(localRingYZ, screenRingYZ);
+                }
+
+                // --- 4. Draw the 3D sphere --- 
+                if (projection_ok) {
+                    // Use a single, solid color for the entire sphere. No depth cueing.
+                    ImU32 sphereColor = IM_COL32(255, 255, 255, 200);
+
+                    auto draw_ring = [&](const std::vector<ImVec2>& points) {
+                        if (points.empty()) return;
+                        // Draw a single, closed polyline for a uniform look.
+                        drawList->AddPolyline(points.data(), points.size(), sphereColor, true, finalLineThickness);
+                    };
+
+
+                    // Draw horizontal ring for mid and close range
+                    draw_ring(screenRingXY);
+
+                    // Draw vertical rings only for close range
+                    if (dist <= 30.0f) {
+                        draw_ring(screenRingXZ);
+                        draw_ring(screenRingYZ);
+                    }
+
+                    if (context.renderDot) {
+                        ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
+                    }
+                }
+                else if (context.renderDot) { // Fallback
+                    ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
+                }
+            }
         } else {
             // Render traditional box for players/NPCs
             ESPShapeRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
@@ -84,7 +175,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render center dot
     if (context.renderDot) {
         if (isGadget) {
-            ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
+            // This is now handled by the 3D Locator Beacon logic inside the renderBox block
         } else {
             ESPShapeRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
         }
@@ -153,7 +244,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     const auto& props = *visualPropsOpt;
 
     // Now just use the pre-calculated properties to draw all components
-    RenderEntityComponents(drawList, context, props.screenPos, props.boxMin, props.boxMax, props.center,
+    RenderEntityComponents(drawList, context, camera, props.screenPos, props.boxMin, props.boxMax, props.center,
                           props.fadedEntityColor, props.distanceFadeAlpha, props.scale, props.circleRadius,
                           props.finalAlpha, props.finalFontSize, props.finalBoxThickness, props.finalDotRadius,
                           props.finalHealthBarWidth, props.finalHealthBarHeight, stateManager);
