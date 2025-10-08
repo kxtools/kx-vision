@@ -227,83 +227,103 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
 
 void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
     const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale) {
-    // --- Refined 3D Holographic Sphere (World-Aligned) ---
+    // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
 
-    // --- 1. Define the 3D sphere's properties ---
-    const int NUM_RING_POINTS = 16;
-    const float PI = 3.14159265359f;
+    // --- 1. LOD (Level of Detail) Calculation ---
+    const float LOD_TRANSITION_START = 180.0f;
+    const float LOD_TRANSITION_END = 200.0f;
 
-    // IMPROVEMENT: Use a base size and dynamic thickness that scales with distance.
-    // We clamp the thickness to maintain visibility and prevent it from becoming overpowering up close.
-    const float finalLineThickness = std::clamp(1.5f * scale, 1.0f, 4.0f);
+    float gyroscopeAlpha = 1.0f;
+    float circleAlpha = 0.0f;
 
-    // IMPROVEMENT: "Vertical Emphasis" trick to reduce the wide look at a distance.
-    // The horizontal ring is made slightly smaller than the vertical ones.
-    const float VERTICAL_RADIUS = 0.35f;
-    const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * 0.85f; // 15% smaller
+    if (context.gameplayDistance > LOD_TRANSITION_START) {
+        // We are in or past the transition zone.
+        float range = LOD_TRANSITION_END - LOD_TRANSITION_START;
+        float progress = std::clamp((context.gameplayDistance - LOD_TRANSITION_START) / range, 0.0f, 1.0f);
 
-    // --- 2. Define vertices for all three rings in LOCAL space ---
-    std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
-    localRingXY.reserve(NUM_RING_POINTS + 1);
-    localRingXZ.reserve(NUM_RING_POINTS + 1);
-    localRingYZ.reserve(NUM_RING_POINTS + 1);
-
-    for (int i = 0; i <= NUM_RING_POINTS; ++i) {
-        float angle = 2.0f * PI * i / NUM_RING_POINTS;
-        float s = sin(angle);
-        float c = cos(angle);
-
-        localRingXY.emplace_back(c * HORIZONTAL_RADIUS, s * HORIZONTAL_RADIUS, 0);
-        localRingXZ.emplace_back(c * VERTICAL_RADIUS, 0, s * VERTICAL_RADIUS);
-        localRingYZ.emplace_back(0, c * VERTICAL_RADIUS, s * VERTICAL_RADIUS);
+        gyroscopeAlpha = 1.0f - progress; // Fades out from 1.0 to 0.0
+        circleAlpha = progress;          // Fades in from 0.0 to 1.0
     }
 
-    // --- 3. Project all points to screen space ---
-    std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
-    bool projection_ok = true;
+    // --- RENDER THE 3D GYROSCOPE (if it's visible) ---
+    if (gyroscopeAlpha > 0.0f) {
+        // --- Define the 3D sphere's properties ---
+        const int NUM_RING_POINTS = 16;
+        const float PI = 3.14159265359f;
+        const float baseThickness = 2.5f;
+        const float finalLineThickness = std::clamp(baseThickness * scale, 1.0f, 5.0f);
+        const float VERTICAL_RADIUS = 0.35f;
+        const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * 0.9f;
 
-    auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
-        if (!projection_ok) return;
-        screen_points.reserve(local_points.size());
-        for (const auto& point : local_points) {
-            glm::vec2 screen_point;
-            if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, screen_point)) {
-                screen_points.push_back(ImVec2(screen_point.x, screen_point.y));
-            }
-            else {
-                projection_ok = false;
-                screen_points.clear();
-                return;
-            }
+        // --- Define vertices ---
+        std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
+        localRingXY.reserve(NUM_RING_POINTS + 1);
+        localRingXZ.reserve(NUM_RING_POINTS + 1);
+        localRingYZ.reserve(NUM_RING_POINTS + 1);
+        for (int i = 0; i <= NUM_RING_POINTS; ++i) {
+            float angle = 2.0f * PI * i / NUM_RING_POINTS;
+            float s = sin(angle), c = cos(angle);
+            localRingXY.emplace_back(c * HORIZONTAL_RADIUS, s * HORIZONTAL_RADIUS, 0);
+            localRingXZ.emplace_back(c * VERTICAL_RADIUS, 0, s * VERTICAL_RADIUS);
+            localRingYZ.emplace_back(0, c * VERTICAL_RADIUS, s * VERTICAL_RADIUS);
         }
-        };
 
-    project_ring(localRingXY, screenRingXY);
-    project_ring(localRingXZ, screenRingXZ);
-    project_ring(localRingYZ, screenRingYZ);
-
-    // --- 4. Draw the 3D sphere --- 
-    if (projection_ok) {
-        // IMPROVEMENT: Reintroduce Depth Cueing for a powerful 3D effect.
-        // The back half of the rings are fainter than the front.
-        unsigned int brightAlpha = static_cast<unsigned int>(200 * finalAlpha);
-        unsigned int dimAlpha = static_cast<unsigned int>(70 * finalAlpha);
-        ImU32 brightColor = (fadedEntityColor & 0x00FFFFFF) | (brightAlpha << 24);
-        ImU32 dimColor = (fadedEntityColor & 0x00FFFFFF) | (dimAlpha << 24);
-
-        auto draw_ring_with_depth = [&](const std::vector<ImVec2>& points) {
-            if (points.size() < NUM_RING_POINTS) return;
-            int half_points = NUM_RING_POINTS / 2;
-
-            // Draw the back half (dim)
-            drawList->AddPolyline(&points[0], half_points + 1, dimColor, false, finalLineThickness);
-            // Draw the front half (bright)
-            drawList->AddPolyline(&points[half_points], points.size() - half_points, brightColor, false, finalLineThickness);
+        // --- Project points ---
+        std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
+        bool projection_ok = true;
+        auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
+            if (!projection_ok) return;
+            screen_points.reserve(local_points.size());
+            for (const auto& point : local_points) {
+                glm::vec2 sp;
+                if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, sp)) {
+                    screen_points.push_back(ImVec2(sp.x, sp.y));
+                }
+                else { projection_ok = false; screen_points.clear(); return; }
+            }
             };
+        project_ring(localRingXY, screenRingXY);
+        project_ring(localRingXZ, screenRingXZ);
+        project_ring(localRingYZ, screenRingYZ);
 
-        draw_ring_with_depth(screenRingXY);
-        draw_ring_with_depth(screenRingXZ);
-        draw_ring_with_depth(screenRingYZ);
+        // --- Draw the 3D sphere ---
+        if (projection_ok) {
+            // Apply the master LOD fade alpha to all colors
+            unsigned int masterAlpha = (fadedEntityColor >> 24) & 0xFF;
+            unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * gyroscopeAlpha);
+
+            ImU32 brightColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
+            ImVec4 dimColorVec = ImGui::ColorConvertU32ToFloat4(brightColor);
+            dimColorVec.x *= 0.7f; dimColorVec.y *= 0.7f; dimColorVec.z *= 0.7f;
+            ImU32 dimColor = ImGui::ColorConvertFloat4ToU32(dimColorVec);
+
+            const float equatorThickness = finalLineThickness;
+            const float verticalThickness = finalLineThickness * 0.7f;
+
+            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), dimColor, false, verticalThickness);
+            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), dimColor, false, verticalThickness);
+            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), screenRingXY.size(), brightColor, false, equatorThickness);
+        }
+    }
+
+    // --- RENDER THE 2D CIRCLE (if it's visible) ---
+    if (circleAlpha > 0.0f) {
+        // Calculate the radius for the 2D circle based on scale
+        float circleRadius = std::clamp(10.0f * scale, 2.0f, 15.0f);
+
+        // Create the color with the calculated LOD alpha
+        unsigned int masterAlpha = ((fadedEntityColor & 0xFF000000) >> 24);
+        unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * circleAlpha);
+        ImU32 circleColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
+
+        // Use the simple "Holographic Disc" from our earlier discussion for a nice look
+        ImU32 glowColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * 0.3f) << 24);
+        ImU32 coreColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * 0.7f) << 24);
+        ImU32 hotspotColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(255 * circleAlpha * finalAlpha));
+
+        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius, glowColor);
+        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.7f, coreColor);
+        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.2f, hotspotColor);
     }
 }
 

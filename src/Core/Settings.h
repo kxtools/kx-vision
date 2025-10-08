@@ -81,7 +81,7 @@ namespace kx {
     struct ObjectEspSettings {
         bool enabled = true;
         bool renderCircle = false;      // Render a 2D circle for the object
-        bool renderSphere = true;       // Render a 3D sphere for the object
+        bool renderSphere = false;      // Render a 3D sphere for the object
         bool renderDistance = false;
         bool renderDot = true;
         bool renderDetails = false;
