@@ -139,7 +139,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         details,
         gadget->maxHealth > 0 ? (gadget->currentHealth / gadget->maxHealth) : -1.0f,
         -1.0f, // No energy for gadgets
-        settings.objectESP.renderBox,
+        (settings.objectESP.renderCircle || settings.objectESP.renderSphere),
         settings.objectESP.renderDistance,
         settings.objectESP.renderDot,
         settings.objectESP.renderDetails,

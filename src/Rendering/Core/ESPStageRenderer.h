@@ -80,12 +80,16 @@ private:
      * @param stateManager Reference to the combat state manager
      */
     static void RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
+                                      Camera& camera,
                                       const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
                                       const ImVec2& center, unsigned int fadedEntityColor, 
                                       float distanceFadeAlpha, float scale, float circleRadius,
                                       float finalAlpha, float finalFontSize, float finalBoxThickness,
                                       float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
                                       const CombatStateManager& stateManager);
+
+    static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
+        const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale);
 
 };
 

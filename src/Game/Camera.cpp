@@ -113,4 +113,5 @@ namespace kx {
         m_projectionMatrix[2][3] = 1.0f;
         m_projectionMatrix[3][2] = -(zFar * zNear) / (zFar - zNear);
     }
+
 } // namespace kx

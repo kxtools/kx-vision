@@ -29,6 +29,7 @@ void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, 
 }
 
 void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
+                                             Camera& camera,
                                              const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
                                              const ImVec2& center, unsigned int fadedEntityColor, 
                                              float distanceFadeAlpha, float scale, float circleRadius,
@@ -56,14 +57,18 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                                      finalHealthBarHeight);
     }
 
-    // Render bounding box OR circle
-    if (context.renderBox) {
-        if (isGadget) {
-            // Render circle for gadgets (centered at screenPos)
+    // Render bounding box for players/NPCs
+    if (!isGadget && context.renderBox) {
+        ESPShapeRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
+    }
+
+    // Render gadget visuals (non-exclusive)
+    if (isGadget) {
+        if (settings.objectESP.renderSphere) {
+            RenderGadgetSphere(drawList, context, camera, screenPos, finalAlpha, fadedEntityColor, scale);
+        }
+        if (settings.objectESP.renderCircle) {
             drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), circleRadius, fadedEntityColor, 0, finalBoxThickness);
-        } else {
-            // Render traditional box for players/NPCs
-            ESPShapeRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
         }
     }
 
@@ -153,7 +158,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     const auto& props = *visualPropsOpt;
 
     // Now just use the pre-calculated properties to draw all components
-    RenderEntityComponents(drawList, context, props.screenPos, props.boxMin, props.boxMax, props.center,
+    RenderEntityComponents(drawList, context, camera, props.screenPos, props.boxMin, props.boxMax, props.center,
                           props.fadedEntityColor, props.distanceFadeAlpha, props.scale, props.circleRadius,
                           props.finalAlpha, props.finalFontSize, props.finalBoxThickness, props.finalDotRadius,
                           props.finalHealthBarWidth, props.finalHealthBarHeight, stateManager);
@@ -217,6 +222,101 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
 
         auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera, stateManager);
+    }
+}
+
+void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
+    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale) {
+    // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
+
+    // --- Define the 3D sphere's geometric properties ---
+    const int NUM_RING_POINTS = GadgetSphere::NUM_RING_POINTS;
+    const float PI = 3.14159265359f;
+    const float VERTICAL_RADIUS = GadgetSphere::VERTICAL_RADIUS;
+    const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * GadgetSphere::HORIZONTAL_RADIUS_RATIO;
+
+    // --- Define vertices (precomputed and cached) ---
+    static std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
+    if (localRingXY.empty()) {
+        localRingXY.reserve(NUM_RING_POINTS + 1);
+        localRingXZ.reserve(NUM_RING_POINTS + 1);
+        localRingYZ.reserve(NUM_RING_POINTS + 1);
+        for (int i = 0; i <= NUM_RING_POINTS; ++i) {
+            float angle = 2.0f * PI * i / NUM_RING_POINTS;
+            float s = sin(angle), c = cos(angle);
+            localRingXY.emplace_back(c * HORIZONTAL_RADIUS, s * HORIZONTAL_RADIUS, 0);
+            localRingXZ.emplace_back(c * VERTICAL_RADIUS, 0, s * VERTICAL_RADIUS);
+            localRingYZ.emplace_back(0, c * VERTICAL_RADIUS, s * VERTICAL_RADIUS);
+        }
+    }
+
+    // --- 1. LOD (Level of Detail) Calculation ---
+    float gyroscopeAlpha = 1.0f;
+    float circleAlpha = 0.0f;
+
+    if (context.gameplayDistance > GadgetSphere::LOD_TRANSITION_START) {
+        // We are in or past the transition zone.
+        float range = GadgetSphere::LOD_TRANSITION_END - GadgetSphere::LOD_TRANSITION_START;
+        float progress = std::clamp((context.gameplayDistance - GadgetSphere::LOD_TRANSITION_START) / range, 0.0f, 1.0f);
+
+        gyroscopeAlpha = 1.0f - progress; // Fades out from 1.0 to 0.0
+        circleAlpha = progress;          // Fades in from 0.0 to 1.0
+    }
+
+    // --- RENDER THE 3D GYROSCOPE (if it's visible) ---
+    if (gyroscopeAlpha > 0.0f) {
+        const float finalLineThickness = std::clamp(GadgetSphere::BASE_THICKNESS * scale, GadgetSphere::MIN_THICKNESS, GadgetSphere::MAX_THICKNESS);
+
+        // --- Project points ---
+        std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
+        bool projection_ok = true;
+        auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
+            if (!projection_ok) return;
+            screen_points.reserve(local_points.size());
+            for (const auto& point : local_points) {
+                glm::vec2 sp;
+                if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, sp)) {
+                    screen_points.push_back(ImVec2(sp.x, sp.y));
+                }
+                else { projection_ok = false; screen_points.clear(); return; }
+            }
+            };
+        project_ring(localRingXY, screenRingXY);
+        project_ring(localRingXZ, screenRingXZ);
+        project_ring(localRingYZ, screenRingYZ);
+
+        // --- Draw the 3D sphere ---
+        if (projection_ok) {
+            // Define the single, final color for all rings.
+            unsigned int masterAlpha = (fadedEntityColor >> 24) & 0xFF;
+            unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * gyroscopeAlpha);
+            ImU32 finalColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
+
+            // Draw all three rings with the same bright color and thickness.
+            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), screenRingXY.size(), finalColor, false, finalLineThickness);
+            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), finalColor, false, finalLineThickness);
+            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), finalColor, false, finalLineThickness);
+        }
+    }
+
+    // --- RENDER THE 2D CIRCLE (if it's visible) ---
+    if (circleAlpha > 0.0f) {
+        // Calculate the radius for the 2D circle based on scale
+        float circleRadius = std::clamp(GadgetSphere::CIRCLE_RADIUS_BASE * scale, GadgetSphere::CIRCLE_RADIUS_MIN, GadgetSphere::CIRCLE_RADIUS_MAX);
+
+        // Create the color with the calculated LOD alpha
+        unsigned int masterAlpha = ((fadedEntityColor & 0xFF000000) >> 24);
+        unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * circleAlpha);
+        ImU32 circleColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
+
+        // Use the simple "Holographic Disc" from our earlier discussion for a nice look
+        ImU32 glowColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::GLOW_ALPHA_RATIO) << 24);
+        ImU32 coreColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::CORE_ALPHA_RATIO) << 24);
+        ImU32 hotspotColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(255 * circleAlpha * finalAlpha));
+
+        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius, glowColor);
+        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.7f, coreColor);
+        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.2f, hotspotColor);
     }
 }
 
