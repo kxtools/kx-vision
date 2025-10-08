@@ -229,6 +229,27 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
     const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale) {
     // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
 
+    // --- Define the 3D sphere's geometric properties ---
+    const int NUM_RING_POINTS = GadgetSphere::NUM_RING_POINTS;
+    const float PI = 3.14159265359f;
+    const float VERTICAL_RADIUS = GadgetSphere::VERTICAL_RADIUS;
+    const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * GadgetSphere::HORIZONTAL_RADIUS_RATIO;
+
+    // --- Define vertices (precomputed and cached) ---
+    static std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
+    if (localRingXY.empty()) {
+        localRingXY.reserve(NUM_RING_POINTS + 1);
+        localRingXZ.reserve(NUM_RING_POINTS + 1);
+        localRingYZ.reserve(NUM_RING_POINTS + 1);
+        for (int i = 0; i <= NUM_RING_POINTS; ++i) {
+            float angle = 2.0f * PI * i / NUM_RING_POINTS;
+            float s = sin(angle), c = cos(angle);
+            localRingXY.emplace_back(c * HORIZONTAL_RADIUS, s * HORIZONTAL_RADIUS, 0);
+            localRingXZ.emplace_back(c * VERTICAL_RADIUS, 0, s * VERTICAL_RADIUS);
+            localRingYZ.emplace_back(0, c * VERTICAL_RADIUS, s * VERTICAL_RADIUS);
+        }
+    }
+
     // --- 1. LOD (Level of Detail) Calculation ---
     float gyroscopeAlpha = 1.0f;
     float circleAlpha = 0.0f;
@@ -244,25 +265,7 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
 
     // --- RENDER THE 3D GYROSCOPE (if it's visible) ---
     if (gyroscopeAlpha > 0.0f) {
-        // --- Define the 3D sphere's properties ---
-        const int NUM_RING_POINTS = GadgetSphere::NUM_RING_POINTS;
-        const float PI = 3.14159265359f;
         const float finalLineThickness = std::clamp(GadgetSphere::BASE_THICKNESS * scale, GadgetSphere::MIN_THICKNESS, GadgetSphere::MAX_THICKNESS);
-        const float VERTICAL_RADIUS = GadgetSphere::VERTICAL_RADIUS;
-        const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * GadgetSphere::HORIZONTAL_RADIUS_RATIO;
-
-        // --- Define vertices ---
-        std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
-        localRingXY.reserve(NUM_RING_POINTS + 1);
-        localRingXZ.reserve(NUM_RING_POINTS + 1);
-        localRingYZ.reserve(NUM_RING_POINTS + 1);
-        for (int i = 0; i <= NUM_RING_POINTS; ++i) {
-            float angle = 2.0f * PI * i / NUM_RING_POINTS;
-            float s = sin(angle), c = cos(angle);
-            localRingXY.emplace_back(c * HORIZONTAL_RADIUS, s * HORIZONTAL_RADIUS, 0);
-            localRingXZ.emplace_back(c * VERTICAL_RADIUS, 0, s * VERTICAL_RADIUS);
-            localRingYZ.emplace_back(0, c * VERTICAL_RADIUS, s * VERTICAL_RADIUS);
-        }
 
         // --- Project points ---
         std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
