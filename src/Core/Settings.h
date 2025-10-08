@@ -56,6 +56,12 @@ namespace kx {
         bool showIndifferent = true;
         // Health-based filtering
         bool showDeadNpcs = false;  // Show NPCs with 0 HP (dead/defeated enemies)
+        // Detail-field filters
+        bool showDetailLevel = true;
+        bool showDetailHp = true;
+        bool showDetailAttitude = true;
+        bool showDetailRank = true;
+        bool showDetailPosition = true;
         // Add specific colors
         // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
         // etc.
