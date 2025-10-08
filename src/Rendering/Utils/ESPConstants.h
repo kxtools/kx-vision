@@ -306,4 +306,34 @@ namespace RenderingLayout {
     constexpr float TEXT_DEFAULT_LINE_SPACING = 2.0f;         // 2px between lines
 }
 
+/**
+ * @brief Constants for the 3D Gadget Sphere/Gyroscope visual.
+ */
+namespace GadgetSphere {
+    // LOD Transition
+    constexpr float LOD_TRANSITION_START = 180.0f;
+    constexpr float LOD_TRANSITION_END = 200.0f;
+
+    // Geometry
+    constexpr int NUM_RING_POINTS = 16;
+    constexpr float VERTICAL_RADIUS = 0.35f;
+    constexpr float HORIZONTAL_RADIUS_RATIO = 0.9f; // Horizontal radius = Vertical * this
+
+    // Thickness
+    constexpr float BASE_THICKNESS = 2.5f;
+    constexpr float MIN_THICKNESS = 1.0f;
+    constexpr float MAX_THICKNESS = 5.0f;
+    constexpr float VERTICAL_THICKNESS_RATIO = 0.7f; // Vertical rings are thinner
+
+    // Shading
+    constexpr float DIM_COLOR_MULTIPLIER = 0.7f;
+
+    // 2D Circle Fallback (Holographic Disc)
+    constexpr float CIRCLE_RADIUS_BASE = 10.0f;
+    constexpr float CIRCLE_RADIUS_MIN = 2.0f;
+    constexpr float CIRCLE_RADIUS_MAX = 15.0f;
+    constexpr float GLOW_ALPHA_RATIO = 0.3f;
+    constexpr float CORE_ALPHA_RATIO = 0.7f;
+}
+
 } // namespace kx
