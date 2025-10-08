@@ -88,6 +88,9 @@ private:
                                       float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
                                       const CombatStateManager& stateManager);
 
+    static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
+        const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale);
+
 };
 
 } // namespace kx

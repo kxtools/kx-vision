@@ -57,104 +57,18 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                                      finalHealthBarHeight);
     }
 
-    // Render bounding box OR circle
-    if (context.renderBox) {
-        if (isGadget) {
-            // --- 3D Holographic Sphere ---
-            (void)circleRadius; // Unused
-            (void)finalBoxThickness; // Unused
+    // Render bounding box for players/NPCs
+    if (!isGadget && context.renderBox) {
+        ESPShapeRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
+    }
 
-            const float dist = context.gameplayDistance;
-
-            // LOD 1: Far Range (> 80m) - Dot only
-            if (dist > 80.0f) {
-                if (context.renderDot) {
-                    ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
-                }
-            }
-            // LOD 2 & 3: Mid & Close Range
-            else {
-                // --- 1. Define the 3D sphere's properties ---
-                const int NUM_RING_POINTS = 16; // More points for a smoother circle
-                const float SHAPE_RADIUS = 0.3f; // Smaller radius
-                const float PI = 3.14159265359f;
-                const float finalLineThickness = 1.5f; // Thicker constant thickness
-
-                // --- 2. Define vertices for the three rings in LOCAL space ---
-                std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
-                localRingXY.reserve(NUM_RING_POINTS + 1);
-                localRingXZ.reserve(NUM_RING_POINTS + 1);
-                localRingYZ.reserve(NUM_RING_POINTS + 1);
-
-                for (int i = 0; i <= NUM_RING_POINTS; ++i) {
-                    float angle = 2.0f * PI * i / NUM_RING_POINTS;
-                    float s = sin(angle) * SHAPE_RADIUS;
-                    float c = cos(angle) * SHAPE_RADIUS;
-
-                    localRingXY.emplace_back(c, s, 0); // Horizontal (Equator)
-                    if (dist <= 30.0f) { // Only define vertical rings for close range
-                        localRingXZ.emplace_back(c, 0, s); // Vertical (Depth)
-                        localRingYZ.emplace_back(0, c, s); // Vertical (Side-to-side)
-                    }
-                }
-
-                // --- 3. Project all points to screen space ---
-                std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
-                bool projection_ok = true;
-
-                auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
-                    if (!projection_ok || local_points.empty()) return;
-                    screen_points.reserve(local_points.size());
-                    for (const auto& point : local_points) {
-                        glm::vec2 screen_point;
-                        if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, screen_point)) {
-                            screen_points.push_back(ImVec2(screen_point.x, screen_point.y));
-                        } else {
-                            projection_ok = false;
-                            screen_points.clear();
-                            return;
-                        }
-                    }
-                };
-
-                project_ring(localRingXY, screenRingXY);
-                if (dist <= 30.0f) { // Only project vertical rings for close range
-                    project_ring(localRingXZ, screenRingXZ);
-                    project_ring(localRingYZ, screenRingYZ);
-                }
-
-                // --- 4. Draw the 3D sphere --- 
-                if (projection_ok) {
-                    // Use a single, solid color for the entire sphere. No depth cueing.
-                    ImU32 sphereColor = IM_COL32(255, 255, 255, 200);
-
-                    auto draw_ring = [&](const std::vector<ImVec2>& points) {
-                        if (points.empty()) return;
-                        // Draw a single, closed polyline for a uniform look.
-                        drawList->AddPolyline(points.data(), points.size(), sphereColor, true, finalLineThickness);
-                    };
-
-
-                    // Draw horizontal ring for mid and close range
-                    draw_ring(screenRingXY);
-
-                    // Draw vertical rings only for close range
-                    if (dist <= 30.0f) {
-                        draw_ring(screenRingXZ);
-                        draw_ring(screenRingYZ);
-                    }
-
-                    if (context.renderDot) {
-                        ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
-                    }
-                }
-                else if (context.renderDot) { // Fallback
-                    ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
-                }
-            }
-        } else {
-            // Render traditional box for players/NPCs
-            ESPShapeRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
+    // Render gadget visuals (non-exclusive)
+    if (isGadget) {
+        if (settings.objectESP.renderSphere) {
+            RenderGadgetSphere(drawList, context, camera, screenPos, finalAlpha, fadedEntityColor, scale);
+        }
+        if (settings.objectESP.renderCircle) {
+            drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), circleRadius, fadedEntityColor, 0, finalBoxThickness);
         }
     }
 
@@ -175,7 +89,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render center dot
     if (context.renderDot) {
         if (isGadget) {
-            // This is now handled by the 3D Locator Beacon logic inside the renderBox block
+            ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
         } else {
             ESPShapeRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
         }
@@ -308,6 +222,88 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
 
         auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera, stateManager);
+    }
+}
+
+void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
+    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale) {
+    // --- Refined 3D Holographic Sphere (World-Aligned) ---
+
+    // --- 1. Define the 3D sphere's properties ---
+    const int NUM_RING_POINTS = 16;
+    const float PI = 3.14159265359f;
+
+    // IMPROVEMENT: Use a base size and dynamic thickness that scales with distance.
+    // We clamp the thickness to maintain visibility and prevent it from becoming overpowering up close.
+    const float finalLineThickness = std::clamp(1.5f * scale, 1.0f, 4.0f);
+
+    // IMPROVEMENT: "Vertical Emphasis" trick to reduce the wide look at a distance.
+    // The horizontal ring is made slightly smaller than the vertical ones.
+    const float VERTICAL_RADIUS = 0.35f;
+    const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * 0.85f; // 15% smaller
+
+    // --- 2. Define vertices for all three rings in LOCAL space ---
+    std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
+    localRingXY.reserve(NUM_RING_POINTS + 1);
+    localRingXZ.reserve(NUM_RING_POINTS + 1);
+    localRingYZ.reserve(NUM_RING_POINTS + 1);
+
+    for (int i = 0; i <= NUM_RING_POINTS; ++i) {
+        float angle = 2.0f * PI * i / NUM_RING_POINTS;
+        float s = sin(angle);
+        float c = cos(angle);
+
+        localRingXY.emplace_back(c * HORIZONTAL_RADIUS, s * HORIZONTAL_RADIUS, 0);
+        localRingXZ.emplace_back(c * VERTICAL_RADIUS, 0, s * VERTICAL_RADIUS);
+        localRingYZ.emplace_back(0, c * VERTICAL_RADIUS, s * VERTICAL_RADIUS);
+    }
+
+    // --- 3. Project all points to screen space ---
+    std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
+    bool projection_ok = true;
+
+    auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
+        if (!projection_ok) return;
+        screen_points.reserve(local_points.size());
+        for (const auto& point : local_points) {
+            glm::vec2 screen_point;
+            if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, screen_point)) {
+                screen_points.push_back(ImVec2(screen_point.x, screen_point.y));
+            }
+            else {
+                projection_ok = false;
+                screen_points.clear();
+                return;
+            }
+        }
+        };
+
+    project_ring(localRingXY, screenRingXY);
+    project_ring(localRingXZ, screenRingXZ);
+    project_ring(localRingYZ, screenRingYZ);
+
+    // --- 4. Draw the 3D sphere --- 
+    if (projection_ok) {
+        // IMPROVEMENT: Reintroduce Depth Cueing for a powerful 3D effect.
+        // The back half of the rings are fainter than the front.
+        unsigned int brightAlpha = static_cast<unsigned int>(200 * finalAlpha);
+        unsigned int dimAlpha = static_cast<unsigned int>(70 * finalAlpha);
+        ImU32 brightColor = (fadedEntityColor & 0x00FFFFFF) | (brightAlpha << 24);
+        ImU32 dimColor = (fadedEntityColor & 0x00FFFFFF) | (dimAlpha << 24);
+
+        auto draw_ring_with_depth = [&](const std::vector<ImVec2>& points) {
+            if (points.size() < NUM_RING_POINTS) return;
+            int half_points = NUM_RING_POINTS / 2;
+
+            // Draw the back half (dim)
+            drawList->AddPolyline(&points[0], half_points + 1, dimColor, false, finalLineThickness);
+            // Draw the front half (bright)
+            drawList->AddPolyline(&points[half_points], points.size() - half_points, brightColor, false, finalLineThickness);
+            };
+
+        draw_ring_with_depth(screenRingXY);
+        draw_ring_with_depth(screenRingXZ);
+        draw_ring_with_depth(screenRingYZ);
     }
 }
 

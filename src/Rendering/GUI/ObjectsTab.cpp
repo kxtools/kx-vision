@@ -106,10 +106,12 @@ namespace kx {
                         const float column2 = 360.0f;
 
                         ImGui::SeparatorText("Core Visuals");
-                        CheckboxWithTooltip("Show Circle", "ObjectStyle", &settings.objectESP.renderBox, "Render a circle around objects.\n(Objects are points in space, so a box is not applicable.)");
+                        CheckboxWithTooltip("2D Circle", "ObjectStyle", &settings.objectESP.renderCircle, "Render a 2D circle at the object's location.");
                         ImGui::SameLine(column1);
-                        CheckboxWithTooltip("Show Distance", "ObjectStyle", &settings.objectESP.renderDistance, "Show the distance to the object.");
+                        CheckboxWithTooltip("3D Sphere", "ObjectStyle", &settings.objectESP.renderSphere, "Render a 3D sphere for the object.");
                         ImGui::SameLine(column2);
+                        CheckboxWithTooltip("Show Distance", "ObjectStyle", &settings.objectESP.renderDistance, "Show the distance to the object.");
+
                         CheckboxWithTooltip("Show Dot", "ObjectStyle", &settings.objectESP.renderDot, "Render a dot at the object's exact location.");
 
                         ImGui::SeparatorText("Informational Overlays");
