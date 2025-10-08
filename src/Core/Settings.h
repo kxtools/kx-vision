@@ -40,6 +40,17 @@ namespace kx {
         bool showHostile = true;
         bool showNeutral = true;
         bool showIndifferent = true;
+
+		// Detail-field filters
+        bool showDetailLevel = true;
+        bool showDetailHp = true;
+        bool showDetailAttitude = true;
+        bool showDetailEnergy = true;
+		bool showDetailPosition = true;
+		bool showDetailRank = true;
+		bool showDetailProfession = true;
+		bool showDetailRace = true;
+		bool showDetailName = true;
     };
 
     struct NpcEspSettings {
@@ -56,6 +67,12 @@ namespace kx {
         bool showIndifferent = true;
         // Health-based filtering
         bool showDeadNpcs = false;  // Show NPCs with 0 HP (dead/defeated enemies)
+        // Detail-field filters
+        bool showDetailLevel = true;
+        bool showDetailHp = true;
+        bool showDetailAttitude = true;
+        bool showDetailRank = true;
+        bool showDetailPosition = true;
         // Add specific colors
         // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
         // etc.
@@ -87,6 +104,13 @@ namespace kx {
         bool showRifts = true;            // Type 13
         bool showGeneric = false;         // Type 3
         bool showUnknown = true;          // For any type not explicitly handled
+
+		// Detail-field filters
+		bool showDetailGadgetType = true;
+		bool showDetailHealth = true;
+        bool showDetailPosition = true;
+        bool showDetailResourceInfo = true;
+		bool showDetailGatherableStatus = true;
     };
 
     // --- User-configurable settings ---

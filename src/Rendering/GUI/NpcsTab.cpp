@@ -32,6 +32,21 @@ namespace kx {
 
                     ImGui::Separator();
                     RenderCategoryStyleSettings("NPC Style", settings.npcESP.renderBox, settings.npcESP.renderDistance, settings.npcESP.renderDot, &settings.npcESP.renderHealthBar, nullptr, &settings.npcESP.renderDetails);
+
+                    if (settings.npcESP.renderDetails) {
+                        ImGui::Separator();
+                        if (ImGui::CollapsingHeader("NPC Details Filter")) {
+                            ImGui::Checkbox("Level", &settings.npcESP.showDetailLevel);
+                            ImGui::SameLine();
+                            ImGui::Checkbox("HP", &settings.npcESP.showDetailHp);
+                            ImGui::SameLine();
+                            ImGui::Checkbox("Attitude", &settings.npcESP.showDetailAttitude);
+                            ImGui::SameLine();
+                            ImGui::Checkbox("Rank", &settings.npcESP.showDetailRank);
+                            ImGui::SameLine();
+                            ImGui::Checkbox("Pos", &settings.npcESP.showDetailPosition);
+                        }
+                    }
                 }
                 ImGui::EndTabItem();
             }
