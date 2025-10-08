@@ -287,21 +287,15 @@ void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
 
         // --- Draw the 3D sphere ---
         if (projection_ok) {
-            // Apply the master LOD fade alpha to all colors
+            // Define the single, final color for all rings.
             unsigned int masterAlpha = (fadedEntityColor >> 24) & 0xFF;
             unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * gyroscopeAlpha);
+            ImU32 finalColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
 
-            ImU32 brightColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
-            ImVec4 dimColorVec = ImGui::ColorConvertU32ToFloat4(brightColor);
-            dimColorVec.x *= GadgetSphere::DIM_COLOR_MULTIPLIER; dimColorVec.y *= GadgetSphere::DIM_COLOR_MULTIPLIER; dimColorVec.z *= GadgetSphere::DIM_COLOR_MULTIPLIER;
-            ImU32 dimColor = ImGui::ColorConvertFloat4ToU32(dimColorVec);
-
-            const float equatorThickness = finalLineThickness;
-            const float verticalThickness = finalLineThickness * GadgetSphere::VERTICAL_THICKNESS_RATIO;
-
-            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), dimColor, false, verticalThickness);
-            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), dimColor, false, verticalThickness);
-            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), screenRingXY.size(), brightColor, false, equatorThickness);
+            // Draw all three rings with the same bright color and thickness.
+            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), screenRingXY.size(), finalColor, false, finalLineThickness);
+            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), finalColor, false, finalLineThickness);
+            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), finalColor, false, finalLineThickness);
         }
     }
 
