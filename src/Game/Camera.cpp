@@ -114,15 +114,4 @@ namespace kx {
         m_projectionMatrix[3][2] = -(zFar * zNear) / (zFar - zNear);
     }
 
-    glm::vec3 Camera::GetRight() const {
-        return glm::inverse(m_viewMatrix)[0];
-    }
-
-    glm::vec3 Camera::GetUp() const {
-        return glm::inverse(m_viewMatrix)[1];
-    }
-
-    glm::vec3 Camera::GetForward() const {
-        return glm::inverse(m_viewMatrix)[2];
-    }
 } // namespace kx

@@ -17,10 +17,6 @@ namespace kx {
         const glm::vec3& GetCameraPosition() const { return m_camPos; }
         const glm::vec3& GetPlayerPosition() const { return m_playerPosition; }
 
-        glm::vec3 GetRight() const;
-        glm::vec3 GetUp() const;
-        glm::vec3 GetForward() const;
-
     private:
         glm::mat4 m_viewMatrix;
         glm::mat4 m_projectionMatrix;
