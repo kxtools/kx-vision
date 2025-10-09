@@ -68,6 +68,7 @@ public:
             case Game::CharacterRank::Ambient:
                 return settings.showAmbient;
             case Game::CharacterRank::Normal:
+				return settings.showNormal;
             default:
                 return true;
         }

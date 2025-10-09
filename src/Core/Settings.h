@@ -71,6 +71,7 @@ namespace kx {
         bool showElite = true;
         bool showVeteran = true;
         bool showAmbient = true;
+        bool showNormal = true;
         // Health-based filtering
         bool showDeadNpcs = false;  // Show NPCs with 0 HP (dead/defeated enemies)
         // Detail-field filters
