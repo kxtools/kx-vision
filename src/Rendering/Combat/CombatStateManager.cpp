@@ -56,16 +56,7 @@ namespace kx
 		const float damage = state.lastKnownHealth - currentHealth;
 		if (damage <= 0.0f) return;
 
-		// Check if the accumulator was empty BEFORE we add the new damage.
-		const bool isNewBurst = (state.accumulatedDamage <= 0.0f);
-
 		state.accumulatedDamage += damage;
-
-		// If it was a new burst, start the max-wait timer now.
-		if (isNewBurst)
-		{
-			state.lastFlushTimestamp = now;
-		}
 
 		state.lastDamageTaken = damage;
 		state.lastHitTimestamp = now;

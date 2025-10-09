@@ -282,34 +282,28 @@ namespace kx {
         uint64_t now = NowMs();
         float barHeight = barMax.y - barMin.y;
 
-        // --- FINAL, FULLY ADAPTIVE FLUSH LOGIC ---
+        // --- FINAL, EVENT-DRIVEN FLUSH LOGIC ---
         if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) {
             bool shouldFlush = false;
-            float hp = (std::max)(1.0f, entity->maxHealth);
 
-            // 1. Calculate the dynamic percentage threshold.
+            // 1. Calculate the dynamic percentage threshold (this logic is perfect).
+            float hp = (std::max)(1.0f, entity->maxHealth);
             float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
             float hpLog = log10f(hp);
-            // A more aggressive scaling formula for huge bosses.
             float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
             thresholdPercent *= scaleFactor;
-            thresholdPercent = std::clamp(thresholdPercent,
-                                          CombatEffects::MIN_CHUNK_PERCENT,
+            thresholdPercent = std::clamp(thresholdPercent, 
+                                          CombatEffects::MIN_CHUNK_PERCENT, 
                                           CombatEffects::MAX_CHUNK_PERCENT);
 
-            // 2. Calculate the DYNAMIC flush interval using a similar log curve.
-            //    't' goes from 0 (small mob) to 1 (huge boss).
-            float t = std::clamp((hpLog - 3.0f) / (7.0f - 3.0f), 0.0f, 1.0f); // Interpolates between 1k and 10M HP
-            uint64_t dynamicFlushInterval = CombatEffects::MIN_FLUSH_INTERVAL_MS +
-                                            static_cast<uint64_t>(t * (CombatEffects::MAX_FLUSH_INTERVAL_MS - CombatEffects::MIN_FLUSH_INTERVAL_MS));
-
-            // 3. Check flush conditions using our new dynamic values.
+            // 2. PRIMARY CONDITION: Flush if the chunk has reached a satisfying size.
             float accumulatedPercent = state->accumulatedDamage / hp;
             if (accumulatedPercent >= thresholdPercent) {
-                shouldFlush = true; // Flush because chunk is big enough.
+                shouldFlush = true;
             }
-            else if (now - state->lastFlushTimestamp > dynamicFlushInterval) {
-                shouldFlush = true; // Flush because we've waited long enough for this enemy type.
+            // 3. FALLBACK CONDITION: Flush if the burst has ended (no damage for 1.8s).
+            else if (now - state->lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS) {
+                shouldFlush = true;
             }
 
             if (shouldFlush) {

@@ -24,7 +24,6 @@ namespace kx
 
 		// Accumulated damage behavior
 		float accumulatedDamage = 0.0f;
-		uint64_t lastFlushTimestamp = 0; // When accumulator started (for adaptive flush timing)
 		uint64_t flushAnimationStartTime = 0; // Tracks the start of the fade-out animation.
 
 		// Utility helpers (optional future use)

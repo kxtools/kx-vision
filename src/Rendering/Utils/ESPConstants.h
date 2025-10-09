@@ -5,15 +5,21 @@
 namespace kx {
 
     namespace CombatEffects {
-        // --- FINAL ADAPTIVE DAMAGE ACCUMULATOR TUNING ---
-        constexpr float    DESIRED_CHUNK_PIXELS      = 22.0f;
-        constexpr uint64_t MIN_FLUSH_INTERVAL_MS     = 650;
-        constexpr uint64_t MAX_FLUSH_INTERVAL_MS     = 1800;
-        constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 200;
+		// --- FINAL, EVENT-DRIVEN DAMAGE ACCUMULATOR ---
 
-        // --- Health-Scaling Modifiers ---
-        constexpr float    MIN_CHUNK_PERCENT         = 0.012f;  // 1.2%
-        constexpr float    MAX_CHUNK_PERCENT         = 0.20f;   // 20%
+	    // The ideal on-screen width for a chunk. This is our primary trigger.
+	    constexpr float    DESIRED_CHUNK_PIXELS      = 22.0f;
+
+	    // If no new damage is received for this duration, the current burst is considered "over"
+	    // and the remaining accumulated damage will be flushed.
+	    constexpr uint64_t BURST_INACTIVITY_TIMEOUT_MS = 1800; // 1.8 seconds
+
+	    // The elegant fade-out animation for the chunk.
+	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 200;
+
+	    // --- Health-Scaling Modifiers ---
+	    constexpr float    MIN_CHUNK_PERCENT         = 0.012f; // 1.2%
+	    constexpr float    MAX_CHUNK_PERCENT         = 0.20f;  // 20%
 
         // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
         // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.
