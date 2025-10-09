@@ -5,14 +5,15 @@
 namespace kx {
 
     namespace CombatEffects {
-        // --- Adaptive Damage Accumulator (Pixel-Based Tuning) ---
-	    constexpr float    DESIRED_CHUNK_PIXELS      = 30.0f;   // The ideal on-screen size for a chunk.
-	    constexpr uint64_t MAX_FLUSH_INTERVAL_MS     = 1200;    // Responsiveness safety net.
-	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 180;   // The elegant fade-out duration.
+        // --- FINAL ADAPTIVE DAMAGE ACCUMULATOR TUNING ---
+        constexpr float    DESIRED_CHUNK_PIXELS      = 22.0f;
+        constexpr uint64_t MIN_FLUSH_INTERVAL_MS     = 650;
+        constexpr uint64_t MAX_FLUSH_INTERVAL_MS     = 1800;
+        constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 200;
 
-	    // --- NEW: Health-Scaling Modifiers ---
-	    constexpr float    MIN_CHUNK_PERCENT         = 0.01f;   // Chunks will never be smaller than 1% of max HP.
-	    constexpr float    MAX_CHUNK_PERCENT         = 0.15f;   // Chunks will never be larger than 15% of max HP.
+        // --- Health-Scaling Modifiers ---
+        constexpr float    MIN_CHUNK_PERCENT         = 0.012f;  // 1.2%
+        constexpr float    MAX_CHUNK_PERCENT         = 0.20f;   // 20%
 
         // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
         // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.

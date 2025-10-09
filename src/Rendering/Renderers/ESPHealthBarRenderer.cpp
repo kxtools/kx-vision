@@ -282,36 +282,38 @@ namespace kx {
         uint64_t now = NowMs();
         float barHeight = barMax.y - barMin.y;
 
-        // --- FINAL ADAPTIVE FLUSH LOGIC ---
+        // --- FINAL, FULLY ADAPTIVE FLUSH LOGIC ---
         if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) {
             bool shouldFlush = false;
+            float hp = (std::max)(1.0f, entity->maxHealth);
 
-            // 1. Calculate the base threshold from pixels.
+            // 1. Calculate the dynamic percentage threshold.
             float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
-
-            // 2. Calculate the health-based scale factor using a log curve.
-            //    This makes the required percentage smaller for very high HP targets.
-            float hpLog = log10f(entity->maxHealth + 1.0f);
-            float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.1f, 0.3f, 1.2f); // Tuned formula
-
-            // 3. Apply the scaling and clamp the result to sane limits.
+            float hpLog = log10f(hp);
+            // A more aggressive scaling formula for huge bosses.
+            float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
             thresholdPercent *= scaleFactor;
-            thresholdPercent = std::clamp(thresholdPercent, 
-                                          CombatEffects::MIN_CHUNK_PERCENT, 
+            thresholdPercent = std::clamp(thresholdPercent,
+                                          CombatEffects::MIN_CHUNK_PERCENT,
                                           CombatEffects::MAX_CHUNK_PERCENT);
 
-            // 4. Check if the accumulator has met the new, dynamic threshold.
-            float accumulatedPercent = state->accumulatedDamage / entity->maxHealth;
+            // 2. Calculate the DYNAMIC flush interval using a similar log curve.
+            //    't' goes from 0 (small mob) to 1 (huge boss).
+            float t = std::clamp((hpLog - 3.0f) / (7.0f - 3.0f), 0.0f, 1.0f); // Interpolates between 1k and 10M HP
+            uint64_t dynamicFlushInterval = CombatEffects::MIN_FLUSH_INTERVAL_MS +
+                                            static_cast<uint64_t>(t * (CombatEffects::MAX_FLUSH_INTERVAL_MS - CombatEffects::MIN_FLUSH_INTERVAL_MS));
+
+            // 3. Check flush conditions using our new dynamic values.
+            float accumulatedPercent = state->accumulatedDamage / hp;
             if (accumulatedPercent >= thresholdPercent) {
-                shouldFlush = true; // Flush because the chunk is a satisfying size.
+                shouldFlush = true; // Flush because chunk is big enough.
             }
-            // 5. Timeout fallback (our safety net).
-            else if (now - state->lastFlushTimestamp > CombatEffects::MAX_FLUSH_INTERVAL_MS) {
-                shouldFlush = true; // Flush because we need to stay responsive.
+            else if (now - state->lastFlushTimestamp > dynamicFlushInterval) {
+                shouldFlush = true; // Flush because we've waited long enough for this enemy type.
             }
 
             if (shouldFlush) {
-                state->flushAnimationStartTime = now; // Start the fade-out animation.
+                state->flushAnimationStartTime = now;
             }
         }
 
