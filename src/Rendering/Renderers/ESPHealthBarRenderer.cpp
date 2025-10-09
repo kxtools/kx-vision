@@ -396,7 +396,8 @@ namespace kx {
         float eased = Animation::EaseOutCubic(linear);
         float burstAlpha = 1.0f - Animation::EaseOutCubic(linear); // Eased alpha fade
 
-        float width = barWidth * eased;
+        // Invert the animation: start wide and shrink to center for an "impact" feel.
+        float width = barWidth * (1.0f - eased);
         ImVec2 center(barMin.x + barWidth * 0.5f, (barMin.y + barMax.y) * 0.5f);
         ImVec2 burstMin(center.x - width * 0.5f, barMin.y);
         ImVec2 burstMax(center.x + width * 0.5f, barMax.y);
