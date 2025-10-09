@@ -71,7 +71,7 @@ namespace kx {
             if (elapsed > fadeStart) {
                 uint64_t intoFade = elapsed - fadeStart;
                 float fadeProgress = static_cast<float>(intoFade) / CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
-                overlayAlpha = 1.0f - (fadeProgress > 1.f ? 1.f : fadeProgress);
+                overlayAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
             }
         }
 
@@ -293,7 +293,7 @@ namespace kx {
         if (linear > 1.f) linear = 1.f;
 
         float eased = Animation::EaseOutCubic(linear);
-        float burstAlpha = 1.0f - linear; // linear fade for visibility
+        float burstAlpha = 1.0f - Animation::EaseOutCubic(linear); // Eased alpha fade
 
         float width = barWidth * eased;
         ImVec2 center(barMin.x + barWidth * 0.5f, (barMin.y + barMax.y) * 0.5f);
