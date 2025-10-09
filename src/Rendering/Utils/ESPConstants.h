@@ -6,7 +6,7 @@ namespace kx {
 
     namespace CombatEffects {
         // --- Adaptive Damage Accumulator (Pixel-Based Tuning) ---
-	    constexpr float    DESIRED_CHUNK_PIXELS      = 20.0f;   // The ideal on-screen size for a chunk.
+	    constexpr float    DESIRED_CHUNK_PIXELS      = 30.0f;   // The ideal on-screen size for a chunk.
 	    constexpr uint64_t MAX_FLUSH_INTERVAL_MS     = 1200;    // Responsiveness safety net.
 	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 180;   // The elegant fade-out duration.
 
@@ -29,7 +29,7 @@ namespace kx {
 
         // --- Death Animation (TUNED FOR A SATISFYING FINISH) ---
         // A 2.5s animation that gives a definitive and polished end-of-combat signal.
-        constexpr uint64_t DEATH_BURST_DURATION_MS = 400;
+        constexpr uint64_t DEATH_BURST_DURATION_MS = 1000;
         constexpr uint64_t DEATH_FINAL_FADE_DURATION_MS = 2100;
         constexpr uint64_t DEATH_ANIMATION_TOTAL_DURATION_MS = DEATH_BURST_DURATION_MS + DEATH_FINAL_FADE_DURATION_MS;
 
