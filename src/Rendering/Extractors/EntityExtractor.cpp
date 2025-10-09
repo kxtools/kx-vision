@@ -40,6 +40,7 @@ namespace kx {
         if (health) {
             outPlayer.currentHealth = health.GetCurrent();
             outPlayer.maxHealth = health.GetMax();
+            outPlayer.currentBarrier = health.GetBarrier();
         }
 
         // Dodge Energy
@@ -101,6 +102,7 @@ namespace kx {
         if (health) {
             outNpc.currentHealth = health.GetCurrent();
             outNpc.maxHealth = health.GetMax();
+            outNpc.currentBarrier = health.GetBarrier();
         }
 
         // --- Stats ---

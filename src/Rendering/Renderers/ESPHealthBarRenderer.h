@@ -104,6 +104,14 @@ namespace kx {
             float barWidth,
             float barHeight,
             float fadeAlpha);
+
+        static void DrawBarrierOverlay(ImDrawList* dl,
+            const RenderableEntity* entity,
+            const ImVec2& barMin,
+            const ImVec2& barMax,
+            float barWidth,
+            float barHeight,
+            float fadeAlpha);
     };
 
 } // namespace kx
