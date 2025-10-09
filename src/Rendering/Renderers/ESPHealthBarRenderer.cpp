@@ -282,24 +282,36 @@ namespace kx {
         uint64_t now = NowMs();
         float barHeight = barMax.y - barMin.y;
 
-        // --- NEW ADAPTIVE FLUSH LOGIC ---
-        if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) { // Check that we aren't already fading
+        // --- FINAL ADAPTIVE FLUSH LOGIC ---
+        if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) {
             bool shouldFlush = false;
 
-            // 1. Pixel-based threshold
-            float desiredPercentFromPixels = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
-            float accumulatedPercent = state->accumulatedDamage / entity->maxHealth;
+            // 1. Calculate the base threshold from pixels.
+            float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
 
-            if (accumulatedPercent >= desiredPercentFromPixels) {
-                shouldFlush = true;
+            // 2. Calculate the health-based scale factor using a log curve.
+            //    This makes the required percentage smaller for very high HP targets.
+            float hpLog = log10f(entity->maxHealth + 1.0f);
+            float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.1f, 0.3f, 1.2f); // Tuned formula
+
+            // 3. Apply the scaling and clamp the result to sane limits.
+            thresholdPercent *= scaleFactor;
+            thresholdPercent = std::clamp(thresholdPercent, 
+                                          CombatEffects::MIN_CHUNK_PERCENT, 
+                                          CombatEffects::MAX_CHUNK_PERCENT);
+
+            // 4. Check if the accumulator has met the new, dynamic threshold.
+            float accumulatedPercent = state->accumulatedDamage / entity->maxHealth;
+            if (accumulatedPercent >= thresholdPercent) {
+                shouldFlush = true; // Flush because the chunk is a satisfying size.
             }
-            // 2. Timeout fallback
+            // 5. Timeout fallback (our safety net).
             else if (now - state->lastFlushTimestamp > CombatEffects::MAX_FLUSH_INTERVAL_MS) {
-                shouldFlush = true;
+                shouldFlush = true; // Flush because we need to stay responsive.
             }
 
             if (shouldFlush) {
-                state->flushAnimationStartTime = now; // START the fade-out animation!
+                state->flushAnimationStartTime = now; // Start the fade-out animation.
             }
         }
 
