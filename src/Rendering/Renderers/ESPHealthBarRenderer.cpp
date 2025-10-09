@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "ESPHealthBarRenderer.h"
 
 #include "../Utils/ESPConstants.h"
@@ -210,73 +212,57 @@ namespace kx {
     {
         if (!entity || entity->maxHealth <= 0) return;
 
-        float currentBarrier = entity->currentBarrier;
+        const float currentBarrier = entity->currentBarrier;
         float animatedBarrier = currentBarrier;
-        float flashAlpha = 0.0f;
 
-        // --- ANIMATION LOGIC ---
-        // Animate on ANY change (increase or decrease)
+        // Keep your easing for a smooth change
         if (state && state->lastBarrierChangeTimestamp > 0) {
-            uint64_t now = NowMs();
-            uint64_t elapsed = now - state->lastBarrierChangeTimestamp;
-
+            const uint64_t now = NowMs();
+            const uint64_t elapsed = now - state->lastBarrierChangeTimestamp;
             if (elapsed < CombatEffects::BARRIER_ANIM_DURATION_MS) {
-                float progress = static_cast<float>(elapsed) / CombatEffects::BARRIER_ANIM_DURATION_MS;
-                float eased = Animation::EaseOutQuint(progress);
-
-                // Animate the barrier value from its previous to its current amount
-                animatedBarrier = state->barrierOnLastChange + (currentBarrier - state->barrierOnLastChange) * eased;
-
-                // Add a flash effect that fades out over the animation duration
-                flashAlpha = 1.0f - eased;
+                const float progress = static_cast<float>(elapsed) / CombatEffects::BARRIER_ANIM_DURATION_MS;
+                const float eased = Animation::EaseOutCubic(progress);
+                animatedBarrier = state->barrierOnLastChange +
+                    (currentBarrier - state->barrierOnLastChange) * eased;
             }
         }
 
-        if (animatedBarrier <= 0) return;
+        if (animatedBarrier <= 0.0f) return;
 
-        // --- GEOMETRY CALCULATION ---
-        float healthPercent = entity->currentHealth / entity->maxHealth;
-        float barrierPercent = animatedBarrier / entity->maxHealth;
+        const float healthPercent = entity->currentHealth / entity->maxHealth;
+        const float barrierPercent = animatedBarrier / entity->maxHealth;
 
-        // --- Part 1: The "Fill" Portion ---
+        static constexpr ImU32 BARRIER_COLOR = IM_COL32(255, 230, 180, 240); // single barrier color
+        static constexpr ImU32 OVERFLOW_OUTLINE_COLOR = IM_COL32(255, 255, 255, 210); // separator on full bars
+
+        const ImU32 barrierColor = ApplyAlphaToColor(BARRIER_COLOR, fadeAlpha);
+        const ImU32 overflowOutlineColor = ApplyAlphaToColor(OVERFLOW_OUTLINE_COLOR, fadeAlpha);
+
+        // 1) Barrier inside the remaining health segment, left to right
         if (healthPercent < 1.0f) {
-            float startFillPercent = healthPercent;
-            float endFillPercent = (std::min)(1.0f, healthPercent + barrierPercent);
-
-            if (endFillPercent > startFillPercent) {
-                ImVec2 fillMin(barMin.x + barWidth * startFillPercent, barMin.y);
-                ImVec2 fillMax(barMin.x + barWidth * endFillPercent, barMax.y);
-
-                ImU32 fillColor = IM_COL32(180, 240, 255, 170);
-                fillColor = ApplyAlphaToColor(fillColor, fadeAlpha);
-                DrawFilledRect(dl, fillMin, fillMax, fillColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            const float startP = healthPercent;
+            const float endP = (std::min)(1.0f, healthPercent + barrierPercent);
+            if (endP > startP) {
+                ImVec2 fillP0(barMin.x + barWidth * startP, barMin.y);
+                ImVec2 fillP1(barMin.x + barWidth * endP, barMax.y);
+                DrawFilledRect(dl, fillP0, fillP1, barrierColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
             }
         }
 
-        // --- Part 2: The "Overflow" Portion ---
+        // 2) Barrier overflow, anchored to the right edge when clamped at full
         if (healthPercent + barrierPercent > 1.0f) {
-            float overflowAmountPercent = (healthPercent + barrierPercent) - 1.0f;
-            if (overflowAmountPercent > 0) {
-                ImVec2 overflowMin = barMin;
-                ImVec2 overflowMax(barMin.x + barWidth * (std::min)(1.0f, overflowAmountPercent), barMax.y);
+            const float overflowAmount = (healthPercent + barrierPercent) - 1.0f;
+            if (overflowAmount > 0.0f) {
+                const float ow = barWidth * (std::min)(1.0f, overflowAmount);
+                ImVec2 ovrP0(barMax.x - ow, barMin.y);
+                ImVec2 ovrP1(barMax.x, barMax.y);
 
-                ImU32 overflowColor = IM_COL32(220, 250, 255, 200);
-                overflowColor = ApplyAlphaToColor(overflowColor, fadeAlpha);
-                DrawFilledRect(dl, overflowMin, overflowMax, overflowColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-            }
-        }
+                DrawFilledRect(dl, ovrP0, ovrP1, barrierColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-        // --- Part 3: The "Flash" effect ---
-        if (flashAlpha > 0.0f) {
-            float startFlashPercent = state->barrierOnLastChange / entity->maxHealth;
-            float endFlashPercent = barrierPercent; // Use the animated barrier percent
-
-            if (endFlashPercent > startFlashPercent) {
-                ImVec2 flashMin(barMin.x + barWidth * startFlashPercent, barMin.y);
-                ImVec2 flashMax(barMin.x + barWidth * endFlashPercent, barMax.y);
-
-                ImU32 flashColor = IM_COL32(255, 255, 255, static_cast<int>(150 * flashAlpha * fadeAlpha));
-                DrawFilledRect(dl, flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+                // Outline and separator so it stays readable on a full bar
+                dl->AddRect(ovrP0, ovrP1, overflowOutlineColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING, 0, 1.0f);
+                dl->AddLine(ImVec2(ovrP0.x, barMin.y), ImVec2(ovrP0.x, barMax.y),
+                    ApplyAlphaToColor(IM_COL32(255, 255, 255, 180), fadeAlpha), 1.0f);
             }
         }
     }
