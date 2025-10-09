@@ -187,11 +187,11 @@ namespace kx {
         unsigned int entityColor,
         float barWidth,
         float barHeight,
-        const CombatStateManager& stateManager) {
+        CombatStateManager& stateManager) { // Removed const
         if (context.healthPercent < -1.0f) return; // allow exactly 0 for dead
         const RenderableEntity* entity = context.entity;
 
-        const EntityCombatState* state = stateManager.GetState(entity ? entity->address : nullptr);
+        EntityCombatState* state = stateManager.GetStateNonConst(entity ? entity->address : nullptr);
         uint64_t now = NowMs();
 
         float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
@@ -249,7 +249,7 @@ namespace kx {
 
     void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList,
         const EntityRenderContext& context,
-        const EntityCombatState* state,
+        EntityCombatState* state,
         const ImVec2& barMin,
         const ImVec2& barMax,
         float barWidth,
@@ -260,6 +260,27 @@ namespace kx {
 
         uint64_t now = NowMs();
         float barHeight = barMax.y - barMin.y;
+
+        // --- NEW ADAPTIVE FLUSH LOGIC ---
+        if (state && state->accumulatedDamage > 0) {
+            bool shouldFlush = false;
+
+            // 1. Pixel-based threshold
+            float desiredPercentFromPixels = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
+            float accumulatedPercent = state->accumulatedDamage / entity->maxHealth;
+
+            if (accumulatedPercent >= desiredPercentFromPixels) {
+                shouldFlush = true;
+            }
+            // 2. Timeout fallback
+            else if (now - state->lastFlushTimestamp > CombatEffects::MAX_FLUSH_INTERVAL_MS) {
+                shouldFlush = true;
+            }
+
+            if (shouldFlush) {
+                state->accumulatedDamage = 0.0f;
+            }
+        }
 
         // 1. Base health fill
         DrawHealthBase(drawList, barMin, barMax, barWidth, context.healthPercent, entityColor, fadeAlpha);

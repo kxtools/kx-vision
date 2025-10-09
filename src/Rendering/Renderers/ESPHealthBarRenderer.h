@@ -23,7 +23,7 @@ namespace kx {
             unsigned int entityColor,
             float barWidth,
             float barHeight,
-            const CombatStateManager& stateManager);
+            CombatStateManager& stateManager);
 
         static void RenderStandaloneEnergyBar(ImDrawList* drawList,
             const glm::vec2& centerPos,
@@ -37,7 +37,7 @@ namespace kx {
         // --- Internal Specializations ---
         static void RenderAliveState(ImDrawList* drawList,
             const EntityRenderContext& context,
-            const EntityCombatState* state,
+            EntityCombatState* state,
             const ImVec2& barMin,
             const ImVec2& barMax,
             float barWidth,

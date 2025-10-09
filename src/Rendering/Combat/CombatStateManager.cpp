@@ -45,8 +45,7 @@ namespace kx
 		state.lastKnownHealth = currentHealth;
 		state.lastSeenTimestamp = now;
 
-		// ...to here. It now runs LAST.
-		MaybeFlushAccumulator(state, entity, now);
+		// The flush logic is now handled in the renderer.
 	}
 
 	void CombatStateManager::HandleDamage(EntityCombatState& state,
@@ -103,37 +102,7 @@ namespace kx
 		// Intentional: healing while dead isn't considered; only a health increase from 0 triggers respawn.
 	}
 
-	void CombatStateManager::MaybeFlushAccumulator(EntityCombatState& state,
-	                                               const RenderableEntity* entity,
-	                                               uint64_t now)
-	{
-		if (state.accumulatedDamage <= 0.0f) return;
 
-		bool shouldFlush = false;
-
-		// Condition 1: Minimum visual chunk threshold reached
-		if (entity->maxHealth > 0.0f)
-		{
-			float accumulatedPercent = state.accumulatedDamage / entity->maxHealth;
-			if (accumulatedPercent >= CombatEffects::MIN_VISUAL_CHUNK_PERCENT)
-			{
-				shouldFlush = true;
-			}
-		}
-
-		// Condition 2: Timeout-based fallback flush to keep UI responsive
-		if (!shouldFlush &&
-			(now - state.lastFlushTimestamp > CombatEffects::MAX_FLUSH_INTERVAL_MS))
-		{
-			shouldFlush = true;
-		}
-
-		if (shouldFlush)
-		{
-			state.accumulatedDamage = 0.0f;
-			// Next burst timer starts when damage resumes.
-		}
-	}
 
 	void CombatStateManager::ResetForRespawn(EntityCombatState& state,
 	                                         float currentHealth,
@@ -147,6 +116,12 @@ namespace kx
 	}
 
 	const EntityCombatState* CombatStateManager::GetState(const void* entityId) const
+	{
+		auto it = m_entityStates.find(entityId);
+		return (it != m_entityStates.end()) ? &it->second : nullptr;
+	}
+
+	EntityCombatState* CombatStateManager::GetStateNonConst(const void* entityId)
 	{
 		auto it = m_entityStates.find(entityId);
 		return (it != m_entityStates.end()) ? &it->second : nullptr;

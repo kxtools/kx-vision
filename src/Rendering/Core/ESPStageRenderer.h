@@ -37,27 +37,27 @@ public:
      */
     static void RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                const PooledFrameRenderData& frameData, Camera& camera, 
-                               const CombatStateManager& stateManager);
+                               CombatStateManager& stateManager);
 
 private:
     // Pooled rendering functions for optimized performance
     static void RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                    const std::vector<RenderablePlayer*>& players, Camera& camera, 
-                                   const CombatStateManager& stateManager);
+                                   CombatStateManager& stateManager);
 
     static void RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                 const std::vector<RenderableNpc*>& npcs, Camera& camera, 
-                                const CombatStateManager& stateManager);
+                                CombatStateManager& stateManager);
 
     static void RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                    const std::vector<RenderableGadget*>& gadgets, Camera& camera, 
-                                   const CombatStateManager& stateManager);
+                                   CombatStateManager& stateManager);
 
     /**
      * @brief Universal entity rendering function using context struct
      */
     static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, 
-                           const CombatStateManager& stateManager);
+                           CombatStateManager& stateManager);
 
     /**
      * @brief Render all visual components for an entity
@@ -86,7 +86,7 @@ private:
                                       float distanceFadeAlpha, float scale, float circleRadius,
                                       float finalAlpha, float finalFontSize, float finalBoxThickness,
                                       float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
-                                      const CombatStateManager& stateManager);
+                                      CombatStateManager& stateManager);
 
     static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
         const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale);

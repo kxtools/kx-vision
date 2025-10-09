@@ -5,11 +5,9 @@
 namespace kx {
 
     namespace CombatEffects {
-        // --- Adaptive Damage Accumulator (TUNED FOR IMPACT & RESPONSIVENESS) ---
-        // Flush when damage reaches 2% of max HP, or after a max of 1 second.
-        // This guarantees satisfying chunks on high-HP bosses while always feeling responsive.
-        constexpr float    MIN_VISUAL_CHUNK_PERCENT = 0.02f; // From 0.015f
-        constexpr uint64_t MAX_FLUSH_INTERVAL_MS = 1000;      // From 1500
+        // --- Adaptive Damage Accumulator (Pixel-Based Tuning) ---
+	    constexpr float    DESIRED_CHUNK_PIXELS = 20.0f; // The target on-screen width for a satisfying chunk.
+	    constexpr uint64_t MAX_FLUSH_INTERVAL_MS = 1200; // A slightly longer responsive fallback.
 
         // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
         // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.

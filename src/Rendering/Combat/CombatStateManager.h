@@ -39,6 +39,7 @@ namespace kx
 		 * @brief Get immutable pointer to stored entity combat state (nullptr if missing).
 		 */
 		const EntityCombatState* GetState(const void* entityId) const;
+		EntityCombatState* GetStateNonConst(const void* entityId); // New method to get non-const state
 
 	private:
 		std::unordered_map<const void*, EntityCombatState> m_entityStates;
@@ -56,9 +57,6 @@ namespace kx
 		                   const RenderableEntity* entity,
 		                   float currentHealth,
 		                   uint64_t now);
-		void MaybeFlushAccumulator(EntityCombatState& state,
-		                           const RenderableEntity* entity,
-		                           uint64_t now);
 		void ResetForRespawn(EntityCombatState& state,
 		                     float currentHealth,
 		                     uint64_t now);
