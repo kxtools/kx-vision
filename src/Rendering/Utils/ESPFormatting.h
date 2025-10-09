@@ -58,7 +58,7 @@ namespace ESPFormatting {
 
     inline const char* GetRankName(Game::CharacterRank rank) {
         switch (rank) {
-            case Game::CharacterRank::Normal: return "";
+            case Game::CharacterRank::Normal: return "Normal";
             case Game::CharacterRank::Ambient: return "Ambient";
             case Game::CharacterRank::Veteran: return "Veteran";
             case Game::CharacterRank::Elite: return "Elite";

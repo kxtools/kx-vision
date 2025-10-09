@@ -23,6 +23,24 @@ namespace kx {
                         ImGui::Checkbox("Show Neutral", &settings.npcESP.showNeutral);
                         ImGui::Checkbox("Show Indifferent", &settings.npcESP.showIndifferent);
                     }
+
+                    ImGui::Separator();
+                    if (ImGui::CollapsingHeader("Rank Filter"))
+                    {
+                        const float column1 = 180.0f;
+                        const float column2 = 360.0f;
+                        ImGui::Checkbox("Show Legendary", &settings.npcESP.showLegendary);
+                        ImGui::SameLine(column1);
+                        ImGui::Checkbox("Show Champion", &settings.npcESP.showChampion);
+                        ImGui::SameLine(column2);
+                        ImGui::Checkbox("Show Elite", &settings.npcESP.showElite);
+                        ImGui::Checkbox("Show Veteran", &settings.npcESP.showVeteran);
+                        ImGui::SameLine(column1);
+                        ImGui::Checkbox("Show Ambient", &settings.npcESP.showAmbient);
+						ImGui::SameLine(column2);
+                        ImGui::Checkbox("Show Normal", &settings.npcESP.showNormal);
+                    }
+
                     ImGui::Separator();
                     ImGui::Text("Health Filter");
                     ImGui::Checkbox("Show Dead NPCs", &settings.npcESP.showDeadNpcs);

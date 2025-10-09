@@ -65,6 +65,13 @@ namespace kx {
         bool showHostile = true;
         bool showNeutral = true;
         bool showIndifferent = true;
+        // Rank filters
+        bool showLegendary = true;
+        bool showChampion = true;
+        bool showElite = true;
+        bool showVeteran = true;
+        bool showAmbient = true;
+        bool showNormal = true;
         // Health-based filtering
         bool showDeadNpcs = false;  // Show NPCs with 0 HP (dead/defeated enemies)
         // Detail-field filters
