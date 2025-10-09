@@ -34,6 +34,15 @@ namespace kx {
                 LOG_DEBUG("ChCliHealth::GetMax - Max: %.2f", max);
                 return max;
             }
+
+            float GetBarrier() const {
+                LOG_MEMORY("ChCliHealth", "GetBarrier", data(), Offsets::ChCliHealth::BARRIER);
+
+                float barrier = ReadMember<float>(Offsets::ChCliHealth::BARRIER, 0.0f);
+
+                LOG_DEBUG("ChCliHealth::GetBarrier - Barrier: %.2f", barrier);
+                return barrier;
+            }
         };
 
         /**
