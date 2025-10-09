@@ -101,6 +101,7 @@ namespace Offsets {
     struct ChCliHealth {
         static constexpr uintptr_t CURRENT = 0x0C;  // float current health
         static constexpr uintptr_t MAX = 0x10;      // float maximum health
+        static constexpr uintptr_t HEALTH_REGEN_RATE = 0x14; // float health regeneration rate (0 in combat, often 10% of max HP otherwise)
         static constexpr uintptr_t BARRIER = 0x28;  // float current barrier
     };
 
