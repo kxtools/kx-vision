@@ -85,9 +85,10 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         g_combatStateManager.Cleanup();
         s_lastCleanupTime = GetTickCount64();
     }
-    
+
     // Stage 3: Always render using cached filtered data (safe, fast operation)
-    ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFilteredData, *s_camera, g_combatStateManager);
+    ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFilteredData, *s_camera,
+                                      const_cast<CombatStateManager&>(g_combatStateManager));
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

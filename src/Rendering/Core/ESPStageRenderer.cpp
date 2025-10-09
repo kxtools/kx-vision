@@ -21,7 +21,7 @@ namespace kx {
 
 void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                       const PooledFrameRenderData& frameData, Camera& camera, 
-                                      const CombatStateManager& stateManager) {
+                                      CombatStateManager& stateManager) {
     // Simple rendering - no filtering logic, just draw everything that was passed in
     RenderPooledPlayers(drawList, screenWidth, screenHeight, frameData.players, camera, stateManager);
     RenderPooledNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera, stateManager);
@@ -35,7 +35,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                              float distanceFadeAlpha, float scale, float circleRadius,
                                              float finalAlpha, float finalFontSize, float finalBoxThickness,
                                              float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
-                                             const CombatStateManager& stateManager) {
+                                             CombatStateManager& stateManager) {
     const auto& settings = AppState::Get().GetSettings();
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
     bool isGadget = (context.entityType == ESPEntityType::Gadget);
@@ -147,7 +147,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     }
 }
 
-void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, const CombatStateManager& stateManager) {
+void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, CombatStateManager& stateManager) {
     // Calculate all visual properties using the new calculator
     auto visualPropsOpt = EntityVisualsCalculator::Calculate(context, camera, context.screenWidth, context.screenHeight);
     
@@ -165,7 +165,7 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
 }
 
 void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,
-    const std::vector<RenderablePlayer*>& players, Camera& camera, const CombatStateManager& stateManager) {
+    const std::vector<RenderablePlayer*>& players, Camera& camera, CombatStateManager& stateManager) {
     const auto& settings = AppState::Get().GetSettings();
 
     for (const auto* player : players) {
@@ -195,7 +195,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
 
 void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                        const std::vector<RenderableNpc*>& npcs, Camera& camera, 
-                                       const CombatStateManager& stateManager) {
+                                       CombatStateManager& stateManager) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto* npc : npcs) {
@@ -211,7 +211,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
 
 void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                           const std::vector<RenderableGadget*>& gadgets, Camera& camera, 
-                                          const CombatStateManager& stateManager) {
+                                          CombatStateManager& stateManager) {
     const auto& settings = AppState::Get().GetSettings();
     
     for (const auto* gadget : gadgets) {

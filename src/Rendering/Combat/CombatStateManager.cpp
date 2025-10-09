@@ -3,77 +3,143 @@
 #include <Windows.h>
 #include <algorithm>
 
-namespace kx {
-	void CombatStateManager::Update(const std::vector<RenderableEntity*>& entities, uint64_t now)
+namespace kx
+{
+	EntityCombatState& CombatStateManager::AcquireState(const RenderableEntity* entity)
 	{
-        for (const auto* entity : entities) {
-            if (!entity || !entity->isValid || entity->maxHealth <= 0.0f) {
-                continue;
-            }
-
-            const void* entityId = entity->address;
-            float currentHealth = entity->currentHealth;
-
-            // Find or create the state for this entity. The [] operator does this automatically.
-            auto& state = m_entityStates[entityId];
-
-            // Only process changes if we have a history for this entity.
-            if (state.lastSeenTimestamp > 0) {
-                // Check for a health change
-                if (currentHealth < state.lastKnownHealth) {
-                    // --- DAMAGE & DEATH LOGIC ---
-                    state.lastDamageTaken = state.lastKnownHealth - currentHealth;
-                    state.lastHitTimestamp = now;
-
-                    // Check if this damage event was the one that killed the entity.
-                    if (currentHealth <= 0.0f) {
-                        state.deathTimestamp = now;
-                    }
-                }
-                else if (currentHealth > state.lastKnownHealth) {
-                    // --- HEALING & RESPAWN LOGIC ---
-
-                    // This is the CRITICAL FIX: Check if the last known health was zero.
-                    // This is the only reliable way to detect a respawn or resurrection.
-                    if (state.lastKnownHealth <= 0.0f) {
-                        // RESPAWN/REUSE DETECTED.
-                        // This is not a heal. Reset the entire state to start fresh.
-                        state = {};
-                    }
-                    else {
-                        // This is a genuine heal on a living entity.
-                        if (now - state.lastHealTimestamp > CombatEffects::BURST_HEAL_WINDOW_MS) {
-                            state.healStartHealth = state.lastKnownHealth;
-                        }
-                        state.lastHealTimestamp = now;
-                        state.lastHealFlashTimestamp = now;
-                    }
-                }
-            }
-
-            // Always update the state for the next frame
-            state.lastKnownHealth = currentHealth;
-            state.lastSeenTimestamp = now;
-        }
+		return m_entityStates[entity->address]; // creates if missing
 	}
 
-    const EntityCombatState* CombatStateManager::GetState(const void* entityId) const {
-        auto it = m_entityStates.find(entityId);
-        if (it != m_entityStates.end()) {
-            return &it->second;
-        }
-        return nullptr;
-    }
+	void CombatStateManager::Update(const std::vector<RenderableEntity*>& entities, uint64_t now)
+	{
+		for (auto* entity : entities)
+		{
+			if (!entity || !entity->isValid || entity->maxHealth <= 0.0f)
+			{
+				continue;
+			}
+			ProcessEntity(entity, now);
+		}
+	}
 
-    void CombatStateManager::Cleanup() {
-        uint64_t now = GetTickCount64();
+	void CombatStateManager::ProcessEntity(RenderableEntity* entity, uint64_t now)
+	{
+		EntityCombatState& state = AcquireState(entity);
+		const float currentHealth = entity->currentHealth;
 
-        for (auto it = m_entityStates.begin(); it != m_entityStates.end(); ) {
-            if (now - it->second.lastSeenTimestamp > CombatEffects::STATE_CLEANUP_THRESHOLD_MS) {
-                it = m_entityStates.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-}
+		// This call is moved from here...
+		// MaybeFlushAccumulator(state, entity, now); 
+
+		if (state.lastSeenTimestamp > 0)
+		{
+			if (currentHealth < state.lastKnownHealth)
+			{
+				HandleDamage(state, entity, currentHealth, now);
+			}
+			else if (currentHealth > state.lastKnownHealth)
+			{
+				HandleHealing(state, entity, currentHealth, now);
+			}
+		}
+
+		state.lastKnownHealth = currentHealth;
+		state.lastSeenTimestamp = now;
+
+		// The flush logic is now handled in the renderer.
+	}
+
+	void CombatStateManager::HandleDamage(EntityCombatState& state,
+		const RenderableEntity* entity,
+		float currentHealth,
+		uint64_t now)
+	{
+		const float damage = state.lastKnownHealth - currentHealth;
+		if (damage <= 0.0f) return;
+
+		// Check if the accumulator was empty BEFORE we add the new damage.
+		const bool isNewBurst = (state.accumulatedDamage <= 0.0f);
+
+		state.accumulatedDamage += damage;
+
+		// If it was a new burst, start the max-wait timer now.
+		if (isNewBurst)
+		{
+			state.lastFlushTimestamp = now;
+		}
+
+		state.lastDamageTaken = damage;
+		state.lastHitTimestamp = now;
+
+		if (currentHealth <= 0.0f && state.deathTimestamp == 0)
+		{
+			state.deathTimestamp = now;
+		}
+	}
+
+	void CombatStateManager::HandleHealing(EntityCombatState& state,
+	                                       const RenderableEntity* entity,
+	                                       float currentHealth,
+	                                       uint64_t now)
+	{
+		// Respawn / resurrection detection: last known was zero or below.
+		if (state.lastKnownHealth <= 0.0f)
+		{
+			ResetForRespawn(state, currentHealth, now);
+			return;
+		}
+
+		// Genuine heal on a living entity
+		if (now - state.lastHealTimestamp > CombatEffects::BURST_HEAL_WINDOW_MS)
+		{
+			state.healStartHealth = state.lastKnownHealth;
+		}
+
+		state.lastHealTimestamp = now;
+		state.lastHealFlashTimestamp = now;
+
+		// If entity was previously flagged dead but now > 0, ensure deathTimestamp stays (for fade) or reset?
+		// Current behavior: we keep deathTimestamp until respawn detection resets it via ResetForRespawn().
+		// Intentional: healing while dead isn't considered; only a health increase from 0 triggers respawn.
+	}
+
+
+
+	void CombatStateManager::ResetForRespawn(EntityCombatState& state,
+	                                         float currentHealth,
+	                                         uint64_t now)
+	{
+		// Reset everything; keep only what should logically persist if desired (currently nothing).
+		state = {};
+		state.lastKnownHealth = currentHealth;
+		state.lastSeenTimestamp = now;
+		// No heal effects triggered; respawn is treated as a fresh baseline.
+	}
+
+	const EntityCombatState* CombatStateManager::GetState(const void* entityId) const
+	{
+		auto it = m_entityStates.find(entityId);
+		return (it != m_entityStates.end()) ? &it->second : nullptr;
+	}
+
+	EntityCombatState* CombatStateManager::GetStateNonConst(const void* entityId)
+	{
+		auto it = m_entityStates.find(entityId);
+		return (it != m_entityStates.end()) ? &it->second : nullptr;
+	}
+
+	void CombatStateManager::Cleanup()
+	{
+		uint64_t now = GetTickCount64();
+		for (auto it = m_entityStates.begin(); it != m_entityStates.end();)
+		{
+			if (now - it->second.lastSeenTimestamp > CombatEffects::STATE_CLEANUP_THRESHOLD_MS)
+			{
+				it = m_entityStates.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+} // namespace kx

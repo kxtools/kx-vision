@@ -1,19 +1,34 @@
 #pragma once
 #include <cstdint>
 
-namespace kx {
-    // Holds the dynamic combat information for a single entity
-    struct EntityCombatState {
-        float lastKnownHealth = 0.0f;
-        float lastDamageTaken = 0.0f;
-        uint64_t lastHitTimestamp = 0;  // Time of the last detected damage event
-        
-        // --- NEW MEMBERS FOR HEALING ---
-        float healStartHealth = 0.0f;   // Health value before the heal started
-        uint64_t lastHealTimestamp = 0; // Timestamp of the last healing event
-        uint64_t lastHealFlashTimestamp = 0; // Timestamp for the FAST flash effect
-        uint64_t deathTimestamp = 0; // Timestamp for when health first hit zero
+namespace kx
+{
+	// Holds the dynamic combat information for a single entity
+	struct EntityCombatState
+	{
+		// Last observed health snapshot
+		float lastKnownHealth = 0.0f;
 
-        uint64_t lastSeenTimestamp = 0; // Time the entity was last seen in a frame
-    };
-}
+		// Damage event data
+		float lastDamageTaken = 0.0f;
+		uint64_t lastHitTimestamp = 0;
+
+		// Healing event data
+		float healStartHealth = 0.0f;
+		uint64_t lastHealTimestamp = 0;
+		uint64_t lastHealFlashTimestamp = 0;
+
+		// Lifecycle
+		uint64_t deathTimestamp = 0; // When health first reached zero
+		uint64_t lastSeenTimestamp = 0; // Last frame we processed this entity
+
+		// Accumulated damage behavior
+		float accumulatedDamage = 0.0f;
+		uint64_t lastFlushTimestamp = 0; // When accumulator started (for adaptive flush timing)
+		uint64_t flushAnimationStartTime = 0; // Tracks the start of the fade-out animation.
+
+		// Utility helpers (optional future use)
+		bool IsDead() const { return deathTimestamp != 0; }
+		bool HasAccumulatedDamage() const { return accumulatedDamage > 0.0f; }
+	};
+} // namespace kx

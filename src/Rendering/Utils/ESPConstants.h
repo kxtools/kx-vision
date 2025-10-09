@@ -5,20 +5,31 @@
 namespace kx {
 
     namespace CombatEffects {
-        // --- Core Combat Feedback ---
+        // --- Adaptive Damage Accumulator (Pixel-Based Tuning) ---
+	    constexpr float    DESIRED_CHUNK_PIXELS      = 30.0f;   // The ideal on-screen size for a chunk.
+	    constexpr uint64_t MAX_FLUSH_INTERVAL_MS     = 1200;    // Responsiveness safety net.
+	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 180;   // The elegant fade-out duration.
+
+	    // --- NEW: Health-Scaling Modifiers ---
+	    constexpr float    MIN_CHUNK_PERCENT         = 0.01f;   // Chunks will never be smaller than 1% of max HP.
+	    constexpr float    MAX_CHUNK_PERCENT         = 0.15f;   // Chunks will never be larger than 15% of max HP.
+
+        // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
+        // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.
         constexpr uint64_t DAMAGE_FLASH_HOLD_DURATION_MS = 200;
         constexpr uint64_t DAMAGE_FLASH_FADE_DURATION_MS = 400;
         constexpr uint64_t DAMAGE_FLASH_TOTAL_DURATION_MS = DAMAGE_FLASH_HOLD_DURATION_MS + DAMAGE_FLASH_FADE_DURATION_MS;
 
+        // --- Healing Feedback (TUNED FOR CLARITY) ---
+        // A quick flash confirms the heal, and a 2s overlay shows the amount restored.
         constexpr uint64_t HEAL_FLASH_DURATION_MS = 150;
-        
-        // --- Healing Overlay ---
         constexpr uint64_t HEAL_OVERLAY_DURATION_MS = 2000;
         constexpr uint64_t HEAL_OVERLAY_FADE_DURATION_MS = 400;
-        constexpr uint64_t BURST_HEAL_WINDOW_MS = 350;
+        constexpr uint64_t BURST_HEAL_WINDOW_MS = 350; // Groups rapid heals
 
-        // --- Death Animation (Tuned for 2.5 second GW2 feel) ---
-        constexpr uint64_t DEATH_BURST_DURATION_MS = 400;
+        // --- Death Animation (TUNED FOR A SATISFYING FINISH) ---
+        // A 2.5s animation that gives a definitive and polished end-of-combat signal.
+        constexpr uint64_t DEATH_BURST_DURATION_MS = 1000;
         constexpr uint64_t DEATH_FINAL_FADE_DURATION_MS = 2100;
         constexpr uint64_t DEATH_ANIMATION_TOTAL_DURATION_MS = DEATH_BURST_DURATION_MS + DEATH_FINAL_FADE_DURATION_MS;
 

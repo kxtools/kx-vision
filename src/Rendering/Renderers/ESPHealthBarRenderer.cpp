@@ -1,213 +1,395 @@
 #include "ESPHealthBarRenderer.h"
+
 #include "../Utils/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <Windows.h>
 #include "../Combat/CombatStateManager.h"
 #include "../Data/EntityRenderContext.h"
 #include <algorithm>
-#include <cmath>
 #include "../Utils/AnimationHelpers.h"
 
 namespace kx {
 
-void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList, const glm::vec2& centerPos,
-                                                     const EntityRenderContext& context, unsigned int entityColor,
-                                                     float barWidth, float barHeight,
-                                                     const CombatStateManager& stateManager) {
-    if (context.healthPercent < -1.0f) return; // Allow 0 health for dead entities
+    // -----------------------------------------------------------------------------
+    // Small Utilities
+    // -----------------------------------------------------------------------------
+    ImU32 ESPHealthBarRenderer::ApplyAlphaToColor(ImU32 color, float alphaMul) {
+        alphaMul = (alphaMul < 0.f ? 0.f : (alphaMul > 1.f ? 1.f : alphaMul));
+        unsigned int a = (color >> 24) & 0xFF;
+        unsigned int finalA = ClampAlpha(static_cast<unsigned int>(a * alphaMul + 0.5f));
+        return (color & 0x00FFFFFF) | (finalA << 24);
+    }
 
-    // --- 1. Initial Setup (The Controller's Job) ---
-    const RenderableEntity* entity = context.entity;
-    const EntityCombatState* state = stateManager.GetState(entity ? entity->address : nullptr);
-    uint64_t now = GetTickCount64();
-    float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
-    float timeFade = 1.0f;
+    uint64_t ESPHealthBarRenderer::NowMs() {
+        return GetTickCount64();
+    }
 
-    // --- 2. Handle Final Fade-out After Death ---
-    if (state && state->deathTimestamp > 0) {
-        uint64_t timeSinceDeath = now - state->deathTimestamp;
-        if (timeSinceDeath > CombatEffects::DEATH_BURST_DURATION_MS) {
-            uint64_t timeIntoFade = timeSinceDeath - CombatEffects::DEATH_BURST_DURATION_MS;
-            if (timeIntoFade < CombatEffects::DEATH_FINAL_FADE_DURATION_MS) {
-                timeFade = 1.0f - ((float)timeIntoFade / CombatEffects::DEATH_FINAL_FADE_DURATION_MS);
-            } else {
-                timeFade = 0.0f;
+    void ESPHealthBarRenderer::DrawFilledRect(ImDrawList* dl,
+        const ImVec2& min,
+        const ImVec2& max,
+        ImU32 color,
+        float rounding) {
+        if (min.x < max.x && min.y < max.y) {
+            dl->AddRectFilled(min, max, color, rounding);
+        }
+    }
+
+    void ESPHealthBarRenderer::DrawHealthBase(ImDrawList* dl,
+        const ImVec2& barMin,
+        const ImVec2& barMax,
+        float barWidth,
+        float healthPercent,
+        unsigned int entityColor,
+        float fadeAlpha) {
+        float hpWidth = barWidth * Clamp01(healthPercent);
+        ImVec2 hMin = barMin;
+        ImVec2 hMax(barMin.x + hpWidth, barMax.y);
+
+        unsigned int healthAlpha =
+            static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha + 0.5f);
+        unsigned int baseColorNoA = (entityColor & 0x00FFFFFF);
+        ImU32 baseHealthColor = (baseColorNoA) | (ClampAlpha(healthAlpha) << 24);
+
+        DrawFilledRect(dl, hMin, hMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+    }
+
+    void ESPHealthBarRenderer::DrawHealOverlay(ImDrawList* dl,
+        const EntityCombatState* state,
+        const RenderableEntity* entity,
+        uint64_t now,
+        const ImVec2& barMin,
+        float barWidth,
+        float barHeight) {
+        if (!state || !entity || entity->maxHealth <= 0) return;
+        if (state->lastHealTimestamp == 0) return;
+        uint64_t elapsed = now - state->lastHealTimestamp;
+        if (elapsed >= CombatEffects::HEAL_OVERLAY_DURATION_MS) return;
+
+        float overlayAlpha = 1.0f;
+        if (CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS < CombatEffects::HEAL_OVERLAY_DURATION_MS) {
+            uint64_t fadeStart = CombatEffects::HEAL_OVERLAY_DURATION_MS - CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
+            if (elapsed > fadeStart) {
+                uint64_t intoFade = elapsed - fadeStart;
+                float fadeProgress = static_cast<float>(intoFade) / CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
+                overlayAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
             }
         }
-    }
-    if (timeFade <= 0.0f) return;
-    fadeAlpha *= timeFade;
 
-    // --- 3. Draw Common Elements ---
-    const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
-    ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
-    ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
-    unsigned int bgAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha + 0.5f);
-    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, ClampAlpha(bgAlpha)), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+        float startPercent = state->healStartHealth / entity->maxHealth;
+        float currentPercent = entity->currentHealth / entity->maxHealth;
+        if (currentPercent <= startPercent) return;
 
-    // --- 4. Delegate to the Correct Specialist ---
-    if (state && state->deathTimestamp > 0) {
-        RenderDeadState(drawList, state, barMin, barMax, barWidth, fadeAlpha);
-    } else {
-        RenderAliveState(drawList, context, state, barMin, barMax, barWidth, entityColor, fadeAlpha);
+        ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
+        ImVec2 oMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
+
+        ImU32 color = IM_COL32(100, 255, 100, static_cast<int>(200 * overlayAlpha));
+        DrawFilledRect(dl, oMin, oMax, color, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    // --- 5. Draw Final Border ---
-    if (context.attitude == Game::Attitude::Hostile) {
-        unsigned int borderAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha + 0.5f);
-        drawList->AddRect(barMin, barMax, IM_COL32(0, 0, 0, ClampAlpha(borderAlpha)), 
-                         RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING, 0, 
-                         RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
+    void ESPHealthBarRenderer::DrawHealFlash(ImDrawList* dl,
+        const EntityCombatState* state,
+        const RenderableEntity* entity,
+        uint64_t now,
+        const ImVec2& barMin,
+        float barWidth,
+        float barHeight,
+        float fadeAlpha) {
+        if (!state || !entity || entity->maxHealth <= 0) return;
+        if (state->lastHealFlashTimestamp == 0) return;
+
+        uint64_t elapsed = now - state->lastHealFlashTimestamp;
+        if (elapsed >= CombatEffects::HEAL_FLASH_DURATION_MS) return;
+
+        float linear = static_cast<float>(elapsed) / CombatEffects::HEAL_FLASH_DURATION_MS;
+        if (linear > 1.f) linear = 1.f;
+        float flashAlpha = 1.0f - Animation::EaseOutCubic(linear);
+
+        float startPercent = state->healStartHealth / entity->maxHealth;
+        float currentPercent = entity->currentHealth / entity->maxHealth;
+        if (currentPercent <= startPercent) return;
+
+        ImVec2 fMin(barMin.x + barWidth * startPercent, barMin.y);
+        ImVec2 fMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
+
+        ImU32 flashColor = IM_COL32(200, 255, 255, static_cast<int>(flashAlpha * 255 * fadeAlpha));
+        DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
-}
 
-// --- NEW, SPECIALIST HELPER FUNCTIONS ---
+    void ESPHealthBarRenderer::DrawAccumulatedDamage(ImDrawList* dl,
+        EntityCombatState* state,
+        const RenderableEntity* entity,
+        const ImVec2& barMin,
+        float barWidth,
+        float barHeight,
+        float fadeAlpha) {
+        if (!state || !entity || entity->maxHealth <= 0) return;
+        if (state->accumulatedDamage <= 0) return;
 
-void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList, const EntityRenderContext& context, const EntityCombatState* state,
-                                            const ImVec2& barMin, const ImVec2& barMax, float barWidth, unsigned int entityColor, float fadeAlpha) {
-    const RenderableEntity* entity = context.entity;
-    if (!entity || entity->maxHealth <= 0) return;
+        uint64_t now = NowMs();
+        float animationAlpha = 1.0f; // Start with full opacity
 
-    // Calculate base color
-    float healthWidth = barWidth * context.healthPercent;
-    ImVec2 healthBarMin = barMin;
-    ImVec2 healthBarMax(barMin.x + healthWidth, barMax.y);
-    unsigned int healthAlpha = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha + 0.5f);
-    unsigned int baseHealthColor = (entityColor & 0x00FFFFFF) | (ClampAlpha(healthAlpha) << 24);
-
-    // Draw base health fill
-    drawList->AddRectFilled(healthBarMin, healthBarMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-    
-    if (!state) return; // No state, no effects
-    uint64_t now = GetTickCount64();
-
-    // Render Heal Absorption Overlay
-    if (state->lastHealTimestamp > 0 && (now - state->lastHealTimestamp < CombatEffects::HEAL_OVERLAY_DURATION_MS)) {
-        uint64_t timeSinceHeal = now - state->lastHealTimestamp;
-
-        // --- NEW FADE-OUT LOGIC ---
-        float overlayAlpha = 1.0f; // Start with full alpha
-        uint64_t fadeStartTime = CombatEffects::HEAL_OVERLAY_DURATION_MS - CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
-
-        if (timeSinceHeal > fadeStartTime) {
-            // We are in the fade period.
-            uint64_t timeIntoFade = timeSinceHeal - fadeStartTime;
-            float fadeProgress = (float)timeIntoFade / CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
-            overlayAlpha = 1.0f - fadeProgress;
+        // --- FADE-OUT ANIMATION LOGIC ---
+        if (state->flushAnimationStartTime > 0) {
+            uint64_t elapsed = now - state->flushAnimationStartTime;
+            
+            if (elapsed >= CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS) {
+                // Animation finished: Reset everything for the next burst.
+                state->accumulatedDamage = 0.0f;
+                state->flushAnimationStartTime = 0;
+                return; // Don't draw anything this frame.
+            } else {
+                // We are mid-fade. Calculate the alpha.
+                float progress = static_cast<float>(elapsed) / CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS;
+                animationAlpha = 1.0f - Animation::EaseOutCubic(progress); // Fade from 1.0 to 0.0
+            }
         }
 
-        float healStartPercent = state->healStartHealth / entity->maxHealth;
-        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
+        float realHealth = entity->currentHealth;
+        float endHealth = realHealth + state->accumulatedDamage;
 
-        if (currentHealthPercent > healStartPercent) {
-            // Apply the calculated alpha to the overlay color
-            ImU32 healOverlayColor = IM_COL32(100, 255, 100, (int)(200 * overlayAlpha)); 
+        float startPercent = realHealth / entity->maxHealth;
+        float endPercent = endHealth / entity->maxHealth;
+        if (endPercent > 1.f) endPercent = 1.f;
+        if (endPercent <= startPercent) return;
 
-            ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
-            ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
-            drawList->AddRectFilled(healOverlayMin, healOverlayMax, healOverlayColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-        }
-    }
+        ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
+        ImVec2 oMax(barMin.x + barWidth * endPercent, barMin.y + barHeight);
 
-    // Render Heal Flash
-    if (state->lastHealFlashTimestamp > 0 && (now - state->lastHealFlashTimestamp < CombatEffects::HEAL_FLASH_DURATION_MS)) {
-        uint64_t timeSinceHealFlash = now - state->lastHealFlashTimestamp;
-        float linearProgress = (float)timeSinceHealFlash / CombatEffects::HEAL_FLASH_DURATION_MS;
-        float flashAlpha = 1.0f - Animation::EaseOutCubic(linearProgress);
-        ImU32 healFlashColor = IM_COL32(200, 255, 255, (int)(flashAlpha * 255));
-        float healStartPercent = state->healStartHealth / entity->maxHealth;
-        float currentHealthPercent = entity->currentHealth / entity->maxHealth;
-        if (currentHealthPercent > healStartPercent) {
-            ImVec2 healOverlayMin(barMin.x + barWidth * healStartPercent, barMin.y);
-            ImVec2 healOverlayMax(barMin.x + barWidth * currentHealthPercent, barMax.y);
-            drawList->AddRectFilled(healOverlayMin, healOverlayMax, healFlashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-        }
-    }
-
-// Render Damage Flash
-if (state->lastHitTimestamp > 0 && (now - state->lastHitTimestamp < CombatEffects::DAMAGE_FLASH_TOTAL_DURATION_MS)) {
-    uint64_t timeSinceHit = now - state->lastHitTimestamp;
-    float flashAlpha = 1.0f; // Default to solid
-
-    // Check if we are in the "Fade" phase
-    if (timeSinceHit > CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS) {
-        uint64_t timeIntoFade = timeSinceHit - CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS;
-        float fadeProgress = (float)timeIntoFade / CombatEffects::DAMAGE_FLASH_FADE_DURATION_MS;
-        flashAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
-    }
-    // Otherwise, we are in the "Hold" phase, and alpha remains 1.0f
-
-    ImU32 flashColor = IM_COL32(255, 255, 0, (int)(flashAlpha * 255));
-    float currentHealthPercent = entity->currentHealth / entity->maxHealth;
-    float previousHealthPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
-    ImVec2 flashMin = ImVec2(barMin.x + barWidth * currentHealthPercent, barMin.y);
-    ImVec2 flashMax = ImVec2(barMin.x + barWidth * (previousHealthPercent < 1.0f ? previousHealthPercent : 1.0f), barMax.y);
-    if (flashMin.x < flashMax.x) {
-        drawList->AddRectFilled(flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-    }
-}
-}
-
-void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList, const EntityCombatState* state,
-                                           const ImVec2& barMin, const ImVec2& barMax, float barWidth, float fadeAlpha) {
-    uint64_t now = GetTickCount64();
-    uint64_t timeSinceDeath = now - state->deathTimestamp;
-
-    // Render Energy Burst
-    if (timeSinceDeath < CombatEffects::DEATH_BURST_DURATION_MS) {
-        float linearProgress = (float)timeSinceDeath / CombatEffects::DEATH_BURST_DURATION_MS;
-
-        // --- APPLY EASING ---
-        float easedProgress = Animation::EaseOutCubic(linearProgress);
+        ImU32 base = IM_COL32(255, 255, 150, 150);
+        unsigned int a = (base >> 24) & 0xFF;
         
-        float burstAlpha = 1.0f - linearProgress; // Keep the fade linear so it doesn't disappear too fast
-        float currentBurstWidth = barWidth * easedProgress; // The burst width now follows the eased curve!
+        // Apply BOTH the distance fade AND our new animation fade.
+        unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha * animationAlpha + 0.5f);
+        base = (base & 0x00FFFFFF) | (ClampAlpha(finalA) << 24);
 
-        ImU32 burstColor = IM_COL32(200, 255, 255, (int)(burstAlpha * 255 * fadeAlpha));
+        DrawFilledRect(dl, oMin, oMax, base, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+    }
+
+    void ESPHealthBarRenderer::DrawDamageFlash(ImDrawList* dl,
+        const EntityCombatState* state,
+        const RenderableEntity* entity,
+        uint64_t now,
+        const ImVec2& barMin,
+        float barWidth,
+        float barHeight,
+        float fadeAlpha) {
+        if (!state || !entity || entity->maxHealth <= 0) return;
+        if (state->lastHitTimestamp == 0) return;
+
+        uint64_t elapsed = now - state->lastHitTimestamp;
+        if (elapsed >= CombatEffects::DAMAGE_FLASH_TOTAL_DURATION_MS) return;
+
+        float flashAlpha = 1.0f;
+        if (elapsed > CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS) {
+            uint64_t intoFade = elapsed - CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS;
+            float fadeProgress = static_cast<float>(intoFade) / CombatEffects::DAMAGE_FLASH_FADE_DURATION_MS;
+            if (fadeProgress > 1.f) fadeProgress = 1.f;
+            flashAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
+        }
+
+        float currentPercent = entity->currentHealth / entity->maxHealth;
+        float previousPercent = (entity->currentHealth + state->lastDamageTaken) / entity->maxHealth;
+        if (previousPercent > 1.f) previousPercent = 1.f;
+        if (previousPercent <= currentPercent) return;
+
+        ImVec2 fMin(barMin.x + barWidth * currentPercent, barMin.y);
+        ImVec2 fMax(barMin.x + barWidth * previousPercent, barMin.y + barHeight);
+
+        ImU32 flashColor = IM_COL32(255, 255, 0, static_cast<int>(flashAlpha * 255 * fadeAlpha));
+        DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+    }
+
+    // -----------------------------------------------------------------------------
+    // Public API
+    // -----------------------------------------------------------------------------
+    void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList,
+        const glm::vec2& centerPos,
+        const EntityRenderContext& context,
+        unsigned int entityColor,
+        float barWidth,
+        float barHeight,
+        CombatStateManager& stateManager) { // Removed const
+        if (context.healthPercent < -1.0f) return; // allow exactly 0 for dead
+        const RenderableEntity* entity = context.entity;
+
+        EntityCombatState* state = stateManager.GetStateNonConst(entity ? entity->address : nullptr);
+        uint64_t now = NowMs();
+
+        float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
+        float timeFade = 1.0f;
+
+        // Death fade-out
+        if (state && state->deathTimestamp > 0) {
+            uint64_t sinceDeath = now - state->deathTimestamp;
+            if (sinceDeath > CombatEffects::DEATH_BURST_DURATION_MS) {
+                uint64_t intoFade = sinceDeath - CombatEffects::DEATH_BURST_DURATION_MS;
+                if (intoFade < CombatEffects::DEATH_FINAL_FADE_DURATION_MS) {
+                    timeFade = 1.0f - static_cast<float>(intoFade) / CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
+                }
+                else {
+                    timeFade = 0.0f;
+                }
+            }
+        }
+        if (timeFade <= 0.f) return;
+        fadeAlpha *= timeFade;
+
+        // Geometry
+        const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
+        ImVec2 barMin(centerPos.x - barWidth * 0.5f, centerPos.y + yOffset);
+        ImVec2 barMax(centerPos.x + barWidth * 0.5f, barMin.y + barHeight);
+
+        // Background
+        unsigned int bgAlpha =
+            static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha + 0.5f);
+        drawList->AddRectFilled(barMin,
+            barMax,
+            IM_COL32(0, 0, 0, ClampAlpha(bgAlpha)),
+            RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+
+        // Alive vs Dead specialized rendering
+        if (state && state->deathTimestamp > 0) {
+            RenderDeadState(drawList, state, barMin, barMax, barWidth, fadeAlpha);
+        }
+        else {
+            RenderAliveState(drawList, context, state, barMin, barMax, barWidth, entityColor, fadeAlpha);
+        }
+
+        // Border (hostile only)
+        if (context.attitude == Game::Attitude::Hostile) {
+            unsigned int borderAlpha =
+                static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha + 0.5f);
+            drawList->AddRect(barMin,
+                barMax,
+                IM_COL32(0, 0, 0, ClampAlpha(borderAlpha)),
+                RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING,
+                0,
+                RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
+        }
+    }
+
+    void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList,
+        const EntityRenderContext& context,
+        EntityCombatState* state,
+        const ImVec2& barMin,
+        const ImVec2& barMax,
+        float barWidth,
+        unsigned int entityColor,
+        float fadeAlpha) {
+        const RenderableEntity* entity = context.entity;
+        if (!entity || entity->maxHealth <= 0) return;
+
+        uint64_t now = NowMs();
         float barHeight = barMax.y - barMin.y;
-        
-        ImVec2 centerPoint(barMin.x + barWidth * 0.5f, barMin.y + barHeight * 0.5f);
-        ImVec2 burstMin(centerPoint.x - currentBurstWidth * 0.5f, barMin.y);
-        ImVec2 burstMax(centerPoint.x + currentBurstWidth * 0.5f, barMax.y);
-        
-        drawList->AddRectFilled(burstMin, burstMax, burstColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+
+        // --- FINAL ADAPTIVE FLUSH LOGIC ---
+        if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) {
+            bool shouldFlush = false;
+
+            // 1. Calculate the base threshold from pixels.
+            float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
+
+            // 2. Calculate the health-based scale factor using a log curve.
+            //    This makes the required percentage smaller for very high HP targets.
+            float hpLog = log10f(entity->maxHealth + 1.0f);
+            float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.1f, 0.3f, 1.2f); // Tuned formula
+
+            // 3. Apply the scaling and clamp the result to sane limits.
+            thresholdPercent *= scaleFactor;
+            thresholdPercent = std::clamp(thresholdPercent, 
+                                          CombatEffects::MIN_CHUNK_PERCENT, 
+                                          CombatEffects::MAX_CHUNK_PERCENT);
+
+            // 4. Check if the accumulator has met the new, dynamic threshold.
+            float accumulatedPercent = state->accumulatedDamage / entity->maxHealth;
+            if (accumulatedPercent >= thresholdPercent) {
+                shouldFlush = true; // Flush because the chunk is a satisfying size.
+            }
+            // 5. Timeout fallback (our safety net).
+            else if (now - state->lastFlushTimestamp > CombatEffects::MAX_FLUSH_INTERVAL_MS) {
+                shouldFlush = true; // Flush because we need to stay responsive.
+            }
+
+            if (shouldFlush) {
+                state->flushAnimationStartTime = now; // Start the fade-out animation.
+            }
+        }
+
+        // 1. Base health fill
+        DrawHealthBase(drawList, barMin, barMax, barWidth, context.healthPercent, entityColor, fadeAlpha);
+
+        if (!state) return;
+
+        // 2. Healing overlays
+        DrawHealOverlay(drawList, state, entity, now, barMin, barWidth, barHeight);
+        DrawHealFlash(drawList, state, entity, now, barMin, barWidth, barHeight, fadeAlpha);
+
+        // 3. Accumulated damage
+        DrawAccumulatedDamage(drawList, state, entity, barMin, barWidth, barHeight, fadeAlpha);
+
+        // 4. Damage flash
+        DrawDamageFlash(drawList, state, entity, now, barMin, barWidth, barHeight, fadeAlpha);
     }
-}
 
-void ESPHealthBarRenderer::RenderStandaloneEnergyBar(ImDrawList* drawList, const glm::vec2& centerPos,
-                                                     float energyPercent, float fadeAlpha,
-                                                     float barWidth, float barHeight, float healthBarHeight) {
-    if (energyPercent < 0.0f || energyPercent > 1.0f) return;
+    void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList,
+        const EntityCombatState* state,
+        const ImVec2& barMin,
+        const ImVec2& barMax,
+        float barWidth,
+        float fadeAlpha) {
+        if (!state) return;
+        uint64_t now = NowMs();
+        uint64_t sinceDeath = now - state->deathTimestamp;
 
-    // Position below health bar, with a 2px gap
-    const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET + healthBarHeight + 2.0f;
-    ImVec2 barMin(centerPos.x - barWidth / 2, centerPos.y + yOffset);
-    ImVec2 barMax(centerPos.x + barWidth / 2, centerPos.y + yOffset + barHeight);
+        if (sinceDeath >= CombatEffects::DEATH_BURST_DURATION_MS) return;
 
-    // Background
-    float bgAlphaf = RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha;
-    unsigned int bgAlpha = static_cast<unsigned int>(bgAlphaf + 0.5f);
-    bgAlpha = ClampAlpha(bgAlpha);
-    drawList->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, bgAlpha), RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+        float linear = static_cast<float>(sinceDeath) / CombatEffects::DEATH_BURST_DURATION_MS;
+        if (linear > 1.f) linear = 1.f;
 
-    // Energy fill
-    float energyWidth = barWidth * energyPercent;
-    ImVec2 energyBarMin(barMin.x, barMin.y);
-    ImVec2 energyBarMax(barMin.x + energyWidth, barMax.y);
+        float eased = Animation::EaseOutCubic(linear);
+        float burstAlpha = 1.0f - Animation::EaseOutCubic(linear); // Eased alpha fade
 
-    // Color
-    unsigned int energyColor = ESPColors::ENERGY_BAR;
-    float colorAlphaF = ((energyColor >> 24) & 0xFF) / 255.0f; // Get alpha from the constant
-    colorAlphaF *= fadeAlpha; // Apply distance fade
-    unsigned int finalAlpha = static_cast<unsigned int>(colorAlphaF * 255.0f + 0.5f);
-    finalAlpha = ClampAlpha(finalAlpha);
-    unsigned int finalColor = (energyColor & 0x00FFFFFF) | (finalAlpha << 24);
-    
-    drawList->AddRectFilled(energyBarMin, energyBarMax, finalColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-}
+        float width = barWidth * eased;
+        ImVec2 center(barMin.x + barWidth * 0.5f, (barMin.y + barMax.y) * 0.5f);
+        ImVec2 burstMin(center.x - width * 0.5f, barMin.y);
+        ImVec2 burstMax(center.x + width * 0.5f, barMax.y);
 
-unsigned int ESPHealthBarRenderer::ClampAlpha(unsigned int alpha) {
-    return (alpha < 255u ? alpha : 255u);
-}
+        ImU32 burstColor = IM_COL32(200, 255, 255, static_cast<int>(burstAlpha * 255 * fadeAlpha));
+        DrawFilledRect(drawList, burstMin, burstMax, burstColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+    }
+
+    void ESPHealthBarRenderer::RenderStandaloneEnergyBar(ImDrawList* drawList,
+        const glm::vec2& centerPos,
+        float energyPercent,
+        float fadeAlpha,
+        float barWidth,
+        float barHeight,
+        float healthBarHeight) {
+        if (energyPercent < 0.0f || energyPercent > 1.0f) return;
+
+        const float yOffset =
+            RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET + healthBarHeight + 2.0f; // 2px gap below health bar
+        ImVec2 barMin(centerPos.x - barWidth * 0.5f, centerPos.y + yOffset);
+        ImVec2 barMax(centerPos.x + barWidth * 0.5f, barMin.y + barHeight);
+
+        // Background
+        unsigned int bgAlpha =
+            ClampAlpha(static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha + 0.5f));
+        drawList->AddRectFilled(barMin,
+            barMax,
+            IM_COL32(0, 0, 0, bgAlpha),
+            RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+
+        // Energy fill
+        float fillWidth = barWidth * energyPercent;
+        ImVec2 eMin(barMin.x, barMin.y);
+        ImVec2 eMax(barMin.x + fillWidth, barMax.y);
+
+        ImU32 energyColor = ESPColors::ENERGY_BAR;
+        float colorA = ((energyColor >> 24) & 0xFF) / 255.0f;
+        ImU32 finalColor = ApplyAlphaToColor(energyColor, colorA * fadeAlpha);
+
+        DrawFilledRect(drawList, eMin, eMax, finalColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+    }
 
 } // namespace kx
