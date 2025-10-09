@@ -112,6 +112,7 @@ namespace kx {
 
         static void DrawBarrierOverlay(ImDrawList* dl,
             const RenderableEntity* entity,
+            const EntityCombatState* state,
             const ImVec2& barMin,
             const ImVec2& barMax,
             float barWidth,

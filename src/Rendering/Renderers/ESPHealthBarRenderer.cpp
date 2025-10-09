@@ -201,49 +201,83 @@ namespace kx {
 
     void ESPHealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
         const RenderableEntity* entity,
+        const EntityCombatState* state,
         const ImVec2& barMin,
         const ImVec2& barMax,
         float barWidth,
         float barHeight,
         float fadeAlpha)
     {
-        if (!entity || entity->currentBarrier <= 0 || entity->maxHealth <= 0) return;
+        if (!entity || entity->maxHealth <= 0) return;
 
-        // --- GEOMETRY CALCULATION (FINAL OVERFLOW VERSION) ---
+        float currentBarrier = entity->currentBarrier;
+        float animatedBarrier = currentBarrier;
+        float flashAlpha = 0.0f;
+
+        // --- ANIMATION LOGIC ---
+        // Animate on ANY change (increase or decrease)
+        if (state && state->lastBarrierChangeTimestamp > 0) {
+            uint64_t now = NowMs();
+            uint64_t elapsed = now - state->lastBarrierChangeTimestamp;
+
+            if (elapsed < CombatEffects::BARRIER_ANIM_DURATION_MS) {
+                float progress = static_cast<float>(elapsed) / CombatEffects::BARRIER_ANIM_DURATION_MS;
+                float eased = Animation::EaseOutQuint(progress);
+
+                // Animate the barrier value from its previous to its current amount
+                animatedBarrier = state->barrierOnLastChange + (currentBarrier - state->barrierOnLastChange) * eased;
+
+                // Add a flash effect that fades out over the animation duration
+                flashAlpha = 1.0f - eased;
+            }
+        }
+
+        if (animatedBarrier <= 0) return;
+
+        // --- GEOMETRY CALCULATION ---
         float healthPercent = entity->currentHealth / entity->maxHealth;
-        float barrierPercent = entity->currentBarrier / entity->maxHealth;
-
-        // We will draw the barrier in two potential parts:
-        // 1. The part that "fills" the empty health bar.
-        // 2. The part that "overflows" on top of the existing health.
+        float barrierPercent = animatedBarrier / entity->maxHealth;
 
         // --- Part 1: The "Fill" Portion ---
         if (healthPercent < 1.0f) {
             float startFillPercent = healthPercent;
             float endFillPercent = (std::min)(1.0f, healthPercent + barrierPercent);
 
-            ImVec2 fillMin(barMin.x + barWidth * startFillPercent, barMin.y);
-            ImVec2 fillMax(barMin.x + barWidth * endFillPercent, barMax.y);
+            if (endFillPercent > startFillPercent) {
+                ImVec2 fillMin(barMin.x + barWidth * startFillPercent, barMin.y);
+                ImVec2 fillMax(barMin.x + barWidth * endFillPercent, barMax.y);
 
-            // Use the standard barrier color for the fill portion.
-            ImU32 fillColor = IM_COL32(180, 240, 255, 170);
-            fillColor = ApplyAlphaToColor(fillColor, fadeAlpha);
-            DrawFilledRect(dl, fillMin, fillMax, fillColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+                ImU32 fillColor = IM_COL32(180, 240, 255, 170);
+                fillColor = ApplyAlphaToColor(fillColor, fadeAlpha);
+                DrawFilledRect(dl, fillMin, fillMax, fillColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            }
         }
 
         // --- Part 2: The "Overflow" Portion ---
-        // This part is only drawn if the barrier pushes the total effective health beyond 100%.
         if (healthPercent + barrierPercent > 1.0f) {
             float overflowAmountPercent = (healthPercent + barrierPercent) - 1.0f;
+            if (overflowAmountPercent > 0) {
+                ImVec2 overflowMin = barMin;
+                ImVec2 overflowMax(barMin.x + barWidth * (std::min)(1.0f, overflowAmountPercent), barMax.y);
 
-            // This part is drawn from the START of the health bar, up to the overflow amount.
-            ImVec2 overflowMin = barMin;
-            ImVec2 overflowMax(barMin.x + barWidth * (std::min)(1.0f, overflowAmountPercent), barMax.y);
+                ImU32 overflowColor = IM_COL32(220, 250, 255, 200);
+                overflowColor = ApplyAlphaToColor(overflowColor, fadeAlpha);
+                DrawFilledRect(dl, overflowMin, overflowMax, overflowColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            }
+        }
 
-            // Use a brighter, more "energized" color to signify this is temporary OVER-health.
-            ImU32 overflowColor = IM_COL32(220, 250, 255, 200); // Brighter and slightly more opaque
-            overflowColor = ApplyAlphaToColor(overflowColor, fadeAlpha);
-            DrawFilledRect(dl, overflowMin, overflowMax, overflowColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+        // --- Part 3: The "Flash" effect ---
+        if (flashAlpha > 0.0f) {
+            float startFlashPercent = state->barrierOnLastChange / entity->maxHealth;
+            float endFlashPercent = barrierPercent; // Use the animated barrier percent
+
+            if (endFlashPercent > startFlashPercent) {
+                ImVec2 flashMin(barMin.x + barWidth * startFlashPercent, barMin.y);
+                ImVec2 flashMax(barMin.x + barWidth * endFlashPercent, barMax.y);
+
+                ImU32 flashColor = IM_COL32(255, 255, 255, static_cast<int>(150 * flashAlpha * fadeAlpha));
+                DrawFilledRect(dl, flashMin, flashMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            }
         }
     }
 
@@ -384,7 +418,7 @@ namespace kx {
         DrawDamageFlash(drawList, state, entity, now, barMin, barWidth, barHeight, fadeAlpha);
 
         // 5. Barrier overlay (drawn last, on top of everything)
-        DrawBarrierOverlay(drawList, entity, barMin, barMax, barWidth, barHeight, fadeAlpha);
+        DrawBarrierOverlay(drawList, entity, state, barMin, barMax, barWidth, barHeight, fadeAlpha);
     }
 
     void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList,

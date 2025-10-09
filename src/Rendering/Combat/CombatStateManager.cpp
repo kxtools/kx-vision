@@ -27,6 +27,14 @@ namespace kx
 		EntityCombatState& state = AcquireState(entity);
 		const float currentHealth = entity->currentHealth;
 
+		// --- Barrier Change Detection ---
+		const float currentBarrier = entity->currentBarrier;
+		if (currentBarrier != state.lastKnownBarrier)
+		{
+			state.barrierOnLastChange = state.lastKnownBarrier;
+			state.lastBarrierChangeTimestamp = now;
+		}
+
 		// This call is moved from here...
 		// MaybeFlushAccumulator(state, entity, now); 
 
@@ -42,9 +50,10 @@ namespace kx
 			}
 		}
 
-		state.lastKnownHealth = currentHealth;
-		state.lastSeenTimestamp = now;
-
+        state.lastKnownHealth = currentHealth;
+        state.lastKnownBarrier = currentBarrier;
+        state.lastSeenTimestamp = now;
+		
 		// The flush logic is now handled in the renderer.
 	}
 
@@ -99,7 +108,6 @@ namespace kx
 	                                         float currentHealth,
 	                                         uint64_t now)
 	{
-		// Reset everything; keep only what should logically persist if desired (currently nothing).
 		state = {};
 		state.lastKnownHealth = currentHealth;
 		state.lastSeenTimestamp = now;

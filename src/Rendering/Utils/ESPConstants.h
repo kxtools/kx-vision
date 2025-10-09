@@ -40,6 +40,9 @@ namespace kx {
         constexpr uint64_t DEATH_FINAL_FADE_DURATION_MS = 2100;
         constexpr uint64_t DEATH_ANIMATION_TOTAL_DURATION_MS = DEATH_BURST_DURATION_MS + DEATH_FINAL_FADE_DURATION_MS;
 
+        // --- Barrier Animation (TUNED FOR A SNAPPY POP) ---
+        constexpr uint64_t BARRIER_ANIM_DURATION_MS = 250;
+
         // --- State Management ---
         constexpr uint64_t STATE_CLEANUP_THRESHOLD_MS = 3000;
     }
