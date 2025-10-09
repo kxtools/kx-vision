@@ -5,22 +5,27 @@
 namespace kx {
 
     namespace CombatEffects {
-        // --- Damage Accumulator ---
-        constexpr uint64_t DAMAGE_ACCUMULATOR_FLUSH_INTERVAL_MS = 400;
+        // --- Adaptive Damage Accumulator (TUNED FOR IMPACT & RESPONSIVENESS) ---
+        // Flush when damage reaches 2% of max HP, or after a max of 1 second.
+        // This guarantees satisfying chunks on high-HP bosses while always feeling responsive.
+        constexpr float    MIN_VISUAL_CHUNK_PERCENT = 0.02f; // From 0.015f
+        constexpr uint64_t MAX_FLUSH_INTERVAL_MS = 1000;      // From 1500
 
-        // --- Core Combat Feedback ---
+        // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
+        // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.
         constexpr uint64_t DAMAGE_FLASH_HOLD_DURATION_MS = 200;
         constexpr uint64_t DAMAGE_FLASH_FADE_DURATION_MS = 400;
         constexpr uint64_t DAMAGE_FLASH_TOTAL_DURATION_MS = DAMAGE_FLASH_HOLD_DURATION_MS + DAMAGE_FLASH_FADE_DURATION_MS;
 
+        // --- Healing Feedback (TUNED FOR CLARITY) ---
+        // A quick flash confirms the heal, and a 2s overlay shows the amount restored.
         constexpr uint64_t HEAL_FLASH_DURATION_MS = 150;
-        
-        // --- Healing Overlay ---
         constexpr uint64_t HEAL_OVERLAY_DURATION_MS = 2000;
         constexpr uint64_t HEAL_OVERLAY_FADE_DURATION_MS = 400;
-        constexpr uint64_t BURST_HEAL_WINDOW_MS = 350;
+        constexpr uint64_t BURST_HEAL_WINDOW_MS = 350; // Groups rapid heals
 
-        // --- Death Animation (Tuned for 2.5 second GW2 feel) ---
+        // --- Death Animation (TUNED FOR A SATISFYING FINISH) ---
+        // A 2.5s animation that gives a definitive and polished end-of-combat signal.
         constexpr uint64_t DEATH_BURST_DURATION_MS = 400;
         constexpr uint64_t DEATH_FINAL_FADE_DURATION_MS = 2100;
         constexpr uint64_t DEATH_ANIMATION_TOTAL_DURATION_MS = DEATH_BURST_DURATION_MS + DEATH_FINAL_FADE_DURATION_MS;

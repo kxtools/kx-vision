@@ -17,10 +17,27 @@ namespace kx {
             // Find or create the state for this entity. The [] operator does this automatically.
             auto& state = m_entityStates[entityId];
 
-            // --- DAMAGE ACCUMULATOR FLUSH LOGIC ---
-            if (state.accumulatedDamage > 0 && (now - state.lastFlushTimestamp > CombatEffects::DAMAGE_ACCUMULATOR_FLUSH_INTERVAL_MS)) {
-                state.accumulatedDamage = 0.0f;
-                state.lastFlushTimestamp = now;
+            // --- ADAPTIVE DAMAGE ACCUMULATOR FLUSH LOGIC ---
+            if (state.accumulatedDamage > 0) {
+                bool shouldFlush = false;
+
+                // Condition 1: Has the damage accumulated reached our minimum visual size?
+                // Only check if entity has max health to prevent division by zero
+                if (entity->maxHealth > 0) {
+                    float accumulatedPercent = state.accumulatedDamage / entity->maxHealth;
+                    if (accumulatedPercent >= CombatEffects::MIN_VISUAL_CHUNK_PERCENT) {
+                        shouldFlush = true; // Flush because the chunk is satisfyingly large.
+                    }
+                }
+                // Condition 2 (Fallback): Has it been too long since the last flush?
+                if (!shouldFlush && (now - state.lastFlushTimestamp > CombatEffects::MAX_FLUSH_INTERVAL_MS)) {
+                    shouldFlush = true; // Flush because we need to stay responsive.
+                }
+
+                if (shouldFlush) {
+                    state.accumulatedDamage = 0.0f;
+                    // The timer for the *next* flush is started by the next hit, so we don't need to set it here.
+                }
             }
 
             // Only process changes if we have a history for this entity.
