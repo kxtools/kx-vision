@@ -77,8 +77,8 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply distance filter based on visual distance
             if (settings.distance.useDistanceLimit && npc->gameplayDistance > settings.distance.renderDistanceLimit) continue;
             
-            // Apply attitude-based filter
-            if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, settings.npcESP)) continue;
+            // Apply attitude- and rank-based filter
+            if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, npc->rank, settings.npcESP)) continue;
             
             filteredData.npcs.push_back(npc);
         }
