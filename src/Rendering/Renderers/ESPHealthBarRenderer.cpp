@@ -316,6 +316,41 @@ namespace kx {
         }
     }
 
+    void ESPHealthBarRenderer::UpdateAccumulatedDamageAnimation(EntityCombatState* state,
+                                                              const RenderableEntity* entity,
+                                                              uint64_t now,
+                                                              float barWidth) {
+        if (!state || !entity || state->accumulatedDamage <= 0 || state->flushAnimationStartTime > 0) {
+            return;
+        }
+
+        bool shouldFlush = false;
+
+        // 1. Calculate the dynamic percentage threshold.
+        float hp = (std::max)(1.0f, entity->maxHealth);
+        float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
+        float hpLog = log10f(hp);
+        float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
+        thresholdPercent *= scaleFactor;
+        thresholdPercent = std::clamp(thresholdPercent,
+                                      CombatEffects::MIN_CHUNK_PERCENT,
+                                      CombatEffects::MAX_CHUNK_PERCENT);
+
+        // 2. PRIMARY CONDITION: Flush if the chunk has reached a satisfying size.
+        float accumulatedPercent = state->accumulatedDamage / hp;
+        if (accumulatedPercent >= thresholdPercent) {
+            shouldFlush = true;
+        }
+        // 3. FALLBACK CONDITION: Flush if the burst has ended.
+        else if (now - state->lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS) {
+            shouldFlush = true;
+        }
+
+        if (shouldFlush) {
+            state->flushAnimationStartTime = now;
+        }
+    }
+
     void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList,
         const EntityRenderContext& context,
         EntityCombatState* state,
@@ -330,34 +365,8 @@ namespace kx {
         uint64_t now = NowMs();
         float barHeight = barMax.y - barMin.y;
 
-        // --- FINAL, EVENT-DRIVEN FLUSH LOGIC ---
-        if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) {
-            bool shouldFlush = false;
-
-            // 1. Calculate the dynamic percentage threshold (this logic is perfect).
-            float hp = (std::max)(1.0f, entity->maxHealth);
-            float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
-            float hpLog = log10f(hp);
-            float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
-            thresholdPercent *= scaleFactor;
-            thresholdPercent = std::clamp(thresholdPercent, 
-                                          CombatEffects::MIN_CHUNK_PERCENT, 
-                                          CombatEffects::MAX_CHUNK_PERCENT);
-
-            // 2. PRIMARY CONDITION: Flush if the chunk has reached a satisfying size.
-            float accumulatedPercent = state->accumulatedDamage / hp;
-            if (accumulatedPercent >= thresholdPercent) {
-                shouldFlush = true;
-            }
-            // 3. FALLBACK CONDITION: Flush if the burst has ended (no damage for 1.8s).
-            else if (now - state->lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS) {
-                shouldFlush = true;
-            }
-
-            if (shouldFlush) {
-                state->flushAnimationStartTime = now;
-            }
-        }
+        // Decide if we should start the damage accumulator fade-out animation.
+        UpdateAccumulatedDamageAnimation(state, entity, now, barWidth);
 
         // 1. Base health fill
         DrawHealthBase(drawList, barMin, barMax, barWidth, context.healthPercent, entityColor, fadeAlpha);
