@@ -27,12 +27,11 @@ namespace kx
 		EntityCombatState& state = AcquireState(entity);
 		const float currentHealth = entity->currentHealth;
 
-		// Adaptive flush of damage accumulator (before new events are processed)
-		MaybeFlushAccumulator(state, entity, now);
+		// This call is moved from here...
+		// MaybeFlushAccumulator(state, entity, now); 
 
 		if (state.lastSeenTimestamp > 0)
 		{
-			// Detect change direction
 			if (currentHealth < state.lastKnownHealth)
 			{
 				HandleDamage(state, entity, currentHealth, now);
@@ -41,28 +40,33 @@ namespace kx
 			{
 				HandleHealing(state, entity, currentHealth, now);
 			}
-			// else: unchanged health -> no event
 		}
 
-		// Update snapshot
 		state.lastKnownHealth = currentHealth;
 		state.lastSeenTimestamp = now;
+
+		// ...to here. It now runs LAST.
+		MaybeFlushAccumulator(state, entity, now);
 	}
 
 	void CombatStateManager::HandleDamage(EntityCombatState& state,
-	                                      const RenderableEntity* entity,
-	                                      float currentHealth,
-	                                      uint64_t now)
+		const RenderableEntity* entity,
+		float currentHealth,
+		uint64_t now)
 	{
 		const float damage = state.lastKnownHealth - currentHealth;
 		if (damage <= 0.0f) return;
 
-		// Start timing for a new accumulation burst if accumulator was empty.
-		if (state.accumulatedDamage <= 0.0f)
+		// Check if the accumulator was empty BEFORE we add the new damage.
+		const bool isNewBurst = (state.accumulatedDamage <= 0.0f);
+
+		state.accumulatedDamage += damage;
+
+		// If it was a new burst, start the max-wait timer now.
+		if (isNewBurst)
 		{
 			state.lastFlushTimestamp = now;
 		}
-		state.accumulatedDamage += damage;
 
 		state.lastDamageTaken = damage;
 		state.lastHitTimestamp = now;
