@@ -89,7 +89,7 @@ namespace kx {
             float fadeAlpha);
 
         static void DrawAccumulatedDamage(ImDrawList* dl,
-            const EntityCombatState* state,
+			EntityCombatState* state,
             const RenderableEntity* entity,
             const ImVec2& barMin,
             float barWidth,

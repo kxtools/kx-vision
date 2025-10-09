@@ -116,7 +116,7 @@ namespace kx {
     }
 
     void ESPHealthBarRenderer::DrawAccumulatedDamage(ImDrawList* dl,
-        const EntityCombatState* state,
+        EntityCombatState* state,
         const RenderableEntity* entity,
         const ImVec2& barMin,
         float barWidth,
@@ -124,6 +124,25 @@ namespace kx {
         float fadeAlpha) {
         if (!state || !entity || entity->maxHealth <= 0) return;
         if (state->accumulatedDamage <= 0) return;
+
+        uint64_t now = NowMs();
+        float animationAlpha = 1.0f; // Start with full opacity
+
+        // --- FADE-OUT ANIMATION LOGIC ---
+        if (state->flushAnimationStartTime > 0) {
+            uint64_t elapsed = now - state->flushAnimationStartTime;
+            
+            if (elapsed >= CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS) {
+                // Animation finished: Reset everything for the next burst.
+                state->accumulatedDamage = 0.0f;
+                state->flushAnimationStartTime = 0;
+                return; // Don't draw anything this frame.
+            } else {
+                // We are mid-fade. Calculate the alpha.
+                float progress = static_cast<float>(elapsed) / CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS;
+                animationAlpha = 1.0f - Animation::EaseOutCubic(progress); // Fade from 1.0 to 0.0
+            }
+        }
 
         float realHealth = entity->currentHealth;
         float endHealth = realHealth + state->accumulatedDamage;
@@ -138,7 +157,9 @@ namespace kx {
 
         ImU32 base = IM_COL32(255, 255, 150, 150);
         unsigned int a = (base >> 24) & 0xFF;
-        unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha + 0.5f);
+        
+        // Apply BOTH the distance fade AND our new animation fade.
+        unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha * animationAlpha + 0.5f);
         base = (base & 0x00FFFFFF) | (ClampAlpha(finalA) << 24);
 
         DrawFilledRect(dl, oMin, oMax, base, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
@@ -262,7 +283,7 @@ namespace kx {
         float barHeight = barMax.y - barMin.y;
 
         // --- NEW ADAPTIVE FLUSH LOGIC ---
-        if (state && state->accumulatedDamage > 0) {
+        if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) { // Check that we aren't already fading
             bool shouldFlush = false;
 
             // 1. Pixel-based threshold
@@ -278,7 +299,7 @@ namespace kx {
             }
 
             if (shouldFlush) {
-                state->accumulatedDamage = 0.0f;
+                state->flushAnimationStartTime = now; // START the fade-out animation!
             }
         }
 

@@ -8,6 +8,7 @@ namespace kx {
         // --- Adaptive Damage Accumulator (Pixel-Based Tuning) ---
 	    constexpr float    DESIRED_CHUNK_PIXELS = 20.0f; // The target on-screen width for a satisfying chunk.
 	    constexpr uint64_t MAX_FLUSH_INTERVAL_MS = 1200; // A slightly longer responsive fallback.
+        constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 180;
 
         // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
         // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.
