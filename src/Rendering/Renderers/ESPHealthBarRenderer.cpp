@@ -324,16 +324,37 @@ namespace kx {
             RenderAliveState(drawList, context, state, barMin, barMax, barWidth, entityColor, fadeAlpha);
         }
 
-        // Border (hostile only)
+		// Outer stroke settings
+        const float outset = 1.0f; // 1 px outside, feels "harder" and more separated
+        unsigned int outerA = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha + 0.5f);
+        ImU32 outerDark = IM_COL32(0, 0, 0, ClampAlpha(outerA));
+
+        // Hostile
         if (context.attitude == Game::Attitude::Hostile) {
+            // existing inside stroke
             unsigned int borderAlpha =
                 static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha + 0.5f);
-            drawList->AddRect(barMin,
-                barMax,
+            drawList->AddRect(barMin, barMax,
                 IM_COL32(0, 0, 0, ClampAlpha(borderAlpha)),
                 RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING,
                 0,
-                RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS);
+                RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS); // inside stroke
+            // add a subtle outer stroke to harden the edge
+            ImVec2 oMin(barMin.x - outset, barMin.y - outset);
+            ImVec2 oMax(barMax.x + outset, barMax.y + outset);
+            drawList->AddRect(oMin, oMax, outerDark,
+                RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING + outset,
+                0,
+                1.0f);
+        }
+        // Others, skip inside stroke, use only the outer stroke
+        else {
+            ImVec2 oMin(barMin.x - outset, barMin.y - outset);
+            ImVec2 oMax(barMax.x + outset, barMax.y + outset);
+            drawList->AddRect(oMin, oMax, outerDark,
+                RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING + outset,
+                0,
+                1.0f);
         }
     }
 

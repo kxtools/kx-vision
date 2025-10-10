@@ -286,7 +286,7 @@ namespace RenderingLayout {
     constexpr float STANDALONE_HEALTH_BAR_Y_OFFSET = 12.0f;          // 12px below entity (compact spacing)
     constexpr float STANDALONE_HEALTH_BAR_BG_ROUNDING = 1.0f;        // Subtle 1px rounding
     constexpr float STANDALONE_HEALTH_BAR_BORDER_ROUNDING = 1.0f;    // Matches background
-    constexpr float STANDALONE_HEALTH_BAR_BORDER_THICKNESS = 2.0f;   // crisp border
+    constexpr float STANDALONE_HEALTH_BAR_BORDER_THICKNESS = 1.0f;   // crisp border
     constexpr float STANDALONE_HEALTH_BAR_BG_ALPHA = 180.0f;         // ~71% opacity (readable)
     constexpr float STANDALONE_HEALTH_BAR_HEALTH_ALPHA = 220.0f;     // ~86% opacity (prominent)
     constexpr float STANDALONE_HEALTH_BAR_BORDER_ALPHA = 100.0f;     // ~39% opacity (subtle)
