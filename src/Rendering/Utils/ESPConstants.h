@@ -55,8 +55,8 @@ namespace kx {
         constexpr unsigned int HEAL_FLASH = IM_COL32(220, 255, 255, 255);  // cold white flash
 
         // Damage
-        constexpr unsigned int DAMAGE_ACCUM = IM_COL32(255, 190, 90, 180);   // warmer amber, distinct from flash
-        constexpr unsigned int DAMAGE_FLASH = IM_COL32(255, 255, 230, 255);  // white hot flash with slight warmth
+        constexpr unsigned int DAMAGE_ACCUM = IM_COL32(255, 170, 60, 180); // warm amber, sustained loss
+        constexpr unsigned int DAMAGE_FLASH = IM_COL32(255, 255, 255, 255); // neutral white flash
 
         // Barrier
         constexpr unsigned int BARRIER_FILL = IM_COL32(255, 230, 180, 240); // warm cream
