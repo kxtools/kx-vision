@@ -232,7 +232,7 @@ namespace ESPColors {
     constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown
     
     // Gadget colors
-    constexpr unsigned int GADGET = IM_COL32(255, 165, 80, 200);  // Warm orange/amber
+    constexpr unsigned int GADGET = IM_COL32(238, 221, 51, 255); // #EEDD33
 
     // Bar colors
     constexpr unsigned int ENERGY_BAR = IM_COL32(0, 120, 255, 220); // Bright blue for energy
