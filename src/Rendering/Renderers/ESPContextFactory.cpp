@@ -138,6 +138,8 @@ namespace {
             case Game::GadgetType::Prop:
             case Game::GadgetType::Interact:
             case Game::GadgetType::ResourceNode:
+            case Game::GadgetType::Waypoint:
+            case Game::GadgetType::MapPortal:
                 return true;
             default:
                 return false;
