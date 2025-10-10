@@ -224,9 +224,10 @@ namespace ESPColors {
     constexpr unsigned int PLAYER = IM_COL32(30, 144, 255, 230);  // Bright cyan/blue (dodger blue)
     
     // NPC colors based on attitude - unified palette
+    constexpr unsigned int FRIENDLY_NEUTRAL_BAR = IM_COL32(104, 197, 80, 255); // #68C550
     constexpr unsigned int NPC_HOSTILE = IM_COL32(220, 50, 40, 210);      // Thematic, high-contrast crimson
-    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green
-    constexpr unsigned int NPC_NEUTRAL = IM_COL32(127, 255, 0, 210);      // Electric chartreuse (yellow-green)
+    constexpr unsigned int NPC_FRIENDLY = FRIENDLY_NEUTRAL_BAR;
+    constexpr unsigned int NPC_NEUTRAL = FRIENDLY_NEUTRAL_BAR;
     constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white
     constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown
     
