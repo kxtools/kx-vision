@@ -5,14 +5,21 @@
 namespace kx {
 
     namespace CombatEffects {
-        // --- Adaptive Damage Accumulator (Pixel-Based Tuning) ---
-	    constexpr float    DESIRED_CHUNK_PIXELS      = 30.0f;   // The ideal on-screen size for a chunk.
-	    constexpr uint64_t MAX_FLUSH_INTERVAL_MS     = 1200;    // Responsiveness safety net.
-	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 180;   // The elegant fade-out duration.
+		// --- FINAL, EVENT-DRIVEN DAMAGE ACCUMULATOR ---
 
-	    // --- NEW: Health-Scaling Modifiers ---
-	    constexpr float    MIN_CHUNK_PERCENT         = 0.01f;   // Chunks will never be smaller than 1% of max HP.
-	    constexpr float    MAX_CHUNK_PERCENT         = 0.15f;   // Chunks will never be larger than 15% of max HP.
+	    // The ideal on-screen width for a chunk. This is our primary trigger.
+	    constexpr float    DESIRED_CHUNK_PIXELS      = 22.0f;
+
+	    // If no new damage is received for this duration, the current burst is considered "over"
+	    // and the remaining accumulated damage will be flushed.
+	    constexpr uint64_t BURST_INACTIVITY_TIMEOUT_MS = 1800; // 1.8 seconds
+
+	    // The elegant fade-out animation for the chunk.
+	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 200;
+
+	    // --- Health-Scaling Modifiers ---
+	    constexpr float    MIN_CHUNK_PERCENT         = 0.012f; // 1.2%
+	    constexpr float    MAX_CHUNK_PERCENT         = 0.20f;  // 20%
 
         // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
         // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.
@@ -32,6 +39,9 @@ namespace kx {
         constexpr uint64_t DEATH_BURST_DURATION_MS = 1000;
         constexpr uint64_t DEATH_FINAL_FADE_DURATION_MS = 2100;
         constexpr uint64_t DEATH_ANIMATION_TOTAL_DURATION_MS = DEATH_BURST_DURATION_MS + DEATH_FINAL_FADE_DURATION_MS;
+
+        // --- Barrier Animation (TUNED FOR A SNAPPY POP) ---
+        constexpr uint64_t BARRIER_ANIM_DURATION_MS = 250;
 
         // --- State Management ---
         constexpr uint64_t STATE_CLEANUP_THRESHOLD_MS = 3000;

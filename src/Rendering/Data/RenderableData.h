@@ -32,9 +32,10 @@ struct RenderableEntity {
     const void* address;             // Const pointer since we only use for identification/comparison
     float currentHealth;
     float maxHealth;
+    float currentBarrier = 0.0f; // Barrier overlay for health bars
 
     RenderableEntity() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
-                         isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f)
+                         isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f)
     {
     }
 };

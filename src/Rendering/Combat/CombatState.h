@@ -24,8 +24,12 @@ namespace kx
 
 		// Accumulated damage behavior
 		float accumulatedDamage = 0.0f;
-		uint64_t lastFlushTimestamp = 0; // When accumulator started (for adaptive flush timing)
-		uint64_t flushAnimationStartTime = 0; // Tracks the start of the fade-out animation.
+		        uint64_t flushAnimationStartTime = 0; // Tracks the start of the fade-out animation.
+		
+        // Barrier state
+        float lastKnownBarrier = 0.0f;
+        float barrierOnLastChange = 0.0f;
+        uint64_t lastBarrierChangeTimestamp = 0;
 
 		// Utility helpers (optional future use)
 		bool IsDead() const { return deathTimestamp != 0; }

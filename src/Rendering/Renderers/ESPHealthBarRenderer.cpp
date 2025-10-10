@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "ESPHealthBarRenderer.h"
 
 #include "../Utils/ESPConstants.h"
@@ -199,6 +201,72 @@ namespace kx {
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
+    void ESPHealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
+        const RenderableEntity* entity,
+        const EntityCombatState* state,
+        const ImVec2& barMin,
+        const ImVec2& barMax,
+        float barWidth,
+        float barHeight,
+        float fadeAlpha)
+    {
+        if (!entity || entity->maxHealth <= 0) return;
+
+        const float currentBarrier = entity->currentBarrier;
+        float animatedBarrier = currentBarrier;
+
+        // Keep your easing for a smooth change
+        if (state && state->lastBarrierChangeTimestamp > 0) {
+            const uint64_t now = NowMs();
+            const uint64_t elapsed = now - state->lastBarrierChangeTimestamp;
+            if (elapsed < CombatEffects::BARRIER_ANIM_DURATION_MS) {
+                const float progress = static_cast<float>(elapsed) / CombatEffects::BARRIER_ANIM_DURATION_MS;
+                const float eased = Animation::EaseOutCubic(progress);
+                animatedBarrier = state->barrierOnLastChange +
+                    (currentBarrier - state->barrierOnLastChange) * eased;
+            }
+        }
+
+        if (animatedBarrier <= 0.0f) return;
+
+        const float healthPercent = entity->currentHealth / entity->maxHealth;
+        const float barrierPercent = animatedBarrier / entity->maxHealth;
+
+        static constexpr ImU32 BARRIER_COLOR = IM_COL32(255, 230, 180, 240); // single barrier color
+        static constexpr ImU32 OVERFLOW_OUTLINE_COLOR = IM_COL32(255, 255, 255, 210); // separator on full bars
+
+        const ImU32 barrierColor = ApplyAlphaToColor(BARRIER_COLOR, fadeAlpha);
+        const ImU32 overflowOutlineColor = ApplyAlphaToColor(OVERFLOW_OUTLINE_COLOR, fadeAlpha);
+
+        // 1) Barrier inside the remaining health segment, left to right
+        if (healthPercent < 1.0f) {
+            const float startP = healthPercent;
+            const float endP = (std::min)(1.0f, healthPercent + barrierPercent);
+            if (endP > startP) {
+                ImVec2 fillP0(barMin.x + barWidth * startP, barMin.y);
+                ImVec2 fillP1(barMin.x + barWidth * endP, barMax.y);
+                DrawFilledRect(dl, fillP0, fillP1, barrierColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+            }
+        }
+
+        // 2) Barrier overflow, anchored to the right edge when clamped at full
+        if (healthPercent + barrierPercent > 1.0f) {
+            const float overflowAmount = (healthPercent + barrierPercent) - 1.0f;
+            if (overflowAmount > 0.0f) {
+                const float ow = barWidth * (std::min)(1.0f, overflowAmount);
+                ImVec2 ovrP0(barMax.x - ow, barMin.y);
+                ImVec2 ovrP1(barMax.x, barMax.y);
+
+                DrawFilledRect(dl, ovrP0, ovrP1, barrierColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
+
+                // Outline and separator so it stays readable on a full bar
+                dl->AddRect(ovrP0, ovrP1, overflowOutlineColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING, 0, 1.0f);
+                dl->AddLine(ImVec2(ovrP0.x, barMin.y), ImVec2(ovrP0.x, barMax.y),
+                    ApplyAlphaToColor(IM_COL32(255, 255, 255, 180), fadeAlpha), 1.0f);
+            }
+        }
+    }
+
     // -----------------------------------------------------------------------------
     // Public API
     // -----------------------------------------------------------------------------
@@ -268,6 +336,41 @@ namespace kx {
         }
     }
 
+    void ESPHealthBarRenderer::UpdateAccumulatedDamageAnimation(EntityCombatState* state,
+                                                              const RenderableEntity* entity,
+                                                              uint64_t now,
+                                                              float barWidth) {
+        if (!state || !entity || state->accumulatedDamage <= 0 || state->flushAnimationStartTime > 0) {
+            return;
+        }
+
+        bool shouldFlush = false;
+
+        // 1. Calculate the dynamic percentage threshold.
+        float hp = (std::max)(1.0f, entity->maxHealth);
+        float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
+        float hpLog = log10f(hp);
+        float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
+        thresholdPercent *= scaleFactor;
+        thresholdPercent = std::clamp(thresholdPercent,
+                                      CombatEffects::MIN_CHUNK_PERCENT,
+                                      CombatEffects::MAX_CHUNK_PERCENT);
+
+        // 2. PRIMARY CONDITION: Flush if the chunk has reached a satisfying size.
+        float accumulatedPercent = state->accumulatedDamage / hp;
+        if (accumulatedPercent >= thresholdPercent) {
+            shouldFlush = true;
+        }
+        // 3. FALLBACK CONDITION: Flush if the burst has ended.
+        else if (now - state->lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS) {
+            shouldFlush = true;
+        }
+
+        if (shouldFlush) {
+            state->flushAnimationStartTime = now;
+        }
+    }
+
     void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList,
         const EntityRenderContext& context,
         EntityCombatState* state,
@@ -282,38 +385,8 @@ namespace kx {
         uint64_t now = NowMs();
         float barHeight = barMax.y - barMin.y;
 
-        // --- FINAL ADAPTIVE FLUSH LOGIC ---
-        if (state && state->accumulatedDamage > 0 && state->flushAnimationStartTime == 0) {
-            bool shouldFlush = false;
-
-            // 1. Calculate the base threshold from pixels.
-            float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
-
-            // 2. Calculate the health-based scale factor using a log curve.
-            //    This makes the required percentage smaller for very high HP targets.
-            float hpLog = log10f(entity->maxHealth + 1.0f);
-            float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.1f, 0.3f, 1.2f); // Tuned formula
-
-            // 3. Apply the scaling and clamp the result to sane limits.
-            thresholdPercent *= scaleFactor;
-            thresholdPercent = std::clamp(thresholdPercent, 
-                                          CombatEffects::MIN_CHUNK_PERCENT, 
-                                          CombatEffects::MAX_CHUNK_PERCENT);
-
-            // 4. Check if the accumulator has met the new, dynamic threshold.
-            float accumulatedPercent = state->accumulatedDamage / entity->maxHealth;
-            if (accumulatedPercent >= thresholdPercent) {
-                shouldFlush = true; // Flush because the chunk is a satisfying size.
-            }
-            // 5. Timeout fallback (our safety net).
-            else if (now - state->lastFlushTimestamp > CombatEffects::MAX_FLUSH_INTERVAL_MS) {
-                shouldFlush = true; // Flush because we need to stay responsive.
-            }
-
-            if (shouldFlush) {
-                state->flushAnimationStartTime = now; // Start the fade-out animation.
-            }
-        }
+        // Decide if we should start the damage accumulator fade-out animation.
+        UpdateAccumulatedDamageAnimation(state, entity, now, barWidth);
 
         // 1. Base health fill
         DrawHealthBase(drawList, barMin, barMax, barWidth, context.healthPercent, entityColor, fadeAlpha);
@@ -329,6 +402,9 @@ namespace kx {
 
         // 4. Damage flash
         DrawDamageFlash(drawList, state, entity, now, barMin, barWidth, barHeight, fadeAlpha);
+
+        // 5. Barrier overlay (drawn last, on top of everything)
+        DrawBarrierOverlay(drawList, entity, state, barMin, barMax, barWidth, barHeight, fadeAlpha);
     }
 
     void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList,
@@ -349,7 +425,8 @@ namespace kx {
         float eased = Animation::EaseOutCubic(linear);
         float burstAlpha = 1.0f - Animation::EaseOutCubic(linear); // Eased alpha fade
 
-        float width = barWidth * eased;
+        // Invert the animation: start wide and shrink to center for an "impact" feel.
+        float width = barWidth * (1.0f - eased);
         ImVec2 center(barMin.x + barWidth * 0.5f, (barMin.y + barMax.y) * 0.5f);
         ImVec2 burstMin(center.x - width * 0.5f, barMin.y);
         ImVec2 burstMax(center.x + width * 0.5f, barMax.y);

@@ -51,6 +51,11 @@ namespace kx {
             float barWidth,
             float fadeAlpha);
 
+        static void UpdateAccumulatedDamageAnimation(EntityCombatState* state,
+            const RenderableEntity* entity,
+            uint64_t now,
+            float barWidth);
+
         // --- Small Utilities ---
         static inline unsigned int ClampAlpha(unsigned int alpha) { return (alpha < 255u ? alpha : 255u); }
         static inline float Clamp01(float v) { return v < 0.f ? 0.f : (v > 1.f ? 1.f : v); }
@@ -101,6 +106,15 @@ namespace kx {
             const RenderableEntity* entity,
             uint64_t now,
             const ImVec2& barMin,
+            float barWidth,
+            float barHeight,
+            float fadeAlpha);
+
+        static void DrawBarrierOverlay(ImDrawList* dl,
+            const RenderableEntity* entity,
+            const EntityCombatState* state,
+            const ImVec2& barMin,
+            const ImVec2& barMax,
             float barWidth,
             float barHeight,
             float fadeAlpha);
