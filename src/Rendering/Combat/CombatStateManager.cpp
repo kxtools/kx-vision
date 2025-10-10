@@ -68,6 +68,7 @@ namespace kx
 			
 		// The flush logic is now handled in the renderer.
 	}
+
 	void CombatStateManager::HandleDamage(EntityCombatState& state,
 			const RenderableEntity* entity,
 			float currentHealth,
@@ -97,6 +98,7 @@ namespace kx
 			state.deathTimestamp = now;
 		}
 	}
+
 	void CombatStateManager::HandleHealing(EntityCombatState& state,
 	                                       const RenderableEntity* entity,
 	                                       float currentHealth,
@@ -122,8 +124,6 @@ namespace kx
 		// Current behavior: we keep deathTimestamp until respawn detection resets it via ResetForRespawn().
 		// Intentional: healing while dead isn't considered; only a health increase from 0 triggers respawn.
 	}
-
-
 
 	void CombatStateManager::ResetForRespawn(EntityCombatState& state,
 	                                         float currentHealth,
