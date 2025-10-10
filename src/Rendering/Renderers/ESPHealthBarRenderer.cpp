@@ -55,13 +55,10 @@ namespace kx {
         DrawFilledRect(dl, hMin, hMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    void ESPHealthBarRenderer::DrawHealOverlay(ImDrawList* dl,
-        const EntityCombatState* state,
-        const RenderableEntity* entity,
-        uint64_t now,
-        const ImVec2& barMin,
-        float barWidth,
-        float barHeight) {
+    void ESPHealthBarRenderer::DrawHealOverlay(ImDrawList* dl, const EntityCombatState* state,
+	    const RenderableEntity* entity, uint64_t now, const ImVec2& barMin, float barWidth, float barHeight,
+	    float fadeAlpha)
+    {
         if (!state || !entity || entity->maxHealth <= 0) return;
         if (state->lastHealTimestamp == 0) return;
         uint64_t elapsed = now - state->lastHealTimestamp;
@@ -84,7 +81,7 @@ namespace kx {
         ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
         ImVec2 oMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
 
-        ImU32 color = IM_COL32(100, 255, 100, static_cast<int>(200 * overlayAlpha));
+        ImU32 color = ApplyAlphaToColor(ESPBarColors::HEAL_OVERLAY, overlayAlpha * fadeAlpha);
         DrawFilledRect(dl, oMin, oMax, color, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
@@ -113,7 +110,9 @@ namespace kx {
         ImVec2 fMin(barMin.x + barWidth * startPercent, barMin.y);
         ImVec2 fMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
 
-        ImU32 flashColor = IM_COL32(200, 255, 255, static_cast<int>(flashAlpha * 255 * fadeAlpha));
+        ImU32 flashColor = IM_COL32( // keep runtime alpha because it varies per frame
+            255, 255, 255, static_cast<int>(flashAlpha * 255 * fadeAlpha));
+        flashColor = (ESPBarColors::HEAL_FLASH & 0x00FFFFFF) | (flashColor & 0xFF000000);
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
@@ -157,13 +156,10 @@ namespace kx {
         ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
         ImVec2 oMax(barMin.x + barWidth * endPercent, barMin.y + barHeight);
 
-        ImU32 base = IM_COL32(255, 255, 150, 150);
+        ImU32 base = ESPBarColors::DAMAGE_ACCUM;
         unsigned int a = (base >> 24) & 0xFF;
-        
-        // Apply BOTH the distance fade AND our new animation fade.
         unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha * animationAlpha + 0.5f);
         base = (base & 0x00FFFFFF) | (ClampAlpha(finalA) << 24);
-
         DrawFilledRect(dl, oMin, oMax, base, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
@@ -197,7 +193,9 @@ namespace kx {
         ImVec2 fMin(barMin.x + barWidth * currentPercent, barMin.y);
         ImVec2 fMax(barMin.x + barWidth * previousPercent, barMin.y + barHeight);
 
-        ImU32 flashColor = IM_COL32(255, 255, 0, static_cast<int>(flashAlpha * 255 * fadeAlpha));
+        ImU32 flashColor = ESPBarColors::DAMAGE_FLASH;
+        unsigned int a = static_cast<unsigned int>(255 * flashAlpha * fadeAlpha);
+        flashColor = (flashColor & 0x00FFFFFF) | (ClampAlpha(a) << 24);
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
@@ -232,11 +230,8 @@ namespace kx {
         const float healthPercent = entity->currentHealth / entity->maxHealth;
         const float barrierPercent = animatedBarrier / entity->maxHealth;
 
-        static constexpr ImU32 BARRIER_COLOR = IM_COL32(255, 230, 180, 240); // single barrier color
-        static constexpr ImU32 OVERFLOW_OUTLINE_COLOR = IM_COL32(255, 255, 255, 210); // separator on full bars
-
-        const ImU32 barrierColor = ApplyAlphaToColor(BARRIER_COLOR, fadeAlpha);
-        const ImU32 overflowOutlineColor = ApplyAlphaToColor(OVERFLOW_OUTLINE_COLOR, fadeAlpha);
+        const ImU32 barrierColor = ApplyAlphaToColor(ESPBarColors::BARRIER_FILL, fadeAlpha);
+        const ImU32 overflowOutlineColor = ApplyAlphaToColor(ESPBarColors::BARRIER_SEPARATOR, fadeAlpha);
 
         // 1) Barrier inside the remaining health segment, left to right
         if (healthPercent < 1.0f) {
@@ -249,20 +244,26 @@ namespace kx {
             }
         }
 
-        // 2) Barrier overflow, anchored to the right edge when clamped at full
+        // 2) Barrier overflow, anchored to the right edge
         if (healthPercent + barrierPercent > 1.0f) {
             const float overflowAmount = (healthPercent + barrierPercent) - 1.0f;
             if (overflowAmount > 0.0f) {
                 const float ow = barWidth * (std::min)(1.0f, overflowAmount);
+
                 ImVec2 ovrP0(barMax.x - ow, barMin.y);
                 ImVec2 ovrP1(barMax.x, barMax.y);
 
                 DrawFilledRect(dl, ovrP0, ovrP1, barrierColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
 
-                // Outline and separator so it stays readable on a full bar
-                dl->AddRect(ovrP0, ovrP1, overflowOutlineColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING, 0, 1.0f);
-                dl->AddLine(ImVec2(ovrP0.x, barMin.y), ImVec2(ovrP0.x, barMax.y),
-                    ApplyAlphaToColor(IM_COL32(255, 255, 255, 180), fadeAlpha), 1.0f);
+                // Outline only, no extra line to avoid a thicker seam
+                dl->AddRect(
+                    ovrP0,
+                    ovrP1,
+                    overflowOutlineColor,
+                    RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING,
+                    0,
+                    RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_THICKNESS
+                );
             }
         }
     }
@@ -394,7 +395,7 @@ namespace kx {
         if (!state) return;
 
         // 2. Healing overlays
-        DrawHealOverlay(drawList, state, entity, now, barMin, barWidth, barHeight);
+        DrawHealOverlay(drawList, state, entity, now, barMin, barWidth, barHeight, fadeAlpha);
         DrawHealFlash(drawList, state, entity, now, barMin, barWidth, barHeight, fadeAlpha);
 
         // 3. Accumulated damage
@@ -431,7 +432,9 @@ namespace kx {
         ImVec2 burstMin(center.x - width * 0.5f, barMin.y);
         ImVec2 burstMax(center.x + width * 0.5f, barMax.y);
 
-        ImU32 burstColor = IM_COL32(200, 255, 255, static_cast<int>(burstAlpha * 255 * fadeAlpha));
+        ImU32 burstColor = ESPBarColors::DEATH_BURST;
+        unsigned int a = static_cast<unsigned int>(255 * burstAlpha * fadeAlpha);
+        burstColor = (burstColor & 0x00FFFFFF) | (ClampAlpha(a) << 24);
         DrawFilledRect(drawList, burstMin, burstMax, burstColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 

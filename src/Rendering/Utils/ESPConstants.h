@@ -47,6 +47,28 @@ namespace kx {
         constexpr uint64_t STATE_CLEANUP_THRESHOLD_MS = 3000;
     }
 
+    namespace ESPBarColors {
+        // Base health derives from entityColor plus layout alpha, no fixed color here
+
+        // Healing
+        constexpr unsigned int HEAL_OVERLAY = IM_COL32(120, 255, 160, 200);  // soft mint, readable over HP
+        constexpr unsigned int HEAL_FLASH = IM_COL32(220, 255, 255, 255);  // cold white flash
+
+        // Damage
+        constexpr unsigned int DAMAGE_ACCUM = IM_COL32(255, 190, 90, 180);   // warmer amber, distinct from flash
+        constexpr unsigned int DAMAGE_FLASH = IM_COL32(255, 255, 230, 255);  // white hot flash with slight warmth
+
+        // Barrier
+        constexpr unsigned int BARRIER_FILL = IM_COL32(255, 230, 180, 240); // warm cream
+        constexpr unsigned int BARRIER_SEPARATOR = IM_COL32(255, 255, 255, 210); // separator on overflow
+
+        // Death burst
+        constexpr unsigned int DEATH_BURST = IM_COL32(200, 255, 255, 255);       // icy cyan
+
+        // Energy bar
+        // Keep using ESPColors::ENERGY_BAR for fill, it already fits the scheme
+    }
+
 /**
  * @brief Minimum size constraints for entity visibility
  * 

@@ -76,13 +76,8 @@ namespace kx {
             unsigned int entityColor,
             float fadeAlpha);
 
-        static void DrawHealOverlay(ImDrawList* dl,
-            const EntityCombatState* state,
-            const RenderableEntity* entity,
-            uint64_t now,
-            const ImVec2& barMin,
-            float barWidth,
-            float barHeight);
+        static void DrawHealOverlay(ImDrawList* dl, const EntityCombatState* state, const RenderableEntity* entity,
+            uint64_t now, const ImVec2& barMin, float barWidth, float barHeight, float fadeAlpha);
 
         static void DrawHealFlash(ImDrawList* dl,
             const EntityCombatState* state,
