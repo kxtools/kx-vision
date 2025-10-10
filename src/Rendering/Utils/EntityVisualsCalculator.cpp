@@ -22,6 +22,15 @@ namespace {
         }
     }
 
+    // Helper to get a size multiplier for gadgets based on max health
+    float GetGadgetHealthMultiplier(float maxHealth) {
+        if (maxHealth >= 1000000.0f) return 2.0f;
+        if (maxHealth >= 500000.0f) return 1.75f;
+        if (maxHealth >= 250000.0f) return 1.5f;
+        if (maxHealth >= 100000.0f) return 1.25f;
+        return 1.0f;
+    }
+
     // Helper to calculate final scaled size with clamping and multipliers
     float CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier = 1.0f) {
         float scaledSize = baseSize * scale * multiplier;
@@ -125,12 +134,17 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const EntityR
                            ? GetRankMultiplier(context.rank)
                            : 1.0f;
 
+    float gadgetHealthMultiplier = 1.0f;
+    if (context.entityType == ESPEntityType::Gadget && context.entity) {
+        gadgetHealthMultiplier = GetGadgetHealthMultiplier(context.entity->maxHealth);
+    }
+
     // Calculate final sizes using the helper
     props.finalFontSize = CalculateFinalSize(settings.sizes.baseFontSize, props.scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, hostileMultiplier);
     props.finalBoxThickness = CalculateFinalSize(settings.sizes.baseBoxThickness, props.scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, hostileMultiplier);
     props.finalDotRadius = CalculateFinalSize(settings.sizes.baseDotRadius, props.scale, ScalingLimits::MIN_DOT_RADIUS, ScalingLimits::MAX_DOT_RADIUS);
 
-    float healthBarMultiplier = hostileMultiplier * rankMultiplier;
+    float healthBarMultiplier = hostileMultiplier * rankMultiplier * gadgetHealthMultiplier;
     props.finalHealthBarWidth = CalculateFinalSize(settings.sizes.baseHealthBarWidth, props.scale, ScalingLimits::MIN_HEALTH_BAR_WIDTH, ScalingLimits::MAX_HEALTH_BAR_WIDTH, healthBarMultiplier);
     props.finalHealthBarHeight = CalculateFinalSize(settings.sizes.baseHealthBarHeight, props.scale, ScalingLimits::MIN_HEALTH_BAR_HEIGHT, ScalingLimits::MAX_HEALTH_BAR_HEIGHT, healthBarMultiplier);
 

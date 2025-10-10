@@ -7,6 +7,7 @@
 #include "../../Game/GameEnums.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "PlayerRenderData.h"
+#include "ESPData.h"
 
 namespace kx {
 
@@ -33,9 +34,11 @@ struct RenderableEntity {
     float currentHealth;
     float maxHealth;
     float currentBarrier = 0.0f; // Barrier overlay for health bars
+    ESPEntityType entityType;
 
     RenderableEntity() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
-                         isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f)
+                         isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),
+                         entityType(ESPEntityType::Gadget) // Default, will be overwritten
     {
     }
 };

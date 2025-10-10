@@ -31,6 +31,9 @@ namespace kx
         float barrierOnLastChange = 0.0f;
         uint64_t lastBarrierChangeTimestamp = 0;
 
+        // Max health tracking for state change detection
+        float lastKnownMaxHealth = 0.0f;
+
 		// Utility helpers (optional future use)
 		bool IsDead() const { return deathTimestamp != 0; }
 		bool HasAccumulatedDamage() const { return accumulatedDamage > 0.0f; }

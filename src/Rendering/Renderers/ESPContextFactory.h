@@ -7,6 +7,8 @@
 
 namespace kx {
 
+class CombatStateManager; // Forward declaration
+
 /**
  * @brief Factory class for creating EntityRenderContext objects
  * 
@@ -26,6 +28,7 @@ public:
      * @brief Create rendering context for a player entity
      * @param player Player data to render
      * @param settings Application settings
+     * @param stateManager The combat state manager for state-aware context.
      * @param details Pre-built detail strings for display
      * @param screenWidth Screen width in pixels
      * @param screenHeight Screen height in pixels
@@ -33,6 +36,7 @@ public:
      */
     static EntityRenderContext CreateContextForPlayer(const RenderablePlayer* player,
                                                      const Settings& settings,
+                                                     const CombatStateManager& stateManager,
                                                      const std::vector<ColoredDetail>& details,
                                                      float screenWidth,
                                                      float screenHeight);
@@ -41,6 +45,7 @@ public:
      * @brief Create rendering context for an NPC entity
      * @param npc NPC data to render
      * @param settings Application settings
+     * @param stateManager The combat state manager for state-aware context.
      * @param details Pre-built detail strings for display
      * @param screenWidth Screen width in pixels
      * @param screenHeight Screen height in pixels
@@ -48,6 +53,7 @@ public:
      */
     static EntityRenderContext CreateContextForNpc(const RenderableNpc* npc,
                                                    const Settings& settings,
+                                                   const CombatStateManager& stateManager,
                                                    const std::vector<ColoredDetail>& details,
                                                    float screenWidth,
                                                    float screenHeight);
@@ -56,6 +62,7 @@ public:
      * @brief Create rendering context for a gadget/object entity
      * @param gadget Gadget data to render
      * @param settings Application settings
+     * @param stateManager The combat state manager for state-aware context.
      * @param details Pre-built detail strings for display
      * @param screenWidth Screen width in pixels
      * @param screenHeight Screen height in pixels
@@ -63,6 +70,7 @@ public:
      */
     static EntityRenderContext CreateContextForGadget(const RenderableGadget* gadget,
                                                       const Settings& settings,
+                                                      const CombatStateManager& stateManager,
                                                       const std::vector<ColoredDetail>& details,
                                                       float screenWidth,
                                                       float screenHeight);

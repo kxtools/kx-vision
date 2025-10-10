@@ -92,6 +92,9 @@ namespace kx {
         bool renderDistance = false;
         bool renderDot = true;
         bool renderDetails = false;
+        bool renderHealthBar = true;
+        bool showOnlyDamagedGadgets = true;
+        bool showDeadGadgets = true;
         
         // Gadget Type Filters
         bool showResourceNodes = true;    // Type 19
