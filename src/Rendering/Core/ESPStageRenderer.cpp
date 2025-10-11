@@ -34,8 +34,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
                                              const ImVec2& center, unsigned int fadedEntityColor, 
                                              float distanceFadeAlpha, float scale, float circleRadius,
                                              float finalAlpha, float finalFontSize, float finalBoxThickness,
-                                             float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
-                                             CombatStateManager& stateManager) {
+                                             float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight) {
     const auto& settings = AppState::Get().GetSettings();
     bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
     bool isGadget = (context.entityType == ESPEntityType::Gadget);
@@ -46,8 +45,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // Render standalone health bars for living entities when health is available AND setting is enabled
     if ((isLivingEntity || isGadget) && context.healthPercent >= 0.0f && context.renderHealthBar) {
         ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, screenPos, context, 
-                                                     fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight,
-                                                     stateManager);
+                                                     fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight);
     }
 
     // Render energy bar for players
@@ -157,11 +155,17 @@ void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderCont
     
     const auto& props = *visualPropsOpt;
 
+    // --- Post-Update for State Manager ---
+    // This is where we can run calculations that depend on the final layout, like health bar width.
+    if (context.renderHealthBar) {
+        stateManager.PostUpdate(context.entity, props.finalHealthBarWidth);
+    }
+
     // Now just use the pre-calculated properties to draw all components
     RenderEntityComponents(drawList, context, camera, props.screenPos, props.boxMin, props.boxMax, props.center,
                           props.fadedEntityColor, props.distanceFadeAlpha, props.scale, props.circleRadius,
                           props.finalAlpha, props.finalFontSize, props.finalBoxThickness, props.finalDotRadius,
-                          props.finalHealthBarWidth, props.finalHealthBarHeight, stateManager);
+                          props.finalHealthBarWidth, props.finalHealthBarHeight);
 }
 
 void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,

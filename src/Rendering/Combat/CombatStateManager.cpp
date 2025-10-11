@@ -5,6 +5,47 @@
 
 namespace kx
 {
+	void CombatStateManager::PostUpdate(const RenderableEntity* entity, float barWidth)
+	{
+		if (!entity) return;
+
+		EntityCombatState* state = GetStateNonConst(entity->address);
+		if (!state || state->accumulatedDamage <= 0 || state->flushAnimationStartTime > 0)
+		{
+			return;
+		}
+
+		const uint64_t now = GetTickCount64();
+		bool shouldFlush = false;
+
+		// 1. Calculate the dynamic percentage threshold.
+		const float hp = (std::max)(1.0f, entity->maxHealth);
+		float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
+		const float hpLog = log10f(hp);
+		const float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
+		thresholdPercent *= scaleFactor;
+		thresholdPercent = std::clamp(thresholdPercent,
+		                              CombatEffects::MIN_CHUNK_PERCENT,
+		                              CombatEffects::MAX_CHUNK_PERCENT);
+
+		// 2. PRIMARY CONDITION: Flush if the chunk has reached a satisfying size.
+		const float accumulatedPercent = state->accumulatedDamage / hp;
+		if (accumulatedPercent >= thresholdPercent)
+		{
+			shouldFlush = true;
+		}
+		// 3. FALLBACK CONDITION: Flush if the burst has ended.
+		else if (now - state->lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS)
+		{
+			shouldFlush = true;
+		}
+
+		if (shouldFlush)
+		{
+			state->flushAnimationStartTime = now;
+		}
+	}
+	
 	EntityCombatState& CombatStateManager::AcquireState(const RenderableEntity* entity)
 	{
 		return m_entityStates[entity->address]; // creates if missing

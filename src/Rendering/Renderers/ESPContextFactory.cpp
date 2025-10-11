@@ -6,8 +6,140 @@
 #include "../Core/ESPStageRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
+#include "../Utils/AnimationHelpers.h" // For easing functions
 
 namespace kx {
+
+namespace { // Anonymous namespace for helpers
+
+/**
+ * @brief Calculates all transient health bar animation states.
+ *
+ * This centralizes the animation logic that was previously in the renderer.
+ * It populates the HealthBarAnimationState struct, which is then passed to the
+ * "dumb" renderer.
+ *
+ * @param entity The entity being rendered.
+ * @param state The combat state for the entity.
+ * @param animState The output struct to populate with animation values.
+ */
+void PopulateHealthBarAnimations(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState) {
+    if (!entity || !state) {
+        return;
+    }
+
+    const uint64_t now = GetTickCount64();
+    const float maxHealth = entity->maxHealth;
+
+    // 1. Overall Bar Fade (Death)
+    float timeFade = 1.0f;
+    if (state->deathTimestamp > 0) {
+        uint64_t sinceDeath = now - state->deathTimestamp;
+        if (sinceDeath > CombatEffects::DEATH_BURST_DURATION_MS) {
+            uint64_t intoFade = sinceDeath - CombatEffects::DEATH_BURST_DURATION_MS;
+            if (intoFade < CombatEffects::DEATH_FINAL_FADE_DURATION_MS) {
+                timeFade = 1.0f - static_cast<float>(intoFade) / CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
+            } else {
+                timeFade = 0.0f;
+            }
+        }
+    }
+    animState.healthBarFadeAlpha = timeFade;
+    if (animState.healthBarFadeAlpha <= 0.0f) {
+        return; // No need to calculate other effects if the bar is invisible
+    }
+
+    // 2. Death Burst Animation
+    if (state->deathTimestamp > 0) {
+        uint64_t sinceDeath = now - state->deathTimestamp;
+        if (sinceDeath < CombatEffects::DEATH_BURST_DURATION_MS) {
+            float linear = static_cast<float>(sinceDeath) / CombatEffects::DEATH_BURST_DURATION_MS;
+            float eased = Animation::EaseOutCubic(linear);
+            animState.deathBurstAlpha = 1.0f - eased;
+            animState.deathBurstWidth = 1.0f - eased;
+        }
+    } else {
+        // Only calculate these effects if the entity is alive
+        if (maxHealth > 0) {
+            // 3. Damage Accumulator
+            if (state->accumulatedDamage > 0) {
+                float animationAlpha = 1.0f;
+                if (state->flushAnimationStartTime > 0) {
+                    uint64_t elapsed = now - state->flushAnimationStartTime;
+                    if (elapsed >= CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS) {
+                        // The CombatStateManager will reset this after the animation is over.
+                        // For this frame, we just draw it at zero.
+                        animState.damageAccumulatorPercent = 0.0f;
+                    } else {
+                        float progress = static_cast<float>(elapsed) / CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS;
+                        animationAlpha = 1.0f - Animation::EaseOutCubic(progress);
+                    }
+                }
+                float endHealth = entity->currentHealth + state->accumulatedDamage;
+                animState.damageAccumulatorPercent = (endHealth / maxHealth) * animationAlpha;
+            }
+
+            // 4. Heal Overlay
+            if (state->lastHealTimestamp > 0) {
+                uint64_t elapsed = now - state->lastHealTimestamp;
+                if (elapsed < CombatEffects::HEAL_OVERLAY_DURATION_MS) {
+                    animState.healOverlayStartPercent = state->healStartHealth / maxHealth;
+                    animState.healOverlayEndPercent = entity->currentHealth / maxHealth;
+
+                    float overlayAlpha = 1.0f;
+                    if (CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS < CombatEffects::HEAL_OVERLAY_DURATION_MS) {
+                        uint64_t fadeStart = CombatEffects::HEAL_OVERLAY_DURATION_MS - CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
+                        if (elapsed > fadeStart) {
+                            uint64_t intoFade = elapsed - fadeStart;
+                            float fadeProgress = static_cast<float>(intoFade) / CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
+                            overlayAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
+                        }
+                    }
+                    animState.healOverlayAlpha = overlayAlpha;
+                }
+            }
+
+            // 5. Damage Flash
+            if (state->lastHitTimestamp > 0) {
+                uint64_t elapsed = now - state->lastHitTimestamp;
+                if (elapsed < CombatEffects::DAMAGE_FLASH_TOTAL_DURATION_MS) {
+                    float flashAlpha = 1.0f;
+                    if (elapsed > CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS) {
+                        uint64_t intoFade = elapsed - CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS;
+                        float fadeProgress = static_cast<float>(intoFade) / CombatEffects::DAMAGE_FLASH_FADE_DURATION_MS;
+                        flashAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
+                    }
+                    animState.damageFlashAlpha = flashAlpha;
+                    animState.damageFlashStartPercent = (entity->currentHealth + state->lastDamageTaken) / maxHealth;
+                }
+            }
+
+            // 6. Heal Flash
+            if (state->lastHealFlashTimestamp > 0) {
+                uint64_t elapsed = now - state->lastHealFlashTimestamp;
+                if (elapsed < CombatEffects::HEAL_FLASH_DURATION_MS) {
+                    float linear = static_cast<float>(elapsed) / CombatEffects::HEAL_FLASH_DURATION_MS;
+                    animState.healFlashAlpha = 1.0f - Animation::EaseOutCubic(linear);
+                }
+            }
+        }
+    }
+	
+    // 7. Barrier Animation (always runs, even if dead, to animate to zero)
+    const float currentBarrier = entity->currentBarrier;
+    float animatedBarrier = currentBarrier;
+    if (state->lastBarrierChangeTimestamp > 0) {
+        const uint64_t elapsed = now - state->lastBarrierChangeTimestamp;
+        if (elapsed < CombatEffects::BARRIER_ANIM_DURATION_MS) {
+            const float progress = static_cast<float>(elapsed) / CombatEffects::BARRIER_ANIM_DURATION_MS;
+            const float eased = Animation::EaseOutCubic(progress);
+            animatedBarrier = state->barrierOnLastChange + (currentBarrier - state->barrierOnLastChange) * eased;
+        }
+    }
+    animState.animatedBarrier = animatedBarrier;
+}
+
+} // anonymous namespace
 
 EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePlayer* player,
                                                              const Settings& settings,
@@ -16,7 +148,6 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
                                                              float screenWidth,
                                                              float screenHeight) {
     float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
-    
     float energyPercent = -1.0f;
     if (settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
         if (player->maxEnergy > 0) {
@@ -47,6 +178,13 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
             color = ESPColors::NPC_UNKNOWN;
             break;
     }
+
+    // --- Animation State --- 
+    const EntityCombatState* state = stateManager.GetState(player->address);
+    HealthBarAnimationState animState;
+    if (state) {
+        PopulateHealthBarAnimations(player, state, animState);
+    }
     
     return EntityRenderContext{
         player->position,
@@ -70,7 +208,8 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         screenHeight,
         player, // entity pointer
         player->playerName,
-        player
+        player,
+        animState
     };
 }
 
@@ -101,6 +240,13 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
             color = ESPColors::NPC_UNKNOWN;
             break;
     }
+
+    // --- Animation State --- 
+    const EntityCombatState* state = stateManager.GetState(npc->address);
+    HealthBarAnimationState animState;
+    if (state) {
+        PopulateHealthBarAnimations(npc, state, animState);
+    }
     
     static const std::string emptyPlayerName = "";
     return EntityRenderContext{
@@ -125,7 +271,8 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         screenHeight,
         npc, // entity pointer
         emptyPlayerName,
-        nullptr
+        nullptr,
+        animState
     };
 }
 
@@ -177,6 +324,15 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         }
     }
 
+    // --- Animation State --- 
+    HealthBarAnimationState animState;
+    if (renderHealthBar) { // Only calculate animations if the bar will be visible
+        const EntityCombatState* state = stateManager.GetState(gadget->address);
+        if (state) {
+            PopulateHealthBarAnimations(gadget, state, animState);
+        }
+    }
+
     return EntityRenderContext{
         gadget->position,
         gadget->visualDistance,
@@ -199,7 +355,8 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         screenHeight,
         gadget, // entity pointer
         emptyPlayerName,
-        nullptr
+        nullptr,
+        animState
     };
 }
 
