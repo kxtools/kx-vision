@@ -76,6 +76,7 @@ enum class GadgetType : uint32_t {
     Destructible = 1,       // Training dummy, siege practice targets
     Point = 2,              // PvP control points, event spawns
     Generic = 3,            // Generic, often invisible, trigger
+    Generic2 = 4,
     Crafting = 5,           // Crafting stations
     Door = 6,               // Interactive doors, gates
     BountyBoard = 11,       // Bounty boards

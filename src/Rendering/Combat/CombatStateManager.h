@@ -29,6 +29,13 @@ namespace kx
 		void Update(const std::vector<RenderableEntity*>& entities, uint64_t now);
 
 		/**
+		 * @brief Post-update step for layout-dependent calculations (e.g., damage chunking).
+		 * @param entity The entity to process.
+		 * @param barWidth The final calculated width of the health bar for this entity.
+		 */
+		void PostUpdate(const RenderableEntity* entity, float barWidth);
+
+		/**
 		 * @brief Remove stale entries that have not been seen recently.
 		 * Uses GetTickCount64 internally. If you want determinism/testability,
 		 * a variant taking 'now' could be added.

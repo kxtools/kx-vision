@@ -11,6 +11,7 @@ struct ImDrawList;
 namespace kx {
 
 // Forward declaration for context struct
+struct VisualProperties;
 struct EntityRenderContext;
 class CombatStateManager;
 
@@ -63,33 +64,12 @@ private:
      * @brief Render all visual components for an entity
      * @param drawList ImGui draw list
      * @param context Entity rendering context
-     * @param screenPos Screen position
-     * @param boxMin Bounding box minimum point (or circle bounds for gadgets)
-     * @param boxMax Bounding box maximum point (or circle bounds for gadgets)
-     * @param center Center point
-     * @param fadedEntityColor Entity color with distance fade
-     * @param distanceFadeAlpha Distance-based alpha
-     * @param scale Scale factor
-     * @param circleRadius Circle radius for gadgets (0 for players/NPCs)
-     * @param finalAlpha Final alpha after adaptive effects
-     * @param finalFontSize Final scaled font size
-     * @param finalBoxThickness Final scaled box thickness
-     * @param finalDotRadius Final scaled dot radius
-     * @param finalHealthBarWidth Final scaled health bar width
-     * @param finalHealthBarHeight Final scaled health bar height
-     * @param stateManager Reference to the combat state manager
+     * @param camera The game camera
+     * @param props The calculated visual properties for the entity
      */
     static void RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
-                                      Camera& camera,
-                                      const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
-                                      const ImVec2& center, unsigned int fadedEntityColor, 
-                                      float distanceFadeAlpha, float scale, float circleRadius,
-                                      float finalAlpha, float finalFontSize, float finalBoxThickness,
-                                      float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight,
-                                      CombatStateManager& stateManager);
+                                             Camera& camera, const struct VisualProperties& props);
 
-    static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
-        const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale);
 
 };
 

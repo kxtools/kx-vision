@@ -93,7 +93,7 @@ void ImGuiManager::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, con
         
         if (mapId != 0) {
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "| In-Map (ID: %u)", mapId);
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "| In-Map");
         } else {
             ImGui::SameLine();
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "| Waiting for map...");

@@ -5,6 +5,10 @@
 
 namespace kx {
 
+// Forward declarations
+struct EntityRenderContext;
+class Camera;
+
 /**
  * @brief Utility functions for rendering shapes in ESP
  * 
@@ -13,6 +17,12 @@ namespace kx {
  */
 class ESPShapeRenderer {
 public:
+    /**
+     * @brief Render a 3D gyroscope sphere for gadgets, with LOD transition to a 2D circle.
+     */
+    static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
+        const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale);
+
     /**
      * @brief Render a bounding box around an entity
      * @param drawList ImGui draw list for rendering

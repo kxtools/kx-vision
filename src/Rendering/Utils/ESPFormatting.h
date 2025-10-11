@@ -52,6 +52,7 @@ namespace ESPFormatting {
             case Game::GadgetType::Prop: return "Prop";
             case Game::GadgetType::BuildSite: return "Build Site";
             case Game::GadgetType::Generic: return "Generic Trigger";
+            case Game::GadgetType::Generic2: return "Generic Trigger 2";
             default: return nullptr; // Return nullptr for unknown, caller should handle ID display
         }
     }

@@ -26,7 +26,7 @@ namespace kx {
                     &settings.showInteractables, &settings.showDoors, &settings.showPortals,
                     &settings.showDestructible, &settings.showPoints, &settings.showPlayerSpecific,
                     &settings.showProps, &settings.showBuildSites, &settings.showBountyBoards,
-                    &settings.showRifts, &settings.showGeneric, &settings.showUnknown
+                    &settings.showRifts, &settings.showGeneric, &settings.showGeneric2, &settings.showUnknown
                 };
                 for (bool* filter : filters) {
                     *filter = value;
@@ -79,6 +79,7 @@ namespace kx {
                         CheckboxWithTooltip("Player Specific", "Objects", &settings.objectESP.showPlayerSpecific, "Show objects created for a specific player.");
                         CheckboxWithTooltip("Generic", "Objects", &settings.objectESP.showGeneric, "Show generic or invisible trigger objects (for debugging).");
                         ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Generic 2", "Objects", &settings.objectESP.showGeneric2, "Show generic or invisible trigger objects (for debugging).");
                         CheckboxWithTooltip("Unknown", "Objects", &settings.objectESP.showUnknown, "Show any object type not explicitly handled.");
 
                         // Add a separator for better visual structure before the buttons.

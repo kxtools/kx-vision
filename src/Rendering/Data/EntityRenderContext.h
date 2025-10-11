@@ -9,6 +9,51 @@
 namespace kx {
 
 /**
+ * @brief Holds all transient, frame-specific animation state for health bars.
+ *
+ * This data is calculated once by the ESPContextFactory and then consumed by
+ * the ESPHealthBarRenderer, which becomes a "dumb" component that only draws
+ * what it's given. This decouples rendering from state calculation.
+ */
+struct HealthBarAnimationState {
+    // Overall fade alpha for the entire bar (combines distance, death, etc.)
+    float healthBarFadeAlpha = 1.0f;
+
+    // --- Damage Accumulator ---
+    // The percentage of the bar the damage accumulator should cover (0 if inactive)
+    float damageAccumulatorPercent = 0.0f;
+    // Alpha for the damage accumulator's fade-out animation
+    float damageAccumulatorAlpha = 1.0f; // NEW: Default to 1.0 (fully opaque)
+
+    // --- Healing Overlay ---
+    // The starting health percentage for the current heal overlay (0 if inactive)
+    float healOverlayStartPercent = 0.0f;
+    // The ending health percentage for the current heal overlay
+    float healOverlayEndPercent = 0.0f;
+    // Alpha multiplier for the heal overlay's fade-out animation
+    float healOverlayAlpha = 0.0f;
+
+    // --- Flashes ---
+    // Alpha for the instant damage flash
+    float damageFlashAlpha = 0.0f;
+    // The health percentage where the damage flash should start
+    float damageFlashStartPercent = 0.0f;
+    // Alpha for the instant heal flash
+    float healFlashAlpha = 0.0f;
+
+    // --- Barrier ---
+    // The animated barrier value for smooth transitions
+    float animatedBarrier = 0.0f;
+
+    // --- Death Animation ---
+    // The alpha of the death "burst" effect
+    float deathBurstAlpha = 0.0f;
+    // The width of the death "burst" effect, from 0.0 to 1.0
+    float deathBurstWidth = 0.0f;
+};
+
+
+/**
  * @brief Unified context structure for entity rendering
  * 
  * This structure consolidates all the data needed to render any type of entity
@@ -99,6 +144,9 @@ struct EntityRenderContext {
     
     /** Pointer to full player object for summary rendering (nullptr for non-players) */
     const RenderablePlayer* player;
+
+    /** Transient animation state for the health bar */
+    HealthBarAnimationState healthBarAnim;
 };
 
 } // namespace kx
