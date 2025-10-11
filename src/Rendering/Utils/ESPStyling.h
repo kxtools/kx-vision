@@ -3,7 +3,7 @@
 #include "../Game/GameEnums.h"
 #include "../../libs/ImGui/imgui.h"
 #include "ESPConstants.h"
-#include "Generated/EnumsAndStructs.h" // <-- ADD THIS INCLUDE
+#include "Generated/EnumsAndStructs.h"
 
 // Forward declaration to avoid circular dependency
 namespace kx {
@@ -53,6 +53,23 @@ namespace ESPStyling {
 
             default:
                 return ESPColors::DEFAULT_TEXT;
+        }
+    }
+
+    // Helper to determine if a gadget's health bar should be hidden based on its type.
+    inline bool ShouldHideHealthBarForGadgetType(Game::GadgetType type) {
+        switch (type) {
+            // These types often have unstable health values or health is not a meaningful metric,
+            // so we hide the bar to prevent visual noise and flickering.
+            case Game::GadgetType::Prop:
+            case Game::GadgetType::Interact:
+            case Game::GadgetType::ResourceNode:
+            case Game::GadgetType::Waypoint:
+            case Game::GadgetType::MapPortal:
+            case Game::GadgetType::Generic:
+                return true;
+            default:
+                return false;
         }
     }
 

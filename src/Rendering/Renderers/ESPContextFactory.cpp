@@ -7,6 +7,7 @@
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
 #include "../Utils/AnimationHelpers.h" // For easing functions
+#include "../Utils/ESPStyling.h"
 
 namespace kx {
 
@@ -276,24 +277,6 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     };
 }
 
-namespace {
-    // Helper to determine if a gadget's health bar should be hidden based on its type.
-    bool ShouldHideHealthBarForGadgetType(Game::GadgetType type) {
-        switch (type) {
-            // These types often have unstable health values or health is not a meaningful metric,
-            // so we hide the bar to prevent visual noise and flickering.
-            case Game::GadgetType::Prop:
-            case Game::GadgetType::Interact:
-            case Game::GadgetType::ResourceNode:
-            case Game::GadgetType::Waypoint:
-            case Game::GadgetType::MapPortal:
-                return true;
-            default:
-                return false;
-        }
-    }
-} // anonymous namespace
-
 EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGadget* gadget,
                                                              const Settings& settings,
                                                              const CombatStateManager& stateManager,
@@ -306,7 +289,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
 
     // Do not render health bar for certain gadget types to avoid flickering, or if the base setting is off.
     if (renderHealthBar) {
-        if (ShouldHideHealthBarForGadgetType(gadget->type)) {
+        if (ESPStyling::ShouldHideHealthBarForGadgetType(gadget->type)) {
             renderHealthBar = false;
         }
         else if (gadget->maxHealth > 0) {
