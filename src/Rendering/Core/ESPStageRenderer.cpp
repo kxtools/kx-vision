@@ -19,309 +19,208 @@
 
 namespace kx {
 
-void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                      const PooledFrameRenderData& frameData, Camera& camera, 
-                                      CombatStateManager& stateManager) {
-    // Simple rendering - no filtering logic, just draw everything that was passed in
-    RenderPooledPlayers(drawList, screenWidth, screenHeight, frameData.players, camera, stateManager);
-    RenderPooledNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera, stateManager);
-    RenderPooledGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera, stateManager);
-}
-
-void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
-                                             Camera& camera,
-                                             const glm::vec2& screenPos, const ImVec2& boxMin, const ImVec2& boxMax,
-                                             const ImVec2& center, unsigned int fadedEntityColor, 
-                                             float distanceFadeAlpha, float scale, float circleRadius,
-                                             float finalAlpha, float finalFontSize, float finalBoxThickness,
-                                             float finalDotRadius, float finalHealthBarWidth, float finalHealthBarHeight) {
-    const auto& settings = AppState::Get().GetSettings();
-    bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
-    bool isGadget = (context.entityType == ESPEntityType::Gadget);
-    
-    // fadedEntityColor already has all alphas applied from EntityVisualsCalculator
-    // No need to apply alpha again here
-    
-    // Render standalone health bars for living entities when health is available AND setting is enabled
-    if ((isLivingEntity || isGadget) && context.healthPercent >= 0.0f && context.renderHealthBar) {
-        ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, screenPos, context, 
-                                                     fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight);
+    void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight,
+        const PooledFrameRenderData& frameData, Camera& camera,
+        CombatStateManager& stateManager) {
+        // Simple rendering - no filtering logic, just draw everything that was passed in
+        RenderPooledPlayers(drawList, screenWidth, screenHeight, frameData.players, camera, stateManager);
+        RenderPooledNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera, stateManager);
+        RenderPooledGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera, stateManager);
     }
 
-    // Render energy bar for players
-    if (context.entityType == ESPEntityType::Player && context.energyPercent >= 0.0f && context.renderEnergyBar) {
-        ESPHealthBarRenderer::RenderStandaloneEnergyBar(drawList, screenPos, context.energyPercent, 
-                                                     finalAlpha, finalHealthBarWidth, finalHealthBarHeight,
-                                                     finalHealthBarHeight);
-    }
+    void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
+        Camera& camera, const VisualProperties& props) {
+        const auto& settings = AppState::Get().GetSettings();
+        bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
+        bool isGadget = (context.entityType == ESPEntityType::Gadget);
 
-    // Render bounding box for players/NPCs
-    if (!isGadget && context.renderBox) {
-        ESPShapeRenderer::RenderBoundingBox(drawList, boxMin, boxMax, fadedEntityColor, finalBoxThickness);
-    }
+        // fadedEntityColor already has all alphas applied from EntityVisualsCalculator
+        // No need to apply alpha again here
 
-    // Render gadget visuals (non-exclusive)
-    if (isGadget) {
-        if (settings.objectESP.renderSphere) {
-            RenderGadgetSphere(drawList, context, camera, screenPos, finalAlpha, fadedEntityColor, scale);
+        // Render standalone health bars for living entities when health is available AND setting is enabled
+        if ((isLivingEntity || isGadget) && context.healthPercent >= 0.0f && context.renderHealthBar) {
+            ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, props.screenPos, context,
+                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight);
         }
-        if (settings.objectESP.renderCircle) {
-            drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), circleRadius, fadedEntityColor, 0, finalBoxThickness);
-        }
-    }
 
-    // Render distance text
-    if (context.renderDistance) {
+        // Render energy bar for players
+        if (context.entityType == ESPEntityType::Player && context.energyPercent >= 0.0f && context.renderEnergyBar) {
+            ESPHealthBarRenderer::RenderStandaloneEnergyBar(drawList, props.screenPos, context.energyPercent,
+                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight,
+                props.finalHealthBarHeight);
+        }
+
+        // Render bounding box for players/NPCs
+        if (!isGadget && context.renderBox) {
+            ESPShapeRenderer::RenderBoundingBox(drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
+        }
+
+        // Render gadget visuals (non-exclusive)
         if (isGadget) {
-            // For gadgets, position distance text above the circle
-            ImVec2 textAnchor(center.x, center.y - circleRadius);
-            ESPTextRenderer::RenderDistanceText(drawList, center, textAnchor, context.gameplayDistance, 
-                                                  finalAlpha, finalFontSize);
-        } else {
-            // For players/NPCs, use traditional positioning
-            ESPTextRenderer::RenderDistanceText(drawList, center, boxMin, context.gameplayDistance, 
-                                                  finalAlpha, finalFontSize);
-        }
-    }
-
-    // Render center dot
-    if (context.renderDot) {
-        if (isGadget) {
-            ESPShapeRenderer::RenderNaturalWhiteDot(drawList, screenPos, finalAlpha, finalDotRadius);
-        } else {
-            ESPShapeRenderer::RenderColoredDot(drawList, screenPos, fadedEntityColor, finalDotRadius);
-        }
-    }
-
-    // Render player name for natural identification (players only)
-    if (context.entityType == ESPEntityType::Player && context.renderPlayerName) {
-        // For hostile players with an empty name, display their profession
-        std::string displayName = context.playerName;
-        if (displayName.empty() && context.attitude == Game::Attitude::Hostile) {
-            if (context.player) {
-                const char* prof = ESPFormatting::GetProfessionName(context.player->profession);
-                if (prof) {
-                    displayName = prof;
-                }
+            if (settings.objectESP.renderSphere) {
+                ESPShapeRenderer::RenderGadgetSphere(drawList, context, camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale);
+            }
+            if (settings.objectESP.renderCircle) {
+                drawList->AddCircle(ImVec2(props.screenPos.x, props.screenPos.y), props.circleRadius, props.fadedEntityColor, 0, props.finalBoxThickness);
             }
         }
 
-        if (!displayName.empty()) {
-            // Use entity color directly (already attitude-based from ESPContextFactory)
-            ESPTextRenderer::RenderPlayerName(drawList, screenPos, displayName, fadedEntityColor, finalFontSize);
-        }
-    }
-
-    // Render details text (for all entities when enabled)
-    if (context.renderDetails && !context.details.empty()) {
-        if (isGadget) {
-            // For gadgets, position details below the circle
-            ImVec2 textAnchor(center.x, center.y + circleRadius);
-            ESPTextRenderer::RenderDetailsText(drawList, center, textAnchor, context.details, finalAlpha, finalFontSize);
-        } else {
-            // For players/NPCs, use traditional positioning
-            ESPTextRenderer::RenderDetailsText(drawList, center, boxMax, context.details, finalAlpha, finalFontSize);
-        }
-    }
-
-    // Specialized Summary Rendering (Players Only)
-    if (context.entityType == ESPEntityType::Player && context.player != nullptr) {
-        switch (settings.playerESP.gearDisplayMode) {
-        case GearDisplayMode::Compact: { // Compact (Stat Names)
-            auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
-            ESPTextRenderer::RenderGearSummary(drawList, screenPos, compactSummary, finalAlpha, finalFontSize);
-            break;
-        }
-        case GearDisplayMode::Attributes: { // Top 3 Attributes
-            auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
-            auto topRarity = ESPPlayerDetailsBuilder::GetHighestRarity(context.player);
-            ESPTextRenderer::RenderDominantStats(drawList, screenPos, dominantStats, topRarity, finalAlpha, finalFontSize);
-            break;
-        }
-        default:
-            // Modes Off and Detailed do not have a separate summary view
-            break;
-        }
-    }
-}
-
-void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, CombatStateManager& stateManager) {
-    // Calculate all visual properties using the new calculator
-    auto visualPropsOpt = EntityVisualsCalculator::Calculate(context, camera, context.screenWidth, context.screenHeight);
-    
-    if (!visualPropsOpt) {
-        return; // Entity is not visible or fully transparent
-    }
-    
-    const auto& props = *visualPropsOpt;
-
-    // --- Post-Update for State Manager ---
-    // This is where we can run calculations that depend on the final layout, like health bar width.
-    if (context.renderHealthBar) {
-        stateManager.PostUpdate(context.entity, props.finalHealthBarWidth);
-    }
-
-    // Now just use the pre-calculated properties to draw all components
-    RenderEntityComponents(drawList, context, camera, props.screenPos, props.boxMin, props.boxMax, props.center,
-                          props.fadedEntityColor, props.distanceFadeAlpha, props.scale, props.circleRadius,
-                          props.finalAlpha, props.finalFontSize, props.finalBoxThickness, props.finalDotRadius,
-                          props.finalHealthBarWidth, props.finalHealthBarHeight);
-}
-
-void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,
-    const std::vector<RenderablePlayer*>& players, Camera& camera, CombatStateManager& stateManager) {
-    const auto& settings = AppState::Get().GetSettings();
-
-    for (const auto* player : players) {
-        if (!player) continue;
-
-        // --- 1. DATA PREPARATION ---
-        // Use the builder to prepare all text details. This includes general info and detailed gear view if selected.
-        std::vector<ColoredDetail> details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, settings.playerESP, settings.showDebugAddresses);
-
-        // If "Detailed" mode is selected, build the full gear list and add it to the details.
-        if (settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
-            auto gearDetails = ESPPlayerDetailsBuilder::BuildGearDetails(player);
-            if (!gearDetails.empty()) {
-                if (!details.empty()) {
-                    details.push_back({ "--- Gear Stats ---", ESPColors::DEFAULT_TEXT });
-                }
-                details.insert(details.end(), gearDetails.begin(), gearDetails.end());
+        // Render distance text
+        if (context.renderDistance) {
+            if (isGadget) {
+                // For gadgets, position distance text above the circle
+                ImVec2 textAnchor(props.center.x, props.center.y - props.circleRadius);
+                ESPTextRenderer::RenderDistanceText(drawList, props.center, textAnchor, context.gameplayDistance,
+                    props.finalAlpha, props.finalFontSize);
+            }
+            else {
+                // For players/NPCs, use traditional positioning
+                ESPTextRenderer::RenderDistanceText(drawList, props.center, props.boxMin, context.gameplayDistance,
+                    props.finalAlpha, props.finalFontSize);
             }
         }
 
-        // --- 2. CORE RENDERING ---
-        // Use factory to create context and render
-        auto context = ESPContextFactory::CreateContextForPlayer(player, settings, stateManager, details, screenWidth, screenHeight);
-        RenderEntity(drawList, context, camera, stateManager);
-    }
-}
-
-void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                       const std::vector<RenderableNpc*>& npcs, Camera& camera, 
-                                       CombatStateManager& stateManager) {
-    const auto& settings = AppState::Get().GetSettings();
-    
-    for (const auto* npc : npcs) {
-        if (!npc) continue; // Safety check
-
-        // Use the builder to prepare NPC details
-        std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildNpcDetails(npc, settings.npcESP, settings.showDebugAddresses);
-
-        auto context = ESPContextFactory::CreateContextForNpc(npc, settings, stateManager, details, screenWidth, screenHeight);
-        RenderEntity(drawList, context, camera, stateManager);
-    }
-}
-
-void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                          const std::vector<RenderableGadget*>& gadgets, Camera& camera, 
-                                          CombatStateManager& stateManager) {
-    const auto& settings = AppState::Get().GetSettings();
-    
-    for (const auto* gadget : gadgets) {
-        if (!gadget) continue; // Safety check
-
-        // Use the builder to prepare Gadget details
-        std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, settings.objectESP, settings.showDebugAddresses);
-
-        auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, stateManager, details, screenWidth, screenHeight);
-        RenderEntity(drawList, context, camera, stateManager);
-    }
-}
-
-void ESPStageRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
-    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale) {
-    // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
-
-    // --- Define the 3D sphere's geometric properties ---
-    const int NUM_RING_POINTS = GadgetSphere::NUM_RING_POINTS;
-    const float PI = 3.14159265359f;
-    const float VERTICAL_RADIUS = GadgetSphere::VERTICAL_RADIUS;
-    const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * GadgetSphere::HORIZONTAL_RADIUS_RATIO;
-
-    // --- Define vertices (precomputed and cached) ---
-    static std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
-    if (localRingXY.empty()) {
-        localRingXY.reserve(NUM_RING_POINTS + 1);
-        localRingXZ.reserve(NUM_RING_POINTS + 1);
-        localRingYZ.reserve(NUM_RING_POINTS + 1);
-        for (int i = 0; i <= NUM_RING_POINTS; ++i) {
-            float angle = 2.0f * PI * i / NUM_RING_POINTS;
-            float s = sin(angle), c = cos(angle);
-            localRingXY.emplace_back(c * HORIZONTAL_RADIUS, s * HORIZONTAL_RADIUS, 0);
-            localRingXZ.emplace_back(c * VERTICAL_RADIUS, 0, s * VERTICAL_RADIUS);
-            localRingYZ.emplace_back(0, c * VERTICAL_RADIUS, s * VERTICAL_RADIUS);
-        }
-    }
-
-    // --- 1. LOD (Level of Detail) Calculation ---
-    float gyroscopeAlpha = 1.0f;
-    float circleAlpha = 0.0f;
-
-    if (context.gameplayDistance > GadgetSphere::LOD_TRANSITION_START) {
-        // We are in or past the transition zone.
-        float range = GadgetSphere::LOD_TRANSITION_END - GadgetSphere::LOD_TRANSITION_START;
-        float progress = std::clamp((context.gameplayDistance - GadgetSphere::LOD_TRANSITION_START) / range, 0.0f, 1.0f);
-
-        gyroscopeAlpha = 1.0f - progress; // Fades out from 1.0 to 0.0
-        circleAlpha = progress;          // Fades in from 0.0 to 1.0
-    }
-
-    // --- RENDER THE 3D GYROSCOPE (if it's visible) ---
-    if (gyroscopeAlpha > 0.0f) {
-        const float finalLineThickness = std::clamp(GadgetSphere::BASE_THICKNESS * scale, GadgetSphere::MIN_THICKNESS, GadgetSphere::MAX_THICKNESS);
-
-        // --- Project points ---
-        std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
-        bool projection_ok = true;
-        auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
-            if (!projection_ok) return;
-            screen_points.reserve(local_points.size());
-            for (const auto& point : local_points) {
-                glm::vec2 sp;
-                if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, sp)) {
-                    screen_points.push_back(ImVec2(sp.x, sp.y));
-                }
-                else { projection_ok = false; screen_points.clear(); return; }
+        // Render center dot
+        if (context.renderDot) {
+            if (isGadget) {
+                ESPShapeRenderer::RenderNaturalWhiteDot(drawList, props.screenPos, props.finalAlpha, props.finalDotRadius);
             }
-            };
-        project_ring(localRingXY, screenRingXY);
-        project_ring(localRingXZ, screenRingXZ);
-        project_ring(localRingYZ, screenRingYZ);
+            else {
+                ESPShapeRenderer::RenderColoredDot(drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius);
+            }
+        }
 
-        // --- Draw the 3D sphere ---
-        if (projection_ok) {
-            // Define the single, final color for all rings.
-            unsigned int masterAlpha = (fadedEntityColor >> 24) & 0xFF;
-            unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * gyroscopeAlpha);
-            ImU32 finalColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
+        // Render player name for natural identification (players only)
+        if (context.entityType == ESPEntityType::Player && context.renderPlayerName) {
+            // For hostile players with an empty name, display their profession
+            std::string displayName = context.playerName;
+            if (displayName.empty() && context.attitude == Game::Attitude::Hostile) {
+                if (context.player) {
+                    const char* prof = ESPFormatting::GetProfessionName(context.player->profession);
+                    if (prof) {
+                        displayName = prof;
+                    }
+                }
+            }
 
-            // Draw all three rings with the same bright color and thickness.
-            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), screenRingXY.size(), finalColor, false, finalLineThickness);
-            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), finalColor, false, finalLineThickness);
-            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), finalColor, false, finalLineThickness);
+            if (!displayName.empty()) {
+                // Use entity color directly (already attitude-based from ESPContextFactory)
+                ESPTextRenderer::RenderPlayerName(drawList, props.screenPos, displayName, props.fadedEntityColor, props.finalFontSize);
+            }
+        }
+
+        // Render details text (for all entities when enabled)
+        if (context.renderDetails && !context.details.empty()) {
+            if (isGadget) {
+                // For gadgets, position details below the circle
+                ImVec2 textAnchor(props.center.x, props.center.y + props.circleRadius);
+                ESPTextRenderer::RenderDetailsText(drawList, props.center, textAnchor, context.details, props.finalAlpha, props.finalFontSize);
+            }
+            else {
+                // For players/NPCs, use traditional positioning
+                ESPTextRenderer::RenderDetailsText(drawList, props.center, props.boxMax, context.details, props.finalAlpha, props.finalFontSize);
+            }
+        }
+
+        // Specialized Summary Rendering (Players Only)
+        if (context.entityType == ESPEntityType::Player && context.player != nullptr) {
+            switch (settings.playerESP.gearDisplayMode) {
+            case GearDisplayMode::Compact: { // Compact (Stat Names)
+                auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
+                ESPTextRenderer::RenderGearSummary(drawList, props.screenPos, compactSummary, props.finalAlpha, props.finalFontSize);
+                break;
+            }
+            case GearDisplayMode::Attributes: { // Top 3 Attributes
+                auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
+                auto topRarity = ESPPlayerDetailsBuilder::GetHighestRarity(context.player);
+                ESPTextRenderer::RenderDominantStats(drawList, props.screenPos, dominantStats, topRarity, props.finalAlpha, props.finalFontSize);
+                break;
+            }
+            default:
+                // Modes Off and Detailed do not have a separate summary view
+                break;
+            }
         }
     }
 
-    // --- RENDER THE 2D CIRCLE (if it's visible) ---
-    if (circleAlpha > 0.0f) {
-        // Calculate the radius for the 2D circle based on scale
-        float circleRadius = std::clamp(GadgetSphere::CIRCLE_RADIUS_BASE * scale, GadgetSphere::CIRCLE_RADIUS_MIN, GadgetSphere::CIRCLE_RADIUS_MAX);
+    void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, CombatStateManager& stateManager) {
+        // Calculate all visual properties using the new calculator
+        auto visualPropsOpt = EntityVisualsCalculator::Calculate(context, camera, context.screenWidth, context.screenHeight);
 
-        // Create the color with the calculated LOD alpha
-        unsigned int masterAlpha = ((fadedEntityColor & 0xFF000000) >> 24);
-        unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * circleAlpha);
-        ImU32 circleColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
+        if (!visualPropsOpt) {
+            return; // Entity is not visible or fully transparent
+        }
 
-        // Use the simple "Holographic Disc" from our earlier discussion for a nice look
-        ImU32 glowColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::GLOW_ALPHA_RATIO) << 24);
-        ImU32 coreColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::CORE_ALPHA_RATIO) << 24);
-        ImU32 hotspotColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(255 * circleAlpha * finalAlpha));
+        const auto& props = *visualPropsOpt;
 
-        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius, glowColor);
-        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.7f, coreColor);
-        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.2f, hotspotColor);
+        // --- Post-Update for State Manager ---
+        // This is where we can run calculations that depend on the final layout, like health bar width.
+        if (context.renderHealthBar) {
+            stateManager.PostUpdate(context.entity, props.finalHealthBarWidth);
+        }
+
+        // Now just use the pre-calculated properties to draw all components
+        RenderEntityComponents(drawList, context, camera, props);
+    }
+
+    void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,
+        const std::vector<RenderablePlayer*>& players, Camera& camera, CombatStateManager& stateManager) {
+        const auto& settings = AppState::Get().GetSettings();
+
+        for (const auto* player : players) {
+            if (!player) continue;
+
+            // --- 1. DATA PREPARATION ---
+            // Use the builder to prepare all text details. This includes general info and detailed gear view if selected.
+            std::vector<ColoredDetail> details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, settings.playerESP, settings.showDebugAddresses);
+
+            // If "Detailed" mode is selected, build the full gear list and add it to the details.
+            if (settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
+                auto gearDetails = ESPPlayerDetailsBuilder::BuildGearDetails(player);
+                if (!gearDetails.empty()) {
+                    if (!details.empty()) {
+                        details.push_back({ "--- Gear Stats ---", ESPColors::DEFAULT_TEXT });
+                    }
+                    details.insert(details.end(), gearDetails.begin(), gearDetails.end());
+                }
+            }
+
+            // --- 2. CORE RENDERING ---
+            // Use factory to create context and render
+            auto context = ESPContextFactory::CreateContextForPlayer(player, settings, stateManager, details, screenWidth, screenHeight);
+            RenderEntity(drawList, context, camera, stateManager);
+        }
+    }
+
+    void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight,
+        const std::vector<RenderableNpc*>& npcs, Camera& camera,
+        CombatStateManager& stateManager) {
+        const auto& settings = AppState::Get().GetSettings();
+
+        for (const auto* npc : npcs) {
+            if (!npc) continue; // Safety check
+
+            // Use the builder to prepare NPC details
+            std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildNpcDetails(npc, settings.npcESP, settings.showDebugAddresses);
+
+            auto context = ESPContextFactory::CreateContextForNpc(npc, settings, stateManager, details, screenWidth, screenHeight);
+            RenderEntity(drawList, context, camera, stateManager);
+        }
+    }
+
+    void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight,
+        const std::vector<RenderableGadget*>& gadgets, Camera& camera,
+        CombatStateManager& stateManager) {
+        const auto& settings = AppState::Get().GetSettings();
+
+        for (const auto* gadget : gadgets) {
+            if (!gadget) continue; // Safety check
+
+            // Use the builder to prepare Gadget details
+            std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, settings.objectESP, settings.showDebugAddresses);
+
+            auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, stateManager, details, screenWidth, screenHeight);
+            RenderEntity(drawList, context, camera, stateManager);
+        }
     }
 }
-
-} // namespace kx
