@@ -154,12 +154,6 @@ namespace kx {
 
         const auto& props = *visualPropsOpt;
 
-        // --- Post-Update for State Manager ---
-        // This is where we can run calculations that depend on the final layout, like health bar width.
-        if (context.renderHealthBar) {
-            stateManager.PostUpdate(context.entity, props.finalHealthBarWidth, now);
-        }
-
         // Now just use the pre-calculated properties to draw all components
         RenderEntityComponents(drawList, context, camera, props);
     }

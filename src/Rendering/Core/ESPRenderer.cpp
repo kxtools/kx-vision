@@ -12,6 +12,7 @@
 #include "../Data/RenderableData.h"
 #include "ESPDataExtractor.h"
 #include "ESPFilter.h"
+#include "ESPStateFinalizer.h"
 #include "ESPStageRenderer.h"
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -73,8 +74,13 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         // Stage 2: Filter the pooled data (safe, configurable operations)  
         // Pass 'now' to the filter stage
         ESPFilter::FilterPooledData(extractedData, *s_camera, s_cachedFilteredData, g_combatStateManager, now);
-        
-        // Stage 2.5: Update adaptive far plane for "No Limit" mode (once per second internally)
+
+        // NEW Stage 2.5: Finalize layout-dependent combat state
+        // This calculates final health bar widths and runs the PostUpdate logic
+        // for damage chunking before the rendering stage begins.
+        ESPStateFinalizer::Finalize(s_cachedFilteredData, *s_camera, g_combatStateManager, now);
+
+        // Stage 2.75: Update adaptive far plane (no change in its name)
         AppState::Get().UpdateAdaptiveFarPlane(s_cachedFilteredData);
         
         s_lastUpdateTime = currentTimeSeconds;
