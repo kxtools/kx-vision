@@ -109,7 +109,7 @@ namespace kx {
         bool showDestructible = true;     // Type 1
         bool showPoints = true;           // Type 2 (PvP points)
         bool showPlayerSpecific = true;   // Type 14
-        bool showProps = true;            // Type 20
+        bool showProps = false;            // Type 20
         bool showBuildSites = true;       // Type 25
         bool showBountyBoards = true;     // Type 11
         bool showRifts = true;            // Type 13

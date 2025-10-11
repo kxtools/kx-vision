@@ -80,7 +80,6 @@ namespace kx {
                         CheckboxWithTooltip("Generic", "Objects", &settings.objectESP.showGeneric, "Show generic or invisible trigger objects (for debugging).");
                         ImGui::SameLine(column1);
                         CheckboxWithTooltip("Generic 2", "Objects", &settings.objectESP.showGeneric2, "Show generic or invisible trigger objects (for debugging).");
-                        ImGui::SameLine(column1);
                         CheckboxWithTooltip("Unknown", "Objects", &settings.objectESP.showUnknown, "Show any object type not explicitly handled.");
 
                         // Add a separator for better visual structure before the buttons.
