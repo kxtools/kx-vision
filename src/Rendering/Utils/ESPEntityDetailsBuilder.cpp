@@ -49,7 +49,6 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
         details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
     }
 
-
     if (showDebugAddresses) {
         char addrStr[32];
         snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", npc->address);

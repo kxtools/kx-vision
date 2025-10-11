@@ -1,5 +1,3 @@
-// --- START OF REFACTORED FILE ESPFilter.cpp ---
-
 #include "ESPFilter.h"
 
 #include "AppState.h"
