@@ -21,11 +21,11 @@ namespace kx {
 
     void ESPStageRenderer::RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight,
         const PooledFrameRenderData& frameData, Camera& camera,
-        CombatStateManager& stateManager) {
+        CombatStateManager& stateManager, uint64_t now) {
         // Simple rendering - no filtering logic, just draw everything that was passed in
-        RenderPooledPlayers(drawList, screenWidth, screenHeight, frameData.players, camera, stateManager);
-        RenderPooledNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera, stateManager);
-        RenderPooledGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera, stateManager);
+        RenderPooledPlayers(drawList, screenWidth, screenHeight, frameData.players, camera, stateManager, now);
+        RenderPooledNpcs(drawList, screenWidth, screenHeight, frameData.npcs, camera, stateManager, now);
+        RenderPooledGadgets(drawList, screenWidth, screenHeight, frameData.gadgets, camera, stateManager, now);
     }
 
     void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
@@ -143,7 +143,7 @@ namespace kx {
         }
     }
 
-    void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, CombatStateManager& stateManager) {
+    void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, CombatStateManager& stateManager, uint64_t now) {
         // Calculate all visual properties using the new calculator
         auto visualPropsOpt = EntityVisualsCalculator::Calculate(context, camera, context.screenWidth, context.screenHeight);
 
@@ -156,7 +156,7 @@ namespace kx {
         // --- Post-Update for State Manager ---
         // This is where we can run calculations that depend on the final layout, like health bar width.
         if (context.renderHealthBar) {
-            stateManager.PostUpdate(context.entity, props.finalHealthBarWidth);
+            stateManager.PostUpdate(context.entity, props.finalHealthBarWidth, now);
         }
 
         // Now just use the pre-calculated properties to draw all components
@@ -164,7 +164,7 @@ namespace kx {
     }
 
     void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight,
-        const std::vector<RenderablePlayer*>& players, Camera& camera, CombatStateManager& stateManager) {
+        const std::vector<RenderablePlayer*>& players, Camera& camera, CombatStateManager& stateManager, uint64_t now) {
         const auto& settings = AppState::Get().GetSettings();
 
         for (const auto* player : players) {
@@ -187,14 +187,14 @@ namespace kx {
 
             // --- 2. CORE RENDERING ---
             // Use factory to create context and render
-            auto context = ESPContextFactory::CreateContextForPlayer(player, settings, stateManager, details, screenWidth, screenHeight);
-            RenderEntity(drawList, context, camera, stateManager);
+            auto context = ESPContextFactory::CreateContextForPlayer(player, settings, stateManager, details, screenWidth, screenHeight, now);
+            RenderEntity(drawList, context, camera, stateManager, now);
         }
     }
 
     void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight,
         const std::vector<RenderableNpc*>& npcs, Camera& camera,
-        CombatStateManager& stateManager) {
+        CombatStateManager& stateManager, uint64_t now) {
         const auto& settings = AppState::Get().GetSettings();
 
         for (const auto* npc : npcs) {
@@ -203,14 +203,14 @@ namespace kx {
             // Use the builder to prepare NPC details
             std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildNpcDetails(npc, settings.npcESP, settings.showDebugAddresses);
 
-            auto context = ESPContextFactory::CreateContextForNpc(npc, settings, stateManager, details, screenWidth, screenHeight);
-            RenderEntity(drawList, context, camera, stateManager);
+            auto context = ESPContextFactory::CreateContextForNpc(npc, settings, stateManager, details, screenWidth, screenHeight, now);
+            RenderEntity(drawList, context, camera, stateManager, now);
         }
     }
 
     void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight,
         const std::vector<RenderableGadget*>& gadgets, Camera& camera,
-        CombatStateManager& stateManager) {
+        CombatStateManager& stateManager, uint64_t now) {
         const auto& settings = AppState::Get().GetSettings();
 
         for (const auto* gadget : gadgets) {
@@ -219,8 +219,8 @@ namespace kx {
             // Use the builder to prepare Gadget details
             std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, settings.objectESP, settings.showDebugAddresses);
 
-            auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, stateManager, details, screenWidth, screenHeight);
-            RenderEntity(drawList, context, camera, stateManager);
+            auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, stateManager, details, screenWidth, screenHeight, now);
+            RenderEntity(drawList, context, camera, stateManager, now);
         }
     }
 }

@@ -24,12 +24,12 @@ namespace { // Anonymous namespace for helpers
  * @param state The combat state for the entity.
  * @param animState The output struct to populate with animation values.
  */
-void PopulateHealthBarAnimations(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState) {
+void PopulateHealthBarAnimations(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
     if (!entity || !state) {
         return;
     }
 
-    const uint64_t now = GetTickCount64();
+    // const uint64_t now = GetTickCount64(); // REMOVED
     const float maxHealth = entity->maxHealth;
 
     // 1. Overall Bar Fade (Death)
@@ -151,7 +151,8 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
                                                              const CombatStateManager& stateManager,
                                                              const std::vector<ColoredDetail>& details,
                                                              float screenWidth,
-                                                             float screenHeight) {
+                                                             float screenHeight,
+                                                             uint64_t now) { // Added 'now'
     float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
     float energyPercent = -1.0f;
     if (settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
@@ -188,7 +189,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
     const EntityCombatState* state = stateManager.GetState(player->address);
     HealthBarAnimationState animState;
     if (state) {
-        PopulateHealthBarAnimations(player, state, animState);
+        PopulateHealthBarAnimations(player, state, animState, now); // Pass 'now' to the animation logic
     }
     
     return EntityRenderContext{
@@ -223,7 +224,8 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
                                                           const CombatStateManager& stateManager,
                                                           const std::vector<ColoredDetail>& details,
                                                           float screenWidth,
-                                                          float screenHeight) {
+                                                          float screenHeight,
+                                                          uint64_t now) { // Added 'now'
     float healthPercent = (npc->maxHealth > 0) ? (npc->currentHealth / npc->maxHealth) : -1.0f;
     
     // Use attitude-based coloring for NPCs
@@ -250,7 +252,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     const EntityCombatState* state = stateManager.GetState(npc->address);
     HealthBarAnimationState animState;
     if (state) {
-        PopulateHealthBarAnimations(npc, state, animState);
+        PopulateHealthBarAnimations(npc, state, animState, now); // Pass 'now' to the animation logic
     }
     
     static const std::string emptyPlayerName = "";
@@ -286,7 +288,8 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
                                                              const CombatStateManager& stateManager,
                                                              const std::vector<ColoredDetail>& details,
                                                              float screenWidth,
-                                                             float screenHeight) {
+                                                             float screenHeight,
+                                                             uint64_t now) { // Added 'now'
     static const std::string emptyPlayerName = "";
 
     bool renderHealthBar = settings.objectESP.renderHealthBar;
@@ -304,7 +307,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
             // "Don't show bar on already-dead gadgets" filter: Hide bar if gadget is dead and animation is over.
             else if (gadget->currentHealth <= 0.0f) {
                 const EntityCombatState* state = stateManager.GetState(gadget->address);
-                if (!state || state->deathTimestamp == 0 || (GetTickCount64() - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
+                if (!state || state->deathTimestamp == 0 || (now - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
                     renderHealthBar = false;
                 }
             }
@@ -316,7 +319,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     if (renderHealthBar) { // Only calculate animations if the bar will be visible
         const EntityCombatState* state = stateManager.GetState(gadget->address);
         if (state) {
-            PopulateHealthBarAnimations(gadget, state, animState);
+            PopulateHealthBarAnimations(gadget, state, animState, now); // Pass 'now' to the animation logic
         }
     }
 

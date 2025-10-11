@@ -5,14 +5,14 @@
 
 namespace kx
 {
-void CombatStateManager::PostUpdate(const RenderableEntity* entity, float barWidth)
+void CombatStateManager::PostUpdate(const RenderableEntity* entity, float barWidth, uint64_t now)
 {
 	if (!entity) return;
 
 	EntityCombatState* state = GetStateNonConst(entity->address);
 	if (!state) return;
 
-	const uint64_t now = GetTickCount64();
+	// const uint64_t now = GetTickCount64(); // This line is removed
 
 	// --- FIX: Check if a flush animation is running and if it has finished ---
 	if (state->flushAnimationStartTime > 0)
@@ -207,9 +207,9 @@ void CombatStateManager::PostUpdate(const RenderableEntity* entity, float barWid
 		return (it != m_entityStates.end()) ? &it->second : nullptr;
 	}
 
-	void CombatStateManager::Cleanup()
+	void CombatStateManager::Cleanup(uint64_t now)
 	{
-		uint64_t now = GetTickCount64();
+		// uint64_t now = GetTickCount64(); // This line is removed
 		for (auto it = m_entityStates.begin(); it != m_entityStates.end();)
 		{
 			if (now - it->second.lastSeenTimestamp > CombatEffects::STATE_CLEANUP_THRESHOLD_MS)

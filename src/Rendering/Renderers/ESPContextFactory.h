@@ -39,7 +39,8 @@ public:
                                                      const CombatStateManager& stateManager,
                                                      const std::vector<ColoredDetail>& details,
                                                      float screenWidth,
-                                                     float screenHeight);
+                                                     float screenHeight,
+                                                     uint64_t now);
 
     /**
      * @brief Create rendering context for an NPC entity
@@ -56,7 +57,8 @@ public:
                                                    const CombatStateManager& stateManager,
                                                    const std::vector<ColoredDetail>& details,
                                                    float screenWidth,
-                                                   float screenHeight);
+                                                   float screenHeight,
+                                                   uint64_t now);
 
     /**
      * @brief Create rendering context for a gadget/object entity
@@ -73,7 +75,8 @@ public:
                                                       const CombatStateManager& stateManager,
                                                       const std::vector<ColoredDetail>& details,
                                                       float screenWidth,
-                                                      float screenHeight);
+                                                      float screenHeight,
+                                                      uint64_t now);
 };
 
 } // namespace kx

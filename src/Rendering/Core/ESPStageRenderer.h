@@ -38,27 +38,27 @@ public:
      */
     static void RenderFrameData(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                const PooledFrameRenderData& frameData, Camera& camera, 
-                               CombatStateManager& stateManager);
+                               CombatStateManager& stateManager, uint64_t now);
 
 private:
     // Pooled rendering functions for optimized performance
     static void RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                    const std::vector<RenderablePlayer*>& players, Camera& camera, 
-                                   CombatStateManager& stateManager);
+                                   CombatStateManager& stateManager, uint64_t now);
 
     static void RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                 const std::vector<RenderableNpc*>& npcs, Camera& camera, 
-                                CombatStateManager& stateManager);
+                                CombatStateManager& stateManager, uint64_t now);
 
     static void RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
                                    const std::vector<RenderableGadget*>& gadgets, Camera& camera, 
-                                   CombatStateManager& stateManager);
+                                   CombatStateManager& stateManager, uint64_t now);
 
     /**
      * @brief Universal entity rendering function using context struct
      */
     static void RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, 
-                           CombatStateManager& stateManager);
+                           CombatStateManager& stateManager, uint64_t now);
 
     /**
      * @brief Render all visual components for an entity

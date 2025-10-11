@@ -17,19 +17,19 @@ namespace { // Anonymous namespace for local helpers
      * @param stateManager The combat state manager.
      * @return True if the death animation is still considered to be playing, false otherwise.
      */
-    bool IsDeathAnimationPlaying(const void* entityAddress, const CombatStateManager& stateManager) {
+    bool IsDeathAnimationPlaying(const void* entityAddress, const CombatStateManager& stateManager, uint64_t now) {
         const EntityCombatState* state = stateManager.GetState(entityAddress);
         if (!state || state->deathTimestamp == 0) {
             return false; // Entity is not marked as dead in the combat state.
         }
         // Check if the time since death is within the total animation duration.
-        return (GetTickCount64() - state->deathTimestamp) <= CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
+        return (now - state->deathTimestamp) <= CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
     }
 
 } // anonymous namespace
 
 void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
-                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager) {
+                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager, uint64_t now) {
     filteredData.Reset();
     
     const auto& settings = AppState::Get().GetSettings();
@@ -47,7 +47,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             
             // Apply health filter (refactored)
             if (player->currentHealth <= 0.0f) {
-                if (!IsDeathAnimationPlaying(player->address, stateManager)) {
+                if (!IsDeathAnimationPlaying(player->address, stateManager, now)) {
                     continue; // Cull dead player if animation is finished.
                 }
             }
@@ -74,7 +74,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             
             // Apply health filter (refactored)
             if (npc->currentHealth <= 0.0f && !settings.npcESP.showDeadNpcs) {
-                if (!IsDeathAnimationPlaying(npc->address, stateManager)) {
+                if (!IsDeathAnimationPlaying(npc->address, stateManager, now)) {
                     continue; // Cull dead NPC if setting is off and animation is finished.
                 }
             }
@@ -102,7 +102,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Handle dead gadgets.
             if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f) {
                 if (!settings.objectESP.showDeadGadgets) {
-                    if (!IsDeathAnimationPlaying(gadget->address, stateManager)) {
+                    if (!IsDeathAnimationPlaying(gadget->address, stateManager, now)) {
                         continue; // Cull if setting is off and animation is done.
                     }
                 }

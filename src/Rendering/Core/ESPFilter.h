@@ -17,7 +17,7 @@ public:
      * @param stateManager The combat state manager for state-aware filtering
      */
     static void FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
-                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager);
+                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager, uint64_t now);
 
 };
 
