@@ -97,7 +97,8 @@ namespace kx {
         float barHeight,
         float fadeAlpha) {
         const auto& anim = context.healthBarAnim;
-        if (anim.damageAccumulatorPercent <= 0.0f) return;
+        // Exit if there's nothing to draw OR if the fade animation is complete
+        if (anim.damageAccumulatorPercent <= 0.0f || anim.damageAccumulatorAlpha <= 0.0f) return;
 
         float startPercent = context.healthPercent;
         float endPercent = anim.damageAccumulatorPercent;
@@ -107,10 +108,11 @@ namespace kx {
         ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
         ImVec2 oMax(barMin.x + barWidth * endPercent, barMin.y + barHeight);
 
-        // Alpha is baked into the damageAccumulatorPercent by the factory
         ImU32 base = ESPBarColors::DAMAGE_ACCUM;
         unsigned int a = (base >> 24) & 0xFF;
-        unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha + 0.5f);
+        // --- THIS IS THE FIX ---
+        // Multiply by the overall bar fade AND the specific accumulator fade animation alpha
+        unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha * anim.damageAccumulatorAlpha + 0.5f);
         base = (base & 0x00FFFFFF) | (ClampAlpha(finalA) << 24);
         DrawFilledRect(dl, oMin, oMax, base, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }

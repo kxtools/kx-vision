@@ -22,6 +22,8 @@ struct HealthBarAnimationState {
     // --- Damage Accumulator ---
     // The percentage of the bar the damage accumulator should cover (0 if inactive)
     float damageAccumulatorPercent = 0.0f;
+    // Alpha for the damage accumulator's fade-out animation
+    float damageAccumulatorAlpha = 1.0f; // NEW: Default to 1.0 (fully opaque)
 
     // --- Healing Overlay ---
     // The starting health percentage for the current heal overlay (0 if inactive)

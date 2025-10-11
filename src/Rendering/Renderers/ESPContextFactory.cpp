@@ -64,20 +64,24 @@ void PopulateHealthBarAnimations(const RenderableEntity* entity, const EntityCom
         if (maxHealth > 0) {
             // 3. Damage Accumulator
             if (state->accumulatedDamage > 0) {
-                float animationAlpha = 1.0f;
+                // Default to fully opaque
+                animState.damageAccumulatorAlpha = 1.0f;
+
+                // If a flush animation is running, calculate the fade-out alpha
                 if (state->flushAnimationStartTime > 0) {
                     uint64_t elapsed = now - state->flushAnimationStartTime;
-                    if (elapsed >= CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS) {
-                        // The CombatStateManager will reset this after the animation is over.
-                        // For this frame, we just draw it at zero.
-                        animState.damageAccumulatorPercent = 0.0f;
-                    } else {
+                    if (elapsed < CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS) {
                         float progress = static_cast<float>(elapsed) / CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS;
-                        animationAlpha = 1.0f - Animation::EaseOutCubic(progress);
+                        animState.damageAccumulatorAlpha = 1.0f - Animation::EaseOutCubic(progress); // Animate alpha from 1.0 to 0.0
+                    } else {
+                        // Animation is over, render at zero alpha this frame before it's reset
+                        animState.damageAccumulatorAlpha = 0.0f;
                     }
                 }
+
+                // The size of the chunk is based on the health values
                 float endHealth = entity->currentHealth + state->accumulatedDamage;
-                animState.damageAccumulatorPercent = (endHealth / maxHealth) * animationAlpha;
+                animState.damageAccumulatorPercent = endHealth / maxHealth;
             }
 
             // 4. Heal Overlay
