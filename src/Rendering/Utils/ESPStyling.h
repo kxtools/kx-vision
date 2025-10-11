@@ -68,6 +68,7 @@ namespace ESPStyling {
             case Game::GadgetType::MapPortal:
             case Game::GadgetType::Generic:
             case Game::GadgetType::Generic2:
+            case Game::GadgetType::Crafting:
                 return true;
             default:
                 return false;
