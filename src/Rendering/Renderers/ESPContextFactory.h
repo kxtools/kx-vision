@@ -9,6 +9,15 @@ namespace kx {
 
 class CombatStateManager; // Forward declaration
 
+struct FactoryContext
+{
+    const Settings& settings;
+    const CombatStateManager& stateManager;
+    float screenWidth;
+    float screenHeight;
+    uint64_t now;
+};
+
 /**
  * @brief Factory class for creating EntityRenderContext objects
  * 
@@ -34,13 +43,7 @@ public:
      * @param screenHeight Screen height in pixels
      * @return Fully constructed EntityRenderContext
      */
-    static EntityRenderContext CreateContextForPlayer(const RenderablePlayer* player,
-                                                     const Settings& settings,
-                                                     const CombatStateManager& stateManager,
-                                                     const std::vector<ColoredDetail>& details,
-                                                     float screenWidth,
-                                                     float screenHeight,
-                                                     uint64_t now);
+    static EntityRenderContext CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FactoryContext& context);
 
     /**
      * @brief Create rendering context for an NPC entity
@@ -52,13 +55,7 @@ public:
      * @param screenHeight Screen height in pixels
      * @return Fully constructed EntityRenderContext
      */
-    static EntityRenderContext CreateContextForNpc(const RenderableNpc* npc,
-                                                   const Settings& settings,
-                                                   const CombatStateManager& stateManager,
-                                                   const std::vector<ColoredDetail>& details,
-                                                   float screenWidth,
-                                                   float screenHeight,
-                                                   uint64_t now);
+    static EntityRenderContext CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FactoryContext& context);
 
     /**
      * @brief Create rendering context for a gadget/object entity
@@ -70,13 +67,7 @@ public:
      * @param screenHeight Screen height in pixels
      * @return Fully constructed EntityRenderContext
      */
-    static EntityRenderContext CreateContextForGadget(const RenderableGadget* gadget,
-                                                      const Settings& settings,
-                                                      const CombatStateManager& stateManager,
-                                                      const std::vector<ColoredDetail>& details,
-                                                      float screenWidth,
-                                                      float screenHeight,
-                                                      uint64_t now);
+    static EntityRenderContext CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FactoryContext& context);
 };
 
 } // namespace kx

@@ -187,7 +187,8 @@ namespace kx {
 
             // --- 2. CORE RENDERING ---
             // Use factory to create context and render
-            auto entityContext = ESPContextFactory::CreateContextForPlayer(player, context.settings, context.stateManager, details, context.screenWidth, context.screenHeight, context.now);
+            FactoryContext factoryContext = { context.settings, context.stateManager, context.screenWidth, context.screenHeight, context.now };
+            auto entityContext = ESPContextFactory::CreateContextForPlayer(player, details, factoryContext);
             RenderEntity(context.drawList, entityContext, context.camera, context.stateManager, context.now);
         }
     }
@@ -201,7 +202,8 @@ namespace kx {
             // Use the builder to prepare NPC details
             std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildNpcDetails(npc, settings.npcESP, settings.showDebugAddresses);
 
-            auto entityContext = ESPContextFactory::CreateContextForNpc(npc, context.settings, context.stateManager, details, context.screenWidth, context.screenHeight, context.now);
+            FactoryContext factoryContext = { context.settings, context.stateManager, context.screenWidth, context.screenHeight, context.now };
+            auto entityContext = ESPContextFactory::CreateContextForNpc(npc, details, factoryContext);
             RenderEntity(context.drawList, entityContext, context.camera, context.stateManager, context.now);
         }
     }
@@ -215,7 +217,8 @@ namespace kx {
             // Use the builder to prepare Gadget details
             std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, settings.objectESP, settings.showDebugAddresses);
 
-            auto entityContext = ESPContextFactory::CreateContextForGadget(gadget, context.settings, context.stateManager, details, context.screenWidth, context.screenHeight, context.now);
+            FactoryContext factoryContext = { context.settings, context.stateManager, context.screenWidth, context.screenHeight, context.now };
+            auto entityContext = ESPContextFactory::CreateContextForGadget(gadget, details, factoryContext);
             RenderEntity(context.drawList, entityContext, context.camera, context.stateManager, context.now);
         }
     }
