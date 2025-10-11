@@ -67,6 +67,7 @@ namespace ESPStyling {
             case Game::GadgetType::Waypoint:
             case Game::GadgetType::MapPortal:
             case Game::GadgetType::Generic:
+            case Game::GadgetType::Generic2:
                 return true;
             default:
                 return false;

@@ -114,6 +114,7 @@ namespace kx {
         bool showBountyBoards = true;     // Type 11
         bool showRifts = true;            // Type 13
         bool showGeneric = false;         // Type 3
+        bool showGeneric2 = false;
         bool showUnknown = true;          // For any type not explicitly handled
 
 		// Detail-field filters
