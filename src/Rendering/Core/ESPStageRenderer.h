@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+
+#include "Settings.h"
 #include "../Data/RenderableData.h"
 #include "../Data/ESPData.h"
 #include "../../Game/Camera.h"
@@ -14,6 +16,17 @@ namespace kx {
 struct VisualProperties;
 struct EntityRenderContext;
 class CombatStateManager;
+
+struct FrameRenderContext
+{
+    ImDrawList* drawList;
+    Camera& camera;
+    CombatStateManager& stateManager;
+    const Settings& settings; // Good to add settings here too!
+    uint64_t now;
+    float screenWidth;
+    float screenHeight;
+};
 
 /**
  * @brief Handles safe rendering from extracted data (Stage 2 of rendering pipeline)
@@ -42,17 +55,11 @@ public:
 
 private:
     // Pooled rendering functions for optimized performance
-    static void RenderPooledPlayers(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                   const std::vector<RenderablePlayer*>& players, Camera& camera, 
-                                   CombatStateManager& stateManager, uint64_t now);
+    static void RenderPooledPlayers(const FrameRenderContext& context, const std::vector<RenderablePlayer*>& players);
 
-    static void RenderPooledNpcs(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                const std::vector<RenderableNpc*>& npcs, Camera& camera, 
-                                CombatStateManager& stateManager, uint64_t now);
+    static void RenderPooledNpcs(const FrameRenderContext& context, const std::vector<RenderableNpc*>& npcs);
 
-    static void RenderPooledGadgets(ImDrawList* drawList, float screenWidth, float screenHeight, 
-                                   const std::vector<RenderableGadget*>& gadgets, Camera& camera, 
-                                   CombatStateManager& stateManager, uint64_t now);
+    static void RenderPooledGadgets(const FrameRenderContext& context, const std::vector<RenderableGadget*>& gadgets);
 
     /**
      * @brief Universal entity rendering function using context struct
