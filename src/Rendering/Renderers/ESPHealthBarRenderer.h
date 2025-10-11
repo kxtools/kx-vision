@@ -2,8 +2,6 @@
 
 #include "glm.hpp"
 #include "../../../libs/ImGui/imgui.h"
-#include "../../Game/GameEnums.h"
-#include "Data/RenderableData.h"
 
 namespace kx {
 

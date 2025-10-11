@@ -7,7 +7,6 @@
 #include <Windows.h>
 
 #include "../../Core/AppState.h"
-#include "../../Utils/SafeIterators.h"
 #include "../../Utils/ObjectPool.h"
 #include "../Utils/ESPMath.h"
 #include "../Data/RenderableData.h"
@@ -91,7 +90,7 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     // Stage 3: Always render using cached filtered data (safe, fast operation)
     // Pass 'now' to the rendering stage
     ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFilteredData, *s_camera,
-                                      const_cast<CombatStateManager&>(g_combatStateManager), now);
+                                      g_combatStateManager, now);
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

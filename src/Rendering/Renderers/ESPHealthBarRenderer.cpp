@@ -8,7 +8,6 @@
 
 #include "../Data/EntityRenderContext.h"
 #include <algorithm>
-#include "../Utils/AnimationHelpers.h"
 
 namespace kx {
 

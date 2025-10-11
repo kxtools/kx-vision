@@ -7,7 +7,6 @@
 #include "../Utils/ESPPlayerDetailsBuilder.h"
 #include "../Utils/ESPEntityDetailsBuilder.h"
 #include "../Utils/EntityVisualsCalculator.h"
-#include "ESPFilter.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
@@ -15,7 +14,6 @@
 #include "../Data/EntityRenderContext.h"
 #include "../Utils/ESPFormatting.h"
 #include "../../../libs/ImGui/imgui.h"
-#include <algorithm>
 
 namespace kx {
 
