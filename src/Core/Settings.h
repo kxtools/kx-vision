@@ -23,7 +23,14 @@ namespace kx {
     };
 
     // --- Category-specific settings ---
-    struct PlayerEspSettings {
+    struct AttitudeSettings {
+        bool showFriendly = true;
+        bool showHostile = true;
+        bool showNeutral = true;
+        bool showIndifferent = true;
+    };
+
+    struct PlayerEspSettings : AttitudeSettings {
         bool enabled = true;
         bool renderBox = false;
         bool renderDistance = false;
@@ -35,12 +42,6 @@ namespace kx {
         bool showLocalPlayer = false; // Hide local player by default
         GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
         EnergyDisplayType energyDisplayType = EnergyDisplayType::Special;
-        // Attitude filtering (same as NPCs)
-        bool showFriendly = true;
-        bool showHostile = true;
-        bool showNeutral = true;
-        bool showIndifferent = true;
-
 		// Detail-field filters
         bool showDetailLevel = true;
         bool showDetailHp = true;
@@ -53,18 +54,13 @@ namespace kx {
 		bool showDetailName = true;
     };
 
-    struct NpcEspSettings {
+    struct NpcEspSettings : AttitudeSettings {
         bool enabled = true;
         bool renderBox = false;
         bool renderDistance = false;
         bool renderDot = false;
         bool renderDetails = false;
         bool renderHealthBar = true;
-        // Enhanced attitude filtering using the new enum
-        bool showFriendly = true;
-        bool showHostile = true;
-        bool showNeutral = true;
-        bool showIndifferent = true;
         // Rank filters
         bool showLegendary = true;
         bool showChampion = true;
