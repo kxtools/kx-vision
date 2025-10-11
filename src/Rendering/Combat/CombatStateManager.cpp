@@ -24,9 +24,20 @@ namespace kx
 
 	void CombatStateManager::ProcessEntity(RenderableEntity* entity, uint64_t now)
 	{
-		EntityCombatState& state = AcquireState(entity);
-		const float currentHealth = entity->currentHealth;
-
+	    EntityCombatState& state = AcquireState(entity);
+	    const float currentHealth = entity->currentHealth;
+	    const float currentMaxHealth = entity->maxHealth;
+	
+	    // --- Gadget State Change Detection ---
+	    // If a gadget's max health changes drastically, it signifies a state change (e.g., a door becomes vulnerable).
+	    // We reset its combat state to prevent misinterpreting this as a death/respawn event, which stops animation spam.
+	    if (entity->entityType == ESPEntityType::Gadget && state.lastKnownMaxHealth > 0 && abs(currentMaxHealth - state.lastKnownMaxHealth) > 1.0f)
+	    {
+	        ResetForRespawn(state, currentHealth, now);
+	        state.lastKnownMaxHealth = currentMaxHealth; // Update max health after reset
+	        return; // Skip normal damage/heal processing this frame.
+	    }
+	
 		// --- Barrier Change Detection ---
 		const float currentBarrier = entity->currentBarrier;
 		if (currentBarrier != state.lastKnownBarrier)
@@ -34,10 +45,10 @@ namespace kx
 			state.barrierOnLastChange = state.lastKnownBarrier;
 			state.lastBarrierChangeTimestamp = now;
 		}
-
+	
 		// This call is moved from here...
 		// MaybeFlushAccumulator(state, entity, now); 
-
+	
 		if (state.lastSeenTimestamp > 0)
 		{
 			if (currentHealth < state.lastKnownHealth)
@@ -49,27 +60,39 @@ namespace kx
 				HandleHealing(state, entity, currentHealth, now);
 			}
 		}
-
-        state.lastKnownHealth = currentHealth;
-        state.lastKnownBarrier = currentBarrier;
-        state.lastSeenTimestamp = now;
-		
+	
+	    state.lastKnownHealth = currentHealth;
+	    state.lastKnownMaxHealth = currentMaxHealth;
+	    state.lastKnownBarrier = currentBarrier;
+	    state.lastSeenTimestamp = now;
+			
 		// The flush logic is now handled in the renderer.
 	}
 
 	void CombatStateManager::HandleDamage(EntityCombatState& state,
-		const RenderableEntity* entity,
-		float currentHealth,
-		uint64_t now)
+			const RenderableEntity* entity,
+			float currentHealth,
+			uint64_t now)
 	{
+	    // Detect when a gadget instantly goes from full health to zero. This is a state change, not a death,
+	    // so we reset its state without setting a death timestamp to prevent the death animation from playing incorrectly.
+	    if (entity->entityType == ESPEntityType::Gadget &&
+	        state.lastKnownMaxHealth > 0 &&
+	        state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
+	        currentHealth <= 0.0f) // Is now dead
+	    {
+	        ResetForRespawn(state, currentHealth, now);
+	        return;
+	    }
+	
 		const float damage = state.lastKnownHealth - currentHealth;
 		if (damage <= 0.0f) return;
-
+	
 		state.accumulatedDamage += damage;
-
+	
 		state.lastDamageTaken = damage;
 		state.lastHitTimestamp = now;
-
+	
 		if (currentHealth <= 0.0f && state.deathTimestamp == 0)
 		{
 			state.deathTimestamp = now;
@@ -101,8 +124,6 @@ namespace kx
 		// Current behavior: we keep deathTimestamp until respawn detection resets it via ResetForRespawn().
 		// Intentional: healing while dead isn't considered; only a health increase from 0 triggers respawn.
 	}
-
-
 
 	void CombatStateManager::ResetForRespawn(EntityCombatState& state,
 	                                         float currentHealth,

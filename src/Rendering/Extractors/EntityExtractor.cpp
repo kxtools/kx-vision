@@ -29,6 +29,7 @@ namespace kx {
             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR
         );
         outPlayer.isValid = true;
+        outPlayer.entityType = ESPEntityType::Player;
         outPlayer.address = inCharacter.data();
         outPlayer.isLocalPlayer = (outPlayer.address == localPlayerPtr);
         if (playerName) {
@@ -95,6 +96,7 @@ namespace kx {
             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR
         );
         outNpc.isValid = true;
+        outNpc.entityType = ESPEntityType::NPC;
         outNpc.address = inCharacter.data();
 
         // --- Health ---
@@ -135,6 +137,7 @@ namespace kx {
             gameWorldPos.y / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR
         );
         outGadget.isValid = true;
+        outGadget.entityType = ESPEntityType::Gadget;
         outGadget.address = inGadget.data();
         outGadget.type = inGadget.GetGadgetType();
         outGadget.isGatherable = inGadget.IsGatherable();

@@ -9,6 +9,25 @@
 
 namespace kx {
 
+namespace { // Anonymous namespace for local helpers
+
+    /**
+     * @brief Checks if an entity is considered "dead" but should still be rendered for its death animation.
+     * @param entityAddress The memory address of the entity.
+     * @param stateManager The combat state manager.
+     * @return True if the death animation is still considered to be playing, false otherwise.
+     */
+    bool IsDeathAnimationPlaying(const void* entityAddress, const CombatStateManager& stateManager) {
+        const EntityCombatState* state = stateManager.GetState(entityAddress);
+        if (!state || state->deathTimestamp == 0) {
+            return false; // Entity is not marked as dead in the combat state.
+        }
+        // Check if the time since death is within the total animation duration.
+        return (GetTickCount64() - state->deathTimestamp) <= CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
+    }
+
+} // anonymous namespace
+
 void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
                                  PooledFrameRenderData& filteredData, const CombatStateManager& stateManager) {
     filteredData.Reset();
@@ -26,16 +45,11 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             // Apply local player filter
             if (player->isLocalPlayer && !settings.playerESP.showLocalPlayer) continue;
             
-            // Apply health filter
-            bool isAlive = player->currentHealth > 0.0f;
-            if (!isAlive) { // Player is defeated (or downed and we can't tell, but HP is 0)
-                // The user wants to hide dead players, so we should filter this one out...
-                // UNLESS the death animation is still playing.
-                const EntityCombatState* state = stateManager.GetState(player->address);
-                if (!state || (GetTickCount64() - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
-                    continue; // Animation is over (or never started), so hide the player now.
+            // Apply health filter (refactored)
+            if (player->currentHealth <= 0.0f) {
+                if (!IsDeathAnimationPlaying(player->address, stateManager)) {
+                    continue; // Cull dead player if animation is finished.
                 }
-                // Otherwise, keep the player in the list so the animation can render.
             }
             
             // Calculate distances
@@ -58,16 +72,11 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
         for (RenderableNpc* npc : extractedData.npcs) {
             if (!npc || !npc->isValid) continue;
             
-            // Apply health filter
-            bool isAlive = npc->currentHealth > 0.0f;
-            if (!isAlive && !settings.npcESP.showDeadNpcs) {
-                // This NPC is dead, and the user wants to hide dead NPCs.
-                // EXCEPTION: Keep it if the death animation is still playing.
-                const EntityCombatState* state = stateManager.GetState(npc->address);
-                if (!state || (GetTickCount64() - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
-                    continue; // Animation is over (or never started), so hide it.
+            // Apply health filter (refactored)
+            if (npc->currentHealth <= 0.0f && !settings.npcESP.showDeadNpcs) {
+                if (!IsDeathAnimationPlaying(npc->address, stateManager)) {
+                    continue; // Cull dead NPC if setting is off and animation is finished.
                 }
-                // Otherwise, we fall through and let it render so the animation can play.
             }
             
             // Calculate distances
@@ -89,7 +98,16 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
         filteredData.gadgets.reserve(extractedData.gadgets.size());
         for (RenderableGadget* gadget : extractedData.gadgets) {
             if (!gadget || !gadget->isValid) continue;
-            
+
+            // Handle dead gadgets.
+            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f) {
+                if (!settings.objectESP.showDeadGadgets) {
+                    if (!IsDeathAnimationPlaying(gadget->address, stateManager)) {
+                        continue; // Cull if setting is off and animation is done.
+                    }
+                }
+            }
+
             // Calculate distances
             gadget->visualDistance = glm::length(gadget->position - cameraPos);
             gadget->gameplayDistance = glm::length(gadget->position - playerPos);

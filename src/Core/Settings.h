@@ -92,6 +92,9 @@ namespace kx {
         bool renderDistance = false;
         bool renderDot = true;
         bool renderDetails = false;
+        bool renderHealthBar = true;
+        bool showOnlyDamagedGadgets = true;
+        bool showDeadGadgets = true;
         
         // Gadget Type Filters
         bool showResourceNodes = true;    // Type 19
@@ -212,11 +215,11 @@ namespace kx {
         bool hideDepletedNodes = true;          // Hide depleted resource nodes (visual clutter reduction)
         
         // Debug options
+        bool enableDebugLogging = true;
+
 #ifdef _DEBUG
-        bool enableDebugLogging = true;         // Enable verbose logging by default in debug builds
         bool showDebugAddresses = true;         // Show entity memory addresses on ESP
 #else
-        bool enableDebugLogging = false;        // Disable verbose logging by default in release builds
         bool showDebugAddresses = false;
 #endif
     };

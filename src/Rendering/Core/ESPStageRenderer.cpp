@@ -44,7 +44,7 @@ void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const Entity
     // No need to apply alpha again here
     
     // Render standalone health bars for living entities when health is available AND setting is enabled
-    if (isLivingEntity && context.healthPercent >= 0.0f && context.renderHealthBar) {
+    if ((isLivingEntity || isGadget) && context.healthPercent >= 0.0f && context.renderHealthBar) {
         ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, screenPos, context, 
                                                      fadedEntityColor, finalHealthBarWidth, finalHealthBarHeight,
                                                      stateManager);
@@ -188,7 +188,7 @@ void ESPStageRenderer::RenderPooledPlayers(ImDrawList* drawList, float screenWid
 
         // --- 2. CORE RENDERING ---
         // Use factory to create context and render
-        auto context = ESPContextFactory::CreateContextForPlayer(player, settings, details, screenWidth, screenHeight);
+        auto context = ESPContextFactory::CreateContextForPlayer(player, settings, stateManager, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera, stateManager);
     }
 }
@@ -204,7 +204,7 @@ void ESPStageRenderer::RenderPooledNpcs(ImDrawList* drawList, float screenWidth,
         // Use the builder to prepare NPC details
         std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildNpcDetails(npc, settings.npcESP, settings.showDebugAddresses);
 
-        auto context = ESPContextFactory::CreateContextForNpc(npc, settings, details, screenWidth, screenHeight);
+        auto context = ESPContextFactory::CreateContextForNpc(npc, settings, stateManager, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera, stateManager);
     }
 }
@@ -220,7 +220,7 @@ void ESPStageRenderer::RenderPooledGadgets(ImDrawList* drawList, float screenWid
         // Use the builder to prepare Gadget details
         std::vector<ColoredDetail> details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, settings.objectESP, settings.showDebugAddresses);
 
-        auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, details, screenWidth, screenHeight);
+        auto context = ESPContextFactory::CreateContextForGadget(gadget, settings, stateManager, details, screenWidth, screenHeight);
         RenderEntity(drawList, context, camera, stateManager);
     }
 }

@@ -47,6 +47,28 @@ namespace kx {
         constexpr uint64_t STATE_CLEANUP_THRESHOLD_MS = 3000;
     }
 
+    namespace ESPBarColors {
+        // Base health derives from entityColor plus layout alpha, no fixed color here
+
+        // Healing
+        constexpr unsigned int HEAL_OVERLAY = IM_COL32(120, 255, 160, 200);  // soft mint, readable over HP
+        constexpr unsigned int HEAL_FLASH = IM_COL32(220, 255, 255, 255);  // cold white flash
+
+        // Damage
+        constexpr unsigned int DAMAGE_ACCUM = IM_COL32(255, 170, 60, 180); // warm amber, sustained loss
+        constexpr unsigned int DAMAGE_FLASH = IM_COL32(255, 255, 255, 255); // neutral white flash
+
+        // Barrier
+        constexpr unsigned int BARRIER_FILL = IM_COL32(255, 230, 180, 240); // warm cream
+        constexpr unsigned int BARRIER_SEPARATOR = IM_COL32(255, 255, 255, 210); // separator on overflow
+
+        // Death burst
+        constexpr unsigned int DEATH_BURST = IM_COL32(200, 255, 255, 255);       // icy cyan
+
+        // Energy bar
+        // Keep using ESPColors::ENERGY_BAR for fill, it already fits the scheme
+    }
+
 /**
  * @brief Minimum size constraints for entity visibility
  * 
@@ -202,14 +224,15 @@ namespace ESPColors {
     constexpr unsigned int PLAYER = IM_COL32(30, 144, 255, 230);  // Bright cyan/blue (dodger blue)
     
     // NPC colors based on attitude - unified palette
+    constexpr unsigned int FRIENDLY_NEUTRAL_BAR = IM_COL32(104, 197, 80, 255); // #68C550
     constexpr unsigned int NPC_HOSTILE = IM_COL32(220, 50, 40, 210);      // Thematic, high-contrast crimson
-    constexpr unsigned int NPC_FRIENDLY = IM_COL32(100, 255, 100, 210);   // Bright classic green
-    constexpr unsigned int NPC_NEUTRAL = IM_COL32(127, 255, 0, 210);      // Electric chartreuse (yellow-green)
+    constexpr unsigned int NPC_FRIENDLY = FRIENDLY_NEUTRAL_BAR;
+    constexpr unsigned int NPC_NEUTRAL = FRIENDLY_NEUTRAL_BAR;
     constexpr unsigned int NPC_INDIFFERENT = IM_COL32(240, 240, 240, 210); // Clean bright white
     constexpr unsigned int NPC_UNKNOWN = IM_COL32(255, 0, 255, 210);      // Magenta - debug/unknown
     
     // Gadget colors
-    constexpr unsigned int GADGET = IM_COL32(255, 165, 80, 200);  // Warm orange/amber
+    constexpr unsigned int GADGET = IM_COL32(238, 221, 51, 255); // #EEDD33
 
     // Bar colors
     constexpr unsigned int ENERGY_BAR = IM_COL32(0, 120, 255, 220); // Bright blue for energy
@@ -264,7 +287,7 @@ namespace RenderingLayout {
     constexpr float STANDALONE_HEALTH_BAR_Y_OFFSET = 12.0f;          // 12px below entity (compact spacing)
     constexpr float STANDALONE_HEALTH_BAR_BG_ROUNDING = 1.0f;        // Subtle 1px rounding
     constexpr float STANDALONE_HEALTH_BAR_BORDER_ROUNDING = 1.0f;    // Matches background
-    constexpr float STANDALONE_HEALTH_BAR_BORDER_THICKNESS = 2.0f;   // crisp border
+    constexpr float STANDALONE_HEALTH_BAR_BORDER_THICKNESS = 1.0f;   // crisp border
     constexpr float STANDALONE_HEALTH_BAR_BG_ALPHA = 180.0f;         // ~71% opacity (readable)
     constexpr float STANDALONE_HEALTH_BAR_HEALTH_ALPHA = 220.0f;     // ~86% opacity (prominent)
     constexpr float STANDALONE_HEALTH_BAR_BORDER_ALPHA = 100.0f;     // ~39% opacity (subtle)

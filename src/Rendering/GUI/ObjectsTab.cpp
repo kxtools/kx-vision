@@ -99,6 +99,7 @@ namespace kx {
 
                     ImGui::SeparatorText("Special Filters");
                     CheckboxWithTooltip("Hide Depleted Nodes", "Objects", &settings.hideDepletedNodes, "Hide resource nodes that have already been gathered.");
+                    CheckboxWithTooltip("Show Dead Gadgets", "Objects", &settings.objectESP.showDeadGadgets, "Show destroyed gadgets with health (e.g., siege, doors).");
 
                     // Object Style section remains the same, open by default.
                     if (ImGui::CollapsingHeader("Object Style", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -115,7 +116,16 @@ namespace kx {
                         CheckboxWithTooltip("Show Dot", "ObjectStyle", &settings.objectESP.renderDot, "Render a dot at the object's exact location.");
 
                         ImGui::SeparatorText("Informational Overlays");
+                        CheckboxWithTooltip("Show Health Bar", "ObjectStyle", &settings.objectESP.renderHealthBar, "Show health bars for destructible objects and gadgets.");
+                        ImGui::SameLine(column1);
                         CheckboxWithTooltip("Show Details", "ObjectStyle", &settings.objectESP.renderDetails, "Show detailed information like the object type.");
+
+                        if (settings.objectESP.renderHealthBar) {
+                            ImGui::Indent();
+                            CheckboxWithTooltip("Only show damaged", "ObjectStyle", &settings.objectESP.showOnlyDamagedGadgets, "Only show gadgets that are not at 100%% health and not dead.");
+                            ImGui::Unindent();
+                        }
+
                         if (settings.objectESP.renderDetails) {
                             if (ImGui::CollapsingHeader("Object Details Filters")) {
                                 CheckboxWithTooltip("Type", "ObjectDetails", &settings.objectESP.showDetailGadgetType, "Show the type of gadget (e.g., Resource Node, Waypoint).");

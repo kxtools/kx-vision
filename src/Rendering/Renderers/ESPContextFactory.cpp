@@ -1,6 +1,8 @@
 #include "ESPContextFactory.h"
 
-#include "../Utils/ESPConstants.h"
+#include <Windows.h> // For GetTickCount64
+#include "../Combat/CombatStateManager.h" // For CombatStateManager
+#include "../Utils/ESPConstants.h" // For CombatEffects
 #include "../Core/ESPStageRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
@@ -9,6 +11,7 @@ namespace kx {
 
 EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePlayer* player,
                                                              const Settings& settings,
+                                                             const CombatStateManager& stateManager,
                                                              const std::vector<ColoredDetail>& details,
                                                              float screenWidth,
                                                              float screenHeight) {
@@ -73,6 +76,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
 
 EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* npc,
                                                           const Settings& settings,
+                                                          const CombatStateManager& stateManager,
                                                           const std::vector<ColoredDetail>& details,
                                                           float screenWidth,
                                                           float screenHeight) {
@@ -125,12 +129,54 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     };
 }
 
+namespace {
+    // Helper to determine if a gadget's health bar should be hidden based on its type.
+    bool ShouldHideHealthBarForGadgetType(Game::GadgetType type) {
+        switch (type) {
+            // These types often have unstable health values or health is not a meaningful metric,
+            // so we hide the bar to prevent visual noise and flickering.
+            case Game::GadgetType::Prop:
+            case Game::GadgetType::Interact:
+            case Game::GadgetType::ResourceNode:
+            case Game::GadgetType::Waypoint:
+            case Game::GadgetType::MapPortal:
+                return true;
+            default:
+                return false;
+        }
+    }
+} // anonymous namespace
+
 EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGadget* gadget,
                                                              const Settings& settings,
+                                                             const CombatStateManager& stateManager,
                                                              const std::vector<ColoredDetail>& details,
                                                              float screenWidth,
                                                              float screenHeight) {
     static const std::string emptyPlayerName = "";
+
+    bool renderHealthBar = settings.objectESP.renderHealthBar;
+
+    // Do not render health bar for certain gadget types to avoid flickering, or if the base setting is off.
+    if (renderHealthBar) {
+        if (ShouldHideHealthBarForGadgetType(gadget->type)) {
+            renderHealthBar = false;
+        }
+        else if (gadget->maxHealth > 0) {
+            // "Only show damaged" filter: Hide bar if gadget is at full health.
+            if (settings.objectESP.showOnlyDamagedGadgets && gadget->currentHealth >= gadget->maxHealth) {
+                renderHealthBar = false;
+            }
+            // "Don't show bar on already-dead gadgets" filter: Hide bar if gadget is dead and animation is over.
+            else if (gadget->currentHealth <= 0.0f) {
+                const EntityCombatState* state = stateManager.GetState(gadget->address);
+                if (!state || state->deathTimestamp == 0 || (GetTickCount64() - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
+                    renderHealthBar = false;
+                }
+            }
+        }
+    }
+
     return EntityRenderContext{
         gadget->position,
         gadget->visualDistance,
@@ -143,7 +189,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         settings.objectESP.renderDistance,
         settings.objectESP.renderDot,
         settings.objectESP.renderDetails,
-        false, // No health bar for gadgets
+        renderHealthBar,
         false, // No energy bar for gadgets
         false,
         ESPEntityType::Gadget,
