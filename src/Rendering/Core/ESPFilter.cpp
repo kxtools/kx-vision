@@ -1,7 +1,7 @@
 #include "ESPFilter.h"
 
 #include "AppState.h"
-#include "EntityFilter.h"
+#include "Utils/EntityFilter.h"
 #include "../Data/RenderableData.h"
 #include "../Combat/CombatStateManager.h"
 #include "../Utils/ESPConstants.h"

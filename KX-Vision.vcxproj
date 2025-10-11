@@ -214,7 +214,7 @@
     <ClInclude Include="src\Rendering\Utils\ScalingConstants.h" />
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Utils\DebugLogger.h" />
-    <ClInclude Include="src\Utils\EntityFilter.h" />
+    <ClInclude Include="src\Rendering\Utils\EntityFilter.h" />
     <ClInclude Include="src\Rendering\GuiStyle.h" />
     <ClInclude Include="src\Hooking\HookManager.h" />
     <ClInclude Include="src\Hooking\Hooks.h" />
