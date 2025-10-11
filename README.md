@@ -1,7 +1,7 @@
 # KX-Vision for Guild Wars 2
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.8-green.svg)
+![Version](https://img.shields.io/badge/version-0.9-green.svg)
 
 ![KX-Vision GUI](images/gui_v2.jpg)
 
