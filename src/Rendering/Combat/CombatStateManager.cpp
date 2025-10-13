@@ -140,6 +140,7 @@ namespace kx
 		state.lastKnownBarrier = entity->currentBarrier;
 		state.lastSeenTimestamp = now;
 	}
+
 	void CombatStateManager::HandleDamage(EntityCombatState& state,
 			const RenderableEntity* entity,
 			float currentHealth,

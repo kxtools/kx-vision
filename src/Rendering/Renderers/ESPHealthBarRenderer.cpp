@@ -162,10 +162,10 @@ namespace kx {
         // Calculate position: centered above the health bar, animated upwards
         glm::vec2 anchorPos(barMin.x + barWidth * 0.5f, barMin.y - anim.damageNumberYOffset);
 
-        // Use our powerful text system to render it
-        float finalFontSize = fontSize * kx::EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(anim.damageNumberToDisplay);
-        TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha, finalFontSize);
-        TextRenderer::Render(dl, element);
+            // Use our powerful text system to render it
+            float finalFontSize = fontSize * kx::EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(anim.damageNumberToDisplay);
+            TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha * context.healthBarAnim.healthBarFadeAlpha, finalFontSize);
+            TextRenderer::Render(dl, element);
     }
 
     void ESPHealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,

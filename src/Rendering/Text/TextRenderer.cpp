@@ -181,16 +181,16 @@ void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSe
 }
 
 ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) {
-    int r = (color >> 0) & 0xFF;
-    int g = (color >> 8) & 0xFF;
-    int b = (color >> 16) & 0xFF;
-    int a = (color >> 24) & 0xFF;
+    // Extract original alpha component
+    int a = (color >> IM_COL32_A_SHIFT) & 0xFF;
     
     // Use rounding for smoother alpha transitions
     float alphaf = static_cast<float>(a) * fadeAlpha;
     unsigned int newAlpha = static_cast<unsigned int>(alphaf + 0.5f);
     newAlpha = (newAlpha > 255) ? 255 : newAlpha; // Clamp
-    return IM_COL32(r, g, b, newAlpha);
+
+    // Preserve original RGB, only change alpha
+    return (color & 0x00FFFFFF) | (static_cast<ImU32>(newAlpha) << IM_COL32_A_SHIFT);
 }
 
 float TextRenderer::CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize) {
