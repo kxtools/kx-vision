@@ -25,6 +25,7 @@ namespace kx
 		// Accumulated damage behavior
 		float accumulatedDamage = 0.0f;
 		uint64_t flushAnimationStartTime = 0; // Tracks the start of the fade-out animation.
+		uint64_t burstStartTime = 0;          // Tracks when the current damage accumulation started.
 		
         // Barrier state
         float lastKnownBarrier = 0.0f;

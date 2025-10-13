@@ -105,7 +105,6 @@
     <ClCompile Include="src\Rendering\Core\ESPFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Core\ESPStateFinalizer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPVisualsProcessor.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPContextFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPHealthBarRenderer.cpp" />
@@ -181,7 +180,6 @@
     <ClInclude Include="src\Rendering\Core\ESPFilter.h" />
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
-    <ClInclude Include="src\Rendering\Core\ESPStateFinalizer.h" />
     <ClInclude Include="src\Rendering\Core\ESPVisualsProcessor.h" />
     <ClInclude Include="src\Rendering\D3DState.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />

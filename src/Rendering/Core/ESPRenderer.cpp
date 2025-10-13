@@ -12,7 +12,6 @@
 #include "../Data/RenderableData.h"
 #include "ESPDataExtractor.h"
 #include "ESPFilter.h"
-#include "ESPStateFinalizer.h"
 #include "ESPVisualsProcessor.h"
 #include "ESPStageRenderer.h"
 #include "../Combat/CombatStateManager.h"
@@ -87,9 +86,6 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         // NEW Stage 2.5: Calculate Visuals
         // We use s_cachedFilteredData to store the final list.
         ESPVisualsProcessor::Process(frameContext, filteredData, s_cachedFilteredData);
-
-        // Stage 2.75: Finalize Combat State (pass context and the new data)
-        ESPStateFinalizer::Finalize(frameContext, s_cachedFilteredData);
 
         // Stage 2.8: Update adaptive far plane (no change)
         AppState::Get().UpdateAdaptiveFarPlane(s_cachedFilteredData);

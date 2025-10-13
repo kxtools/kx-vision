@@ -29,13 +29,6 @@ namespace kx
 		void Update(const std::vector<RenderableEntity*>& entities, uint64_t now);
 
 		/**
-		 * @brief Post-update step for layout-dependent calculations (e.g., damage chunking).
-		 * @param entity The entity to process.
-		 * @param barWidth The final calculated width of the health bar for this entity.
-		 */
-		void PostUpdate(const RenderableEntity* entity, float barWidth, uint64_t now);
-
-		/**
 		 * @brief Remove stale entries that have not been seen recently.
 		 */
 		void Cleanup(uint64_t now);
@@ -44,9 +37,9 @@ namespace kx
 		 * @brief Get immutable pointer to stored entity combat state (nullptr if missing).
 		 */
 		const EntityCombatState* GetState(const void* entityId) const;
-		EntityCombatState* GetStateNonConst(const void* entityId); // New method to get non-const state
 
 	private:
+		EntityCombatState* GetStateNonConst(const void* entityId); // This can be made private now
 		std::unordered_map<const void*, EntityCombatState> m_entityStates;
 
 		// --- Internal helpers (all assume non-null entity & validity already checked) ---
