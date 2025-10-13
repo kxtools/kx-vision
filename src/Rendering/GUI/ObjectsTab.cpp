@@ -118,6 +118,8 @@ namespace kx {
                         ImGui::SeparatorText("Informational Overlays");
                         CheckboxWithTooltip("Show Health Bar", "ObjectStyle", &settings.objectESP.renderHealthBar, "Show health bars for destructible objects and gadgets.");
                         ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Show Burst DPS", "ObjectStyle", &settings.objectESP.showBurstDps, "Show live burst DPS for combat-enabled objects.");
+                        ImGui::SameLine(column2);
                         CheckboxWithTooltip("Show Details", "ObjectStyle", &settings.objectESP.renderDetails, "Show detailed information like the object type.");
 
                         if (settings.objectESP.renderHealthBar) {

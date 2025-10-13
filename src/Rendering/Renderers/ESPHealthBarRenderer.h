@@ -105,6 +105,12 @@ namespace kx {
             float barWidth,
             float barHeight,
             float fadeAlpha);
+
+        static void DrawBurstDpsText(ImDrawList* drawList,
+                                     const EntityRenderContext& context,
+                                     const ImVec2& barMin,
+                                     const ImVec2& barMax,
+                                     float fontSize);
     };
 
 } // namespace kx

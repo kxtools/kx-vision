@@ -14,6 +14,20 @@ namespace kx {
 
 namespace { // Anonymous namespace for helpers
 
+float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showBurstDpsSetting) {
+    float burstDpsValue = 0.0f;
+    if (showBurstDpsSetting) {
+        if (state && state->burstStartTime > 0 && state->accumulatedDamage > 0.0f) {
+            uint64_t durationMs = now - state->burstStartTime;
+            if (durationMs > 100) {
+                float durationSeconds = static_cast<float>(durationMs) / 1000.0f;
+                burstDpsValue = state->accumulatedDamage / durationSeconds;
+            }
+        }
+    }
+    return burstDpsValue;
+}
+
 /**
  * @brief Calculates all transient health bar animation states.
  *
@@ -189,6 +203,8 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         PopulateHealthBarAnimations(player, state, animState, context.now); // Pass 'now' to the animation logic
     }
     
+    float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.playerESP.showBurstDps);
+    
     return EntityRenderContext{
         player->position,
         player->visualDistance,
@@ -197,6 +213,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         details,
         healthPercent,
         energyPercent,
+        burstDpsValue, // burstDPS
         context.settings.playerESP.renderBox,
         context.settings.playerESP.renderDistance,
         context.settings.playerESP.renderDot,
@@ -229,6 +246,8 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         PopulateHealthBarAnimations(npc, state, animState, context.now); // Pass 'now' to the animation logic
     }
     
+    float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.npcESP.showBurstDps);
+    
     static const std::string emptyPlayerName = "";
     return EntityRenderContext{
         npc->position,
@@ -238,6 +257,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         details,
         healthPercent,
         -1.0f, // No energy for NPCs
+        burstDpsValue, // burstDPS
         context.settings.npcESP.renderBox,
         context.settings.npcESP.renderDistance,
         context.settings.npcESP.renderDot,
@@ -283,13 +303,15 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     }
 
     // --- Animation State --- 
+    const EntityCombatState* state = context.stateManager.GetState(gadget->address);
     HealthBarAnimationState animState;
     if (renderHealthBar) { // Only calculate animations if the bar will be visible
-        const EntityCombatState* state = context.stateManager.GetState(gadget->address);
         if (state) {
             PopulateHealthBarAnimations(gadget, state, animState, context.now); // Pass 'now' to the animation logic
         }
     }
+
+    float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.objectESP.showBurstDps);
 
     return EntityRenderContext{
         gadget->position,
@@ -299,6 +321,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         details,
         gadget->maxHealth > 0 ? (gadget->currentHealth / gadget->maxHealth) : -1.0f,
         -1.0f, // No energy for gadgets
+        burstDpsValue, // burstDPS
         (context.settings.objectESP.renderCircle || context.settings.objectESP.renderSphere),
         context.settings.objectESP.renderDistance,
         context.settings.objectESP.renderDot,

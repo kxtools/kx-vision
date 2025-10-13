@@ -19,7 +19,8 @@ namespace kx {
             bool* renderHealthBar,
             bool* renderEnergyBar,
             bool* renderDetails,
-            bool* renderPlayerName) {
+            bool* renderPlayerName,
+            bool* showBurstDps) {
             if (ImGui::CollapsingHeader(categoryName, ImGuiTreeNodeFlags_DefaultOpen)) {
                 // Group 1: Core geometric visuals. These are fundamental.
                 ImGui::SeparatorText("Core Visuals");
@@ -32,7 +33,7 @@ namespace kx {
 
                 // Check if there are any informational overlays to show.
                 // If not, we don't even render the separator, keeping the UI clean.
-                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName);
+                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName || showBurstDps);
 
                 if (hasInfoOverlays) {
                     // Group 2: Informational text and data overlays.
@@ -46,6 +47,9 @@ namespace kx {
                     }
                     if (renderPlayerName) {
                         CheckboxWithId("Show Player Name", categoryName, renderPlayerName);
+                    }
+                    if (showBurstDps) {
+                        CheckboxWithId("Show Burst DPS", categoryName, showBurstDps);
                     }
                     if (renderDetails) {
                         CheckboxWithId("Show Details", categoryName, renderDetails);

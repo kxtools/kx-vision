@@ -24,7 +24,8 @@ namespace kx {
                                         bool* renderHealthBar = nullptr, 
                                         bool* renderEnergyBar = nullptr,
                                         bool* renderDetails = nullptr, 
-                                        bool* renderPlayerName = nullptr);
+                                        bool* renderPlayerName = nullptr,
+                                        bool* showBurstDps = nullptr);
 
     } // namespace GUI
 } // namespace kx

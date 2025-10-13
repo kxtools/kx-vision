@@ -98,6 +98,9 @@ struct EntityRenderContext {
     /** Energy percentage [0.0 - 1.0], or -1.0f if not applicable */
     float energyPercent;
 
+    /** Calculated live burst DPS for the current damage window */
+    float burstDPS;
+
     // ===== Style and Settings =====
     
     /** Whether to render bounding box */
