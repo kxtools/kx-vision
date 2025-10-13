@@ -1,7 +1,6 @@
 #include "ESPMath.h"
 
 #include "gtc/type_ptr.hpp" // Required for glm::value_ptr
-#include <algorithm> // For std::max, std::min
 
 namespace kx {
 

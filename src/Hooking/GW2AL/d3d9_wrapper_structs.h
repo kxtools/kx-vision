@@ -2,7 +2,6 @@
 
 #include <d3d11.h>
 #include <dxgi.h>
-#include <dxgi1_2.h> // For DXGI_SWAP_CHAIN_DESC1, etc.
 
 /**
  * @file d3d9_wrapper_structs.h

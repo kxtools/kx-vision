@@ -1,10 +1,10 @@
 /**
  * @file GW2AL_Integration.cpp
  * @brief GW2AL addon loader integration layer
- * 
+ *
  * This file provides the entry points and event handlers for GW2AL (Guild Wars 2 Addon Loader) mode.
  * It is only compiled when GW2AL_BUILD is defined in Config.h.
- * 
+ *
  * Key responsibilities:
  * - Provide GW2AL addon descriptor and lifecycle functions (load/unload)
  * - Handle D3D11 rendering events (Present, Resize) via d3d9_wrapper
@@ -29,7 +29,7 @@
 #include "../Utils/DebugLogger.h"
 #include "../Utils/Console.h"
 
-// Global pointer to the core API, needed for callbacks
+ // Global pointer to the core API, needed for callbacks
 gw2al_core_vtable* g_al_api = nullptr;
 
 // External reference to the global AppLifecycleManager instance
@@ -39,7 +39,7 @@ namespace kx {
 
 /**
  * @brief Main rendering callback triggered by d3d9_wrapper every frame
- * 
+ *
  * This is called on EVERY frame, before the game's Present call.
  * We render our ImGui overlay here.
  */
@@ -127,7 +127,7 @@ void OnDXGIPostCreateSwapChain(D3D9_wrapper_event_data* evd) {
 
 /**
  * @brief Callback for swap chain resize events
- * 
+ *
  * Called when the game window is resized. We need to update our render target.
  */
 void OnResize(D3D9_wrapper_event_data* evd) {
@@ -151,7 +151,7 @@ void OnResize(D3D9_wrapper_event_data* evd) {
 
 /**
  * @brief Returns the addon description for GW2AL
- * 
+ *
  * This is the first function GW2AL calls to identify our addon.
  */
 extern "C" __declspec(dllexport) gw2al_addon_dsc* gw2addon_get_description() {
@@ -176,7 +176,7 @@ extern "C" __declspec(dllexport) gw2al_addon_dsc* gw2addon_get_description() {
 
 /**
  * @brief Called by GW2AL when the addon is loaded
- * 
+ *
  * This is our entry point for GW2AL mode. We set up event watchers
  * and initialize the application lifecycle manager.
  */
@@ -202,7 +202,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
 
     enable_event(METH_DXGI_CreateSwapChain, WRAP_CB_POST);
     enable_event(METH_SWC_Present, WRAP_CB_PRE);
-    enable_event(METH_SWC_ResizeBuffers, WRAP_CB_POST);
+    enable_event(METH_SWC_ResizeBuffers, WRAP_CB_PRE);
 
     // Watch for swap chain creation. This is our main initialization point.
     // We DO NOT unwatch this event, so we can re-initialize if needed.
@@ -223,7 +223,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
 
     // Watch for the ResizeBuffers event to handle window size changes.
     g_al_api->watch_event(
-        g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_SWC_ResizeBuffers")),
+        g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_ResizeBuffers")),
         g_al_api->hash_name(L"kxvision_resize"),
         (gw2al_api_event_handler)&OnResize,
         10
@@ -235,20 +235,20 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
 
 /**
  * @brief Called by GW2AL when the addon is unloaded (e.g., game exit)
- * 
+ *
  * We must unsubscribe from events and perform cleanup.
  */
 extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting) {
     LOG_INFO("KXVision unloading in GW2AL mode...");
-    
+
     // Unsubscribe from events to prevent callbacks to an unloaded module
     if (g_al_api) {
         g_al_api->unwatch_event(
-            g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_Present")), 
+            g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_Present")),
             g_al_api->hash_name(L"kxvision_present")
         );
         g_al_api->unwatch_event(
-            g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_SWC_ResizeBuffers")), 
+            g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_ResizeBuffers")),
             g_al_api->hash_name(L"kxvision_resize")
         );
     }

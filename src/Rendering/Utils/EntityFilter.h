@@ -10,23 +10,23 @@ namespace Filtering {
  * @brief Enhanced filtering utilities using the new game enums
  */
 class EntityFilter {
+    static bool ShouldRenderByAttitude(Game::Attitude attitude, const AttitudeSettings& settings) {
+        switch (attitude) {
+            case Game::Attitude::Friendly:    return settings.showFriendly;
+            case Game::Attitude::Hostile:     return settings.showHostile;
+            case Game::Attitude::Neutral:     return settings.showNeutral;
+            case Game::Attitude::Indifferent: return settings.showIndifferent;
+            default:                          return true;
+        }
+    }
+
 public:
     /**
      * @brief Check if a player should be rendered based on attitude
      */
     static bool ShouldRenderPlayer(Game::Attitude attitude, const PlayerEspSettings& settings) {
-        switch (attitude) {
-            case Game::Attitude::Friendly:
-                return settings.showFriendly;
-            case Game::Attitude::Hostile:
-                return settings.showHostile;
-            case Game::Attitude::Neutral:
-                return settings.showNeutral;
-            case Game::Attitude::Indifferent:
-                return settings.showIndifferent;
-            default:
-                return true; // Show unknown attitudes by default
-        }
+        // Just call the helper directly
+        return ShouldRenderByAttitude(attitude, settings);
     }
 
     /**
@@ -34,28 +34,11 @@ public:
      */
     static bool ShouldRenderNpc(Game::Attitude attitude, Game::CharacterRank rank, const NpcEspSettings& settings) {
         // Attitude filter first
-        switch (attitude) {
-            case Game::Attitude::Friendly:
-                if (!settings.showFriendly)
-                    return false;
-                break;
-            case Game::Attitude::Hostile:
-                if (!settings.showHostile)
-                    return false;
-                break;
-            case Game::Attitude::Neutral:
-                if (!settings.showNeutral)
-                    return false;
-                break;
-            case Game::Attitude::Indifferent:
-                if (!settings.showIndifferent)
-                    return false;
-                break;
-            default:
-                break;
+        if (!ShouldRenderByAttitude(attitude, settings)) {
+            return false;
         }
 
-        // Rank filter
+        // Rank filter (this part remains unchanged)
         switch (rank) {
             case Game::CharacterRank::Legendary:
                 return settings.showLegendary;

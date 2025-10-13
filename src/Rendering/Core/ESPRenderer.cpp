@@ -7,12 +7,12 @@
 #include <Windows.h>
 
 #include "../../Core/AppState.h"
-#include "../../Utils/SafeIterators.h"
 #include "../../Utils/ObjectPool.h"
 #include "../Utils/ESPMath.h"
 #include "../Data/RenderableData.h"
 #include "ESPDataExtractor.h"
 #include "ESPFilter.h"
+#include "ESPStateFinalizer.h"
 #include "ESPStageRenderer.h"
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -42,17 +42,15 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         return;
     }
 
-    ::ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+    // Get the timestamp ONCE for the entire frame.
+    const uint64_t now = GetTickCount64();
+    const float currentTimeSeconds = now / 1000.0f;
 
-    // Get current time in seconds
-    float currentTime = GetTickCount64() / 1000.0f;
-    
-    // Get ESP update interval from settings (default 60 FPS)
+    ::ImDrawList* drawList = ImGui::GetBackgroundDrawList();
     const auto& settings = AppState::Get().GetSettings();
     float espUpdateInterval = 1.0f / std::max(1.0f, settings.espUpdateRate);
-    
-    // Only update ESP data at limited frame rate
-    if (currentTime - s_lastUpdateTime >= espUpdateInterval) {
+
+    if (currentTimeSeconds - s_lastUpdateTime >= espUpdateInterval) {
         // Reset object pools to reuse all objects for this frame
         s_playerPool.Reset();
         s_npcPool.Reset();
@@ -69,26 +67,36 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         allEntities.insert(allEntities.end(), extractedData.players.begin(), extractedData.players.end());
         allEntities.insert(allEntities.end(), extractedData.npcs.begin(), extractedData.npcs.end());
         allEntities.insert(allEntities.end(), extractedData.gadgets.begin(), extractedData.gadgets.end());
-        g_combatStateManager.Update(allEntities, GetTickCount64());
+        
+        // Pass 'now' to the state manager
+        g_combatStateManager.Update(allEntities, now);
         
         // Stage 2: Filter the pooled data (safe, configurable operations)  
-        ESPFilter::FilterPooledData(extractedData, *s_camera, s_cachedFilteredData, g_combatStateManager);
-        
-        // Stage 2.5: Update adaptive far plane for "No Limit" mode (once per second internally)
+        // Pass 'now' to the filter stage
+        ESPFilter::FilterPooledData(extractedData, *s_camera, s_cachedFilteredData, g_combatStateManager, now);
+
+        // NEW Stage 2.5: Finalize layout-dependent combat state
+        // This calculates final health bar widths and runs the PostUpdate logic
+        // for damage chunking before the rendering stage begins.
+        ESPStateFinalizer::Finalize(s_cachedFilteredData, *s_camera, g_combatStateManager, now);
+
+        // Stage 2.75: Update adaptive far plane (no change in its name)
         AppState::Get().UpdateAdaptiveFarPlane(s_cachedFilteredData);
         
-        s_lastUpdateTime = currentTime;
+        s_lastUpdateTime = currentTimeSeconds;
     }
 
     // Periodic cleanup of the combat state manager
-    if (GetTickCount64() - s_lastCleanupTime > 5000) {
-        g_combatStateManager.Cleanup();
-        s_lastCleanupTime = GetTickCount64();
+    // Pass 'now' to the cleanup logic
+    if (now - s_lastCleanupTime > 5000) {
+        g_combatStateManager.Cleanup(now); // Pass 'now' here
+        s_lastCleanupTime = now;
     }
 
     // Stage 3: Always render using cached filtered data (safe, fast operation)
+    // Pass 'now' to the rendering stage
     ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFilteredData, *s_camera,
-                                      const_cast<CombatStateManager&>(g_combatStateManager));
+                                      g_combatStateManager, now);
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

@@ -5,65 +5,65 @@
 
 namespace kx
 {
-void CombatStateManager::PostUpdate(const RenderableEntity* entity, float barWidth)
-{
-	if (!entity) return;
-
-	EntityCombatState* state = GetStateNonConst(entity->address);
-	if (!state) return;
-
-	const uint64_t now = GetTickCount64();
-
-	// --- FIX: Check if a flush animation is running and if it has finished ---
-	if (state->flushAnimationStartTime > 0)
+	void CombatStateManager::PostUpdate(const RenderableEntity* entity, float barWidth, uint64_t now)
 	{
-		const uint64_t elapsed = now - state->flushAnimationStartTime;
-		if (elapsed >= CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS)
+		if (!entity) return;
+
+		EntityCombatState* state = GetStateNonConst(entity->address);
+		if (!state) return;
+
+		// const uint64_t now = GetTickCount64(); // This line is removed
+
+		// --- FIX: Check if a flush animation is running and if it has finished ---
+		if (state->flushAnimationStartTime > 0)
 		{
-			// Animation is complete. Reset the state for the next damage burst.
-			state->accumulatedDamage = 0.0f;
-			state->flushAnimationStartTime = 0;
+			const uint64_t elapsed = now - state->flushAnimationStartTime;
+			if (elapsed >= CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS)
+			{
+				// Animation is complete. Reset the state for the next damage burst.
+				state->accumulatedDamage = 0.0f;
+				state->flushAnimationStartTime = 0;
+			}
+			// If the animation is running but not finished, we must return.
+			// A new flush cannot be started until the current one completes.
+			return;
 		}
-		// If the animation is running but not finished, we must return.
-		// A new flush cannot be started until the current one completes.
-		return;
-	}
 
-	// If we reach here, no animation is running. Check if we should start one.
-	if (state->accumulatedDamage <= 0)
-	{
-		return; // No damage to flush.
-	}
+		// If we reach here, no animation is running. Check if we should start one.
+		if (state->accumulatedDamage <= 0)
+		{
+			return; // No damage to flush.
+		}
 
-	bool shouldFlush = false;
+		bool shouldFlush = false;
 
-	// 1. Calculate the dynamic percentage threshold.
-	const float hp = (std::max)(1.0f, entity->maxHealth);
-	float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
-	const float hpLog = log10f(hp);
-	const float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
-	thresholdPercent *= scaleFactor;
-	thresholdPercent = std::clamp(thresholdPercent,
-	                              CombatEffects::MIN_CHUNK_PERCENT,
-	                              CombatEffects::MAX_CHUNK_PERCENT);
+		// 1. Calculate the dynamic percentage threshold.
+		const float hp = (std::max)(1.0f, entity->maxHealth);
+		float thresholdPercent = CombatEffects::DESIRED_CHUNK_PIXELS / barWidth;
+		const float hpLog = log10f(hp);
+		const float scaleFactor = std::clamp(1.0f - (hpLog - 4.0f) * 0.15f, 0.25f, 1.3f);
+		thresholdPercent *= scaleFactor;
+		thresholdPercent = std::clamp(thresholdPercent,
+		                              CombatEffects::MIN_CHUNK_PERCENT,
+		                              CombatEffects::MAX_CHUNK_PERCENT);
 
-	// 2. PRIMARY CONDITION: Flush if the chunk has reached a satisfying size.
-	const float accumulatedPercent = state->accumulatedDamage / hp;
-	if (accumulatedPercent >= thresholdPercent)
-	{
-		shouldFlush = true;
-	}
-	// 3. FALLBACK CONDITION: Flush if the burst has ended.
-	else if (now - state->lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS)
-	{
-		shouldFlush = true;
-	}
+		// 2. PRIMARY CONDITION: Flush if the chunk has reached a satisfying size.
+		const float accumulatedPercent = state->accumulatedDamage / hp;
+		if (accumulatedPercent >= thresholdPercent)
+		{
+			shouldFlush = true;
+		}
+		// 3. FALLBACK CONDITION: Flush if the burst has ended.
+		else if (now - state->lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS)
+		{
+			shouldFlush = true;
+		}
 
-	if (shouldFlush)
-	{
-		state->flushAnimationStartTime = now;
+		if (shouldFlush)
+		{
+			state->flushAnimationStartTime = now;
+		}
 	}
-}
 	
 	EntityCombatState& CombatStateManager::AcquireState(const RenderableEntity* entity)
 	{
@@ -207,9 +207,9 @@ void CombatStateManager::PostUpdate(const RenderableEntity* entity, float barWid
 		return (it != m_entityStates.end()) ? &it->second : nullptr;
 	}
 
-	void CombatStateManager::Cleanup()
+	void CombatStateManager::Cleanup(uint64_t now)
 	{
-		uint64_t now = GetTickCount64();
+		// uint64_t now = GetTickCount64(); // This line is removed
 		for (auto it = m_entityStates.begin(); it != m_entityStates.end();)
 		{
 			if (now - it->second.lastSeenTimestamp > CombatEffects::STATE_CLEANUP_THRESHOLD_MS)
