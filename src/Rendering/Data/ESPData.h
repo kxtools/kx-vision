@@ -9,7 +9,7 @@ struct ImDrawList;
 namespace kx {
     class Camera;
     class CombatStateManager;
-    class Settings;
+    struct Settings;
     struct RenderableEntity; // Forward declare from RenderableData.h
     struct RenderablePlayer;
     struct RenderableNpc;

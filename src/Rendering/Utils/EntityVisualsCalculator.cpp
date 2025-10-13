@@ -375,4 +375,25 @@ float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, fl
     }
 }
 
+float EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(float damageToDisplay) {
+    if (damageToDisplay <= 0.0f) {
+        return 2.0f; // Minimum multiplier for any damage
+    }
+
+    const float MIN_MULTIPLIER = 2.0f; // Minimum multiplier for any damage
+    const float MAX_MULTIPLIER = 4.0f; // Cap the multiplier
+    const float DAMAGE_TO_REACH_MAX_MULTIPLIER = 200000.0f; // Damage at which multiplier reaches MAX_MULTIPLIER
+
+    // Calculate how much additional multiplier to add based on damage
+    // The scaling range is (MAX_MULTIPLIER - MIN_MULTIPLIER)
+    // We want to scale from MIN_MULTIPLIER to MAX_MULTIPLIER over DAMAGE_TO_REACH_MAX_MULTIPLIER
+    
+    float progress = damageToDisplay / DAMAGE_TO_REACH_MAX_MULTIPLIER;
+    progress = (std::min)(progress, 1.0f); // Clamp progress to 1.0
+
+    float multiplier = MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
+    
+    return multiplier; // No need for std::min with MAX_MULTIPLIER here, as progress is clamped
+}
+
 } // namespace kx

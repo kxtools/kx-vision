@@ -11,6 +11,7 @@
 
 #include "../Data/EntityRenderContext.h"
 #include <algorithm>
+#include "../Utils/EntityVisualsCalculator.h"
 
 namespace kx {
 
@@ -142,29 +143,30 @@ namespace kx {
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-void ESPHealthBarRenderer::DrawDamageNumber(ImDrawList* dl,
-                                            const EntityRenderContext& context,
-                                            const ImVec2& barMin,
-                                            float barWidth,
-                                            float fontSize)
-{
-    const auto& anim = context.healthBarAnim;
-    if (anim.damageNumberAlpha <= 0.0f || anim.damageNumberToDisplay <= 0.0f)
+    void ESPHealthBarRenderer::DrawDamageNumber(ImDrawList* dl,
+                                                const EntityRenderContext& context,
+                                                const ImVec2& barMin,
+                                                float barWidth,
+                                                float fontSize)
     {
-        return;
+        const auto& anim = context.healthBarAnim;
+        if (anim.damageNumberAlpha <= 0.0f || anim.damageNumberToDisplay <= 0.0f)
+        {
+            return;
+        }
+
+        // Format the number as a clean integer string
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(0) << anim.damageNumberToDisplay;
+
+        // Calculate position: centered above the health bar, animated upwards
+        glm::vec2 anchorPos(barMin.x + barWidth * 0.5f, barMin.y - anim.damageNumberYOffset);
+
+        // Use our powerful text system to render it
+        float finalFontSize = fontSize * kx::EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(anim.damageNumberToDisplay);
+        TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha, finalFontSize);
+        TextRenderer::Render(dl, element);
     }
-
-    // Format the number as a clean integer string
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(0) << anim.damageNumberToDisplay;
-
-    // Calculate position: centered above the health bar, animated upwards
-    glm::vec2 anchorPos(barMin.x + barWidth * 0.5f, barMin.y - anim.damageNumberYOffset);
-
-    // Use our powerful text system to render it
-    TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha, fontSize * 2.0f);
-    TextRenderer::Render(dl, element);
-}
 
     void ESPHealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
         const EntityRenderContext& context,

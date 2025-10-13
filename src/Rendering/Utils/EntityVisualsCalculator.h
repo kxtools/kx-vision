@@ -45,6 +45,14 @@ public:
                                                      float screenWidth,
                                                      float screenHeight);
 
+    /**
+     * @brief Calculate a font size multiplier for the damage number based on the damage value.
+     *        100,000 damage should result in a 2x multiplier.
+     * @param damageToDisplay The total damage value to display.
+     * @return A float multiplier for the font size.
+     */
+    static float GetDamageNumberFontSizeMultiplier(float damageToDisplay);
+
 private:
     /**
      * @brief Check if entity is on screen and calculate screen position
