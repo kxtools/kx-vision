@@ -20,7 +20,8 @@ namespace kx {
             const EntityRenderContext& context,
             unsigned int entityColor,
             float barWidth,
-            float barHeight);
+            float barHeight,
+            float fontSize);
 
         static void RenderStandaloneEnergyBar(ImDrawList* drawList,
             const glm::vec2& centerPos,
@@ -38,7 +39,8 @@ namespace kx {
             const ImVec2& barMax,
             float barWidth,
             unsigned int entityColor,
-            float fadeAlpha);
+            float fadeAlpha,
+            float fontSize);
 
         static void RenderDeadState(ImDrawList* drawList,
             const EntityRenderContext& context,
@@ -47,7 +49,11 @@ namespace kx {
             float barWidth,
             float fadeAlpha);
 
-
+        static void DrawDamageNumber(ImDrawList* dl,
+                                     const EntityRenderContext& context,
+                                     const ImVec2& barMin,
+                                     float barWidth,
+                                     float fontSize);
 
         // --- Small Utilities ---
         static inline unsigned int ClampAlpha(unsigned int alpha) { return (alpha < 255u ? alpha : 255u); }

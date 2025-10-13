@@ -13,7 +13,13 @@ namespace kx {
         constexpr uint64_t MAX_BURST_DURATION_MS = 8000; // 8 seconds
 
 	    // The elegant fade-out animation for the chunk.
-	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 200;
+	    constexpr uint64_t DAMAGE_ACCUMULATOR_FADE_MS = 1000;
+
+        // NEW: A very short delay after the last hit on a dead target to ensure trailing/overkill damage is captured.
+        constexpr uint64_t POST_MORTEM_FLUSH_DELAY_MS = 200; // 0.2 seconds
+
+        // NEW: Upward scroll distance for the damage number display.
+        constexpr float    DAMAGE_NUMBER_MAX_Y_OFFSET  = 25.0f; // 25 pixels
 
         // --- Core Combat Feedback (TUNED FOR PUNCHY HITS) ---
         // A 200ms hold followed by a 400ms fade provides satisfying impact on every hit.

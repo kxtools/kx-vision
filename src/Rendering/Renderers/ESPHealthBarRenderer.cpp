@@ -1,7 +1,10 @@
 #define NOMINMAX
 
 #include "ESPHealthBarRenderer.h"
-
+#include "../Text/TextElementFactory.h"
+#include "../Text/TextRenderer.h"
+#include <iomanip>
+#include <sstream>
 #include "../Utils/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <Windows.h>
@@ -139,6 +142,30 @@ namespace kx {
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
+void ESPHealthBarRenderer::DrawDamageNumber(ImDrawList* dl,
+                                            const EntityRenderContext& context,
+                                            const ImVec2& barMin,
+                                            float barWidth,
+                                            float fontSize)
+{
+    const auto& anim = context.healthBarAnim;
+    if (anim.damageNumberAlpha <= 0.0f || anim.damageNumberToDisplay <= 0.0f)
+    {
+        return;
+    }
+
+    // Format the number as a clean integer string
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(0) << anim.damageNumberToDisplay;
+
+    // Calculate position: centered above the health bar, animated upwards
+    glm::vec2 anchorPos(barMin.x + barWidth * 0.5f, barMin.y - anim.damageNumberYOffset);
+
+    // Use our powerful text system to render it
+    TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha, fontSize * 2.0f);
+    TextRenderer::Render(dl, element);
+}
+
     void ESPHealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
         const EntityRenderContext& context,
         const ImVec2& barMin,
@@ -202,14 +229,14 @@ namespace kx {
         const EntityRenderContext& context,
         unsigned int entityColor,
         float barWidth,
-        float barHeight) { // Removed const
-        if (context.healthPercent < -1.0f) return; // allow exactly 0 for dead
-
+        float barHeight,
+        float fontSize) { 
+        
         const auto& anim = context.healthBarAnim;
         float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
         fadeAlpha *= anim.healthBarFadeAlpha;
 
-        if (fadeAlpha <= 0.f) return;
+        if (fadeAlpha <= 0.f && anim.damageNumberAlpha <= 0.f) return; // Exit if NOTHING is visible
 
         // Geometry
         const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
@@ -226,11 +253,15 @@ namespace kx {
 
         // Alive vs Dead specialized rendering
         if (context.entity->currentHealth > 0) {
-            RenderAliveState(drawList, context, barMin, barMax, barWidth, entityColor, fadeAlpha);
+            RenderAliveState(drawList, context, barMin, barMax, barWidth, entityColor, fadeAlpha, fontSize);
         }
         else {
             RenderDeadState(drawList, context, barMin, barMax, barWidth, fadeAlpha);
         }
+
+		// The damage number is now rendered here, outside the alive/dead check.
+		// It will use its own alpha and will be visible during the death fade.
+		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize);
 
 		// Outer stroke settings
         const float outset = 1.0f; // 1 px outside, feels "harder" and more separated
@@ -272,7 +303,8 @@ namespace kx {
         const ImVec2& barMax,
         float barWidth,
         unsigned int entityColor,
-        float fadeAlpha) {
+        float fadeAlpha,
+        float fontSize) {
         const RenderableEntity* entity = context.entity;
         if (!entity || entity->maxHealth <= 0) return;
 
@@ -291,6 +323,9 @@ namespace kx {
 
         // 4. Damage flash
         DrawDamageFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
+
+		// 4.5. Render the damage number during the flush animation
+		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize);
 
         // 5. Barrier overlay (drawn last, on top of everything)
         DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha);

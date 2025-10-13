@@ -77,6 +77,8 @@ public:
                                           Game::ItemRarity topRarity,
                                           const glm::vec2& feetPos, float fadeAlpha, float fontSize);
     
+    static TextElement CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
+
     /**
      * @brief Get default style for player names
      */

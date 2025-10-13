@@ -131,7 +131,7 @@ void ESPStageRenderer::RenderHealthBar(ImDrawList* drawList, const EntityRenderC
     // Render standalone health bars for living entities when health is available AND setting is enabled
     if ((isLivingEntity || isGadget) && context.healthPercent >= 0.0f && context.renderHealthBar) {
         ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, props.screenPos, context,
-            props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight);
+            props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
     }
 }
 

@@ -128,6 +128,24 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
     return element;
 }
 
+TextElement TextElementFactory::CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize)
+{
+    // Anchor above the health bar with a small gap
+    TextElement element(number, anchorPos, glm::vec2(0.0f, -5.0f)); 
+    
+    // Define a unique style for the damage number
+    TextStyle style;
+    style.fontSize = fontSize;
+    style.fadeAlpha = fadeAlpha;
+    style.textColor = IM_COL32(255, 255, 255, 255); // Full white
+    style.enableShadow = true;
+    style.shadowAlpha = 0.8f;
+    style.enableBackground = false; // No background, just the number
+
+    element.SetStyle(style);
+    return element;
+}
+
 TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor, float fontSize) { // Add fontSize
     TextStyle style;
     style.fontSize = fontSize;
