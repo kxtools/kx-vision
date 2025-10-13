@@ -3,6 +3,7 @@
 #include "../../Game/Camera.h"
 #include "ESPMath.h"
 #include "ESPConstants.h"
+#include "ESPStyling.h"
 #include "../Data/RenderableData.h"
 #include "ColorConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
@@ -74,48 +75,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     }
 
     // Determine color based on entity type and attitude
-    unsigned int color;
-    if (entity.entityType == ESPEntityType::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(&entity);
-        switch (player->attitude) {
-            case Game::Attitude::Hostile:
-                color = ESPColors::NPC_HOSTILE;
-                break;
-            case Game::Attitude::Friendly:
-                color = ESPColors::NPC_FRIENDLY;
-                break;
-            case Game::Attitude::Neutral:
-                color = ESPColors::NPC_NEUTRAL;
-                break;
-            case Game::Attitude::Indifferent:
-                color = ESPColors::NPC_INDIFFERENT;
-                break;
-            default:
-                color = ESPColors::NPC_UNKNOWN;
-                break;
-        }
-    } else if (entity.entityType == ESPEntityType::NPC) {
-        const auto* npc = static_cast<const RenderableNpc*>(&entity);
-        switch (npc->attitude) {
-            case Game::Attitude::Hostile:
-                color = ESPColors::NPC_HOSTILE;
-                break;
-            case Game::Attitude::Friendly:
-                color = ESPColors::NPC_FRIENDLY;
-                break;
-            case Game::Attitude::Neutral:
-                color = ESPColors::NPC_NEUTRAL;
-                break;
-            case Game::Attitude::Indifferent:
-                color = ESPColors::NPC_INDIFFERENT;
-                break;
-            default:
-                color = ESPColors::NPC_UNKNOWN;
-                break;
-        }
-    } else { // Gadget
-        color = ESPColors::GADGET;
-    }
+    unsigned int color = ESPStyling::GetEntityColor(entity);
 
     // 2. Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();

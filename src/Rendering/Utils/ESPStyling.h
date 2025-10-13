@@ -4,6 +4,7 @@
 #include "../../libs/ImGui/imgui.h"
 #include "ESPConstants.h"
 #include "Generated/EnumsAndStructs.h"
+#include "../Data/RenderableData.h" // Need this for RenderableEntity, RenderablePlayer, RenderableNpc
 
 // Forward declaration to avoid circular dependency
 namespace kx {
@@ -73,6 +74,34 @@ namespace ESPStyling {
             default:
                 return false;
         }
+    }
+
+    inline ImU32 GetEntityColor(const RenderableEntity& entity) {
+        switch (entity.entityType) {
+            case ESPEntityType::Player: {
+                const auto* p = static_cast<const RenderablePlayer*>(&entity);
+                switch (p->attitude) {
+                    case Game::Attitude::Hostile:     return ESPColors::NPC_HOSTILE;
+                    case Game::Attitude::Friendly:    return ESPColors::NPC_FRIENDLY;
+                    case Game::Attitude::Neutral:     return ESPColors::NPC_NEUTRAL;
+                    case Game::Attitude::Indifferent: return ESPColors::NPC_INDIFFERENT;
+                    default:                          return ESPColors::NPC_UNKNOWN;
+                }
+            }
+            case ESPEntityType::NPC: {
+                const auto* n = static_cast<const RenderableNpc*>(&entity);
+                 switch (n->attitude) {
+                    case Game::Attitude::Hostile:     return ESPColors::NPC_HOSTILE;
+                    case Game::Attitude::Friendly:    return ESPColors::NPC_FRIENDLY;
+                    case Game::Attitude::Neutral:     return ESPColors::NPC_NEUTRAL;
+                    case Game::Attitude::Indifferent: return ESPColors::NPC_INDIFFERENT;
+                    default:                          return ESPColors::NPC_UNKNOWN;
+                }
+            }
+            case ESPEntityType::Gadget:
+                return ESPColors::GADGET;
+        }
+        return ESPColors::NPC_UNKNOWN; // Fallback
     }
 
 } // namespace ESPStyling

@@ -180,24 +180,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
     }
     
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
-    unsigned int color;
-    switch (player->attitude) {
-        case Game::Attitude::Hostile:
-            color = ESPColors::NPC_HOSTILE;
-            break;
-        case Game::Attitude::Friendly:
-            color = ESPColors::NPC_FRIENDLY;
-            break;
-        case Game::Attitude::Neutral:
-            color = ESPColors::NPC_NEUTRAL;
-            break;
-        case Game::Attitude::Indifferent:
-            color = ESPColors::NPC_INDIFFERENT;
-            break;
-        default:
-            color = ESPColors::NPC_UNKNOWN;
-            break;
-    }
+    unsigned int color = ESPStyling::GetEntityColor(*player);
 
     // --- Animation State --- 
     const EntityCombatState* state = context.stateManager.GetState(player->address);
@@ -237,24 +220,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     float healthPercent = (npc->maxHealth > 0) ? (npc->currentHealth / npc->maxHealth) : -1.0f;
     
     // Use attitude-based coloring for NPCs
-    unsigned int color;
-    switch (npc->attitude) {
-        case Game::Attitude::Hostile:
-            color = ESPColors::NPC_HOSTILE;
-            break;
-        case Game::Attitude::Friendly:
-            color = ESPColors::NPC_FRIENDLY;
-            break;
-        case Game::Attitude::Neutral:
-            color = ESPColors::NPC_NEUTRAL;
-            break;
-        case Game::Attitude::Indifferent:
-            color = ESPColors::NPC_INDIFFERENT;
-            break;
-        default:
-            color = ESPColors::NPC_UNKNOWN;
-            break;
-    }
+    unsigned int color = ESPStyling::GetEntityColor(*npc);
 
     // --- Animation State --- 
     const EntityCombatState* state = context.stateManager.GetState(npc->address);
@@ -329,7 +295,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         gadget->position,
         gadget->visualDistance,
         gadget->gameplayDistance,
-        ESPColors::GADGET,
+        ESPStyling::GetEntityColor(*gadget),
         details,
         gadget->maxHealth > 0 ? (gadget->currentHealth / gadget->maxHealth) : -1.0f,
         -1.0f, // No energy for gadgets
