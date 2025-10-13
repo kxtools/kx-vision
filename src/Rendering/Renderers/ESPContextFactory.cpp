@@ -3,6 +3,7 @@
 #include <Windows.h> // For GetTickCount64
 #include "../Combat/CombatStateManager.h" // For CombatStateManager
 #include "../Utils/ESPConstants.h" // For CombatEffects
+#include "../Data/ESPData.h"
 #include "../Core/ESPStageRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
@@ -146,7 +147,7 @@ void PopulateHealthBarAnimations(const RenderableEntity* entity, const EntityCom
 
 } // anonymous namespace
 
-EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FactoryContext& context) {
+EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
     float energyPercent = -1.0f;
     if (context.settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
@@ -213,7 +214,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
     };
 }
 
-EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FactoryContext& context) {
+EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     float healthPercent = (npc->maxHealth > 0) ? (npc->currentHealth / npc->maxHealth) : -1.0f;
     
     // Use attitude-based coloring for NPCs
@@ -271,7 +272,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     };
 }
 
-EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FactoryContext& context) {
+EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
     bool renderHealthBar = context.settings.objectESP.renderHealthBar;

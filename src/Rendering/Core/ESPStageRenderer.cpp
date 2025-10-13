@@ -52,20 +52,18 @@ static EntityRenderContext CreateEntityRenderContextForRendering(const Renderabl
     }
 
     // Now, create the context using the ESPContextFactory, just like before.
-    // The FactoryContext can be created from the main FrameContext.
-    FactoryContext factoryContext = { context.settings, context.stateManager, context.screenWidth, context.screenHeight, context.now };
-
+    // We pass the main 'context' directly.
     switch(entity->entityType) {
         case ESPEntityType::Player:
-            return ESPContextFactory::CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), details, factoryContext);
+            return ESPContextFactory::CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), details, context);
         case ESPEntityType::NPC:
-            return ESPContextFactory::CreateContextForNpc(static_cast<const RenderableNpc*>(entity), details, factoryContext);
+            return ESPContextFactory::CreateContextForNpc(static_cast<const RenderableNpc*>(entity), details, context);
         case ESPEntityType::Gadget:
-            return ESPContextFactory::CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, factoryContext);
+            return ESPContextFactory::CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
     }
     // This should not be reached, but we need to return something.
     // Returning a gadget context as a fallback.
-    return ESPContextFactory::CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, factoryContext);
+    return ESPContextFactory::CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
 }
 
 
