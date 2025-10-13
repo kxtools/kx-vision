@@ -32,116 +32,17 @@ namespace kx {
     void ESPStageRenderer::RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
         Camera& camera, const VisualProperties& props) {
         const auto& settings = AppState::Get().GetSettings();
-        bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
-        bool isGadget = (context.entityType == ESPEntityType::Gadget);
 
-        // fadedEntityColor already has all alphas applied from EntityVisualsCalculator
-        // No need to apply alpha again here
-
-        // Render standalone health bars for living entities when health is available AND setting is enabled
-        if ((isLivingEntity || isGadget) && context.healthPercent >= 0.0f && context.renderHealthBar) {
-            ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, props.screenPos, context,
-                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight);
-        }
-
-        // Render energy bar for players
-        if (context.entityType == ESPEntityType::Player && context.energyPercent >= 0.0f && context.renderEnergyBar) {
-            ESPHealthBarRenderer::RenderStandaloneEnergyBar(drawList, props.screenPos, context.energyPercent,
-                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight,
-                props.finalHealthBarHeight);
-        }
-
-        // Render bounding box for players/NPCs
-        if (!isGadget && context.renderBox) {
-            ESPShapeRenderer::RenderBoundingBox(drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
-        }
-
-        // Render gadget visuals (non-exclusive)
-        if (isGadget) {
-            if (settings.objectESP.renderSphere) {
-                ESPShapeRenderer::RenderGadgetSphere(drawList, context, camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale);
-            }
-            if (settings.objectESP.renderCircle) {
-                drawList->AddCircle(ImVec2(props.screenPos.x, props.screenPos.y), props.circleRadius, props.fadedEntityColor, 0, props.finalBoxThickness);
-            }
-        }
-
-        // Render distance text
-        if (context.renderDistance) {
-            if (isGadget) {
-                // For gadgets, position distance text above the circle
-                ImVec2 textAnchor(props.center.x, props.center.y - props.circleRadius);
-                ESPTextRenderer::RenderDistanceText(drawList, props.center, textAnchor, context.gameplayDistance,
-                    props.finalAlpha, props.finalFontSize);
-            }
-            else {
-                // For players/NPCs, use traditional positioning
-                ESPTextRenderer::RenderDistanceText(drawList, props.center, props.boxMin, context.gameplayDistance,
-                    props.finalAlpha, props.finalFontSize);
-            }
-        }
-
-        // Render center dot
-        if (context.renderDot) {
-            if (isGadget) {
-                ESPShapeRenderer::RenderNaturalWhiteDot(drawList, props.screenPos, props.finalAlpha, props.finalDotRadius);
-            }
-            else {
-                ESPShapeRenderer::RenderColoredDot(drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius);
-            }
-        }
-
-        // Render player name for natural identification (players only)
-        if (context.entityType == ESPEntityType::Player && context.renderPlayerName) {
-            // For hostile players with an empty name, display their profession
-            std::string displayName = context.playerName;
-            if (displayName.empty() && context.attitude == Game::Attitude::Hostile) {
-                if (context.player) {
-                    const char* prof = ESPFormatting::GetProfessionName(context.player->profession);
-                    if (prof) {
-                        displayName = prof;
-                    }
-                }
-            }
-
-            if (!displayName.empty()) {
-                // Use entity color directly (already attitude-based from ESPContextFactory)
-                ESPTextRenderer::RenderPlayerName(drawList, props.screenPos, displayName, props.fadedEntityColor, props.finalFontSize);
-            }
-        }
-
-        // Render details text (for all entities when enabled)
-        if (context.renderDetails && !context.details.empty()) {
-            if (isGadget) {
-                // For gadgets, position details below the circle
-                ImVec2 textAnchor(props.center.x, props.center.y + props.circleRadius);
-                ESPTextRenderer::RenderDetailsText(drawList, props.center, textAnchor, context.details, props.finalAlpha, props.finalFontSize);
-            }
-            else {
-                // For players/NPCs, use traditional positioning
-                ESPTextRenderer::RenderDetailsText(drawList, props.center, props.boxMax, context.details, props.finalAlpha, props.finalFontSize);
-            }
-        }
-
-        // Specialized Summary Rendering (Players Only)
-        if (context.entityType == ESPEntityType::Player && context.player != nullptr) {
-            switch (settings.playerESP.gearDisplayMode) {
-            case GearDisplayMode::Compact: { // Compact (Stat Names)
-                auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
-                ESPTextRenderer::RenderGearSummary(drawList, props.screenPos, compactSummary, props.finalAlpha, props.finalFontSize);
-                break;
-            }
-            case GearDisplayMode::Attributes: { // Top 3 Attributes
-                auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
-                auto topRarity = ESPPlayerDetailsBuilder::GetHighestRarity(context.player);
-                ESPTextRenderer::RenderDominantStats(drawList, props.screenPos, dominantStats, topRarity, props.finalAlpha, props.finalFontSize);
-                break;
-            }
-            default:
-                // Modes Off and Detailed do not have a separate summary view
-                break;
-            }
-        }
+        // Render all components
+        RenderHealthBar(drawList, context, props, settings);
+        RenderEnergyBar(drawList, context, props, settings);
+        RenderBoundingBox(drawList, context, props);
+        RenderGadgetVisuals(drawList, context, camera, props, settings);
+        RenderDistanceText(drawList, context, props);
+        RenderCenterDot(drawList, context, props);
+        RenderPlayerName(drawList, context, props);
+        RenderDetailsText(drawList, context, props);
+        RenderGearSummary(drawList, context, props, settings);
     }
 
     void ESPStageRenderer::RenderEntity(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, CombatStateManager& stateManager, uint64_t now) {
@@ -216,4 +117,142 @@ namespace kx {
             RenderEntity(context.drawList, entityContext, context.camera, context.stateManager, context.now);
         }
     }
+
+    // Component rendering implementations
+    void ESPStageRenderer::RenderHealthBar(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings) {
+        bool isLivingEntity = (context.entityType == ESPEntityType::Player || context.entityType == ESPEntityType::NPC);
+        bool isGadget = (context.entityType == ESPEntityType::Gadget);
+
+        // Render standalone health bars for living entities when health is available AND setting is enabled
+        if ((isLivingEntity || isGadget) && context.healthPercent >= 0.0f && context.renderHealthBar) {
+            ESPHealthBarRenderer::RenderStandaloneHealthBar(drawList, props.screenPos, context,
+                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight);
+        }
+    }
+
+    void ESPStageRenderer::RenderEnergyBar(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings) {
+        // Render energy bar for players
+        if (context.entityType == ESPEntityType::Player && context.energyPercent >= 0.0f && context.renderEnergyBar) {
+            ESPHealthBarRenderer::RenderStandaloneEnergyBar(drawList, props.screenPos, context.energyPercent,
+                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight,
+                props.finalHealthBarHeight);
+        }
+    }
+
+    void ESPStageRenderer::RenderBoundingBox(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
+        bool isGadget = (context.entityType == ESPEntityType::Gadget);
+
+        // Render bounding box for players/NPCs
+        if (!isGadget && context.renderBox) {
+            ESPShapeRenderer::RenderBoundingBox(drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
+        }
+    }
+
+    void ESPStageRenderer::RenderGadgetVisuals(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, const VisualProperties& props, const Settings& settings) {
+        bool isGadget = (context.entityType == ESPEntityType::Gadget);
+
+        // Render gadget visuals (non-exclusive)
+        if (isGadget) {
+            if (settings.objectESP.renderSphere) {
+                ESPShapeRenderer::RenderGadgetSphere(drawList, context, camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale);
+            }
+            if (settings.objectESP.renderCircle) {
+                drawList->AddCircle(ImVec2(props.screenPos.x, props.screenPos.y), props.circleRadius, props.fadedEntityColor, 0, props.finalBoxThickness);
+            }
+        }
+    }
+
+    void ESPStageRenderer::RenderDistanceText(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
+        bool isGadget = (context.entityType == ESPEntityType::Gadget);
+
+        // Render distance text
+        if (context.renderDistance) {
+            if (isGadget) {
+                // For gadgets, position distance text above the circle
+                ImVec2 textAnchor(props.center.x, props.center.y - props.circleRadius);
+                ESPTextRenderer::RenderDistanceText(drawList, props.center, textAnchor, context.gameplayDistance,
+                    props.finalAlpha, props.finalFontSize);
+            }
+            else {
+                // For players/NPCs, use traditional positioning
+                ESPTextRenderer::RenderDistanceText(drawList, props.center, props.boxMin, context.gameplayDistance,
+                    props.finalAlpha, props.finalFontSize);
+            }
+        }
+    }
+
+    void ESPStageRenderer::RenderCenterDot(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
+        bool isGadget = (context.entityType == ESPEntityType::Gadget);
+
+        // Render center dot
+        if (context.renderDot) {
+            if (isGadget) {
+                ESPShapeRenderer::RenderNaturalWhiteDot(drawList, props.screenPos, props.finalAlpha, props.finalDotRadius);
+            }
+            else {
+                ESPShapeRenderer::RenderColoredDot(drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius);
+            }
+        }
+    }
+
+    void ESPStageRenderer::RenderPlayerName(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
+        // Render player name for natural identification (players only)
+        if (context.entityType == ESPEntityType::Player && context.renderPlayerName) {
+            // For hostile players with an empty name, display their profession
+            std::string displayName = context.playerName;
+            if (displayName.empty() && context.attitude == Game::Attitude::Hostile) {
+                if (context.player) {
+                    const char* prof = ESPFormatting::GetProfessionName(context.player->profession);
+                    if (prof) {
+                        displayName = prof;
+                    }
+                }
+            }
+
+            if (!displayName.empty()) {
+                // Use entity color directly (already attitude-based from ESPContextFactory)
+                ESPTextRenderer::RenderPlayerName(drawList, props.screenPos, displayName, props.fadedEntityColor, props.finalFontSize);
+            }
+        }
+    }
+
+    void ESPStageRenderer::RenderDetailsText(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
+        bool isGadget = (context.entityType == ESPEntityType::Gadget);
+
+        // Render details text (for all entities when enabled)
+        if (context.renderDetails && !context.details.empty()) {
+            if (isGadget) {
+                // For gadgets, position details below the circle
+                ImVec2 textAnchor(props.center.x, props.center.y + props.circleRadius);
+                ESPTextRenderer::RenderDetailsText(drawList, props.center, textAnchor, context.details, props.finalAlpha, props.finalFontSize);
+            }
+            else {
+                // For players/NPCs, use traditional positioning
+                ESPTextRenderer::RenderDetailsText(drawList, props.center, props.boxMax, context.details, props.finalAlpha, props.finalFontSize);
+            }
+        }
+    }
+
+    void ESPStageRenderer::RenderGearSummary(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings) {
+        // Specialized Summary Rendering (Players Only)
+        if (context.entityType == ESPEntityType::Player && context.player != nullptr) {
+            switch (settings.playerESP.gearDisplayMode) {
+            case GearDisplayMode::Compact: { // Compact (Stat Names)
+                auto compactSummary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(context.player);
+                ESPTextRenderer::RenderGearSummary(drawList, props.screenPos, compactSummary, props.finalAlpha, props.finalFontSize);
+                break;
+            }
+            case GearDisplayMode::Attributes: { // Top 3 Attributes
+                auto dominantStats = ESPPlayerDetailsBuilder::BuildDominantStats(context.player);
+                auto topRarity = ESPPlayerDetailsBuilder::GetHighestRarity(context.player);
+                ESPTextRenderer::RenderDominantStats(drawList, props.screenPos, dominantStats, topRarity, props.finalAlpha, props.finalFontSize);
+                break;
+            }
+            default:
+                // Modes Off and Detailed do not have a separate summary view
+                break;
+            }
+        }
+    }
+
 }

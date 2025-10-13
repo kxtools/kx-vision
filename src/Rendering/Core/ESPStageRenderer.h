@@ -77,7 +77,16 @@ private:
     static void RenderEntityComponents(ImDrawList* drawList, const EntityRenderContext& context,
                                              Camera& camera, const struct VisualProperties& props);
 
-
+    // Component rendering methods
+    static void RenderHealthBar(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings);
+    static void RenderEnergyBar(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings);
+    static void RenderBoundingBox(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props);
+    static void RenderGadgetVisuals(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, const VisualProperties& props, const Settings& settings);
+    static void RenderDistanceText(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props);
+    static void RenderCenterDot(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props);
+    static void RenderPlayerName(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props);
+    static void RenderDetailsText(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props);
+    static void RenderGearSummary(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings);
 };
 
 } // namespace kx
