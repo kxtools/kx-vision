@@ -147,7 +147,8 @@ namespace kx {
                                                 const EntityRenderContext& context,
                                                 const ImVec2& barMin,
                                                 float barWidth,
-                                                float fontSize)
+                                                float fontSize,
+                                                float fadeAlpha)
     {
         const auto& anim = context.healthBarAnim;
         if (anim.damageNumberAlpha <= 0.0f || anim.damageNumberToDisplay <= 0.0f)
@@ -164,7 +165,7 @@ namespace kx {
 
             // Use our powerful text system to render it
             float finalFontSize = fontSize * kx::EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(anim.damageNumberToDisplay);
-            TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha * context.healthBarAnim.healthBarFadeAlpha, finalFontSize);
+            TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha * fadeAlpha, finalFontSize);
             TextRenderer::Render(dl, element);
     }
 
@@ -263,10 +264,10 @@ namespace kx {
 
 		// The damage number is now rendered here, outside the alive/dead check.
 		// It will use its own alpha and will be visible during the death fade.
-		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize);
+		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize, fadeAlpha);
 
         // Render Burst DPS text if applicable (works for both alive and dead states)
-        DrawBurstDpsText(drawList, context, barMin, barMax, fontSize);
+        DrawBurstDpsText(drawList, context, barMin, barMax, fontSize, fadeAlpha);
 
 		// Outer stroke settings
         const float outset = 1.0f; // 1 px outside, feels "harder" and more separated
@@ -330,7 +331,7 @@ namespace kx {
         DrawDamageFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
 
 		// 4.5. Render the damage number during the flush animation
-		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize);
+		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize, fadeAlpha);
 
         // 5. Barrier overlay (drawn last, on top of everything)
         DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha);
@@ -395,7 +396,8 @@ void ESPHealthBarRenderer::DrawBurstDpsText(ImDrawList* drawList,
                                             const EntityRenderContext& context,
                                             const ImVec2& barMin,
                                             const ImVec2& barMax,
-                                            float fontSize)
+                                            float fontSize,
+                                            float fadeAlpha)
 {
     // Don't render if there's no DPS to show or if the bar is faded out
     if (context.burstDPS <= 0.0f || context.healthBarAnim.healthBarFadeAlpha <= 0.0f) {
@@ -420,7 +422,7 @@ void ESPHealthBarRenderer::DrawBurstDpsText(ImDrawList* drawList,
     TextElement element(dpsText, {textPos.x, textPos.y}, TextAnchor::Custom);
     element.SetAlignment(TextAlignment::Left); // Align text to the left of the anchor
 
-    TextStyle style = TextElementFactory::GetDistanceStyle(context.healthBarAnim.healthBarFadeAlpha, fontSize * 0.9f); // Reuse distance style for a clean look, slightly smaller font.
+    TextStyle style = TextElementFactory::GetDistanceStyle(fadeAlpha, fontSize * 0.9f); // Reuse distance style for a clean look, slightly smaller font.
     style.enableBackground = false; // No background for this metric
     style.textColor = IM_COL32(255, 200, 50, 255); // A distinct amber/gold color
 

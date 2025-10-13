@@ -53,7 +53,8 @@ namespace kx {
                                      const EntityRenderContext& context,
                                      const ImVec2& barMin,
                                      float barWidth,
-                                     float fontSize);
+                                     float fontSize,
+                                     float fadeAlpha);
 
         // --- Small Utilities ---
         static inline unsigned int ClampAlpha(unsigned int alpha) { return (alpha < 255u ? alpha : 255u); }
@@ -110,7 +111,8 @@ namespace kx {
                                      const EntityRenderContext& context,
                                      const ImVec2& barMin,
                                      const ImVec2& barMax,
-                                     float fontSize);
+                                     float fontSize,
+                                     float fadeAlpha);
     };
 
 } // namespace kx
