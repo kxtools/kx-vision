@@ -57,6 +57,10 @@ namespace kx {
         float GetAdaptiveFarPlane() const { return m_adaptiveFarPlane; }
         void UpdateAdaptiveFarPlane(const PooledFrameRenderData& frameData);
 
+        // --- Settings Persistence ---
+        bool LoadSettings();
+        bool SaveSettings() const;
+
     private:
         // Private constructor for singleton
         AppState();
@@ -78,6 +82,9 @@ namespace kx {
 
         // Mutex for thread-safe access (if needed for future extensions)
         mutable std::mutex m_mutex;
+
+        // Helpers
+        static std::string GetSettingsFilePath();
     };
 
 } // namespace kx

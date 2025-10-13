@@ -338,7 +338,9 @@ namespace kx {
 
             m_servicesInitialized = false;
         }
+        AppState::Get().SaveSettings();
     }
+
 
     ID3D11Device* AppLifecycleManager::GetDevice() const {
         return kx::Hooking::D3DRenderHook::GetDevice();
