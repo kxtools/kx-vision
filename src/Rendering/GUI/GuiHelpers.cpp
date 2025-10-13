@@ -3,10 +3,13 @@
 #include <string>
 
 // A local helper to encapsulate the ImGui ID generation, cleaning up the main function.
-static void CheckboxWithId(const char* label, const char* categoryName, bool* value) {
+static void CheckboxWithId(const char* label, const char* categoryName, bool* value, const char* tooltip = nullptr) {
     // This creates a unique ID like "Show Box##Players" to prevent ImGui ID collisions.
     std::string id_label = std::string(label) + "##" + std::string(categoryName);
     ImGui::Checkbox(id_label.c_str(), value);
+    if (tooltip && ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(tooltip);
+    }
 }
 
 namespace kx {
@@ -25,11 +28,11 @@ namespace kx {
                 // Group 1: Core geometric visuals. These are fundamental.
                 ImGui::SeparatorText("Core Visuals");
 
-                CheckboxWithId("Show Box", categoryName, &renderBox);
+                CheckboxWithId("Show Box", categoryName, &renderBox, nullptr);
                 ImGui::SameLine(150); // Use a fixed position for clean alignment
-                CheckboxWithId("Show Distance", categoryName, &renderDistance);
+                CheckboxWithId("Show Distance", categoryName, &renderDistance, nullptr);
                 ImGui::SameLine(300); // Use a fixed position for clean alignment
-                CheckboxWithId("Show Dot", categoryName, &renderDot);
+                CheckboxWithId("Show Dot", categoryName, &renderDot, nullptr);
 
                 // Check if there are any informational overlays to show.
                 // If not, we don't even render the separator, keeping the UI clean.
@@ -40,19 +43,19 @@ namespace kx {
                     ImGui::SeparatorText("Informational Overlays");
 
                     if (renderHealthBar) {
-                        CheckboxWithId("Show Health Bar", categoryName, renderHealthBar);
+                        CheckboxWithId("Show Health Bar", categoryName, renderHealthBar, nullptr);
                     }
                     if (renderEnergyBar) {
-                        CheckboxWithId("Show Energy Bar", categoryName, renderEnergyBar);
+                        CheckboxWithId("Show Energy Bar", categoryName, renderEnergyBar, nullptr);
                     }
                     if (renderPlayerName) {
-                        CheckboxWithId("Show Player Name", categoryName, renderPlayerName);
+                        CheckboxWithId("Show Player Name", categoryName, renderPlayerName, nullptr);
                     }
                     if (showBurstDps) {
-                        CheckboxWithId("Show Burst DPS", categoryName, showBurstDps);
+                        CheckboxWithId("Show Burst DPS", categoryName, showBurstDps, "Displays the real-time burst DPS a target is taking from all sources. Ideal for tracking burn phases and overall damage pressure.");
                     }
                     if (renderDetails) {
-                        CheckboxWithId("Show Details", categoryName, renderDetails);
+                        CheckboxWithId("Show Details", categoryName, renderDetails, nullptr);
                     }
                 }
             }
