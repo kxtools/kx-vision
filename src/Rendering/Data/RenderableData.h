@@ -26,7 +26,6 @@ struct ColoredDetail {
 // Contains common fields shared by all entity types
 struct RenderableEntity {
     glm::vec3 position;
-    glm::vec2 screenPos;             // Pre-calculated screen position
     float visualDistance;            // Distance from camera (for scaling)
     float gameplayDistance;          // Distance from player (for display)
     bool isValid;
@@ -36,7 +35,7 @@ struct RenderableEntity {
     float currentBarrier = 0.0f; // Barrier overlay for health bars
     ESPEntityType entityType;
 
-    RenderableEntity() : position(0.0f), screenPos(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
+    RenderableEntity() : position(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),
                          entityType(ESPEntityType::Gadget) // Default, will be overwritten
     {
