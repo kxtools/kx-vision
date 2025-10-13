@@ -58,5 +58,12 @@ namespace kx
 		void ResetForRespawn(EntityCombatState& state,
 		                     float currentHealth,
 		                     uint64_t now);
+
+        // New helper methods for ProcessEntity refactoring
+        void UpdateDamageAccumulatorAnimation(EntityCombatState& state, uint64_t now);
+        bool DetectStateChangeOrRespawn(RenderableEntity* entity, EntityCombatState& state, uint64_t now);
+        void UpdateBarrierState(RenderableEntity* entity, EntityCombatState& state, uint64_t now);
+        void ProcessHealthChanges(RenderableEntity* entity, EntityCombatState& state, uint64_t now);
+        void TriggerDamageFlushIfNeeded(EntityCombatState& state, uint64_t now);
 	};
 } // namespace kx

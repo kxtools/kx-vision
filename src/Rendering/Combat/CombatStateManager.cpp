@@ -23,13 +23,8 @@ namespace kx
 		}
 	}
 
-	void CombatStateManager::ProcessEntity(RenderableEntity* entity, uint64_t now)
+	void CombatStateManager::UpdateDamageAccumulatorAnimation(EntityCombatState& state, uint64_t now)
 	{
-		EntityCombatState& state = AcquireState(entity);
-		const float currentHealth = entity->currentHealth;
-		const float currentMaxHealth = entity->maxHealth;
-	
-		// --- Animation Management: Check if a running animation has finished ---
 		if (state.flushAnimationStartTime > 0)
 		{
 			const uint64_t elapsed = now - state.flushAnimationStartTime;
@@ -41,24 +36,36 @@ namespace kx
 				state.damageToDisplay = 0.0f;
 			}
 		}
-	
+	}
+
+	bool CombatStateManager::DetectStateChangeOrRespawn(RenderableEntity* entity, EntityCombatState& state, uint64_t now)
+	{
+		const float currentHealth = entity->currentHealth;
+		const float currentMaxHealth = entity->maxHealth;
+
 		// --- Gadget State Change Detection ---
 		if (entity->entityType == ESPEntityType::Gadget && state.lastKnownMaxHealth > 0 && abs(currentMaxHealth - state.lastKnownMaxHealth) > 1.0f)
 		{
 			ResetForRespawn(state, currentHealth, now);
 			state.lastKnownMaxHealth = currentMaxHealth; // Update max health after reset
-			return; // Skip normal damage/heal processing this frame.
+			return true; // State was reset, skip further processing this frame
 		}
-	
-		// --- Barrier Change Detection ---
+		return false;
+	}
+
+	void CombatStateManager::UpdateBarrierState(RenderableEntity* entity, EntityCombatState& state, uint64_t now)
+	{
 		const float currentBarrier = entity->currentBarrier;
 		if (currentBarrier != state.lastKnownBarrier)
 		{
 			state.barrierOnLastChange = state.lastKnownBarrier;
 			state.lastBarrierChangeTimestamp = now;
 		}
-	
-		// --- Damage/Heal Event Processing ---
+	}
+
+	void CombatStateManager::ProcessHealthChanges(RenderableEntity* entity, EntityCombatState& state, uint64_t now)
+	{
+		const float currentHealth = entity->currentHealth;
 		if (state.lastSeenTimestamp > 0)
 		{
 			if (currentHealth < state.lastKnownHealth)
@@ -70,45 +77,67 @@ namespace kx
 				HandleHealing(state, entity, currentHealth, now);
 			}
 		}
-	
-			// --- HYBRID TIME-BASED FLUSH TRIGGER ---
-			if (state.flushAnimationStartTime == 0 && state.accumulatedDamage > 0.0f)
+	}
+
+	void CombatStateManager::TriggerDamageFlushIfNeeded(EntityCombatState& state, uint64_t now)
+	{
+		if (state.flushAnimationStartTime == 0 && state.accumulatedDamage > 0.0f)
+		{
+			bool shouldFlush = false;
+
+			// PRIORITY 1: Death Trigger. If the target is dead, use a very short timeout to flush the final damage number.
+			if (state.deathTimestamp > 0)
 			{
-				bool shouldFlush = false;
+				if (now - state.lastHitTimestamp > CombatEffects::POST_MORTEM_FLUSH_DELAY_MS)
+				{
+					shouldFlush = true;
+				}
+			}
+			// PRIORITY 2 & 3: Lull and Max Duration Triggers (for living targets).
+			else 
+			{
+				// Primary Trigger: A lull in combat.
+				if (now - state.lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS)
+				{
+					shouldFlush = true;
+				}
+				// Secondary Trigger: The burst has lasted for the maximum allowed duration.
+				else if (state.burstStartTime > 0 && now - state.burstStartTime > CombatEffects::MAX_BURST_DURATION_MS)
+				{
+					shouldFlush = true;
+				}
+			}
+
+			if (shouldFlush)
+			{
+				state.flushAnimationStartTime = now;
+				state.damageToDisplay = state.accumulatedDamage;
+			}
+		}
+	}
+
+	void CombatStateManager::ProcessEntity(RenderableEntity* entity, uint64_t now)
+	{
+		EntityCombatState& state = AcquireState(entity);
+		const float currentHealth = entity->currentHealth;
+		const float currentMaxHealth = entity->maxHealth;
+
+		UpdateDamageAccumulatorAnimation(state, now);
 		
-				// PRIORITY 1: Death Trigger. If the target is dead, use a very short timeout to flush the final damage number.
-				if (state.deathTimestamp > 0)
-				{
-					if (now - state.lastHitTimestamp > CombatEffects::POST_MORTEM_FLUSH_DELAY_MS)
-					{
-						shouldFlush = true;
-					}
-				}
-				// PRIORITY 2 & 3: Lull and Max Duration Triggers (for living targets).
-				else 
-				{
-					// Primary Trigger: A lull in combat.
-					if (now - state.lastHitTimestamp > CombatEffects::BURST_INACTIVITY_TIMEOUT_MS)
-					{
-						shouldFlush = true;
-					}
-					// Secondary Trigger: The burst has lasted for the maximum allowed duration.
-					else if (state.burstStartTime > 0 && now - state.burstStartTime > CombatEffects::MAX_BURST_DURATION_MS)
-					{
-						shouldFlush = true;
-					}
-				}
+		if (DetectStateChangeOrRespawn(entity, state, now)) {
+			return; // State was reset, skip further processing this frame
+		}
+
+		UpdateBarrierState(entity, state, now);
+
+		ProcessHealthChanges(entity, state, now);
+
+		TriggerDamageFlushIfNeeded(state, now);
 		
-				if (shouldFlush)
-				{
-					state.flushAnimationStartTime = now;
-					state.damageToDisplay = state.accumulatedDamage;
-				}
-			}	
 		// --- Final State Update for Next Frame ---
 		state.lastKnownHealth = currentHealth;
 		state.lastKnownMaxHealth = currentMaxHealth;
-		state.lastKnownBarrier = currentBarrier;
+		state.lastKnownBarrier = entity->currentBarrier;
 		state.lastSeenTimestamp = now;
 	}
 	void CombatStateManager::HandleDamage(EntityCombatState& state,
