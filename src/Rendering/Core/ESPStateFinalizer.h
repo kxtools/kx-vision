@@ -3,10 +3,7 @@
 #include "../Data/ESPData.h"
 
 // Forward declarations
-namespace kx {
-    class Camera;
-    class CombatStateManager;
-}
+struct FrameContext;
 
 namespace kx {
     /**
@@ -21,16 +18,9 @@ namespace kx {
     public:
         /**
          * @brief Processes filtered data to finalize all combat state animations.
-         * @param filteredData The data that has passed through the ESPFilter.
-         * @param camera The camera reference for visual calculations.
-         * @param stateManager The combat state manager to be updated.
-         * @param now The current timestamp for the frame.
+         * @param context The frame context.
+         * @param finalizedData The data that has been processed by the ESPVisualsProcessor.
          */
-        static void Finalize(
-            const PooledFrameRenderData& filteredData,
-            Camera& camera,
-            CombatStateManager& stateManager,
-            uint64_t now
-        );
+        static void Finalize(const FrameContext& context, const PooledFrameRenderData& finalizedData);
     };
 } // namespace kx

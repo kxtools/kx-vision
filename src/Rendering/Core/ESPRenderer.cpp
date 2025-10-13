@@ -13,6 +13,7 @@
 #include "ESPDataExtractor.h"
 #include "ESPFilter.h"
 #include "ESPStateFinalizer.h"
+#include "ESPVisualsProcessor.h"
 #include "ESPStageRenderer.h"
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -42,13 +43,23 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         return;
     }
 
-    // Get the timestamp ONCE for the entire frame.
     const uint64_t now = GetTickCount64();
     const float currentTimeSeconds = now / 1000.0f;
 
-    ::ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+    ImDrawList* drawList = ImGui::GetBackgroundDrawList();
     const auto& settings = AppState::Get().GetSettings();
     float espUpdateInterval = 1.0f / std::max(1.0f, settings.espUpdateRate);
+
+    // Create the FrameContext here
+    FrameContext frameContext = {
+        now,
+        *s_camera,
+        g_combatStateManager,
+        settings,
+        drawList,
+        screenWidth,
+        screenHeight
+    };
 
     if (currentTimeSeconds - s_lastUpdateTime >= espUpdateInterval) {
         // Reset object pools to reuse all objects for this frame
@@ -57,30 +68,30 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         s_gadgetPool.Reset();
         s_cachedFilteredData.Reset();
         
-        // Stage 1: Extract all data directly into object pools (eliminates heap allocations)
+        // Stage 1: Extract (unchanged)
         PooledFrameRenderData extractedData;
         ESPDataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, extractedData);
-
-        // Stage 1.5: Update combat state manager with all extracted entities before filtering
+        
+        // Stage 1.5: Update combat state (pass context.now)
         std::vector<RenderableEntity*> allEntities;
         allEntities.reserve(extractedData.players.size() + extractedData.npcs.size() + extractedData.gadgets.size());
         allEntities.insert(allEntities.end(), extractedData.players.begin(), extractedData.players.end());
         allEntities.insert(allEntities.end(), extractedData.npcs.begin(), extractedData.npcs.end());
         allEntities.insert(allEntities.end(), extractedData.gadgets.begin(), extractedData.gadgets.end());
+        g_combatStateManager.Update(allEntities, frameContext.now);
         
-        // Pass 'now' to the state manager
-        g_combatStateManager.Update(allEntities, now);
+        // Stage 2: Filter (pass context)
+        PooledFrameRenderData filteredData;
+        ESPFilter::FilterPooledData(extractedData, *s_camera, filteredData, g_combatStateManager, frameContext.now);
         
-        // Stage 2: Filter the pooled data (safe, configurable operations)  
-        // Pass 'now' to the filter stage
-        ESPFilter::FilterPooledData(extractedData, *s_camera, s_cachedFilteredData, g_combatStateManager, now);
+        // NEW Stage 2.5: Calculate Visuals
+        // We use s_cachedFilteredData to store the final list.
+        ESPVisualsProcessor::Process(frameContext, filteredData, s_cachedFilteredData);
 
-        // NEW Stage 2.5: Finalize layout-dependent combat state
-        // This calculates final health bar widths and runs the PostUpdate logic
-        // for damage chunking before the rendering stage begins.
-        ESPStateFinalizer::Finalize(s_cachedFilteredData, *s_camera, g_combatStateManager, now);
+        // Stage 2.75: Finalize Combat State (pass context and the new data)
+        ESPStateFinalizer::Finalize(frameContext, s_cachedFilteredData);
 
-        // Stage 2.75: Update adaptive far plane (no change in its name)
+        // Stage 2.8: Update adaptive far plane (no change)
         AppState::Get().UpdateAdaptiveFarPlane(s_cachedFilteredData);
         
         s_lastUpdateTime = currentTimeSeconds;
@@ -93,10 +104,8 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         s_lastCleanupTime = now;
     }
 
-    // Stage 3: Always render using cached filtered data (safe, fast operation)
-    // Pass 'now' to the rendering stage
-    ESPStageRenderer::RenderFrameData(drawList, screenWidth, screenHeight, s_cachedFilteredData, *s_camera,
-                                      g_combatStateManager, now);
+    // Stage 3: Render (pass context and the new data)
+    ESPStageRenderer::RenderFrameData(frameContext, s_cachedFilteredData);
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

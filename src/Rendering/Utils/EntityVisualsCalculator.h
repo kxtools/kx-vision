@@ -8,43 +8,12 @@
 // Forward declarations
 namespace kx {
     class Camera;
-    struct EntityRenderContext;
+    struct RenderableEntity;
 }
 
 namespace kx {
 
-/**
- * @brief Visual properties calculated for rendering an entity
- * 
- * This struct contains all the pre-calculated visual properties needed
- * to render an entity. It separates calculation from drawing.
- */
-struct VisualProperties {
-    glm::vec2 screenPos;           // 2D screen position
-    float scale;                   // Distance-based scale factor
-    float distanceFadeAlpha;       // Distance-based fade alpha
-    float finalAlpha;              // Final alpha after adaptive effects
-    unsigned int fadedEntityColor; // Entity color with distance fade applied
-    
-    // Box/Circle dimensions
-    ImVec2 boxMin;                 // Bounding box minimum (or circle bounds for gadgets)
-    ImVec2 boxMax;                 // Bounding box maximum (or circle bounds for gadgets)
-    ImVec2 center;                 // Center point
-    float circleRadius;            // Circle radius for gadgets (0 for players/NPCs)
-    
-    // Scaled sizes
-    float finalFontSize;
-    float finalBoxThickness;
-    float finalDotRadius;
-    float finalHealthBarWidth;
-    float finalHealthBarHeight;
-    
-    VisualProperties() 
-        : screenPos(0.0f), scale(0.0f), distanceFadeAlpha(0.0f), finalAlpha(0.0f),
-          fadedEntityColor(0), boxMin(), boxMax(), center(), circleRadius(0.0f),
-          finalFontSize(0.0f), finalBoxThickness(0.0f), finalDotRadius(0.0f),
-          finalHealthBarWidth(0.0f), finalHealthBarHeight(0.0f) {}
-};
+
 
 /**
  * @brief Utility class for calculating entity visual properties
@@ -65,13 +34,13 @@ public:
      * an entity. If the entity is not visible (off-screen, fully transparent),
      * returns std::nullopt.
      * 
-     * @param context Entity rendering context with all entity data
+     * @param entity The entity to process
      * @param camera Camera for world-to-screen projection
      * @param screenWidth Screen width in pixels
      * @param screenHeight Screen height in pixels
      * @return Visual properties if entity should be rendered, nullopt otherwise
      */
-    static std::optional<VisualProperties> Calculate(const EntityRenderContext& context,
+    static std::optional<VisualProperties> Calculate(const RenderableEntity& entity,
                                                      Camera& camera,
                                                      float screenWidth,
                                                      float screenHeight);
