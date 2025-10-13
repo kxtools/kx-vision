@@ -28,7 +28,7 @@ static ObjectPool<RenderableNpc> s_npcPool(2000);
 static ObjectPool<RenderableGadget> s_gadgetPool(5000);
 
 // Static variables for frame rate limiting and three-stage pipeline
-static PooledFrameRenderData s_cachedFilteredData; // Filtered data ready for rendering
+static PooledFrameRenderData s_processedRenderData; // Filtered data ready for rendering
 static float s_lastUpdateTime = 0.0f;
 static CombatStateManager g_combatStateManager;
 static uint64_t s_lastCleanupTime = 0;
@@ -65,7 +65,7 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         s_playerPool.Reset();
         s_npcPool.Reset();
         s_gadgetPool.Reset();
-        s_cachedFilteredData.Reset();
+        s_processedRenderData.Reset();
         
         // Stage 1: Extract (unchanged)
         PooledFrameRenderData extractedData;
@@ -85,10 +85,10 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         
         // NEW Stage 2.5: Calculate Visuals
         // We use s_cachedFilteredData to store the final list.
-        ESPVisualsProcessor::Process(frameContext, filteredData, s_cachedFilteredData);
+        ESPVisualsProcessor::Process(frameContext, filteredData, s_processedRenderData);
 
         // Stage 2.8: Update adaptive far plane (no change)
-        AppState::Get().UpdateAdaptiveFarPlane(s_cachedFilteredData);
+        AppState::Get().UpdateAdaptiveFarPlane(s_processedRenderData);
         
         s_lastUpdateTime = currentTimeSeconds;
     }
@@ -101,7 +101,7 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     }
 
     // Stage 3: Render (pass context and the new data)
-    ESPStageRenderer::RenderFrameData(frameContext, s_cachedFilteredData);
+    ESPStageRenderer::RenderFrameData(frameContext, s_processedRenderData);
 }
 
 bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {
