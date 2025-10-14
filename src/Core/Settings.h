@@ -39,7 +39,7 @@ namespace kx {
         bool renderHealthBar = true;
         bool renderEnergyBar = false;
         bool renderPlayerName = true;  // Show player names by default for natural identification
-        bool showBurstDps = true;
+        bool showBurstDps = false;
         bool showLocalPlayer = false; // Hide local player by default
         GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
         EnergyDisplayType energyDisplayType = EnergyDisplayType::Special;
@@ -62,7 +62,7 @@ namespace kx {
         bool renderDot = false;
         bool renderDetails = false;
         bool renderHealthBar = true;
-        bool showBurstDps = true;
+        bool showBurstDps = false;
         // Rank filters
         bool showLegendary = true;
         bool showChampion = true;
@@ -78,9 +78,6 @@ namespace kx {
         bool showDetailAttitude = true;
         bool showDetailRank = true;
         bool showDetailPosition = true;
-        // Add specific colors
-        // ColorRGBA friendlyColor = { 0, 255, 100, 220 };
-        // etc.
     };
 
     struct ObjectEspSettings {
@@ -91,7 +88,7 @@ namespace kx {
         bool renderDot = true;
         bool renderDetails = false;
         bool renderHealthBar = true;
-        bool showBurstDps = true;
+        bool showBurstDps = false;
         bool showOnlyDamagedGadgets = true;
         bool showDeadGadgets = true;
         
