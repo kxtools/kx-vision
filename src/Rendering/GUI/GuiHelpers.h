@@ -26,7 +26,8 @@ namespace kx {
                                         bool* renderDetails = nullptr, 
                                         bool* renderPlayerName = nullptr,
                                         bool* showBurstDps = nullptr,
-                                        bool* showDamageNumbers = nullptr);
+                                        bool* showDamageNumbers = nullptr,
+                                        bool* showOnlyDamaged = nullptr);
 
     } // namespace GUI
 } // namespace kx

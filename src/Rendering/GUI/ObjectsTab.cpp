@@ -119,7 +119,7 @@ namespace kx {
                         CheckboxWithTooltip("Show Health Bar", "ObjectStyle", &settings.objectESP.renderHealthBar, "Show health bars for destructible objects and gadgets.");
                         if (settings.objectESP.renderHealthBar) {
                             ImGui::SameLine();
-                            CheckboxWithTooltip("Only show damaged", "ObjectStyle", &settings.objectESP.showOnlyDamagedGadgets, "Only show gadgets that are not at 100%% health and not dead.");
+                            CheckboxWithTooltip("Only show damaged", "ObjectStyle", &settings.objectESP.showOnlyDamaged, "Only show gadgets that are not at 100%% health and not dead.");
                         }
                         CheckboxWithTooltip("Show Damage Numbers", "ObjectStyle", &settings.objectESP.showDamageNumbers, "Displays floating combat text for incoming damage.");
                         ImGui::SameLine();

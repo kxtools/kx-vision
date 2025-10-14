@@ -196,10 +196,15 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
     unsigned int color = ESPStyling::GetEntityColor(*player);
 
+    bool renderHealthBar = context.settings.playerESP.renderHealthBar;
+    if (renderHealthBar && context.settings.playerESP.showOnlyDamaged && player->maxHealth > 0 && player->currentHealth >= player->maxHealth) {
+        renderHealthBar = false;
+    }
+
     // --- Animation State --- 
     const EntityCombatState* state = context.stateManager.GetState(player->address);
     HealthBarAnimationState animState;
-    if (state) {
+    if (renderHealthBar && state) {
         PopulateHealthBarAnimations(player, state, animState, context.now); // Pass 'now' to the animation logic
     }
     
@@ -218,7 +223,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         context.settings.playerESP.renderDistance,
         context.settings.playerESP.renderDot,
         !details.empty(),
-        context.settings.playerESP.renderHealthBar,
+        renderHealthBar,
         context.settings.playerESP.renderEnergyBar,
         context.settings.playerESP.renderPlayerName,
         ESPEntityType::Player,
@@ -239,10 +244,15 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     // Use attitude-based coloring for NPCs
     unsigned int color = ESPStyling::GetEntityColor(*npc);
 
+    bool renderHealthBar = context.settings.npcESP.renderHealthBar;
+    if (renderHealthBar && context.settings.npcESP.showOnlyDamaged && npc->maxHealth > 0 && npc->currentHealth >= npc->maxHealth) {
+        renderHealthBar = false;
+    }
+
     // --- Animation State --- 
     const EntityCombatState* state = context.stateManager.GetState(npc->address);
     HealthBarAnimationState animState;
-    if (state) {
+    if (renderHealthBar && state) {
         PopulateHealthBarAnimations(npc, state, animState, context.now); // Pass 'now' to the animation logic
     }
     
@@ -262,7 +272,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         context.settings.npcESP.renderDistance,
         context.settings.npcESP.renderDot,
         context.settings.npcESP.renderDetails,
-        context.settings.npcESP.renderHealthBar,
+        renderHealthBar,
         false, // No energy bar for NPCs
         false,
         ESPEntityType::NPC,
@@ -289,7 +299,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         }
         else if (gadget->maxHealth > 0) {
             // "Only show damaged" filter: Hide bar if gadget is at full health.
-            if (context.settings.objectESP.showOnlyDamagedGadgets && gadget->currentHealth >= gadget->maxHealth) {
+            if (context.settings.objectESP.showOnlyDamaged && gadget->currentHealth >= gadget->maxHealth) {
                 renderHealthBar = false;
             }
             // "Don't show bar on already-dead gadgets" filter: Hide bar if gadget is dead and animation is over.

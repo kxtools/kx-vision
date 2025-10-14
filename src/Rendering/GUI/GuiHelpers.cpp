@@ -24,7 +24,8 @@ namespace kx {
             bool* renderDetails,
             bool* renderPlayerName,
             bool* showBurstDps,
-            bool* showDamageNumbers) {
+            bool* showDamageNumbers,
+            bool* showOnlyDamaged) {
             if (ImGui::CollapsingHeader(categoryName, ImGuiTreeNodeFlags_DefaultOpen)) {
                 // Group 1: Core geometric visuals. These are fundamental.
                 ImGui::SeparatorText("Core Visuals");
@@ -45,6 +46,10 @@ namespace kx {
 
                     if (renderHealthBar) {
                         CheckboxWithId("Show Health Bar", categoryName, renderHealthBar, nullptr);
+                        if (showOnlyDamaged && *renderHealthBar) {
+                            ImGui::SameLine();
+                            CheckboxWithId("Only show damaged", categoryName, showOnlyDamaged, "Only show entities that are not at 100%% health.");
+                        }
                     }
                     if (showDamageNumbers) {
                         CheckboxWithId("Show Damage Numbers", categoryName, showDamageNumbers, "Displays floating combat text for incoming damage.");

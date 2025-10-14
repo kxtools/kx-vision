@@ -52,7 +52,7 @@ namespace kx {
                                                 &settings.playerESP.renderHealthBar,
                                                 &settings.playerESP.renderEnergyBar, &settings.playerESP.renderDetails,
                                                 &settings.playerESP.renderPlayerName, &settings.playerESP.showBurstDps,
-                                                &settings.playerESP.showDamageNumbers);
+                                                &settings.playerESP.showDamageNumbers, &settings.playerESP.showOnlyDamaged);
 
                     if (settings.playerESP.renderDetails) {
                         ImGui::Separator();
