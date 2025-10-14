@@ -44,12 +44,29 @@ namespace kx
 		const float currentMaxHealth = entity->maxHealth;
 
 		// --- Gadget State Change Detection ---
-		if (entity->entityType == ESPEntityType::Gadget && state.lastKnownMaxHealth > 0 && abs(currentMaxHealth - state.lastKnownMaxHealth) > 1.0f)
+		if (entity->entityType == ESPEntityType::Gadget)
 		{
-			ResetForRespawn(state, currentHealth, now);
-			state.lastKnownMaxHealth = currentMaxHealth; // Update max health after reset
-			return true; // State was reset, skip further processing this frame
+			// Case 1: Max health changes (Existing logic)
+			if (state.lastKnownMaxHealth > 0 && abs(currentMaxHealth - state.lastKnownMaxHealth) > 1.0f)
+			{
+				ResetForRespawn(state, currentHealth, now);
+				state.lastKnownMaxHealth = currentMaxHealth; // Update max health after reset
+				return true; // State was reset, skip further processing this frame
+			}
+
+			// Case 2: Instant destruction from full health (MOVED FROM HandleDamage)
+			// Detects when a gadget instantly goes from full health to zero. This is a state change,
+			// not a death, so we reset its state without setting a death timestamp.
+			if (state.lastKnownMaxHealth > 0 &&
+				state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
+				currentHealth <= 0.0f) // Is now at zero or less
+			{
+				ResetForRespawn(state, currentHealth, now);
+				return true; // State was reset, skip further processing this frame
+			}
 		}
+
+		// No changes needed for non-gadget entities in this function
 		return false;
 	}
 
@@ -146,17 +163,6 @@ namespace kx
 			float currentHealth,
 			uint64_t now)
 	{
-	    // Detect when a gadget instantly goes from full health to zero. This is a state change, not a death,
-	    // so we reset its state without setting a death timestamp to prevent the death animation from playing incorrectly.
-	    if (entity->entityType == ESPEntityType::Gadget &&
-	        state.lastKnownMaxHealth > 0 &&
-	        state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
-	        currentHealth <= 0.0f) // Is now dead
-	    {
-	        ResetForRespawn(state, currentHealth, now);
-	        return;
-	    }
-	
 		const float damage = state.lastKnownHealth - currentHealth;
 		if (damage <= 0.0f) return;
 
