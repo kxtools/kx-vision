@@ -1,10 +1,7 @@
 #define NOMINMAX
 
 #include "ESPHealthBarRenderer.h"
-#include "../Text/TextElementFactory.h"
-#include "../Text/TextRenderer.h"
 #include <iomanip>
-#include <sstream>
 #include "../Utils/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <Windows.h>

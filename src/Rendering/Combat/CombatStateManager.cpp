@@ -1,6 +1,5 @@
 #include "CombatStateManager.h"
 #include "../Utils/ESPConstants.h"
-#include <Windows.h>
 #include <algorithm>
 
 namespace kx

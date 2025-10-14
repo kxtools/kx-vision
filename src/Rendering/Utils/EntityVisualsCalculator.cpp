@@ -5,7 +5,6 @@
 #include "ESPConstants.h"
 #include "ESPStyling.h"
 #include "../Data/RenderableData.h"
-#include "ColorConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include <algorithm>
 #include <cmath>

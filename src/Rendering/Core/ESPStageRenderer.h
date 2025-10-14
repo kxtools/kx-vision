@@ -1,12 +1,10 @@
 #pragma once
 
 #include <optional>
-#include <vector>
 
 #include "Settings.h"
 #include "../Data/RenderableData.h"
 #include "../Data/ESPData.h"
-#include "../../Game/Camera.h"
 
 // Forward declarations
 struct ImDrawList;

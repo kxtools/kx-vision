@@ -3,7 +3,6 @@
 #include <vector>
 #include "../Data/RenderableData.h"
 #include "../Data/EntityRenderContext.h"
-#include "../../Core/Settings.h"
 
 namespace kx {
 

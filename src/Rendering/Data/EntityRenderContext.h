@@ -2,7 +2,6 @@
 
 #include <string>
 #include <vector>
-#include "../../../libs/glm/vec3.hpp"
 #include "RenderableData.h"
 #include "ESPData.h"
 

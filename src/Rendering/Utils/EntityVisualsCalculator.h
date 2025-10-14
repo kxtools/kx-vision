@@ -2,7 +2,6 @@
 
 #include <optional>
 #include "glm.hpp"
-#include "../../../libs/ImGui/imgui.h"
 #include "../Data/ESPData.h"
 
 // Forward declarations

@@ -10,7 +10,6 @@
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
-#include "../Combat/CombatStateManager.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Utils/ESPFormatting.h"
 #include "../../../libs/ImGui/imgui.h"
