@@ -96,6 +96,8 @@ public:
                 return settings.showRifts;
             case Game::GadgetType::Generic:
                 return settings.showGeneric;
+            case Game::GadgetType::Generic2:
+                return settings.showGeneric2;
             default:
                 return settings.showUnknown;
         }
