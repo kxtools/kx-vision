@@ -47,7 +47,6 @@ namespace kx {
                         CheckboxWithId("Show Health Bar", categoryName, renderHealthBar, nullptr);
                     }
                     if (showDamageNumbers) {
-                        ImGui::SameLine();
                         CheckboxWithId("Show Damage Numbers", categoryName, showDamageNumbers, "Displays floating combat text for incoming damage.");
                     }
                     if (showBurstDps) {
