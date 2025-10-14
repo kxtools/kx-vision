@@ -37,28 +37,8 @@ void ESPRenderer::Initialize(Camera& camera) {
     s_camera = &camera;
 }
 
-void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData) {
-    if (!s_camera || ShouldHideESP(mumbleData)) {
-        return;
-    }
-
-    const uint64_t now = GetTickCount64();
-    const float currentTimeSeconds = now / 1000.0f;
-
-    ImDrawList* drawList = ImGui::GetBackgroundDrawList();
-    const auto& settings = AppState::Get().GetSettings();
-    float espUpdateInterval = 1.0f / std::max(1.0f, settings.espUpdateRate);
-
-    // Create the FrameContext here
-    FrameContext frameContext = {
-        now,
-        *s_camera,
-        g_combatStateManager,
-        settings,
-        drawList,
-        screenWidth,
-        screenHeight
-    };
+void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentTimeSeconds) {
+    float espUpdateInterval = 1.0f / std::max(1.0f, frameContext.settings.espUpdateRate);
 
     if (currentTimeSeconds - s_lastUpdateTime >= espUpdateInterval) {
         // Reset object pools to reuse all objects for this frame
@@ -67,11 +47,11 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         s_gadgetPool.Reset();
         s_processedRenderData.Reset();
         
-        // Stage 1: Extract (unchanged)
+        // Stage 1: Extract
         PooledFrameRenderData extractedData;
         ESPDataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, extractedData);
         
-        // Stage 1.5: Update combat state (pass context.now)
+        // Stage 1.5: Update combat state
         std::vector<RenderableEntity*> allEntities;
         allEntities.reserve(extractedData.players.size() + extractedData.npcs.size() + extractedData.gadgets.size());
         allEntities.insert(allEntities.end(), extractedData.players.begin(), extractedData.players.end());
@@ -79,28 +59,53 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         allEntities.insert(allEntities.end(), extractedData.gadgets.begin(), extractedData.gadgets.end());
         g_combatStateManager.Update(allEntities, frameContext.now);
         
-        // Stage 2: Filter (pass context)
+        // Stage 2: Filter
         PooledFrameRenderData filteredData;
         ESPFilter::FilterPooledData(extractedData, *s_camera, filteredData, g_combatStateManager, frameContext.now);
         
-        // NEW Stage 2.5: Calculate Visuals
-        // We use s_cachedFilteredData to store the final list.
+        // Stage 2.5: Calculate Visuals
         ESPVisualsProcessor::Process(frameContext, filteredData, s_processedRenderData);
 
-        // Stage 2.8: Update adaptive far plane (no change)
+        // Stage 2.8: Update adaptive far plane
         AppState::Get().UpdateAdaptiveFarPlane(s_processedRenderData);
         
         s_lastUpdateTime = currentTimeSeconds;
     }
+}
 
-    // Periodic cleanup of the combat state manager
-    // Pass 'now' to the cleanup logic
-    if (now - s_lastCleanupTime > 5000) {
-        g_combatStateManager.Cleanup(now); // Pass 'now' here
+void ESPRenderer::HandlePeriodicCleanup(uint64_t now) {
+    if (now - s_lastCleanupTime > 5000) { // 5000ms interval
+        g_combatStateManager.Cleanup(now);
         s_lastCleanupTime = now;
     }
+}
 
-    // Stage 3: Render (pass context and the new data)
+void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData) {
+    if (!s_camera || ShouldHideESP(mumbleData)) {
+        return;
+    }
+
+    const uint64_t now = GetTickCount64();
+    const float currentTimeSeconds = now / 1000.0f;
+
+    // 1. Create the context for the current frame
+    FrameContext frameContext = {
+        now,
+        *s_camera,
+        g_combatStateManager,
+        AppState::Get().GetSettings(),
+        ImGui::GetBackgroundDrawList(),
+        screenWidth,
+        screenHeight
+    };
+
+    // 2. Run the low-frequency logic/update pipeline if needed
+    UpdateESPData(frameContext, currentTimeSeconds);
+
+    // 3. Handle periodic maintenance tasks
+    HandlePeriodicCleanup(now);
+
+    // 4. Render the final, processed data every frame
     ESPStageRenderer::RenderFrameData(frameContext, s_processedRenderData);
 }
 
