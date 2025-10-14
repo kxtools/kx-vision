@@ -1,18 +1,57 @@
 #include "ESPContextFactory.h"
 
-#include <Windows.h> // For GetTickCount64
 #include "../Combat/CombatStateManager.h" // For CombatStateManager
 #include "../Utils/ESPConstants.h" // For CombatEffects
 #include "../Data/ESPData.h"
 #include "../Core/ESPStageRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
-#include "../Utils/AnimationHelpers.h" // For easing functions
 #include "../Utils/ESPStyling.h"
+#include "../Animations/HealthBarAnimations.h"
 
 namespace kx {
 
 namespace { // Anonymous namespace for helpers
+
+static bool DeterminePlayerHealthBarVisibility(const RenderablePlayer* player, const PlayerEspSettings& settings) {
+    if (!settings.renderHealthBar) {
+        return false;
+    }
+    if (settings.showOnlyDamaged && player->maxHealth > 0 && player->currentHealth >= player->maxHealth) {
+        return false;
+    }
+    return true;
+}
+
+static bool DetermineNpcHealthBarVisibility(const RenderableNpc* npc, const NpcEspSettings& settings) {
+    if (!settings.renderHealthBar) {
+        return false;
+    }
+    if (settings.showOnlyDamaged && npc->maxHealth > 0 && npc->currentHealth >= npc->maxHealth) {
+        return false;
+    }
+    return true;
+}
+
+static bool DetermineGadgetHealthBarVisibility(const RenderableGadget* gadget, const ObjectEspSettings& settings, const EntityCombatState* state, uint64_t now) {
+    if (!settings.renderHealthBar) {
+        return false;
+    }
+    if (ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
+        return false;
+    }
+    if (gadget->maxHealth > 0) {
+        if (settings.showOnlyDamaged && gadget->currentHealth >= gadget->maxHealth) {
+            return false;
+        }
+        if (gadget->currentHealth <= 0.0f) {
+            if (!state || state->deathTimestamp == 0 || (now - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showBurstDpsSetting) {
     float burstDpsValue = 0.0f;
@@ -26,156 +65,6 @@ float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showB
         }
     }
     return burstDpsValue;
-}
-
-/**
- * @brief Calculates all transient health bar animation states.
- *
- * This centralizes the animation logic that was previously in the renderer.
- * It populates the HealthBarAnimationState struct, which is then passed to the
- * "dumb" renderer.
- *
- * @param entity The entity being rendered.
- * @param state The combat state for the entity.
- * @param animState The output struct to populate with animation values.
- */
-void PopulateHealthBarAnimations(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
-    if (!entity || !state) {
-        return;
-    }
-
-    // const uint64_t now = GetTickCount64(); // REMOVED
-    const float maxHealth = entity->maxHealth;
-
-    // 1. Overall Bar Fade (Death)
-    float timeFade = 1.0f;
-    if (state->deathTimestamp > 0) {
-        uint64_t sinceDeath = now - state->deathTimestamp;
-        if (sinceDeath > CombatEffects::DEATH_BURST_DURATION_MS) {
-            uint64_t intoFade = sinceDeath - CombatEffects::DEATH_BURST_DURATION_MS;
-            if (intoFade < CombatEffects::DEATH_FINAL_FADE_DURATION_MS) {
-                timeFade = 1.0f - static_cast<float>(intoFade) / CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
-            } else {
-                timeFade = 0.0f;
-            }
-        }
-    }
-    animState.healthBarFadeAlpha = timeFade;
-    if (animState.healthBarFadeAlpha <= 0.0f) {
-        return; // No need to calculate other effects if the bar is invisible
-    }
-
-    // 2. Death Burst Animation (runs only if dead)
-    if (state->deathTimestamp > 0)
-    {
-        uint64_t sinceDeath = now - state->deathTimestamp;
-        if (sinceDeath < CombatEffects::DEATH_BURST_DURATION_MS)
-        {
-            float linear = static_cast<float>(sinceDeath) / CombatEffects::DEATH_BURST_DURATION_MS;
-            float eased = Animation::EaseOutCubic(linear);
-            animState.deathBurstAlpha = 1.0f - eased;
-            animState.deathBurstWidth = 1.0f - eased;
-        }
-    }
-
-    // 3. Damage Accumulator Animation (NOW INDEPENDENT - runs if alive OR dead)
-    if (state->accumulatedDamage > 0)
-    {
-        // Default to fully opaque
-        animState.damageAccumulatorAlpha = 1.0f;
-
-        // If a flush animation is running, calculate the fade-out alpha for the bar and number
-        if (state->flushAnimationStartTime > 0)
-        {
-            uint64_t elapsed = now - state->flushAnimationStartTime;
-            if (elapsed < CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS)
-            {
-                float progress = static_cast<float>(elapsed) / CombatEffects::DAMAGE_ACCUMULATOR_FADE_MS;
-                
-                // Animate bar alpha
-                animState.damageAccumulatorAlpha = 1.0f - Animation::EaseOutCubic(progress);
-
-                // Animate the damage number
-                float easedProgress = Animation::EaseOutCubic(progress);
-                animState.damageNumberToDisplay = state->damageToDisplay;
-                animState.damageNumberAlpha = 1.0f - easedProgress; // Linear fade out for text
-                animState.damageNumberYOffset = easedProgress * CombatEffects::DAMAGE_NUMBER_MAX_Y_OFFSET; // Scroll up
-            }
-            else
-            {
-                // Animation is over, render at zero alpha this frame before it's reset
-                animState.damageAccumulatorAlpha = 0.0f;
-                animState.damageNumberAlpha = 0.0f;
-            }
-        }
-
-        // The size of the chunk is based on the health values
-        if (maxHealth > 0) {
-            float endHealth = entity->currentHealth + state->accumulatedDamage;
-            animState.damageAccumulatorPercent = endHealth / maxHealth;
-        }
-    }
-
-    // 4. Living-Only Effects (Healing, Flashes)
-    if (state->deathTimestamp == 0 && maxHealth > 0)
-    {
-        // 4a. Heal Overlay
-        if (state->lastHealTimestamp > 0) {
-            uint64_t elapsed = now - state->lastHealTimestamp;
-            if (elapsed < CombatEffects::HEAL_OVERLAY_DURATION_MS) {
-                animState.healOverlayStartPercent = state->healStartHealth / maxHealth;
-                animState.healOverlayEndPercent = entity->currentHealth / maxHealth;
-
-                float overlayAlpha = 1.0f;
-                if (CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS < CombatEffects::HEAL_OVERLAY_DURATION_MS) {
-                    uint64_t fadeStart = CombatEffects::HEAL_OVERLAY_DURATION_MS - CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
-                    if (elapsed > fadeStart) {
-                        uint64_t intoFade = elapsed - fadeStart;
-                        float fadeProgress = static_cast<float>(intoFade) / CombatEffects::HEAL_OVERLAY_FADE_DURATION_MS;
-                        overlayAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
-                    }
-                }
-                animState.healOverlayAlpha = overlayAlpha;
-            }
-        }
-
-        // 4b. Damage Flash
-        if (state->lastHitTimestamp > 0) {
-            uint64_t elapsed = now - state->lastHitTimestamp;
-            if (elapsed < CombatEffects::DAMAGE_FLASH_TOTAL_DURATION_MS) {
-                float flashAlpha = 1.0f;
-                if (elapsed > CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS) {
-                    uint64_t intoFade = elapsed - CombatEffects::DAMAGE_FLASH_HOLD_DURATION_MS;
-                    float fadeProgress = static_cast<float>(intoFade) / CombatEffects::DAMAGE_FLASH_FADE_DURATION_MS;
-                    flashAlpha = 1.0f - Animation::EaseOutCubic(fadeProgress);
-                }
-                animState.damageFlashAlpha = flashAlpha;
-                animState.damageFlashStartPercent = (entity->currentHealth + state->lastDamageTaken) / maxHealth;
-            }
-        }
-
-        // 4c. Heal Flash
-        if (state->lastHealFlashTimestamp > 0) {
-            uint64_t elapsed = now - state->lastHealFlashTimestamp;
-            if (elapsed < CombatEffects::HEAL_FLASH_DURATION_MS) {
-                float linear = static_cast<float>(elapsed) / CombatEffects::HEAL_FLASH_DURATION_MS;
-                animState.healFlashAlpha = 1.0f - Animation::EaseOutCubic(linear);
-            }
-        }
-    }
-	
-    // 5. Barrier Animation (already independent, which is correct)
-    const float currentBarrier = entity->currentBarrier;
-    float animatedBarrier = currentBarrier;
-    if (state->lastBarrierChangeTimestamp > 0) {
-        const uint64_t elapsed = now - state->lastBarrierChangeTimestamp;
-        if (elapsed < CombatEffects::BARRIER_ANIM_DURATION_MS) {
-            const float progress = static_cast<float>(elapsed) / CombatEffects::BARRIER_ANIM_DURATION_MS;
-            const float eased = Animation::EaseOutCubic(progress);
-            animatedBarrier = state->barrierOnLastChange + (currentBarrier - state->barrierOnLastChange) * eased;
-        }
-    }
-    animState.animatedBarrier = animatedBarrier;
 }
 
 } // anonymous namespace
@@ -196,10 +85,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
     unsigned int color = ESPStyling::GetEntityColor(*player);
 
-    bool renderHealthBar = context.settings.playerESP.renderHealthBar;
-    if (renderHealthBar && context.settings.playerESP.showOnlyDamaged && player->maxHealth > 0 && player->currentHealth >= player->maxHealth) {
-        renderHealthBar = false;
-    }
+    bool renderHealthBar = DeterminePlayerHealthBarVisibility(player, context.settings.playerESP);
 
     // --- Animation State --- 
     const EntityCombatState* state = context.stateManager.GetState(player->address);
@@ -244,10 +130,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     // Use attitude-based coloring for NPCs
     unsigned int color = ESPStyling::GetEntityColor(*npc);
 
-    bool renderHealthBar = context.settings.npcESP.renderHealthBar;
-    if (renderHealthBar && context.settings.npcESP.showOnlyDamaged && npc->maxHealth > 0 && npc->currentHealth >= npc->maxHealth) {
-        renderHealthBar = false;
-    }
+    bool renderHealthBar = DetermineNpcHealthBarVisibility(npc, context.settings.npcESP);
 
     // --- Animation State --- 
     const EntityCombatState* state = context.stateManager.GetState(npc->address);
@@ -290,30 +173,10 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
 EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
-    bool renderHealthBar = context.settings.objectESP.renderHealthBar;
-
-    // Do not render health bar for certain gadget types to avoid flickering, or if the base setting is off.
-    if (renderHealthBar) {
-        if (ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
-            renderHealthBar = false;
-        }
-        else if (gadget->maxHealth > 0) {
-            // "Only show damaged" filter: Hide bar if gadget is at full health.
-            if (context.settings.objectESP.showOnlyDamaged && gadget->currentHealth >= gadget->maxHealth) {
-                renderHealthBar = false;
-            }
-            // "Don't show bar on already-dead gadgets" filter: Hide bar if gadget is dead and animation is over.
-            else if (gadget->currentHealth <= 0.0f) {
-                const EntityCombatState* state = context.stateManager.GetState(gadget->address);
-                if (!state || state->deathTimestamp == 0 || (context.now - state->deathTimestamp) > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
-                    renderHealthBar = false;
-                }
-            }
-        }
-    }
+    const EntityCombatState* state = context.stateManager.GetState(gadget->address);
+    bool renderHealthBar = DetermineGadgetHealthBarVisibility(gadget, context.settings.objectESP, state, context.now);
 
     // --- Animation State --- 
-    const EntityCombatState* state = context.stateManager.GetState(gadget->address);
     HealthBarAnimationState animState;
     if (renderHealthBar) { // Only calculate animations if the bar will be visible
         if (state) {
