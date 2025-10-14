@@ -9,6 +9,8 @@
 #include "../Data/EntityRenderContext.h"
 #include <algorithm>
 #include "../Utils/EntityVisualsCalculator.h"
+#include "Text/TextElement.h"
+#include "Text/TextRenderer.h"
 
 namespace kx {
 
@@ -298,18 +300,53 @@ namespace kx {
         // 4. Damage flash
         DrawDamageFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
 
-
-
         // 5. Barrier overlay (drawn last, on top of everything)
         DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha);
+
+        // 6. Health Percentage Text (drawn last, on top of everything)
+        if (context.renderHealthPercentage && context.healthPercent >= 0.0f) {
+            DrawHealthPercentageText(drawList, barMin, barMax, context.healthPercent, fontSize, fadeAlpha);
+        }
+    }
+
+    void ESPHealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha)
+    {
+        // 1. Format the percentage string (unchanged)
+        int percent = static_cast<int>(healthPercent * 100.0f);
+        std::string text = std::to_string(percent); // Let's drop the "%" for an even cleaner look
+
+        // 2. Define the anchor point: to the right of the bar, vertically centered.
+        const float padding = 5.0f; // 5px gap between the bar and the text
+        glm::vec2 anchor(
+            barMax.x + padding,
+            barMin.y + (barMax.y - barMin.y) * 0.5f // Vertical center of the bar
+        );
+
+        // 3. Create the TextElement. We must align it to the left.
+        TextElement element(text, anchor, TextAnchor::Custom);
+        element.SetAlignment(TextAlignment::Left); // Anchor is on the left of the text
+
+        // 4. Define a style for high-contrast text (the previous style is still great)
+        TextStyle style;
+        style.fontSize = fontSize * 0.8f; // Keep it slightly smaller and subtle
+        style.textColor = IM_COL32(255, 255, 255, 255); // Pure white
+        style.enableBackground = false; // No background box
+        style.enableShadow = true;
+        style.shadowAlpha = 0.9f; // Strong shadow for readability
+        style.fadeAlpha = fadeAlpha; // Respect the overall bar fade
+
+        element.SetStyle(style);
+
+        // 5. Render using the global TextRenderer (unchanged)
+        TextRenderer::Render(dl, element);
     }
 
     void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList,
-        const EntityRenderContext& context,
-        const ImVec2& barMin,
-        const ImVec2& barMax,
-        float barWidth,
-        float fadeAlpha) {
+                                               const EntityRenderContext& context,
+                                               const ImVec2& barMin,
+                                               const ImVec2& barMax,
+                                               float barWidth,
+                                               float fadeAlpha) {
         const auto& anim = context.healthBarAnim;
         if (anim.deathBurstAlpha <= 0.0f) return;
 

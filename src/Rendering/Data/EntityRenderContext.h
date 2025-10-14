@@ -116,7 +116,8 @@ struct EntityRenderContext {
     
     /** Whether to render health bar */
     bool renderHealthBar;
-
+    /** Whether to render health percentage text */
+    bool renderHealthPercentage;
     /** Whether to render energy bar */
     bool renderEnergyBar;
     

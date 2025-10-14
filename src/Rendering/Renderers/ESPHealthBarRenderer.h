@@ -42,19 +42,15 @@ namespace kx {
             float fadeAlpha,
             float fontSize);
 
+        // Add new helper for drawing text
+        static void DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha);
+
         static void RenderDeadState(ImDrawList* drawList,
             const EntityRenderContext& context,
             const ImVec2& barMin,
             const ImVec2& barMax,
             float barWidth,
             float fadeAlpha);
-
-        static void DrawDamageNumber(ImDrawList* dl,
-                                     const EntityRenderContext& context,
-                                     const ImVec2& barMin,
-                                     float barWidth,
-                                     float fontSize,
-                                     float fadeAlpha);
 
         // --- Small Utilities ---
         static inline unsigned int ClampAlpha(unsigned int alpha) { return (alpha < 255u ? alpha : 255u); }

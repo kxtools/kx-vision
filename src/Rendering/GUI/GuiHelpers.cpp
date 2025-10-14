@@ -25,7 +25,8 @@ namespace kx {
             bool* renderPlayerName,
             bool* showBurstDps,
             bool* showDamageNumbers,
-            bool* showOnlyDamaged) {
+            bool* showOnlyDamaged,
+            bool* showHealthPercentage) {
             if (ImGui::CollapsingHeader(categoryName, ImGuiTreeNodeFlags_DefaultOpen)) {
                 // Group 1: Core geometric visuals. These are fundamental.
                 ImGui::SeparatorText("Core Visuals");
@@ -38,7 +39,7 @@ namespace kx {
 
                 // Check if there are any informational overlays to show.
                 // If not, we don't even render the separator, keeping the UI clean.
-                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName || showBurstDps || showDamageNumbers);
+                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName || showBurstDps || showDamageNumbers || showHealthPercentage);
 
                 if (hasInfoOverlays) {
                     // Group 2: Informational text and data overlays.
@@ -46,9 +47,15 @@ namespace kx {
 
                     if (renderHealthBar) {
                         CheckboxWithId("Show Health Bar", categoryName, renderHealthBar, nullptr);
-                        if (showOnlyDamaged && *renderHealthBar) {
+                        if (*renderHealthBar) { // Only show sub-options if the bar is enabled
                             ImGui::SameLine();
-                            CheckboxWithId("Only show damaged", categoryName, showOnlyDamaged, "Only show entities that are not at 100%% health.");
+                            if (showHealthPercentage) { // Check if the pointer is valid
+                                CheckboxWithId("Show %", categoryName, showHealthPercentage, "Show health percentage text on the bar.");
+                            }
+                            if (showOnlyDamaged) {
+                                ImGui::SameLine();
+                                CheckboxWithId("Only show damaged", categoryName, showOnlyDamaged, "Only show entities that are not at 100%% health.");
+                            }
                         }
                     }
                     if (showDamageNumbers) {

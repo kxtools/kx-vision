@@ -110,6 +110,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         context.settings.playerESP.renderDot,
         !details.empty(),
         renderHealthBar,
+        context.settings.playerESP.showHealthPercentage,
         context.settings.playerESP.renderEnergyBar,
         context.settings.playerESP.renderPlayerName,
         ESPEntityType::Player,
@@ -156,6 +157,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         context.settings.npcESP.renderDot,
         context.settings.npcESP.renderDetails,
         renderHealthBar,
+        context.settings.npcESP.showHealthPercentage,
         false, // No energy bar for NPCs
         false,
         ESPEntityType::NPC,
@@ -200,6 +202,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         context.settings.objectESP.renderDot,
         context.settings.objectESP.renderDetails,
         renderHealthBar,
+        context.settings.objectESP.showHealthPercentage,
         false, // No energy bar for gadgets
         false,
         ESPEntityType::Gadget,
