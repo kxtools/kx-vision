@@ -104,8 +104,8 @@ namespace kx {
         if (anim.damageAccumulatorPercent <= 0.0f || anim.damageAccumulatorAlpha <= 0.0f) return;
 
         float startPercent = context.healthPercent;
-        float endPercent = anim.damageAccumulatorPercent;
-        if (endPercent > 1.f) endPercent = 1.f;
+        float endPercent = (anim.damageAccumulatorPercent > 1.0f) ? 1.0f : anim.damageAccumulatorPercent;
+
         if (endPercent <= startPercent) return;
 
         ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
