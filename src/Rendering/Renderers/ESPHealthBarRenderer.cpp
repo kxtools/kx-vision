@@ -143,31 +143,7 @@ namespace kx {
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    void ESPHealthBarRenderer::DrawDamageNumber(ImDrawList* dl,
-                                                const EntityRenderContext& context,
-                                                const ImVec2& barMin,
-                                                float barWidth,
-                                                float fontSize,
-                                                float fadeAlpha)
-    {
-        const auto& anim = context.healthBarAnim;
-        if (anim.damageNumberAlpha <= 0.0f || anim.damageNumberToDisplay <= 0.0f)
-        {
-            return;
-        }
 
-        // Format the number as a clean integer string
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(0) << anim.damageNumberToDisplay;
-
-        // Calculate position: centered above the health bar, animated upwards
-        glm::vec2 anchorPos(barMin.x + barWidth * 0.5f, barMin.y - anim.damageNumberYOffset);
-
-            // Use our powerful text system to render it
-            float finalFontSize = fontSize * kx::EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(anim.damageNumberToDisplay);
-            TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, anim.damageNumberAlpha * fadeAlpha, finalFontSize);
-            TextRenderer::Render(dl, element);
-    }
 
     void ESPHealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
         const EntityRenderContext& context,
@@ -239,7 +215,7 @@ namespace kx {
         float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
         fadeAlpha *= anim.healthBarFadeAlpha;
 
-        if (fadeAlpha <= 0.f && anim.damageNumberAlpha <= 0.f) return; // Exit if NOTHING is visible
+        if (fadeAlpha <= 0.f) return; // Exit if NOTHING is visible
 
         // Geometry
         const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
@@ -262,12 +238,7 @@ namespace kx {
             RenderDeadState(drawList, context, barMin, barMax, barWidth, fadeAlpha);
         }
 
-		// The damage number is now rendered here, outside the alive/dead check.
-		// It will use its own alpha and will be visible during the death fade.
-		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize, fadeAlpha);
 
-        // Render Burst DPS text if applicable (works for both alive and dead states)
-        DrawBurstDpsText(drawList, context, barMin, barMax, fontSize, fadeAlpha);
 
 		// Outer stroke settings
         const float outset = 1.0f; // 1 px outside, feels "harder" and more separated
@@ -330,8 +301,7 @@ namespace kx {
         // 4. Damage flash
         DrawDamageFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
 
-		// 4.5. Render the damage number during the flush animation
-		DrawDamageNumber(drawList, context, barMin, barWidth, fontSize, fadeAlpha);
+
 
         // 5. Barrier overlay (drawn last, on top of everything)
         DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha);
@@ -392,43 +362,6 @@ namespace kx {
         DrawFilledRect(drawList, eMin, eMax, finalColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-void ESPHealthBarRenderer::DrawBurstDpsText(ImDrawList* drawList,
-                                            const EntityRenderContext& context,
-                                            const ImVec2& barMin,
-                                            const ImVec2& barMax,
-                                            float fontSize,
-                                            float fadeAlpha)
-{
-    // Don't render if there's no DPS to show or if the bar is faded out
-    if (context.burstDPS <= 0.0f || context.healthBarAnim.healthBarFadeAlpha <= 0.0f) {
-        return;
-    }
 
-    // --- Text Formatting ---
-    std::stringstream ss;
-    if (context.burstDPS >= 1000.0f) {
-        ss << std::fixed << std::setprecision(1) << (context.burstDPS / 1000.0f) << "k";
-    } else {
-        ss << std::fixed << std::setprecision(0) << context.burstDPS;
-    }
-    
-    std::string dpsText = ss.str();
-
-    // --- Positioning ---
-    // Position it to the right of the health bar, vertically centered.
-    ImVec2 textPos(barMax.x + 5.0f, barMin.y + (barMax.y - barMin.y) * 0.5f);
-
-    // --- Create and Render the Text Element ---
-    TextElement element(dpsText, {textPos.x, textPos.y}, TextAnchor::Custom);
-    element.SetAlignment(TextAlignment::Left); // Align text to the left of the anchor
-
-    TextStyle style = TextElementFactory::GetDistanceStyle(fadeAlpha, fontSize * 0.9f); // Reuse distance style for a clean look, slightly smaller font.
-    style.enableBackground = false; // No background for this metric
-    style.textColor = IM_COL32(255, 200, 50, 255); // A distinct amber/gold color
-
-    element.SetStyle(style);
-
-    TextRenderer::Render(drawList, element);
-}
 
 } // namespace kx

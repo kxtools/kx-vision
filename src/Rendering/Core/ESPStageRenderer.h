@@ -35,6 +35,10 @@ private:
     static void RenderPlayerName(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props);
     static void RenderDetailsText(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props);
     static void RenderGearSummary(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings);
+
+    // New methods for independent rendering
+    static void RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props);
+    static void RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props);
 };
 
 } // namespace kx

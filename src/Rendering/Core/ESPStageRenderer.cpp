@@ -13,6 +13,11 @@
 #include "../Data/EntityRenderContext.h"
 #include "../Utils/ESPFormatting.h"
 #include "../../../libs/ImGui/imgui.h"
+#include <sstream>
+#include <iomanip>
+#include "../Text/TextElementFactory.h"
+#include "../Utils/EntityVisualsCalculator.h"
+#include "Text/TextRenderer.h"
 
 namespace kx {
 
@@ -120,8 +125,11 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, const
     RenderPlayerName(context.drawList, entityContext, props);
     RenderDetailsText(context.drawList, entityContext, props);
     RenderGearSummary(context.drawList, entityContext, props, context.settings);
-}
 
+    // Render independent text elements last
+    RenderDamageNumbers(context, entityContext, props);
+    RenderBurstDps(context, entityContext, props);
+}
 
 // Component rendering implementations
 void ESPStageRenderer::RenderHealthBar(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings) {
@@ -258,6 +266,77 @@ void ESPStageRenderer::RenderGearSummary(ImDrawList* drawList, const EntityRende
             break;
         }
     }
+}
+
+void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props) {
+    // Check if the setting is enabled for the specific entity type
+    bool isEnabled = false;
+    if (entityContext.entityType == ESPEntityType::Player) isEnabled = context.settings.playerESP.showDamageNumbers;
+    else if (entityContext.entityType == ESPEntityType::NPC) isEnabled = context.settings.npcESP.showDamageNumbers;
+    else if (entityContext.entityType == ESPEntityType::Gadget) isEnabled = context.settings.objectESP.showDamageNumbers;
+
+    if (!isEnabled || entityContext.healthBarAnim.damageNumberAlpha <= 0.0f) {
+        return;
+    }
+
+    // --- ANCHORING LOGIC ---
+    glm::vec2 anchorPos;
+    if (entityContext.renderHealthBar) {
+        // If HP bar is on, anchor above it for perfect alignment.
+        float barY = props.screenPos.y + RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
+        anchorPos = { props.center.x, barY - entityContext.healthBarAnim.damageNumberYOffset };
+    } else {
+        // FALLBACK: If HP bar is off, anchor to the entity's visual center.
+        anchorPos = { props.center.x, props.center.y - entityContext.healthBarAnim.damageNumberYOffset };
+    }
+
+    // --- RENDER LOGIC (moved from ESPHealthBarRenderer) ---
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(0) << entityContext.healthBarAnim.damageNumberToDisplay;
+    float finalFontSize = props.finalFontSize * EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
+    TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize);
+    TextRenderer::Render(context.drawList, element);
+}
+
+void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props) {
+    // Check if the setting is enabled
+    bool isEnabled = false;
+    if (entityContext.entityType == ESPEntityType::Player) isEnabled = context.settings.playerESP.showBurstDps;
+    else if (entityContext.entityType == ESPEntityType::NPC) isEnabled = context.settings.npcESP.showBurstDps;
+    else if (entityContext.entityType == ESPEntityType::Gadget) isEnabled = context.settings.objectESP.showBurstDps;
+
+    if (!isEnabled || entityContext.burstDPS <= 0.0f || entityContext.healthBarAnim.healthBarFadeAlpha <= 0.0f) {
+        return;
+    }
+    
+    // --- FORMATTING ---
+    std::stringstream ss;
+    if (entityContext.burstDPS >= 1000.0f) {
+        ss << std::fixed << std::setprecision(1) << (entityContext.burstDPS / 1000.0f) << "k";
+    } else {
+        ss << std::fixed << std::setprecision(0) << entityContext.burstDPS;
+    }
+
+    // --- ANCHORING LOGIC ---
+    glm::vec2 anchorPos;
+    if (entityContext.renderHealthBar) {
+        // If HP bar is on, anchor to its right side.
+        float barMinY = props.screenPos.y + RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
+        float barMaxY = barMinY + props.finalHealthBarHeight;
+        anchorPos = { props.center.x + props.finalHealthBarWidth * 0.5f + 5.0f, barMinY + (barMaxY - barMinY) * 0.5f };
+    } else {
+        // FALLBACK: If HP bar is off, anchor below the entity's name/details.
+        anchorPos = { props.screenPos.x, props.screenPos.y + 20.0f }; // Adjust Y-offset as needed
+    }
+    
+    // --- RENDER LOGIC ---
+    TextElement element(ss.str(), anchorPos, TextAnchor::Custom);
+    element.SetAlignment(TextAlignment::Left);
+    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * 0.9f);
+    style.enableBackground = false;
+    style.textColor = IM_COL32(255, 200, 50, 255);
+    element.SetStyle(style);
+    TextRenderer::Render(context.drawList, element);
 }
 
 } // namespace kx

@@ -23,7 +23,8 @@ namespace kx {
             bool* renderEnergyBar,
             bool* renderDetails,
             bool* renderPlayerName,
-            bool* showBurstDps) {
+            bool* showBurstDps,
+            bool* showDamageNumbers) {
             if (ImGui::CollapsingHeader(categoryName, ImGuiTreeNodeFlags_DefaultOpen)) {
                 // Group 1: Core geometric visuals. These are fundamental.
                 ImGui::SeparatorText("Core Visuals");
@@ -36,7 +37,7 @@ namespace kx {
 
                 // Check if there are any informational overlays to show.
                 // If not, we don't even render the separator, keeping the UI clean.
-                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName || showBurstDps);
+                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName || showBurstDps || showDamageNumbers);
 
                 if (hasInfoOverlays) {
                     // Group 2: Informational text and data overlays.
@@ -45,14 +46,20 @@ namespace kx {
                     if (renderHealthBar) {
                         CheckboxWithId("Show Health Bar", categoryName, renderHealthBar, nullptr);
                     }
+                    if (showDamageNumbers) {
+                        ImGui::SameLine();
+                        CheckboxWithId("Show Damage Numbers", categoryName, showDamageNumbers, "Displays floating combat text for incoming damage.");
+                    }
+                    if (showBurstDps) {
+                        ImGui::SameLine();
+                        CheckboxWithId("Show Burst DPS", categoryName, showBurstDps, "Displays the real-time burst DPS a target is taking from all sources. Ideal for tracking burn phases and overall damage pressure.");
+                    }
+
                     if (renderEnergyBar) {
                         CheckboxWithId("Show Energy Bar", categoryName, renderEnergyBar, nullptr);
                     }
                     if (renderPlayerName) {
                         CheckboxWithId("Show Player Name", categoryName, renderPlayerName, nullptr);
-                    }
-                    if (showBurstDps) {
-                        CheckboxWithId("Show Burst DPS", categoryName, showBurstDps, "Displays the real-time burst DPS a target is taking from all sources. Ideal for tracking burn phases and overall damage pressure.");
                     }
                     if (renderDetails) {
                         CheckboxWithId("Show Details", categoryName, renderDetails, nullptr);

@@ -40,6 +40,7 @@ namespace kx {
         bool renderEnergyBar = false;
         bool renderPlayerName = true;  // Show player names by default for natural identification
         bool showBurstDps = false;
+        bool showDamageNumbers = true;
         bool showLocalPlayer = false; // Hide local player by default
         GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
         EnergyDisplayType energyDisplayType = EnergyDisplayType::Special;
@@ -63,6 +64,7 @@ namespace kx {
         bool renderDetails = false;
         bool renderHealthBar = true;
         bool showBurstDps = false;
+        bool showDamageNumbers = true;
         // Rank filters
         bool showLegendary = true;
         bool showChampion = true;
@@ -89,6 +91,7 @@ namespace kx {
         bool renderDetails = false;
         bool renderHealthBar = true;
         bool showBurstDps = false;
+        bool showDamageNumbers = true;
         bool showOnlyDamagedGadgets = true;
         bool showDeadGadgets = true;
         

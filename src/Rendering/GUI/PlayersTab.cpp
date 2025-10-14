@@ -51,7 +51,8 @@ namespace kx {
                                                 settings.playerESP.renderDistance, settings.playerESP.renderDot,
                                                 &settings.playerESP.renderHealthBar,
                                                 &settings.playerESP.renderEnergyBar, &settings.playerESP.renderDetails,
-                                                &settings.playerESP.renderPlayerName, &settings.playerESP.showBurstDps);
+                                                &settings.playerESP.renderPlayerName, &settings.playerESP.showBurstDps,
+                                                &settings.playerESP.showDamageNumbers);
 
                     if (settings.playerESP.renderDetails) {
                         ImGui::Separator();
