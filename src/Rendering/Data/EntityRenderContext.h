@@ -90,7 +90,7 @@ struct EntityRenderContext {
     unsigned int color;
     
     /** Pre-built detail strings with colors (level, profession, etc.) */
-    const std::vector<ColoredDetail>& details;
+    std::vector<ColoredDetail> details;
     
     /** Health percentage [0.0 - 1.0], or -1.0f if not applicable */
     float healthPercent;
