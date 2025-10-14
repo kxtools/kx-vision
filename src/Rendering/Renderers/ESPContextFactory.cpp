@@ -284,7 +284,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
 
     // Do not render health bar for certain gadget types to avoid flickering, or if the base setting is off.
     if (renderHealthBar) {
-        if (ESPStyling::ShouldHideHealthBarForGadgetType(gadget->type)) {
+        if (ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
             renderHealthBar = false;
         }
         else if (gadget->maxHealth > 0) {

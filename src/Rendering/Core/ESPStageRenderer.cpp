@@ -6,6 +6,7 @@
 #include "../Utils/ESPConstants.h"
 #include "../Utils/ESPPlayerDetailsBuilder.h"
 #include "../Utils/ESPEntityDetailsBuilder.h"
+#include "../Utils/ESPStyling.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
@@ -269,6 +270,14 @@ void ESPStageRenderer::RenderGearSummary(ImDrawList* drawList, const EntityRende
 }
 
 void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props) {
+    // For gadgets, check if combat UI should be hidden for this type
+    if (entityContext.entityType == ESPEntityType::Gadget) {
+        const auto* gadget = static_cast<const RenderableGadget*>(entityContext.entity);
+        if (gadget && ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
+            return;
+        }
+    }
+
     // Check if the setting is enabled for the specific entity type
     bool isEnabled = false;
     if (entityContext.entityType == ESPEntityType::Player) isEnabled = context.settings.playerESP.showDamageNumbers;
@@ -299,6 +308,14 @@ void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const En
 }
 
 void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props) {
+    // For gadgets, check if combat UI should be hidden for this type
+    if (entityContext.entityType == ESPEntityType::Gadget) {
+        const auto* gadget = static_cast<const RenderableGadget*>(entityContext.entity);
+        if (gadget && ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
+            return;
+        }
+    }
+
     // Check if the setting is enabled
     bool isEnabled = false;
     if (entityContext.entityType == ESPEntityType::Player) isEnabled = context.settings.playerESP.showBurstDps;

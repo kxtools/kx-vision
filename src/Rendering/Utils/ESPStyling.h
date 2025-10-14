@@ -57,8 +57,8 @@ namespace ESPStyling {
         }
     }
 
-    // Helper to determine if a gadget's health bar should be hidden based on its type.
-    inline bool ShouldHideHealthBarForGadgetType(Game::GadgetType type) {
+    // Helper to determine if a gadget's combat UI (health, dps) should be hidden based on its type.
+    inline bool ShouldHideCombatUIForGadget(Game::GadgetType type) {
         switch (type) {
             // These types often have unstable health values or health is not a meaningful metric,
             // so we hide the bar to prevent visual noise and flickering.
