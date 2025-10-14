@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include "Settings.h"
@@ -24,6 +25,7 @@ public:
 
 private:
     static void RenderEntityComponents(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props);
+    static std::optional<VisualProperties> CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context);
 
     // Component rendering methods
     static void RenderHealthBar(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props, const Settings& settings);

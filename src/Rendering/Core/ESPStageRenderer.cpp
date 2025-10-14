@@ -19,6 +19,7 @@
 #include "../Text/TextElementFactory.h"
 #include "../Utils/EntityVisualsCalculator.h"
 #include "Text/TextRenderer.h"
+#include <optional>
 
 namespace kx {
 
@@ -72,45 +73,50 @@ static EntityRenderContext CreateEntityRenderContextForRendering(const Renderabl
     return ESPContextFactory::CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
 }
 
+std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context) {
+    // 1. Re-project the entity's world position to get a fresh screen position.
+    glm::vec2 freshScreenPos;
+    if (!ESPMath::WorldToScreen(item.entity->position, context.camera, context.screenWidth, context.screenHeight, freshScreenPos)) {
+        return std::nullopt; // Cull if off-screen this frame.
+    }
+
+    // 2. Make a mutable copy of the cached visual properties.
+    VisualProperties liveVisuals = item.visuals;
+
+    // 3. Overwrite the stale screen-space properties with fresh ones.
+    liveVisuals.screenPos = freshScreenPos;
+    
+    // 4. Recalculate derived screen-space coordinates using the cached dimensions.
+    if (item.entity->entityType == ESPEntityType::Gadget) {
+        liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y);
+        liveVisuals.boxMin = ImVec2(liveVisuals.center.x - liveVisuals.circleRadius, liveVisuals.center.y - liveVisuals.circleRadius);
+        liveVisuals.boxMax = ImVec2(liveVisuals.center.x + liveVisuals.circleRadius, liveVisuals.center.y + liveVisuals.circleRadius);
+    } else {
+        float boxWidth = liveVisuals.boxMax.x - liveVisuals.boxMin.x;
+        float boxHeight = liveVisuals.boxMax.y - liveVisuals.boxMin.y;
+        
+        liveVisuals.boxMin = ImVec2(liveVisuals.screenPos.x - boxWidth / 2.0f, liveVisuals.screenPos.y - boxHeight);
+        liveVisuals.boxMax = ImVec2(liveVisuals.screenPos.x + boxWidth / 2.0f, liveVisuals.screenPos.y);
+        liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y - boxHeight / 2.0f);
+    }
+    
+    return liveVisuals;
+}
 
 void ESPStageRenderer::RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData) {
-    // This loop now runs every frame.
     for (const auto& item : frameData.finalizedEntities) {
         
-        // --- HIGH-FREQUENCY UPDATE ---
-        // 1. Re-project the entity's world position to get a fresh screen position.
-        glm::vec2 freshScreenPos;
-        if (!ESPMath::WorldToScreen(item.entity->position, context.camera, context.screenWidth, context.screenHeight, freshScreenPos)) {
-            continue; // Cull if off-screen this frame.
-        }
-
-        // 2. Make a mutable copy of the cached visual properties.
-        VisualProperties liveVisuals = item.visuals;
-
-        // 3. Overwrite the stale screen-space properties with fresh ones.
-        liveVisuals.screenPos = freshScreenPos;
+        // First, perform the high-frequency update to get live visual properties for this frame.
+        auto liveVisualsOpt = CalculateLiveVisuals(item, context);
         
-        // 4. Recalculate derived screen-space coordinates using the cached dimensions.
-        if (item.entity->entityType == ESPEntityType::Gadget) {
-            liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y);
-            liveVisuals.boxMin = ImVec2(liveVisuals.center.x - liveVisuals.circleRadius, liveVisuals.center.y - liveVisuals.circleRadius);
-            liveVisuals.boxMax = ImVec2(liveVisuals.center.x + liveVisuals.circleRadius, liveVisuals.center.y + liveVisuals.circleRadius);
-        } else {
-            float boxWidth = liveVisuals.boxMax.x - liveVisuals.boxMin.x;
-            float boxHeight = liveVisuals.boxMax.y - liveVisuals.boxMin.y;
+        // If the entity is on-screen, proceed with rendering.
+        if (liveVisualsOpt) {
+            // Create the cheap render context.
+            EntityRenderContext entityContext = CreateEntityRenderContextForRendering(item.entity, context);
             
-            liveVisuals.boxMin = ImVec2(liveVisuals.screenPos.x - boxWidth / 2.0f, liveVisuals.screenPos.y - boxHeight);
-            liveVisuals.boxMax = ImVec2(liveVisuals.screenPos.x + boxWidth / 2.0f, liveVisuals.screenPos.y);
-            liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y - boxHeight / 2.0f);
+            // Render using the fresh visual properties.
+            RenderEntityComponents(context, entityContext, *liveVisualsOpt);
         }
-        
-        // --- END OF HIGH-FREQUENCY UPDATE ---
-
-        // Create the cheap render context.
-        EntityRenderContext entityContext = CreateEntityRenderContextForRendering(item.entity, context);
-        
-        // Render using the LIVE visual properties, which are perfectly in sync with the camera.
-        RenderEntityComponents(context, entityContext, liveVisuals);
     }
 }
 
