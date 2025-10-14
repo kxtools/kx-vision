@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <chrono>
 #pragma comment(lib, "d3d11.lib")
 
 // Forward declarations to avoid circular dependencies
@@ -48,4 +49,8 @@ private:
     static void RenderHints();
 
     static bool m_isInitialized;
+
+    // NEW MEMBERS for UI-side timeout logic
+    static std::chrono::steady_clock::time_point m_connectingStartTime;
+    static bool m_isWaitingForConnection;
 };

@@ -27,6 +27,10 @@
 // Define static members
 bool ImGuiManager::m_isInitialized = false;
 
+// NEW MEMBERS for UI-side timeout logic
+std::chrono::steady_clock::time_point ImGuiManager::m_connectingStartTime;
+bool ImGuiManager::m_isWaitingForConnection = false;
+
 bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -84,25 +88,54 @@ void ImGuiManager::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, con
 
     RenderHints();
 
-    // Connection status with detailed information
-    bool isConnected = mumbleLinkManager.IsInitialized();
+    auto status = mumbleLinkManager.GetStatus();
     uint32_t mapId = mumbleLinkManager.mapId();
-    
-    if (isConnected && mumbleData) {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "MumbleLink Status: Connected");
-        
-        if (mapId != 0) {
-            ImGui::SameLine();
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "| In-Map");
-        } else {
-            ImGui::SameLine();
-            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "| Waiting for map...");
-        }
-    } else {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "MumbleLink Status: Disconnected");
+
+    switch (status) {
+        case kx::MumbleLinkManager::MumbleStatus::Connected:
+            m_isWaitingForConnection = false; // We are connected, so reset the timer flag.
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "MumbleLink Status: Connected");
+            if (mapId != 0) {
+                ImGui::SameLine(); ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "| In-Map");
+            } else {
+                ImGui::SameLine(); ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "| Waiting for map...");
+            }
+            break;
+
+        case kx::MumbleLinkManager::MumbleStatus::Connecting:
+            if (!m_isWaitingForConnection) {
+                // This is the first frame we've been in the "Connecting" state. Start the timer.
+                m_isWaitingForConnection = true;
+                m_connectingStartTime = std::chrono::steady_clock::now();
+            }
+
+            // Check if the timer has expired.
+            if (std::chrono::steady_clock::now() - m_connectingStartTime > std::chrono::seconds(15)) {
+                // Timer expired. We are in the "Stale" state from the UI's perspective.
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "MumbleLink Status: Connection Failed");
+                ImGui::Separator();
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
+                ImGui::TextWrapped("The tool is connected but not receiving live data. This commonly happens when using Gw2Launcher with a custom 'Mumble link name'.");
+                ImGui::Spacing();
+                ImGui::Text("SOLUTION:");
+                ImGui::BulletText("In Gw2Launcher, open the settings for your account.");
+                ImGui::BulletText("Find the 'Mumble link name' option.");
+                ImGui::BulletText("Uncheck the box to disable it and use the default name.");
+                ImGui::PopStyleColor();
+            } else {
+                // Timer has not expired. Show a generic connecting/disconnected message.
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "MumbleLink Status: Connecting...");
+            }
+            break;
+            
+        case kx::MumbleLinkManager::MumbleStatus::Disconnected:
+        default:
+            m_isWaitingForConnection = false; // Reset the timer flag.
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "MumbleLink Status: Disconnected");
+            break;
     }
     
-    ImGui::Separator(); // Add a separator for visual clarity
+    ImGui::Separator();
 
     if (ImGui::BeginTabBar("##ESPCategories")) {
 	    kx::GUI::RenderPlayersTab();

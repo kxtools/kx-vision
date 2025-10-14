@@ -9,12 +9,19 @@ namespace kx {
 
 class MumbleLinkManager {
 public:
+    enum class MumbleStatus {
+        Disconnected,
+        Connecting,  // File is mapped, but header is invalid.
+        Connected    // File is mapped, and header is valid.
+    };
+
     MumbleLinkManager();
     ~MumbleLinkManager();
 
     void Update();
     const MumbleLinkData* GetData() const { return m_mumbleLink; }
-    bool IsInitialized() const { return m_mumbleLinkInitialized; }
+    bool IsInitialized() const { return m_status == MumbleStatus::Connected; }
+    MumbleStatus GetStatus() const { return m_status; }
 
     // ====== Helper Methods ======
     
@@ -75,7 +82,9 @@ private:
 
     HANDLE m_mumbleLinkFile = nullptr;
     MumbleLinkData* m_mumbleLink = nullptr;
-    bool m_mumbleLinkInitialized = false;
+    
+    MumbleStatus m_status = MumbleStatus::Disconnected;
+    
     std::chrono::steady_clock::time_point m_lastMumbleRetryTime;
     const std::chrono::milliseconds MumbleRetryInterval = std::chrono::seconds(5);
     uint32_t m_lastTick = 0;

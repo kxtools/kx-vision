@@ -25,6 +25,7 @@ bool MumbleLinkManager::Initialize() {
     );
 
     if (m_mumbleLinkFile == NULL) {
+        m_status = MumbleStatus::Disconnected;
         return false;
     }
 
@@ -39,42 +40,49 @@ bool MumbleLinkManager::Initialize() {
     if (m_mumbleLink == NULL) {
         CloseHandle(m_mumbleLinkFile);
         m_mumbleLinkFile = nullptr;
+        m_status = MumbleStatus::Disconnected;
         return false;
     }
 
-    m_mumbleLinkInitialized = true;
+    // On success, we just report that we have a mapped file.
+    // We don't know if it's valid yet.
+    m_status = MumbleStatus::Connecting;
     return true;
 }
 
 void MumbleLinkManager::Update() {
-    if (!m_mumbleLinkInitialized) {
+    if (!m_mumbleLink) {
+        m_status = MumbleStatus::Disconnected;
         auto now = std::chrono::steady_clock::now();
         if (now - m_lastMumbleRetryTime >= MumbleRetryInterval) {
             m_lastMumbleRetryTime = now;
-            if (!Initialize()) {
-                return;
-            }
-        } else {
-            return;
+            Initialize();
         }
+        return;
     }
 
-    // 1. Validate the basic MumbleLink data (uiVersion and game name).
-    //    If invalid, we stop processing this frame.
-    if (m_mumbleLink->uiVersion != 2 ||
-        std::wcscmp(m_mumbleLink->name, GW2_GAME_NAME) != 0) {
-        return; 
-    }
+    // The definitive check on every frame, as requested.
+    bool isHeaderValid = (m_mumbleLink->uiVersion == 2 && std::wcscmp(m_mumbleLink->name, GW2_GAME_NAME) == 0);
 
-    // 2. If the data is valid, update m_lastTick if the uiTick has advanced.
-    //    This is for internal tracking of MumbleLink's own tick counter.
-    //    Crucially, the function DOES NOT return here if uiTick hasn't changed.
-    //    The actual camera/avatar data (m_mumbleLink) is always available via GetData().
-    if (m_mumbleLink->uiTick != m_lastTick) {
-        m_lastTick = m_mumbleLink->uiTick;
-        
-        // Parse identity data when tick changes (indicates new data)
-        ParseIdentity();
+    if (isHeaderValid) {
+        m_status = MumbleStatus::Connected;
+        if (m_mumbleLink->uiTick != m_lastTick) {
+            m_lastTick = m_mumbleLink->uiTick;
+            ParseIdentity();
+        }
+    } else {
+        // Header is invalid.
+        if (m_status == MumbleStatus::Connected) {
+            // If we were connected, it means the game just closed. Disconnect fully.
+            m_status = MumbleStatus::Disconnected;
+            CloseHandle(m_mumbleLinkFile);
+            m_mumbleLinkFile = nullptr;
+            m_mumbleLink = nullptr;
+        } else {
+            // Otherwise, we are connected to a file, but it has no valid game data.
+            // This is the "Connecting" state. The GUI will handle what to do with it.
+            m_status = MumbleStatus::Connecting;
+        }
     }
 }
 
