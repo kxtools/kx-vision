@@ -22,10 +22,6 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
     
     details.reserve(16); // Future-proof: generous reserve for adding new fields
 
-    if (settings.showDetailName && !player->playerName.empty()) {
-        details.push_back({ "Player: " + player->playerName, ESPColors::DEFAULT_TEXT });
-    }
-
     if (settings.showDetailLevel && player->level > 0) {
         std::string levelText = "Level: " + std::to_string(player->level);
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {

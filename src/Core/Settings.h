@@ -55,7 +55,6 @@ namespace kx {
 		bool showDetailRank = true;
 		bool showDetailProfession = true;
 		bool showDetailRace = true;
-		bool showDetailName = true;
     };
 
     struct NpcEspSettings : AttitudeSettings {

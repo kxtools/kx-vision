@@ -59,8 +59,6 @@ namespace kx {
                         ImGui::Separator();
                         if (ImGui::CollapsingHeader("Player Details Filter"))
                         {
-							ImGui::Checkbox("Name", &settings.playerESP.showDetailName);
-							ImGui::SameLine();
 							ImGui::Checkbox("Level", &settings.playerESP.showDetailLevel);
                             ImGui::SameLine();
                             ImGui::Checkbox("Prof", &settings.playerESP.showDetailProfession);
