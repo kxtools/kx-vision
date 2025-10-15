@@ -26,6 +26,7 @@ public:
      */
     static void RenderPlayerName(ImDrawList* drawList, const glm::vec2& feetPos,
                                 const std::string& playerName, unsigned int entityColor, float fontSize);
+    static void RenderPlayerNameAt(ImDrawList* drawList, const glm::vec2& position, const std::string& playerName, unsigned int entityColor, float fontSize);
 
     /**
      * @brief Render distance text above an entity
@@ -38,6 +39,7 @@ public:
      */
     static void RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin,
                                   float distance, float fadeAlpha, float fontSize);
+    static void RenderDistanceTextAt(ImDrawList* drawList, const glm::vec2& position, float distance, float fadeAlpha, float fontSize);
 
     /**
      * @brief Render details text below an entity
@@ -50,6 +52,7 @@ public:
      */
     static void RenderDetailsText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMax,
                                  const std::vector<ColoredDetail>& details, float fadeAlpha, float fontSize);
+    static void RenderDetailsTextAt(ImDrawList* drawList, const glm::vec2& position, const std::vector<ColoredDetail>& details, float fadeAlpha, float fontSize);
 
     /**
      * @brief Render a compact gear summary below a player name
@@ -61,6 +64,7 @@ public:
      */
     static void RenderGearSummary(ImDrawList* drawList, const glm::vec2& feetPos,
                                  const std::vector<CompactStatInfo>& summary, float fadeAlpha, float fontSize);
+    static void RenderGearSummaryAt(ImDrawList* drawList, const glm::vec2& position, const std::vector<CompactStatInfo>& summary, float fadeAlpha, float fontSize);
 
     /**
      * @brief Render dominant stats display below a player
@@ -74,6 +78,7 @@ public:
                                    const std::vector<DominantStat>& stats,
                                    Game::ItemRarity topRarity,
                                    float fadeAlpha, float fontSize);
+    static void RenderDominantStatsAt(ImDrawList* drawList, const glm::vec2& position, const std::vector<DominantStat>& stats, Game::ItemRarity topRarity, float fadeAlpha, float fontSize);
 };
 
 } // namespace kx

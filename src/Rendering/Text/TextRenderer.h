@@ -44,6 +44,13 @@ public:
      * @param elements Vector of text elements to render
      */
     static void RenderBatch(ImDrawList* drawList, const std::vector<TextElement>& elements);
+
+    /**
+     * @brief Calculate the total size of a text element, including padding
+     * @param element The text element to measure
+     * @return The total size (width, height) as an ImVec2
+     */
+    static ImVec2 CalculateSize(const TextElement& element);
     
 private:
     /**

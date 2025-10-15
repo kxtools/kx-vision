@@ -76,6 +76,39 @@ void TextRenderer::RenderBatch(ImDrawList* drawList, const std::vector<TextEleme
     }
 }
 
+ImVec2 TextRenderer::CalculateSize(const TextElement& element) {
+    const auto& lines = element.GetLines();
+    if (lines.empty()) {
+        return ImVec2(0, 0);
+    }
+
+    const auto& style = element.GetStyle();
+    ImFont* font = ImGui::GetFont();
+
+    float maxWidth = 0.0f;
+    float totalHeight = 0.0f;
+
+    for (const auto& line : lines) {
+        float lineWidth = CalculateLineWidth(line, style.fontSize);
+        if (lineWidth > maxWidth) {
+            maxWidth = lineWidth;
+        }
+        float lineHeight = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, " ").y;
+        totalHeight += lineHeight;
+    }
+
+    if (lines.size() > 1) {
+        totalHeight += element.GetLineSpacing() * (lines.size() - 1);
+    }
+
+    if (style.enableBackground) {
+        maxWidth += style.backgroundPadding.x * 2;
+        totalHeight += style.backgroundPadding.y * 2;
+    }
+
+    return ImVec2(maxWidth, totalHeight);
+}
+
 ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWidth, float totalHeight,
                                            int lineIndex, float lineHeight, TextAnchor positioning,
                                            const glm::vec2& customOffset, TextAlignment alignment,
@@ -95,6 +128,9 @@ ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWi
             break;
         case TextAnchor::Custom:
             pos.y = anchor.y + customOffset.y;
+            break;
+        case TextAnchor::AbsoluteTopLeft:
+            pos.y = anchor.y;
             break;
     }
     

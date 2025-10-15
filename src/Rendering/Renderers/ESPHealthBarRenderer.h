@@ -16,7 +16,7 @@ namespace kx {
     class ESPHealthBarRenderer {
     public:
         static void RenderStandaloneHealthBar(ImDrawList* drawList,
-            const glm::vec2& centerPos,
+            const glm::vec2& barTopLeftPosition,
             const EntityRenderContext& context,
             unsigned int entityColor,
             float barWidth,
@@ -24,7 +24,7 @@ namespace kx {
             float fontSize);
 
         static void RenderStandaloneEnergyBar(ImDrawList* drawList,
-            const glm::vec2& centerPos,
+            const glm::vec2& barTopLeftPosition,
             float energyPercent,
             float fadeAlpha,
             float barWidth,

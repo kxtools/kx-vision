@@ -32,6 +32,7 @@ public:
      */
     static TextElement CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
         unsigned int entityColor, float fadeAlpha, float fontSize);
+    static TextElement CreatePlayerNameAt(const std::string& playerName, const glm::vec2& position, unsigned int entityColor, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a distance text element (shown above entity)
@@ -42,6 +43,7 @@ public:
      * @return Styled text element
      */
     static TextElement CreateDistanceText(float distance, const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
+    static TextElement CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a details text element (multi-line colored details)
@@ -53,6 +55,7 @@ public:
      */
     static TextElement CreateDetailsText(const std::vector<ColoredDetail>& details,
                                         const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
+    static TextElement CreateDetailsTextAt(const std::vector<ColoredDetail>& details, const glm::vec2& position, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a gear summary text element (multi-colored stat summary)
@@ -64,6 +67,7 @@ public:
      */
     static TextElement CreateGearSummary(const std::vector<CompactStatInfo>& summary,
                                         const glm::vec2& feetPos, float fadeAlpha, float fontSize);
+    static TextElement CreateGearSummaryAt(const std::vector<CompactStatInfo>& summary, const glm::vec2& position, float fadeAlpha, float fontSize);
     
     /**
      * @brief Create a dominant stats text element
@@ -76,6 +80,7 @@ public:
     static TextElement CreateDominantStats(const std::vector<DominantStat>& stats,
                                           Game::ItemRarity topRarity,
                                           const glm::vec2& feetPos, float fadeAlpha, float fontSize);
+    static TextElement CreateDominantStatsAt(const std::vector<DominantStat>& stats, Game::ItemRarity topRarity, const glm::vec2& position, float fadeAlpha, float fontSize);
     
     static TextElement CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
 

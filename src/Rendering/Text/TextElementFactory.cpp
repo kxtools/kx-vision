@@ -10,7 +10,7 @@ namespace kx {
 
 TextElement TextElementFactory::CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
     unsigned int entityColor, float fadeAlpha, float fontSize) {
-    TextElement element(playerName, feetPos, glm::vec2(0.0f, RenderingLayout::PLAYER_NAME_Y_OFFSET));
+    TextElement element(playerName, {0,0});
     element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize));
     return element;
 }
@@ -19,15 +19,25 @@ TextElement TextElementFactory::CreateDistanceText(float distance, const glm::ve
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(1) << distance << "m";
     
-    TextElement element(oss.str(), anchorPos, glm::vec2(0.0f, -RenderingLayout::DISTANCE_TEXT_Y_OFFSET));
+    TextElement element(oss.str(), {0,0});
     element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize));
+    return element;
+}
+
+TextElement TextElementFactory::CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize) {
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(1) << distance << "m";
+    
+    TextElement element(oss.str(), position, TextAnchor::AbsoluteTopLeft);
+    element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize));
+    element.SetAlignment(TextAlignment::Center);
     return element;
 }
 
 TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetail>& details,
                                                   const glm::vec2& anchorPos, float fadeAlpha, float fontSize) {
     if (details.empty()) {
-        return TextElement("", anchorPos);
+        return TextElement("", {0,0});
     }
     
     // Convert ColoredDetail to text lines with colors
@@ -37,9 +47,7 @@ TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetai
         lines.push_back({TextSegment(detail.text, detail.color)});
     }
     
-    // Position below anchor with proper offset
-    glm::vec2 adjustedAnchor(anchorPos.x, anchorPos.y + RenderingLayout::DETAILS_TEXT_Y_OFFSET);
-    TextElement element(lines, adjustedAnchor, TextAnchor::Custom);
+    TextElement element(lines, {0,0});
     
     TextStyle style = GetDetailsStyle(fadeAlpha, fontSize);
     element.SetStyle(style);
@@ -51,7 +59,7 @@ TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetai
 TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatInfo>& summary,
                                                   const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
     if (summary.empty()) {
-        return TextElement("", feetPos);
+        return TextElement("", {0,0});
     }
     
     // Build multi-colored segments
@@ -77,9 +85,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
         }
     }
     
-    // Position below feet with proper offset
-    glm::vec2 adjustedPos(feetPos.x, feetPos.y + RenderingLayout::SUMMARY_Y_OFFSET);
-    TextElement element(segments, adjustedPos, TextAnchor::Custom);
+    TextElement element(segments, {0,0});
     
     TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
     style.useCustomTextColor = true;  // Enable per-segment colors
@@ -92,7 +98,7 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
                                                     Game::ItemRarity topRarity, // topRarity is no longer used for coloring, but kept for signature compatibility
                                                     const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
     if (stats.empty()) {
-        return TextElement("", feetPos);
+        return TextElement("", {0,0});
     }
 
     // Build multi-colored segments for the summary
@@ -117,9 +123,7 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
 
     segments.push_back(TextSegment("]", ESPColors::SUMMARY_TEXT_RGB));
     
-    // Position below feet with proper offset
-    glm::vec2 adjustedPos(feetPos.x, feetPos.y + RenderingLayout::SUMMARY_Y_OFFSET);
-    TextElement element(segments, adjustedPos, TextAnchor::Custom);
+    TextElement element(segments, {0,0});
 
     TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
     style.useCustomTextColor = true; // IMPORTANT: Enable per-segment coloring
@@ -143,6 +147,103 @@ TextElement TextElementFactory::CreateDamageNumber(const std::string& number, co
     style.enableBackground = false; // No background, just the number
 
     element.SetStyle(style);
+    return element;
+}
+
+TextElement TextElementFactory::CreatePlayerNameAt(const std::string& playerName, const glm::vec2& position, 
+    unsigned int entityColor, float fadeAlpha, float fontSize) {
+    TextElement element(playerName, position, TextAnchor::AbsoluteTopLeft);
+    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize));
+    element.SetAlignment(TextAlignment::Center);
+    return element;
+}
+
+TextElement TextElementFactory::CreateDetailsTextAt(const std::vector<ColoredDetail>& details, const glm::vec2& position, 
+                                                  float fadeAlpha, float fontSize) {
+    if (details.empty()) {
+        return TextElement("", position, TextAnchor::AbsoluteTopLeft);
+    }
+    
+    std::vector<std::vector<TextSegment>> lines;
+    for (const auto& detail : details) {
+        lines.push_back({TextSegment(detail.text, detail.color)});
+    }
+    
+    TextElement element(lines, position, TextAnchor::AbsoluteTopLeft);
+    
+    TextStyle style = GetDetailsStyle(fadeAlpha, fontSize);
+    element.SetStyle(style);
+    element.SetLineSpacing(RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+    element.SetAlignment(TextAlignment::Center);
+    
+    return element;
+}
+
+TextElement TextElementFactory::CreateGearSummaryAt(const std::vector<CompactStatInfo>& summary, const glm::vec2& position, 
+                                                  float fadeAlpha, float fontSize) {
+    if (summary.empty()) {
+        return TextElement("", position, TextAnchor::AbsoluteTopLeft);
+    }
+    
+    std::vector<TextSegment> segments;
+    segments.push_back(TextSegment("Stats: ", ESPColors::SUMMARY_TEXT_RGB));
+    
+    for (size_t i = 0; i < summary.size(); ++i) {
+        const auto& info = summary[i];
+        
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(0) << info.percentage << "% " << info.statName;
+        std::string segment = oss.str();
+
+        ImU32 rarityColor = ESPStyling::GetRarityColor(info.highestRarity);
+        segments.push_back(TextSegment(segment, rarityColor));
+        
+        if (i < summary.size() - 1) {
+            segments.push_back(TextSegment(", ", ESPColors::SUMMARY_TEXT_RGB));
+        }
+    }
+    
+    TextElement element(segments, position, TextAnchor::AbsoluteTopLeft);
+    
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
+    style.useCustomTextColor = true;
+    element.SetStyle(style);
+    element.SetAlignment(TextAlignment::Center);
+    
+    return element;
+}
+
+TextElement TextElementFactory::CreateDominantStatsAt(const std::vector<DominantStat>& stats, Game::ItemRarity topRarity, 
+                                                    const glm::vec2& position, float fadeAlpha, float fontSize) {
+    if (stats.empty()) {
+        return TextElement("", position, TextAnchor::AbsoluteTopLeft);
+    }
+
+    std::vector<TextSegment> segments;
+    segments.push_back(TextSegment("[", ESPColors::SUMMARY_TEXT_RGB));
+
+    for (size_t i = 0; i < stats.size(); ++i) {
+        const auto& stat = stats[i];
+
+        std::ostringstream oss;
+        oss << stat.name << " " << std::fixed << std::setprecision(0) << stat.percentage << "%";
+        
+        segments.push_back(TextSegment(oss.str(), stat.color));
+
+        if (i < stats.size() - 1) {
+            segments.push_back(TextSegment(" | ", ESPColors::SUMMARY_TEXT_RGB));
+        }
+    }
+
+    segments.push_back(TextSegment("]", ESPColors::SUMMARY_TEXT_RGB));
+    
+    TextElement element(segments, position, TextAnchor::AbsoluteTopLeft);
+
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
+    style.useCustomTextColor = true;
+    element.SetStyle(style);
+    element.SetAlignment(TextAlignment::Center);
+    
     return element;
 }
 

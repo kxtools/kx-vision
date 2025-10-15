@@ -203,7 +203,7 @@ namespace kx {
     // Public API
     // -----------------------------------------------------------------------------
     void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList,
-        const glm::vec2& centerPos,
+        const glm::vec2& barTopLeftPosition,
         const EntityRenderContext& context,
         unsigned int entityColor,
         float barWidth,
@@ -217,9 +217,8 @@ namespace kx {
         if (fadeAlpha <= 0.f) return; // Exit if NOTHING is visible
 
         // Geometry
-        const float yOffset = RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET;
-        ImVec2 barMin(centerPos.x - barWidth * 0.5f, centerPos.y + yOffset);
-        ImVec2 barMax(centerPos.x + barWidth * 0.5f, barMin.y + barHeight);
+        ImVec2 barMin(barTopLeftPosition.x, barTopLeftPosition.y);
+        ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
 
         // Background
         unsigned int bgAlpha =
@@ -363,7 +362,7 @@ namespace kx {
     }
 
     void ESPHealthBarRenderer::RenderStandaloneEnergyBar(ImDrawList* drawList,
-        const glm::vec2& centerPos,
+        const glm::vec2& barTopLeftPosition,
         float energyPercent,
         float fadeAlpha,
         float barWidth,
@@ -371,10 +370,8 @@ namespace kx {
         float healthBarHeight) {
         if (energyPercent < 0.0f || energyPercent > 1.0f) return;
 
-        const float yOffset =
-            RenderingLayout::STANDALONE_HEALTH_BAR_Y_OFFSET + healthBarHeight + 2.0f; // 2px gap below health bar
-        ImVec2 barMin(centerPos.x - barWidth * 0.5f, centerPos.y + yOffset);
-        ImVec2 barMax(centerPos.x + barWidth * 0.5f, barMin.y + barHeight);
+        ImVec2 barMin(barTopLeftPosition.x, barTopLeftPosition.y);
+        ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
 
         // Background
         unsigned int bgAlpha =

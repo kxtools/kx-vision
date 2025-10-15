@@ -82,6 +82,10 @@ namespace ScreenCulling {
  * and industry-standard UI spacing. All alpha values use 0-255 range.
  */
 namespace RenderingLayout {
+    // Layout
+    constexpr float ELEMENT_MARGIN_VERTICAL = 4.0f; // Spacing between stacked elements
+    constexpr float REGION_MARGIN_VERTICAL = 8.0f;  // Spacing between the box and the first element
+
     // Common (base rendering elements)
     constexpr float TEXT_SHADOW_OFFSET = 1.0f;       // 1px shadow for crisp text readability
     constexpr float DOT_RADIUS_MULTIPLIER = 0.8f;    // 80% of base radius (2.4px from 3px base)
@@ -96,7 +100,6 @@ namespace RenderingLayout {
     constexpr float STANDALONE_HEALTH_BAR_BORDER_ALPHA = 100.0f;     // ~39% opacity (subtle)
 
     // Player Name (above entity, prominent label)
-    constexpr float PLAYER_NAME_Y_OFFSET = 22.0f;             // 22px above entity (reduced from 25px)
     constexpr float PLAYER_NAME_BG_PADDING_X = 4.0f;          // 4px horizontal padding
     constexpr float PLAYER_NAME_BG_PADDING_Y = 2.0f;          // 2px vertical padding
     constexpr float PLAYER_NAME_BG_ROUNDING = 3.0f;           // 3px rounded corners
@@ -110,7 +113,6 @@ namespace RenderingLayout {
     constexpr float BOX_CORNER_SIZE_MULTIPLIER = 4.0f;        // Corner length = thickness × 4 (8px at 2px thick)
 
     // Distance Text (compact metric label)
-    constexpr float DISTANCE_TEXT_Y_OFFSET = 15.0f;           // 15px gap from anchor (clean separation from box)
     constexpr float DISTANCE_TEXT_BG_PADDING_X = 3.0f;        // 3px horizontal padding (increased from 2px)
     constexpr float DISTANCE_TEXT_BG_PADDING_Y = 1.0f;        // 1px vertical padding (compact)
     constexpr float DISTANCE_TEXT_BG_ROUNDING = 2.0f;         // 2px rounded corners
@@ -119,7 +121,6 @@ namespace RenderingLayout {
     constexpr float DISTANCE_TEXT_TEXT_ALPHA = 220.0f;        // ~86% opacity (clear text)
 
     // Details Text (multi-line entity information)
-    constexpr float DETAILS_TEXT_Y_OFFSET = 5.0f;             // 5px gap from anchor
     constexpr float DETAILS_TEXT_BG_PADDING_X = 4.0f;         // 4px horizontal padding (increased from 3px)
     constexpr float DETAILS_TEXT_BG_PADDING_Y = 2.0f;         // 2px vertical padding (increased from 1px)
     constexpr float DETAILS_TEXT_BG_ROUNDING = 2.0f;          // 2px rounded corners (increased from 1px)
@@ -128,7 +129,6 @@ namespace RenderingLayout {
     constexpr float DETAILS_TEXT_SHADOW_ALPHA = 180.0f;       // ~71% opacity (strong shadow)
 
     // Compact Summary Views (gear display, stat summaries)
-    constexpr float SUMMARY_Y_OFFSET = 40.0f;                 // 40px below entity (reduced from 45px)
     constexpr float SUMMARY_BG_PADDING_X = 5.0f;              // 5px horizontal padding (increased from 4px)
     constexpr float SUMMARY_BG_PADDING_Y = 3.0f;              // 3px vertical padding (increased from 2px)
     constexpr float SUMMARY_BG_ROUNDING = 3.0f;               // 3px rounded corners

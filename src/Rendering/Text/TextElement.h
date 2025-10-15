@@ -15,7 +15,8 @@ enum class TextAnchor {
     Above,      // Above the anchor point (e.g., distance text above box)
     Below,      // Below the anchor point (e.g., details below box)
     Center,     // Centered on the anchor point
-    Custom      // Use custom offset from anchor
+    Custom,     // Use custom offset from anchor
+    AbsoluteTopLeft // Absolute top-left position
 };
 
 /**
