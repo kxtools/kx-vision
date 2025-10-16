@@ -29,10 +29,10 @@ namespace kx {
             std::ofstream file(path);
             nlohmann::json j = settings;
             file << j.dump(4);
-            LOG_INFO("Settings saved to {}", path.string());
+            LOG_INFO("Settings saved to %s", path.u8string().c_str());
         }
         catch (const std::exception& e) {
-            LOG_ERROR("Failed to save settings: {}", e.what());
+            LOG_ERROR("Failed to save settings: %s", e.what());
         }
     }
 
@@ -50,15 +50,15 @@ namespace kx {
 
             int fileVersion = j.value("settingsVersion", 0);
             if (fileVersion != CURRENT_SETTINGS_VERSION) {
-                LOG_WARN("Settings file version mismatch (file: {}, current: {}). Using default settings.", fileVersion, CURRENT_SETTINGS_VERSION);
+                LOG_WARN("Settings file version mismatch (file: %d, current: %d). Using default settings.", fileVersion, CURRENT_SETTINGS_VERSION);
                 return;
             }
 
             j.get_to(settings);
-            LOG_INFO("Settings loaded from {}", path.string());
+            LOG_INFO("Settings loaded from %s", path.u8string().c_str());
         }
         catch (const std::exception& e) {
-            LOG_ERROR("Failed to load settings: {}. Using default settings.", e.what());
+            LOG_ERROR("Failed to load settings: %s. Using default settings.", e.what());
             settings = Settings(); // Reset to default
         }
     }
