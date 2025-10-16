@@ -2,81 +2,69 @@
 #include "../../../libs/ImGui/imgui.h"
 #include <string>
 
-// A local helper to encapsulate the ImGui ID generation, cleaning up the main function.
-static void CheckboxWithId(const char* label, const char* categoryName, bool* value, const char* tooltip = nullptr) {
-    // This creates a unique ID like "Show Box##Players" to prevent ImGui ID collisions.
-    std::string id_label = std::string(label) + "##" + std::string(categoryName);
-    ImGui::Checkbox(id_label.c_str(), value);
-    if (tooltip && ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(tooltip);
-    }
-}
-
 namespace kx {
     namespace GUI {
 
-        void RenderCategoryStyleSettings(const char* categoryName,
-            bool& renderBox,
-            bool& renderDistance,
-            bool& renderDot,
-            bool* renderHealthBar,
-            bool* renderEnergyBar,
-            bool* renderDetails,
-            bool* renderPlayerName,
-            bool* showBurstDps,
-            bool* showDamageNumbers,
-            bool* showOnlyDamaged,
-            bool* showHealthPercentage) {
-            if (ImGui::CollapsingHeader(categoryName, ImGuiTreeNodeFlags_DefaultOpen)) {
-                // Group 1: Core geometric visuals. These are fundamental.
-                ImGui::SeparatorText("Core Visuals");
+        void RenderPlayerStyleSettings(PlayerEspSettings& settings) {
+            ImGui::SeparatorText("Core Visuals");
+            ImGui::Checkbox("Show Box##Player", &settings.renderBox); ImGui::SameLine();
+            ImGui::Checkbox("Show Dot##Player", &settings.renderDot); ImGui::SameLine();
+            ImGui::Checkbox("Show Distance##Player", &settings.renderDistance);
 
-                CheckboxWithId("Show Box", categoryName, &renderBox, nullptr);
-                ImGui::SameLine(150); // Use a fixed position for clean alignment
-                CheckboxWithId("Show Distance", categoryName, &renderDistance, nullptr);
-                ImGui::SameLine(300); // Use a fixed position for clean alignment
-                CheckboxWithId("Show Dot", categoryName, &renderDot, nullptr);
-
-                // Check if there are any informational overlays to show.
-                // If not, we don't even render the separator, keeping the UI clean.
-                bool hasInfoOverlays = (renderHealthBar || renderDetails || renderPlayerName || showBurstDps || showDamageNumbers || showHealthPercentage);
-
-                if (hasInfoOverlays) {
-                    // Group 2: Informational text and data overlays.
-                    ImGui::SeparatorText("Informational Overlays");
-
-                    if (renderHealthBar) {
-                        CheckboxWithId("Show Health Bar", categoryName, renderHealthBar, nullptr);
-                        if (*renderHealthBar) { // Only show sub-options if the bar is enabled
-                            ImGui::SameLine();
-                            if (showHealthPercentage) { // Check if the pointer is valid
-                                CheckboxWithId("Show %", categoryName, showHealthPercentage, "Show health percentage text on the bar.");
-                            }
-                            if (showOnlyDamaged) {
-                                ImGui::SameLine();
-                                CheckboxWithId("Only show damaged", categoryName, showOnlyDamaged, "Only show entities that are not at 100%% health.");
-                            }
-                        }
-                    }
-                    if (showDamageNumbers) {
-                        CheckboxWithId("Show Damage Numbers", categoryName, showDamageNumbers, "Displays floating combat text for incoming damage.");
-                    }
-                    if (showBurstDps) {
-                        ImGui::SameLine();
-                        CheckboxWithId("Show Burst DPS", categoryName, showBurstDps, "Displays the real-time burst DPS a target is taking from all sources. Ideal for tracking burn phases and overall damage pressure.");
-                    }
-
-                    if (renderEnergyBar) {
-                        CheckboxWithId("Show Energy Bar", categoryName, renderEnergyBar, nullptr);
-                    }
-                    if (renderPlayerName) {
-                        CheckboxWithId("Show Player Name", categoryName, renderPlayerName, nullptr);
-                    }
-                    if (renderDetails) {
-                        CheckboxWithId("Show Details", categoryName, renderDetails, nullptr);
-                    }
-                }
+            ImGui::SeparatorText("Status Bars");
+            ImGui::Checkbox("Show Health Bar##Player", &settings.renderHealthBar);
+            if (settings.renderHealthBar) {
+                ImGui::SameLine();
+                ImGui::Checkbox("Show %##Player", &settings.showHealthPercentage); ImGui::SameLine();
+                ImGui::Checkbox("Only show damaged##Player", &settings.showOnlyDamaged);
             }
+            ImGui::Checkbox("Show Energy Bar##Player", &settings.renderEnergyBar);
+
+            ImGui::SeparatorText("Text & Labels");
+            ImGui::Checkbox("Show Player Name##Player", &settings.renderPlayerName);
+
+            ImGui::SeparatorText("Floating Combat Text");
+            ImGui::Checkbox("Show Damage Numbers##Player", &settings.showDamageNumbers); ImGui::SameLine();
+            ImGui::Checkbox("Show Burst DPS##Player", &settings.showBurstDps);
+        }
+
+        void RenderNpcStyleSettings(NpcEspSettings& settings) {
+            ImGui::SeparatorText("Core Visuals");
+            ImGui::Checkbox("Show Box##NPC", &settings.renderBox); ImGui::SameLine();
+            ImGui::Checkbox("Show Dot##NPC", &settings.renderDot); ImGui::SameLine();
+            ImGui::Checkbox("Show Distance##NPC", &settings.renderDistance);
+
+            ImGui::SeparatorText("Status Bars");
+            ImGui::Checkbox("Show Health Bar##NPC", &settings.renderHealthBar);
+            if (settings.renderHealthBar) {
+                ImGui::SameLine();
+                ImGui::Checkbox("Show %##NPC", &settings.showHealthPercentage); ImGui::SameLine();
+                ImGui::Checkbox("Only show damaged##NPC", &settings.showOnlyDamaged);
+            }
+
+            ImGui::SeparatorText("Floating Combat Text");
+            ImGui::Checkbox("Show Damage Numbers##NPC", &settings.showDamageNumbers); ImGui::SameLine();
+            ImGui::Checkbox("Show Burst DPS##NPC", &settings.showBurstDps);
+        }
+
+        void RenderObjectStyleSettings(ObjectEspSettings& settings) {
+            ImGui::SeparatorText("Core Visuals");
+            ImGui::Checkbox("2D Circle##Object", &settings.renderCircle); ImGui::SameLine();
+            ImGui::Checkbox("3D Sphere##Object", &settings.renderSphere); ImGui::SameLine();
+            ImGui::Checkbox("Show Dot##Object", &settings.renderDot); ImGui::SameLine();
+            ImGui::Checkbox("Show Distance##Object", &settings.renderDistance);
+
+            ImGui::SeparatorText("Status Bars");
+            ImGui::Checkbox("Show Health Bar##Object", &settings.renderHealthBar);
+            if (settings.renderHealthBar) {
+                ImGui::SameLine();
+                ImGui::Checkbox("Show %##Object", &settings.showHealthPercentage); ImGui::SameLine();
+                ImGui::Checkbox("Only show damaged##Object", &settings.showOnlyDamaged);
+            }
+
+            ImGui::SeparatorText("Floating Combat Text");
+            ImGui::Checkbox("Show Damage Numbers##Object", &settings.showDamageNumbers); ImGui::SameLine();
+            ImGui::Checkbox("Show Burst DPS##Object", &settings.showBurstDps);
         }
 
     } // namespace GUI

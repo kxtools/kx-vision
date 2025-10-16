@@ -1,4 +1,5 @@
 #include "ObjectsTab.h"
+#include "GuiHelpers.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
 #include <string>
@@ -40,7 +41,6 @@ namespace kx {
                 ImGui::Checkbox("Enable Object ESP", &settings.objectESP.enabled);
 
                 if (settings.objectESP.enabled) {
-                    // This entire section is now collapsible by default.
                     if (ImGui::CollapsingHeader("Object Type Filters"))
                     {
                         ImGui::Indent();
@@ -48,98 +48,58 @@ namespace kx {
                         const float column1 = 180.0f;
                         const float column2 = 360.0f;
 
-                        // --- Filter Checkboxes (organized into groups) ---
-                        CheckboxWithTooltip("Waypoints", "Objects", &settings.objectESP.showWaypoints, "Show map waypoints.");
-                        ImGui::SameLine(column1);
-                        CheckboxWithTooltip("Vistas", "Objects", &settings.objectESP.showVistas, "Show vista locations.");
-                        ImGui::SameLine(column2);
+                        CheckboxWithTooltip("Waypoints", "Objects", &settings.objectESP.showWaypoints, "Show map waypoints."); ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Vistas", "Objects", &settings.objectESP.showVistas, "Show vista locations."); ImGui::SameLine(column2);
                         CheckboxWithTooltip("Portals", "Objects", &settings.objectESP.showPortals, "Show map portals and other teleporters.");
-                        // ... (all other checkbox groups remain the same) ...
-                        CheckboxWithTooltip("Resource Nodes", "Objects", &settings.objectESP.showResourceNodes, "Show ore, wood, and plant gathering nodes.");
-                        ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Resource Nodes", "Objects", &settings.objectESP.showResourceNodes, "Show ore, wood, and plant gathering nodes."); ImGui::SameLine(column1);
                         CheckboxWithTooltip("Crafting Stations", "Objects", &settings.objectESP.showCraftingStations, "Show all crafting disciplines.");
-                        CheckboxWithTooltip("Attack Targets", "Objects", &settings.objectESP.showAttackTargets, "Show world bosses, event structures, and siege targets.");
-                        ImGui::SameLine(column1);
-                        CheckboxWithTooltip("Player Created", "Objects", &settings.objectESP.showPlayerCreated, "Show player-built siege, banners, and other objects.");
-                        ImGui::SameLine(column2);
+                        CheckboxWithTooltip("Attack Targets", "Objects", &settings.objectESP.showAttackTargets, "Show world bosses, event structures, and siege targets."); ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Player Created", "Objects", &settings.objectESP.showPlayerCreated, "Show player-built siege, banners, and other objects."); ImGui::SameLine(column2);
                         CheckboxWithTooltip("Destructible", "Objects", &settings.objectESP.showDestructible, "Show destructible objects like training dummies or walls.");
-                        CheckboxWithTooltip("Build Sites", "Objects", &settings.objectESP.showBuildSites, "Show WvW siege build sites.");
-                        ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Build Sites", "Objects", &settings.objectESP.showBuildSites, "Show WvW siege build sites."); ImGui::SameLine(column1);
                         CheckboxWithTooltip("Control Points", "Objects", &settings.objectESP.showPoints, "Show PvP capture points.");
-                        CheckboxWithTooltip("Interactables", "Objects", &settings.objectESP.showInteractables, "Show chests, puzzles, and other general interactive objects.");
-                        ImGui::SameLine(column1);
-                        CheckboxWithTooltip("Doors", "Objects", &settings.objectESP.showDoors, "Show interactive doors and gates.");
-                        ImGui::SameLine(column2);
+                        CheckboxWithTooltip("Interactables", "Objects", &settings.objectESP.showInteractables, "Show chests, puzzles, and other general interactive objects."); ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Doors", "Objects", &settings.objectESP.showDoors, "Show interactive doors and gates."); ImGui::SameLine(column2);
                         CheckboxWithTooltip("Props", "Objects", &settings.objectESP.showProps, "Show miscellaneous props like anvils and jump pads.");
-                        CheckboxWithTooltip("Bounty Boards", "Objects", &settings.objectESP.showBountyBoards, "Show bounty and mission boards.");
-                        ImGui::SameLine(column1);
-                        CheckboxWithTooltip("Rifts", "Objects", &settings.objectESP.showRifts, "Show reality rifts from expansions.");
-                        ImGui::SameLine(column2);
+                        CheckboxWithTooltip("Bounty Boards", "Objects", &settings.objectESP.showBountyBoards, "Show bounty and mission boards."); ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Rifts", "Objects", &settings.objectESP.showRifts, "Show reality rifts from expansions."); ImGui::SameLine(column2);
                         CheckboxWithTooltip("Player Specific", "Objects", &settings.objectESP.showPlayerSpecific, "Show objects created for a specific player.");
-                        CheckboxWithTooltip("Generic", "Objects", &settings.objectESP.showGeneric, "Show generic or invisible trigger objects (for debugging).");
-                        ImGui::SameLine(column1);
+                        CheckboxWithTooltip("Generic", "Objects", &settings.objectESP.showGeneric, "Show generic or invisible trigger objects (for debugging)."); ImGui::SameLine(column1);
                         CheckboxWithTooltip("Generic 2", "Objects", &settings.objectESP.showGeneric2, "Show generic or invisible trigger objects (for debugging).");
                         CheckboxWithTooltip("Unknown", "Objects", &settings.objectESP.showUnknown, "Show any object type not explicitly handled.");
 
-                        // Add a separator for better visual structure before the buttons.
                         ImGui::Separator();
 
-                        // --- Quick Selection Buttons (MOVED INSIDE) ---
                         ImGui::Text("Quick Selection:");
-                        if (ImGui::Button("Select All", ImVec2(100, 0))) {
-                            SetAllObjectFilters(settings.objectESP, true);
-                        }
+                        if (ImGui::Button("Select All", ImVec2(100, 0))) { SetAllObjectFilters(settings.objectESP, true); }
                         ImGui::SameLine();
-                        if (ImGui::Button("Clear All", ImVec2(100, 0))) {
-                            SetAllObjectFilters(settings.objectESP, false);
-                        }
+                        if (ImGui::Button("Clear All", ImVec2(100, 0))) { SetAllObjectFilters(settings.objectESP, false); }
 
-                        ImGui::Unindent(); // Match the indent at the start of the block.
+                        ImGui::Unindent();
                     }
 
-                    ImGui::SeparatorText("Special Filters");
-                    CheckboxWithTooltip("Hide Depleted Nodes", "Objects", &settings.hideDepletedNodes, "Hide resource nodes that have already been gathered.");
-                    CheckboxWithTooltip("Show Dead Gadgets", "Objects", &settings.objectESP.showDeadGadgets, "Show destroyed gadgets with health (e.g., siege, doors).");
+                    if (ImGui::CollapsingHeader("Special Filters")) {
+                        CheckboxWithTooltip("Hide Depleted Nodes", "Objects", &settings.hideDepletedNodes, "Hide resource nodes that have already been gathered.");
+                        CheckboxWithTooltip("Show Dead Gadgets", "Objects", &settings.objectESP.showDeadGadgets, "Show destroyed gadgets with health (e.g., siege, doors).");
+                    }
 
-                    // Object Style section remains the same, open by default.
-                    if (ImGui::CollapsingHeader("Object Style", ImGuiTreeNodeFlags_DefaultOpen)) {
-                        const float column1 = 180.0f;
-                        const float column2 = 360.0f;
+                    ImGui::Separator();
 
-                        ImGui::SeparatorText("Core Visuals");
-                        CheckboxWithTooltip("2D Circle", "ObjectStyle", &settings.objectESP.renderCircle, "Render a 2D circle at the object's location.");
-                        ImGui::SameLine(column1);
-                        CheckboxWithTooltip("3D Sphere", "ObjectStyle", &settings.objectESP.renderSphere, "Render a 3D sphere for the object.");
-                        ImGui::SameLine(column2);
-                        CheckboxWithTooltip("Show Distance", "ObjectStyle", &settings.objectESP.renderDistance, "Show the distance to the object.");
+                    if (ImGui::CollapsingHeader("Visual Style", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        RenderObjectStyleSettings(settings.objectESP);
+                    }
 
-                        CheckboxWithTooltip("Show Dot", "ObjectStyle", &settings.objectESP.renderDot, "Render a dot at the object's exact location.");
-
-                        ImGui::SeparatorText("Informational Overlays");
-                        CheckboxWithTooltip("Show Health Bar", "ObjectStyle", &settings.objectESP.renderHealthBar, "Show health bars for destructible objects and gadgets.");
-                        if (settings.objectESP.renderHealthBar) {
-                            ImGui::SameLine();
-                            CheckboxWithTooltip("Show %", "ObjectStyle", &settings.objectESP.showHealthPercentage, "Show health percentage text on the bar."); // <-- ADD THIS LINE
-                            ImGui::SameLine();
-                            CheckboxWithTooltip("Only show damaged", "ObjectStyle", &settings.objectESP.showOnlyDamaged, "Only show gadgets that are not at 100%% health and not dead.");
-                        }
-                        CheckboxWithTooltip("Show Damage Numbers", "ObjectStyle", &settings.objectESP.showDamageNumbers, "Displays floating combat text for incoming damage.");
-                        ImGui::SameLine();
-                        CheckboxWithTooltip("Show Burst DPS", "ObjectStyle", &settings.objectESP.showBurstDps, "Displays the real-time burst DPS a target is taking from all sources. Ideal for tracking burn phases and overall damage pressure.");
-                        CheckboxWithTooltip("Show Details", "ObjectStyle", &settings.objectESP.renderDetails, "Show detailed information like the object type.");
-
+                    if (ImGui::CollapsingHeader("Detailed Information")) {
+                        ImGui::Checkbox("Show Details Panel##Object", &settings.objectESP.renderDetails);
                         if (settings.objectESP.renderDetails) {
-                            if (ImGui::CollapsingHeader("Object Details Filters")) {
-                                CheckboxWithTooltip("Type", "ObjectDetails", &settings.objectESP.showDetailGadgetType, "Show the type of gadget (e.g., Resource Node, Waypoint).");
-                                ImGui::SameLine(column1);
-                                CheckboxWithTooltip("HP", "ObjectDetails", &settings.objectESP.showDetailHealth, "Show current and maximum health if applicable.");
-                                ImGui::SameLine(column2);
-                                CheckboxWithTooltip("Pos", "ObjectDetails", &settings.objectESP.showDetailPosition, "Show the object's world coordinates.");
-                                CheckboxWithTooltip("Node Type", "ObjectDetails", &settings.objectESP.showDetailResourceInfo, "Show resource node type.");
-                                ImGui::SameLine(column1);
-                                CheckboxWithTooltip("Status", "ObjectDetails", &settings.objectESP.showDetailGatherableStatus, "Show if a resource node is currently gatherable.");
-							}
-						}
+                            ImGui::Indent();
+                            CheckboxWithTooltip("Type##ObjectDetail", "ObjectDetails", &settings.objectESP.showDetailGadgetType, "Show the type of gadget (e.g., Resource Node, Waypoint)."); ImGui::SameLine();
+                            CheckboxWithTooltip("HP##ObjectDetail", "ObjectDetails", &settings.objectESP.showDetailHealth, "Show current and maximum health if applicable."); ImGui::SameLine();
+                            CheckboxWithTooltip("Pos##ObjectDetail", "ObjectDetails", &settings.objectESP.showDetailPosition, "Show the object's world coordinates.");
+                            CheckboxWithTooltip("Node Type##ObjectDetail", "ObjectDetails", &settings.objectESP.showDetailResourceInfo, "Show resource node type."); ImGui::SameLine();
+                            CheckboxWithTooltip("Status##ObjectDetail", "ObjectDetails", &settings.objectESP.showDetailGatherableStatus, "Show if a resource node is currently gatherable.");
+                            ImGui::Unindent();
+                        }
                     }
                 }
                 ImGui::EndTabItem();

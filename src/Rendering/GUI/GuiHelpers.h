@@ -1,34 +1,26 @@
 #pragma once
+#include "../../Core/Settings.h"
 
 namespace kx {
     namespace GUI {
 
         /**
-         * @brief Renders a collapsible section with common ESP visual element checkboxes
-         * 
-         * This helper function provides a consistent UI for toggling ESP visual elements
-         * across different entity categories (Players, NPCs, Objects).
-         * 
-         * @param categoryName Display name for the collapsible header
-         * @param renderBox Reference to box rendering toggle
-         * @param renderDistance Reference to distance text toggle
-         * @param renderDot Reference to center dot toggle
-         * @param renderHealthBar Optional pointer to health bar toggle (e.g., for Players/NPCs)
-         * @param renderDetails Optional pointer to details text toggle
-         * @param renderPlayerName Optional pointer to player name toggle (Players only)
+         * @brief Renders a consistent set of style settings for Player ESP.
+         * @param settings A reference to the PlayerEspSettings struct.
          */
-        void RenderCategoryStyleSettings(const char* categoryName, 
-                                        bool& renderBox, 
-                                        bool& renderDistance, 
-                                        bool& renderDot, 
-                                        bool* renderHealthBar = nullptr, 
-                                        bool* renderEnergyBar = nullptr,
-                                        bool* renderDetails = nullptr, 
-                                        bool* renderPlayerName = nullptr,
-                                        bool* showBurstDps = nullptr,
-                                        bool* showDamageNumbers = nullptr,
-                                        bool* showOnlyDamaged = nullptr,
-                                        bool* showHealthPercentage = nullptr);
+        void RenderPlayerStyleSettings(PlayerEspSettings& settings);
+
+        /**
+         * @brief Renders a consistent set of style settings for NPC ESP.
+         * @param settings A reference to the NpcEspSettings struct.
+         */
+        void RenderNpcStyleSettings(NpcEspSettings& settings);
+
+        /**
+         * @brief Renders a consistent set of style settings for Object ESP.
+         * @param settings A reference to the ObjectEspSettings struct.
+         */
+        void RenderObjectStyleSettings(ObjectEspSettings& settings);
 
     } // namespace GUI
 } // namespace kx
