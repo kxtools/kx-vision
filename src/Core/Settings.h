@@ -1,6 +1,9 @@
 #pragma once
+#include "../../libs/nlohmann/json.hpp"
 
 namespace kx {
+
+    constexpr int CURRENT_SETTINGS_VERSION = 1;
 
     // --- ESP Display Modes ---
     
@@ -29,6 +32,7 @@ namespace kx {
         bool showNeutral = true;
         bool showIndifferent = true;
     };
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AttitudeSettings, showFriendly, showHostile, showNeutral, showIndifferent);
 
     struct PlayerEspSettings : AttitudeSettings {
         bool enabled = true;
@@ -56,6 +60,7 @@ namespace kx {
 		bool showDetailProfession = true;
 		bool showDetailRace = true;
     };
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerEspSettings, enabled, renderBox, renderDistance, renderDot, renderDetails, renderHealthBar, renderEnergyBar, renderPlayerName, showBurstDps, showDamageNumbers, showOnlyDamaged, showHealthPercentage, showLocalPlayer, gearDisplayMode, energyDisplayType, showDetailLevel, showDetailHp, showDetailAttitude, showDetailEnergy, showDetailPosition, showDetailRank, showDetailProfession, showDetailRace, showFriendly, showHostile, showNeutral, showIndifferent);
 
     struct NpcEspSettings : AttitudeSettings {
         bool enabled = true;
@@ -84,6 +89,7 @@ namespace kx {
         bool showDetailRank = true;
         bool showDetailPosition = true;
     };
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(NpcEspSettings, enabled, renderBox, renderDistance, renderDot, renderDetails, renderHealthBar, showBurstDps, showDamageNumbers, showOnlyDamaged, showHealthPercentage, showLegendary, showChampion, showElite, showVeteran, showAmbient, showNormal, showDeadNpcs, showDetailLevel, showDetailHp, showDetailAttitude, showDetailRank, showDetailPosition, showFriendly, showHostile, showNeutral, showIndifferent);
 
     struct ObjectEspSettings {
         bool enabled = true;
@@ -127,15 +133,7 @@ namespace kx {
         bool showDetailResourceInfo = true;
 		bool showDetailGatherableStatus = true;
     };
-
-    // --- User-configurable settings ---
-    namespace AppConfig {
-#ifdef _DEBUG
-        constexpr int DEFAULT_LOG_LEVEL = 1; // INFO
-#else
-        constexpr int DEFAULT_LOG_LEVEL = 3; // ERR
-#endif
-    }
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObjectEspSettings, enabled, renderCircle, renderSphere, renderDistance, renderDot, renderDetails, renderHealthBar, showBurstDps, showDamageNumbers, showOnlyDamaged, showHealthPercentage, showDeadGadgets, showResourceNodes, showWaypoints, showVistas, showCraftingStations, showAttackTargets, showPlayerCreated, showInteractables, showDoors, showPortals, showDestructible, showPoints, showPlayerSpecific, showProps, showBuildSites, showBountyBoards, showRifts, showGeneric, showGeneric2, showUnknown, showDetailGadgetType, showDetailHealth, showDetailPosition, showDetailResourceInfo, showDetailGatherableStatus);
 
     /**
      * @brief Distance-based rendering configuration
@@ -154,6 +152,7 @@ namespace kx {
         bool enablePlayerNpcFade = true;        // Apply subtle fade to players/NPCs at long range (80m-120m)
         float playerNpcMinAlpha = 0.5f;         // Minimum opacity for players/NPCs at max range (50% for depth)
     };
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DistanceSettings, useDistanceLimit, renderDistanceLimit, enablePlayerNpcFade, playerNpcMinAlpha);
 
     /**
      * @brief Scaling curve configuration
@@ -178,6 +177,7 @@ namespace kx {
         float noLimitScalingExponent = 1.2f;    // Balanced curve for long distances (distanceFactor auto-calculated from scene)
         // Note: distanceFactor = adaptiveFarPlane / 2 (automatic 50% scale at midpoint)
     };
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ScalingSettings, scalingStartDistance, minScale, maxScale, limitDistanceFactor, limitScalingExponent, noLimitScalingExponent);
 
     /**
      * @brief Base sizes for ESP elements before scaling
@@ -200,8 +200,11 @@ namespace kx {
         float baseHealthBarWidth = 60.0f;       // Health bar width (33% wider than box, maximum prominence)
         float baseHealthBarHeight = 7.0f;       // Health bar height (~8.5:1 ratio, bold visibility)
     };
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ElementSizeSettings, baseFontSize, minFontSize, baseDotRadius, baseBoxThickness, baseBoxHeight, baseBoxWidth, baseHealthBarWidth, baseHealthBarHeight);
 
     struct Settings {
+        int settingsVersion = CURRENT_SETTINGS_VERSION; // This ensures new objects have the current version
+
         // Category-specific ESP settings
         PlayerEspSettings playerESP;
         NpcEspSettings npcESP;
@@ -218,6 +221,9 @@ namespace kx {
         // Enhanced filtering options
         bool hideDepletedNodes = true;          // Hide depleted resource nodes (visual clutter reduction)
         
+        // New setting for this feature
+        bool autoSaveOnExit = true;
+
         // Debug options
         bool enableDebugLogging = true;
 
@@ -227,5 +233,6 @@ namespace kx {
         bool showDebugAddresses = false;
 #endif
     };
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings, settingsVersion, playerESP, npcESP, objectESP, distance, scaling, sizes, espUpdateRate, hideDepletedNodes, autoSaveOnExit, enableDebugLogging, showDebugAddresses);
 
 } // namespace kx

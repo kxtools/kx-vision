@@ -1,5 +1,6 @@
 #include "DebugLogger.h"
 #include "../Core/Settings.h"
+#include "Config.h"
 #include <iostream>
 #include <sstream>
 #include <ctime>

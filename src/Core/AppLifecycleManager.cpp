@@ -1,6 +1,7 @@
 #include "AppLifecycleManager.h"
 #include "Config.h"
 #include "AppState.h"
+#include "SettingsManager.h"
 #include "AddressManager.h"
 #include "HookManager.h"
 #include "Hooks.h"
@@ -105,6 +106,10 @@ namespace kx {
 
     void AppLifecycleManager::Shutdown() {
         LOG_INFO("AppLifecycleManager: Shutdown requested");
+        if (AppState::Get().GetSettings().autoSaveOnExit) {
+            SettingsManager::Save(AppState::Get().GetSettings());
+        }
+
         m_currentState = State::ShuttingDown;
 
         // Signal hooks to stop processing before actual cleanup

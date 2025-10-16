@@ -2,16 +2,56 @@
 #include <string>
 #include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
+#include "../../Core/SettingsManager.h"
 #include "../../Utils/DebugLogger.h"
 #include "../../Game/AddressManager.h"
 #include "../../Game/ReClassStructs.h"
+#include "../../Core/Config.h"
 
 namespace kx {
     namespace GUI {
         void RenderSettingsTab() {
             if (ImGui::BeginTabItem("Settings")) {
                 auto& settings = kx::AppState::Get().GetSettings();
-                
+
+                // NEW SECTION
+                if (ImGui::CollapsingHeader("Settings Management")) {
+                    if (ImGui::Button("Save Settings")) {
+                        kx::SettingsManager::Save(settings);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Reload Settings")) {
+                        kx::SettingsManager::Load(settings);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Reset to Defaults")) {
+                        ImGui::OpenPopup("Confirm Reset");
+                    }
+
+                    // Logic for the confirmation popup modal
+                    if (ImGui::BeginPopupModal("Confirm Reset", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::Text("Are you sure? This will reset all settings to their default values.");
+                        ImGui::Separator();
+                        if (ImGui::Button("OK", ImVec2(120, 0))) { 
+                            settings = kx::Settings(); // Reset to default
+                            ImGui::CloseCurrentPopup(); 
+                        }
+                        ImGui::SetItemDefaultFocus();
+                        ImGui::SameLine();
+                        if (ImGui::Button("Cancel", ImVec2(120, 0))) { 
+                            ImGui::CloseCurrentPopup(); 
+                        }
+                        ImGui::EndPopup();
+                    }
+
+                    ImGui::Separator(); // Visually separate the buttons from the option
+                    ImGui::Checkbox("Automatically save settings on exit", &settings.autoSaveOnExit);
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("If enabled, any changes you make will be saved automatically when the game closes.\nIf disabled, you must use the 'Save Settings' button to persist changes.");
+                    }
+                }
+
+                ImGui::Separator();
                 ImGui::Text("System Configuration");
                 ImGui::Separator();
                 

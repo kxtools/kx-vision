@@ -1,4 +1,5 @@
 #include "AppState.h"
+#include "SettingsManager.h" // Add this include
 #include "../Rendering/Data/ESPData.h"
 #include "../Rendering/Data/RenderableData.h"
 #include "../Rendering/Utils/ESPConstants.h"
@@ -10,6 +11,7 @@ namespace kx {
 
     AppState::AppState() {
         // Constructor initializes default values (already done in member initializer list)
+        SettingsManager::Load(m_settings); // Load settings from file
         m_lastFarPlaneRecalc = std::chrono::steady_clock::now();
     }
 
