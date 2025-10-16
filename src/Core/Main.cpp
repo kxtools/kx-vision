@@ -106,9 +106,10 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 
     case DLL_PROCESS_DETACH:
     {
+        // The guaranteed fallback save
+        kx::g_App.SaveSettingsOnExit();
+
         // It's good practice to release and close the mutex on shutdown.
-        // This ensures it's cleaned up properly if the DLL is ever unloaded
-        // and then reloaded without the process restarting.
         if (g_hSingleInstanceMutex) {
             ReleaseMutex(g_hSingleInstanceMutex);
             CloseHandle(g_hSingleInstanceMutex);
