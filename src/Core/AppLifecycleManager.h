@@ -55,6 +55,12 @@ public:
     void Shutdown();
 
     /**
+     * @brief Performs a minimal, safe-ish save of settings.
+     * This is designed to be called from DllMain on process detach.
+     */
+    void SaveSettingsOnExit();
+
+    /**
      * @brief Check if shutdown has been requested
      * @return true if user requested shutdown (DELETE key or window closed)
      */

@@ -270,4 +270,26 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting)
     return GW2AL_OK;
 }
 
+BOOL APIENTRY DllMain(HMODULE hModule,
+    DWORD  ul_reason_for_call,
+    LPVOID lpReserved
+)
+{
+    switch (ul_reason_for_call)
+    {
+    case DLL_PROCESS_ATTACH:
+        // Let gw2addon_load handle all initialization. Do nothing here.
+        break;
+
+    case DLL_PROCESS_DETACH:
+        // This is our fallback for when the game closes without calling gw2addon_unload.
+        // We call our minimal, safer save function. The atomic flag inside
+        // SaveSettingsOnExit() will prevent it from running if the clean Shutdown()
+        // path has already been taken.
+        kx::g_App.SaveSettingsOnExit();
+        break;
+    }
+    return TRUE;
+}
+
 #endif // GW2AL_BUILD

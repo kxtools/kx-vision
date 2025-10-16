@@ -104,26 +104,39 @@ namespace kx {
         }
     }
 
-    void AppLifecycleManager::Shutdown() {
-        LOG_INFO("AppLifecycleManager: Shutdown requested");
+    void AppLifecycleManager::SaveSettingsOnExit() {
+        // Use the existing shutdown flag in AppState to prevent saving more than once.
+        if (AppState::Get().IsShuttingDown()) {
+            return; // Shutdown/save has already been initiated.
+        }
+        
+        // Signal that shutdown has begun.
+        AppState::Get().SetShuttingDown(true);
+    
+        LOG_INFO("AppLifecycleManager: Performing final settings save on exit...");
+    
+        // Check the user's preference and save the settings.
         if (AppState::Get().GetSettings().autoSaveOnExit) {
             SettingsManager::Save(AppState::Get().GetSettings());
         }
-
+    }
+    
+    void AppLifecycleManager::Shutdown() {
+        LOG_INFO("AppLifecycleManager: Full shutdown requested");
+    
+        // Perform the save FIRST. This function handles the atomic flag.
+        SaveSettingsOnExit(); 
+    
         m_currentState = State::ShuttingDown;
-
-        // Signal hooks to stop processing before actual cleanup
-        AppState::Get().SetShuttingDown(true);
-
+    
         // Give hooks a moment to recognize the flag before cleanup starts
         // This helps prevent calls into ImGui after it's destroyed
         Sleep(250);
-
+    
         CleanupServices();
-
+    
         LOG_INFO("AppLifecycleManager: Shutdown complete");
     }
-
     bool AppLifecycleManager::IsShutdownRequested() const {
         // Only DELETE key triggers shutdown (not the window close button)
         // Closing the window (X button) just hides it - user can press INSERT to show again
