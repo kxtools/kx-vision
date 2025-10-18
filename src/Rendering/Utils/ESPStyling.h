@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Game/GameEnums.h"
+#include "../../Game/GameEnums.h"
 #include "../../libs/ImGui/imgui.h"
 #include "ESPConstants.h"
 #include "Generated/EnumsAndStructs.h"
