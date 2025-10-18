@@ -49,6 +49,12 @@ namespace kx {
          * @param inventory The player's inventory structure from the game.
          */
         static void ExtractGear(RenderablePlayer& outPlayer, const ReClass::Inventory& inventory);
+
+        // Common extraction pattern helpers
+        static bool ValidateAndExtractGamePosition(const ReClass::ChCliCharacter& character, glm::vec3& outGamePos);
+        static bool ValidateAndExtractGamePosition(const ReClass::GdCliGadget& gadget, glm::vec3& outGamePos);
+        static glm::vec3 TransformGamePositionToMumble(const glm::vec3& gamePos);
+        static void ExtractHealthData(RenderableEntity& entity, const ReClass::ChCliHealth& health);
     };
 
 } // namespace kx

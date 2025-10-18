@@ -45,7 +45,7 @@ public:
      * @param player The player entity to analyze
      * @return Map of attributes to their occurrence counts
      */
-    static std::map<kx::data::ApiAttribute, int> BuildAttributeSummary(const RenderablePlayer* player);
+    static std::map<data::ApiAttribute, int> BuildAttributeSummary(const RenderablePlayer* player);
 
     /**
      * @brief Build top 3 dominant stats with percentages

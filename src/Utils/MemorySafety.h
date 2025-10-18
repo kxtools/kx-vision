@@ -107,8 +107,8 @@ namespace SafeAccess {
         }
 
         // Get cached module information from AddressManager
-        uintptr_t moduleBase = kx::AddressManager::GetModuleBase();
-        size_t moduleSize = kx::AddressManager::GetModuleSize();
+        uintptr_t moduleBase = AddressManager::GetModuleBase();
+        size_t moduleSize = AddressManager::GetModuleSize();
         
         // If module information hasn't been scanned yet, can't validate
         if (moduleBase == 0 || moduleSize == 0) {

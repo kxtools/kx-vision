@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "../Game/GameEnums.h"
+#include "../../Game/GameEnums.h"
 #include "../../../libs/ImGui/imgui.h"
 
 namespace kx {

@@ -12,9 +12,9 @@ namespace kx {
         /**
          * @brief Character context manager - handles character and player lists
          */
-        class ChCliContext : public kx::SafeForeignClass {
+        class ChCliContext : public SafeForeignClass {
         public:
-            ChCliContext(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ChCliContext(void* ptr) : SafeForeignClass(ptr) {}
 
             ChCliCharacter** GetCharacterList() const {
                 LOG_MEMORY("ChCliContext", "GetCharacterList", data(), Offsets::ChCliContext::CHARACTER_LIST);
@@ -65,9 +65,9 @@ namespace kx {
         /**
          * @brief Gadget context manager - handles gadget lists
          */
-        class GdCliContext : public kx::SafeForeignClass {
+        class GdCliContext : public SafeForeignClass {
         public:
-            GdCliContext(void* ptr) : kx::SafeForeignClass(ptr) {}
+            GdCliContext(void* ptr) : SafeForeignClass(ptr) {}
 
             GdCliGadget** GetGadgetList() const {
                 LOG_MEMORY("GdCliContext", "GetGadgetList", data(), Offsets::GdCliContext::GADGET_LIST);

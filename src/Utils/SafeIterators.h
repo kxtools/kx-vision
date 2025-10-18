@@ -15,17 +15,17 @@ namespace SafeAccess {
      */
     class CharacterListIterator {
     private:
-        kx::ReClass::ChCliCharacter** m_array;
+        ReClass::ChCliCharacter** m_array;
         uint32_t m_index;
         uint32_t m_capacity;
-        mutable kx::ReClass::ChCliCharacter m_current;
+        mutable ReClass::ChCliCharacter m_current;
         mutable bool m_currentValid;
 
         void AdvanceToValid() {
             m_currentValid = false;
             while (m_index < m_capacity) {
                 if (IsMemorySafe(m_array[m_index]) && IsVTablePointerValid(m_array[m_index])) {
-                    m_current = kx::ReClass::ChCliCharacter(m_array[m_index]);
+                    m_current = ReClass::ChCliCharacter(m_array[m_index]);
                     if (m_current) {
                         m_currentValid = true;
                         return;
@@ -37,12 +37,12 @@ namespace SafeAccess {
 
     public:
         using iterator_category = std::forward_iterator_tag;
-        using value_type = kx::ReClass::ChCliCharacter;
+        using value_type = ReClass::ChCliCharacter;
         using difference_type = std::ptrdiff_t;
-        using pointer = const kx::ReClass::ChCliCharacter*;
-        using reference = const kx::ReClass::ChCliCharacter&;
+        using pointer = const ReClass::ChCliCharacter*;
+        using reference = const ReClass::ChCliCharacter&;
 
-        CharacterListIterator(kx::ReClass::ChCliCharacter** array, uint32_t index, uint32_t capacity)
+        CharacterListIterator(ReClass::ChCliCharacter** array, uint32_t index, uint32_t capacity)
             : m_array(array), m_index(index), m_capacity(capacity), m_current(nullptr), m_currentValid(false) {
             if (m_array && m_capacity < MAX_REASONABLE_CHARACTER_COUNT) { // Sanity check
                 AdvanceToValid();
@@ -65,11 +65,11 @@ namespace SafeAccess {
             return tmp;
         }
 
-        const kx::ReClass::ChCliCharacter& operator*() const {
+        const ReClass::ChCliCharacter& operator*() const {
             return m_current;
         }
 
-        const kx::ReClass::ChCliCharacter* operator->() const {
+        const ReClass::ChCliCharacter* operator->() const {
             return &m_current;
         }
 
@@ -94,11 +94,11 @@ namespace SafeAccess {
      */
     class PlayerListIterator {
     private:
-        kx::ReClass::ChCliPlayer** m_array;
+        ReClass::ChCliPlayer** m_array;
         uint32_t m_index;
         uint32_t m_capacity;
-        mutable kx::ReClass::ChCliPlayer m_currentPlayer;
-        mutable kx::ReClass::ChCliCharacter m_currentCharacter;
+        mutable ReClass::ChCliPlayer m_currentPlayer;
+        mutable ReClass::ChCliCharacter m_currentCharacter;
         mutable const wchar_t* m_currentName;
         mutable bool m_currentValid;
 
@@ -107,7 +107,7 @@ namespace SafeAccess {
             m_currentName = nullptr;
             while (m_index < m_capacity) {
                 if (IsMemorySafe(m_array[m_index]) && IsVTablePointerValid(m_array[m_index])) {
-                    m_currentPlayer = kx::ReClass::ChCliPlayer(m_array[m_index]);
+                    m_currentPlayer = ReClass::ChCliPlayer(m_array[m_index]);
                     if (m_currentPlayer) {
                         m_currentCharacter = m_currentPlayer.GetCharacter();
                         m_currentName = m_currentPlayer.GetName();
@@ -123,12 +123,12 @@ namespace SafeAccess {
 
     public:
         using iterator_category = std::forward_iterator_tag;
-        using value_type = std::pair<kx::ReClass::ChCliCharacter, const wchar_t*>;
+        using value_type = std::pair<ReClass::ChCliCharacter, const wchar_t*>;
         using difference_type = std::ptrdiff_t;
         using pointer = const value_type*;
         using reference = const value_type&;
 
-        PlayerListIterator(kx::ReClass::ChCliPlayer** array, uint32_t index, uint32_t capacity)
+        PlayerListIterator(ReClass::ChCliPlayer** array, uint32_t index, uint32_t capacity)
             : m_array(array), m_index(index), m_capacity(capacity), 
               m_currentPlayer(nullptr), m_currentCharacter(nullptr), 
               m_currentName(nullptr), m_currentValid(false) {
@@ -154,7 +154,7 @@ namespace SafeAccess {
         }
 
         // Return the character (for rendering)
-        const kx::ReClass::ChCliCharacter& GetCharacter() const {
+        const ReClass::ChCliCharacter& GetCharacter() const {
             return m_currentCharacter;
         }
 
@@ -189,17 +189,17 @@ namespace SafeAccess {
      */
     class GadgetListIterator {
     private:
-        kx::ReClass::GdCliGadget** m_array;
+        ReClass::GdCliGadget** m_array;
         uint32_t m_index;
         uint32_t m_capacity;
-        mutable kx::ReClass::GdCliGadget m_current;
+        mutable ReClass::GdCliGadget m_current;
         mutable bool m_currentValid;
 
         void AdvanceToValid() {
             m_currentValid = false;
             while (m_index < m_capacity) {
                 if (IsMemorySafe(m_array[m_index]) && IsVTablePointerValid(m_array[m_index])) {
-                    m_current = kx::ReClass::GdCliGadget(m_array[m_index]);
+                    m_current = ReClass::GdCliGadget(m_array[m_index]);
                     if (m_current) {
                         m_currentValid = true;
                         return;
@@ -211,12 +211,12 @@ namespace SafeAccess {
 
     public:
         using iterator_category = std::forward_iterator_tag;
-        using value_type = kx::ReClass::GdCliGadget;
+        using value_type = ReClass::GdCliGadget;
         using difference_type = std::ptrdiff_t;
-        using pointer = const kx::ReClass::GdCliGadget*;
-        using reference = const kx::ReClass::GdCliGadget&;
+        using pointer = const ReClass::GdCliGadget*;
+        using reference = const ReClass::GdCliGadget&;
 
-        GadgetListIterator(kx::ReClass::GdCliGadget** array, uint32_t index, uint32_t capacity)
+        GadgetListIterator(ReClass::GdCliGadget** array, uint32_t index, uint32_t capacity)
             : m_array(array), m_index(index), m_capacity(capacity), m_current(nullptr), m_currentValid(false) {
             if (m_array && m_capacity < MAX_REASONABLE_GADGET_COUNT) { // Sanity check
                 AdvanceToValid();
@@ -239,11 +239,11 @@ namespace SafeAccess {
             return tmp;
         }
 
-        const kx::ReClass::GdCliGadget& operator*() const {
+        const ReClass::GdCliGadget& operator*() const {
             return m_current;
         }
 
-        const kx::ReClass::GdCliGadget* operator->() const {
+        const ReClass::GdCliGadget* operator->() const {
             return &m_current;
         }
 
@@ -265,11 +265,11 @@ namespace SafeAccess {
      */
     class CharacterList {
     private:
-        kx::ReClass::ChCliCharacter** m_array;
+        ReClass::ChCliCharacter** m_array;
         uint32_t m_capacity;
 
     public:
-        CharacterList(kx::ReClass::ChCliContext& context) {
+        CharacterList(ReClass::ChCliContext& context) {
             if (context) {
                 m_array = context.GetCharacterList();
                 m_capacity = context.GetCharacterListCapacity();
@@ -293,11 +293,11 @@ namespace SafeAccess {
      */
     class PlayerList {
     private:
-        kx::ReClass::ChCliPlayer** m_array;
+        ReClass::ChCliPlayer** m_array;
         uint32_t m_capacity;
 
     public:
-        PlayerList(kx::ReClass::ChCliContext& context) {
+        PlayerList(ReClass::ChCliContext& context) {
             if (context) {
                 m_array = context.GetPlayerList();
                 m_capacity = context.GetPlayerListSize();
@@ -321,11 +321,11 @@ namespace SafeAccess {
      */
     class GadgetList {
     private:
-        kx::ReClass::GdCliGadget** m_array;
+        ReClass::GdCliGadget** m_array;
         uint32_t m_capacity;
 
     public:
-        GadgetList(kx::ReClass::GdCliContext& context) {
+        GadgetList(ReClass::GdCliContext& context) {
             if (context) {
                 m_array = context.GetGadgetList();
                 m_capacity = context.GetGadgetListCapacity();

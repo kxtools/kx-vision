@@ -1,8 +1,8 @@
 // In Core/ESPVisualsProcessor.cpp
 
 #include "ESPVisualsProcessor.h"
-#include "../Data/RenderableData.h"
 #include "../Utils/EntityVisualsCalculator.h"
+#include "../Factories/ESPContextFactory.h"
 #include <vector>
 
 namespace kx {
@@ -17,8 +17,11 @@ void ProcessEntityVector(const std::vector<T*>& entities, const FrameContext& co
         auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context.camera, context.screenWidth, context.screenHeight);
         
         if (visualPropsOpt) {
-            // If visible, add it to our final list.
-            outFinalized.emplace_back(FinalizedRenderable{entity, *visualPropsOpt});
+            // Build the render context with details
+            EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
+            
+            // If visible, add it to our final list with both visuals and context.
+            outFinalized.emplace_back(FinalizedRenderable{entity, *visualPropsOpt, renderContext});
         }
     }
 }

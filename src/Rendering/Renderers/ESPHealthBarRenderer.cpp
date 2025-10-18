@@ -9,8 +9,8 @@
 #include "../Data/EntityRenderContext.h"
 #include <algorithm>
 #include "../Utils/EntityVisualsCalculator.h"
-#include "Text/TextElement.h"
-#include "Text/TextRenderer.h"
+#include "../Data/TextElement.h"
+#include "TextRenderer.h"
 
 namespace kx {
 
@@ -102,7 +102,7 @@ namespace kx {
         // Exit if there's nothing to draw OR if the fade animation is complete
         if (anim.damageAccumulatorPercent <= 0.0f || anim.damageAccumulatorAlpha <= 0.0f) return;
 
-        float startPercent = context.healthPercent;
+        float startPercent = context.entity->maxHealth > 0 ? (context.entity->currentHealth / context.entity->maxHealth) : 0.0f;
         float endPercent = (anim.damageAccumulatorPercent > 1.0f) ? 1.0f : anim.damageAccumulatorPercent;
 
         if (endPercent <= startPercent) return;
@@ -128,7 +128,7 @@ namespace kx {
         const auto& anim = context.healthBarAnim;
         if (anim.damageFlashAlpha <= 0.0f) return;
 
-        float currentPercent = context.healthPercent;
+        float currentPercent = context.entity->maxHealth > 0 ? (context.entity->currentHealth / context.entity->maxHealth) : 0.0f;
         float previousPercent = anim.damageFlashStartPercent;
         if (previousPercent > 1.f) previousPercent = 1.f;
         if (previousPercent <= currentPercent) return;
@@ -287,7 +287,9 @@ namespace kx {
         float barHeight = barMax.y - barMin.y;
 
         // 1. Base health fill
-        DrawHealthBase(drawList, barMin, barMax, barWidth, context.healthPercent, entityColor, fadeAlpha);
+        DrawHealthBase(drawList, barMin, barMax, barWidth, 
+            context.entity->maxHealth > 0 ? (context.entity->currentHealth / context.entity->maxHealth) : 0.0f, 
+            entityColor, fadeAlpha);
 
         // 2. Healing overlays
         DrawHealOverlay(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
@@ -303,8 +305,9 @@ namespace kx {
         DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha);
 
         // 6. Health Percentage Text (drawn last, on top of everything)
-        if (context.renderHealthPercentage && context.healthPercent >= 0.0f) {
-            DrawHealthPercentageText(drawList, barMin, barMax, context.healthPercent, fontSize, fadeAlpha);
+        if (context.renderHealthPercentage && context.entity->maxHealth > 0) {
+            float healthPercent = context.entity->currentHealth / context.entity->maxHealth;
+            DrawHealthPercentageText(drawList, barMin, barMax, healthPercent, fontSize, fadeAlpha);
         }
     }
 

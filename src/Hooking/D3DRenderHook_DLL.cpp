@@ -21,7 +21,7 @@
 #include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"
-#include "../Rendering/ImGuiManager.h"
+#include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
 
 // Declare the external ImGui Win32 handler
@@ -46,7 +46,7 @@ namespace kx::Hooking {
         }
 
         LOG_INFO("[D3DRenderHook] Present hook created and enabled.");
-        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK);
+        AppState::Get().SetPresentHookStatus(HookStatus::OK);
         return true;
     }
 
@@ -108,7 +108,7 @@ namespace kx::Hooking {
 
     HRESULT __stdcall D3DRenderHook::DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
         // Check the shutdown flag FIRST
-        if (kx::AppState::Get().IsShuttingDown()) {
+        if (AppState::Get().IsShuttingDown()) {
             return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
         }
 
@@ -186,7 +186,7 @@ namespace kx::Hooking {
 
     void D3DRenderHook::RenderFrame() {
         // Double-check shutdown flag and ImGui context before rendering
-        if (kx::AppState::Get().IsShuttingDown() || ImGui::GetCurrentContext() == nullptr) {
+        if (AppState::Get().IsShuttingDown() || ImGui::GetCurrentContext() == nullptr) {
             return;
         }
 
@@ -227,7 +227,7 @@ namespace kx::Hooking {
         else if (uMsg == WM_LBUTTONUP) leftMouseDown = false;
 
         // Only process ImGui input if overlay is visible
-        if (m_isInit && kx::AppState::Get().IsVisionWindowOpen()) {
+        if (m_isInit && AppState::Get().IsVisionWindowOpen()) {
             // Check if the mouse is over an ImGui window
             bool isOverImGuiWindow = false;
 

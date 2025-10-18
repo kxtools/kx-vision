@@ -9,8 +9,8 @@
 
 namespace kx {
 
-void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
-    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale) {
+void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& entityContext, Camera& camera,
+    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale, float screenWidth, float screenHeight) {
     // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
 
     // --- Define the 3D sphere's geometric properties ---
@@ -38,10 +38,10 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
     float gyroscopeAlpha = 1.0f;
     float circleAlpha = 0.0f;
 
-    if (context.gameplayDistance > GadgetSphere::LOD_TRANSITION_START) {
+    if (entityContext.gameplayDistance > GadgetSphere::LOD_TRANSITION_START) {
         // We are in or past the transition zone.
         float range = GadgetSphere::LOD_TRANSITION_END - GadgetSphere::LOD_TRANSITION_START;
-        float progress = std::clamp((context.gameplayDistance - GadgetSphere::LOD_TRANSITION_START) / range, 0.0f, 1.0f);
+        float progress = std::clamp((entityContext.gameplayDistance - GadgetSphere::LOD_TRANSITION_START) / range, 0.0f, 1.0f);
 
         gyroscopeAlpha = 1.0f - progress; // Fades out from 1.0 to 0.0
         circleAlpha = progress;          // Fades in from 0.0 to 1.0
@@ -59,7 +59,7 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
             screen_points.reserve(local_points.size());
             for (const auto& point : local_points) {
                 glm::vec2 sp;
-                if (ESPMath::WorldToScreen(context.position + point, camera, context.screenWidth, context.screenHeight, sp)) {
+                if (ESPMath::WorldToScreen(entityContext.position + point, camera, screenWidth, screenHeight, sp)) {
                     screen_points.push_back(ImVec2(sp.x, sp.y));
                 }
                 else { projection_ok = false; screen_points.clear(); return; }
@@ -77,9 +77,9 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
             ImU32 finalColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
 
             // Draw all three rings with the same bright color and thickness.
-            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), screenRingXY.size(), finalColor, false, finalLineThickness);
-            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), finalColor, false, finalLineThickness);
-            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), finalColor, false, finalLineThickness);
+            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), static_cast<int>(screenRingXY.size()), finalColor, false, finalLineThickness);
+            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), static_cast<int>(screenRingXZ.size()), finalColor, false, finalLineThickness);
+            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), static_cast<int>(screenRingYZ.size()), finalColor, false, finalLineThickness);
         }
     }
 

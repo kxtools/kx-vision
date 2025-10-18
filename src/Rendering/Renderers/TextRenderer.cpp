@@ -118,10 +118,10 @@ ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWi
     // Calculate vertical position based on anchor
     switch (positioning) {
         case TextAnchor::Above:
-            pos.y = anchor.y - totalHeight - RenderingLayout::TEXT_ANCHOR_GAP;
+            pos.y = anchor.y - totalHeight - TEXT_ANCHOR_GAP;
             break;
         case TextAnchor::Below:
-            pos.y = anchor.y + RenderingLayout::TEXT_ANCHOR_GAP;
+            pos.y = anchor.y + TEXT_ANCHOR_GAP;
             break;
         case TextAnchor::Center:
             pos.y = anchor.y - totalHeight / 2.0f;

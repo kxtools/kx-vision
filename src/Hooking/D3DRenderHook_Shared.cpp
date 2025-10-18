@@ -13,7 +13,7 @@
 #include "../Core/Config.h"
 #include "../Core/AppState.h"
 #include "../Utils/DebugLogger.h"
-#include "../Rendering/ImGuiManager.h"
+#include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
 
 namespace kx::Hooking {
@@ -27,7 +27,7 @@ namespace kx::Hooking {
     ID3D11DeviceContext* D3DRenderHook::m_pContext = nullptr;
     ID3D11RenderTargetView* D3DRenderHook::m_pMainRenderTargetView = nullptr;
     WNDPROC D3DRenderHook::m_pOriginalWndProc = nullptr;
-    kx::AppLifecycleManager* D3DRenderHook::m_pLifecycleManager = nullptr;
+    AppLifecycleManager* D3DRenderHook::m_pLifecycleManager = nullptr;
 
     bool D3DRenderHook::InitializeFromDevice(ID3D11Device* device, IDXGISwapChain* pSwapChain) {
         if (m_isInit) return true;
@@ -96,7 +96,7 @@ namespace kx::Hooking {
 
             m_isInit = true;
             LOG_INFO("[D3DRenderHook] Initialized successfully via GW2AL.");
-            kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::OK);
+            AppState::Get().SetPresentHookStatus(HookStatus::OK);
             return true;
         }
         catch (const std::exception& e) {
@@ -147,14 +147,14 @@ namespace kx::Hooking {
         m_isInit = false;
         m_hWindow = NULL;
         m_pOriginalPresent = nullptr;
-        kx::AppState::Get().SetPresentHookStatus(kx::HookStatus::Unknown);
+        AppState::Get().SetPresentHookStatus(HookStatus::Unknown);
     }
 
     bool D3DRenderHook::IsInitialized() {
         return m_isInit;
     }
 
-    void D3DRenderHook::SetLifecycleManager(kx::AppLifecycleManager* lifecycleManager) {
+    void D3DRenderHook::SetLifecycleManager(AppLifecycleManager* lifecycleManager) {
         m_pLifecycleManager = lifecycleManager;
     }
 

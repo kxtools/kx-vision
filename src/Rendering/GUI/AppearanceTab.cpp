@@ -127,7 +127,7 @@ namespace kx {
 
         void RenderAppearanceTab() {
             if (ImGui::BeginTabItem("Appearance")) {
-                auto& settings = kx::AppState::Get().GetSettings();
+                auto& settings = AppState::Get().GetSettings();
 
                 ImGui::Text("Global Visual Style Settings");
                 ImGui::Separator();

@@ -85,8 +85,8 @@ std::vector<CompactStatInfo> ESPPlayerDetailsBuilder::BuildCompactGearSummary(co
         const GearSlotInfo& info = pair.second;
         if (info.statId > 0) {
             totalItems++;
-            auto statIt = kx::data::stat::DATA.find(info.statId);
-            if (statIt != kx::data::stat::DATA.end()) {
+            auto statIt = data::stat::DATA.find(info.statId);
+            if (statIt != data::stat::DATA.end()) {
                 std::string statName = statIt->second.name;
 
                 // Increment count
@@ -128,8 +128,8 @@ std::vector<CompactStatInfo> ESPPlayerDetailsBuilder::BuildCompactGearSummary(co
     return result;
 }
 
-std::map<kx::data::ApiAttribute, int> ESPPlayerDetailsBuilder::BuildAttributeSummary(const RenderablePlayer* player) {
-    std::map<kx::data::ApiAttribute, int> attributeCounts;
+std::map<data::ApiAttribute, int> ESPPlayerDetailsBuilder::BuildAttributeSummary(const RenderablePlayer* player) {
+    std::map<data::ApiAttribute, int> attributeCounts;
     if (!player || player->gear.empty()) {
         return attributeCounts;
     }
@@ -137,8 +137,8 @@ std::map<kx::data::ApiAttribute, int> ESPPlayerDetailsBuilder::BuildAttributeSum
     for (const auto& pair : player->gear) {
         const GearSlotInfo& info = pair.second;
         if (info.statId > 0) {
-            auto statIt = kx::data::stat::DATA.find(info.statId);
-            if (statIt != kx::data::stat::DATA.end()) {
+            auto statIt = data::stat::DATA.find(info.statId);
+            if (statIt != data::stat::DATA.end()) {
                 for (const auto& attr : statIt->second.attributes) {
                     attributeCounts[attr.attribute]++;
                 }
@@ -152,7 +152,7 @@ std::vector<DominantStat> ESPPlayerDetailsBuilder::BuildDominantStats(const Rend
     std::vector<DominantStat> result;
 
     // 1. Get the raw attribute counts
-    std::map<kx::data::ApiAttribute, int> attributeCounts = BuildAttributeSummary(player);
+    std::map<data::ApiAttribute, int> attributeCounts = BuildAttributeSummary(player);
     if (attributeCounts.empty()) {
         return result;
     }
@@ -170,15 +170,15 @@ std::vector<DominantStat> ESPPlayerDetailsBuilder::BuildDominantStats(const Rend
     for (const auto& pair : attributeCounts) {
         const char* name = "??";
         switch (pair.first) {
-        case kx::data::ApiAttribute::Power:           name = "Power"; break;
-        case kx::data::ApiAttribute::Precision:       name = "Precision"; break;
-        case kx::data::ApiAttribute::Toughness:       name = "Toughness"; break;
-        case kx::data::ApiAttribute::Vitality:        name = "Vitality"; break;
-        case kx::data::ApiAttribute::CritDamage:      name = "Ferocity"; break;
-        case kx::data::ApiAttribute::Healing:         name = "Healing"; break;
-        case kx::data::ApiAttribute::ConditionDamage: name = "Condi Dmg"; break;
-        case kx::data::ApiAttribute::BoonDuration:    name = "Boon Dura"; break;
-        case kx::data::ApiAttribute::ConditionDuration: name = "Condi Dura"; break;
+        case data::ApiAttribute::Power:           name = "Power"; break;
+        case data::ApiAttribute::Precision:       name = "Precision"; break;
+        case data::ApiAttribute::Toughness:       name = "Toughness"; break;
+        case data::ApiAttribute::Vitality:        name = "Vitality"; break;
+        case data::ApiAttribute::CritDamage:      name = "Ferocity"; break;
+        case data::ApiAttribute::Healing:         name = "Healing"; break;
+        case data::ApiAttribute::ConditionDamage: name = "Condi Dmg"; break;
+        case data::ApiAttribute::BoonDuration:    name = "Boon Dura"; break;
+        case data::ApiAttribute::ConditionDuration: name = "Condi Dura"; break;
         }
         
         // Assign the name, percentage, AND the new tactical color
@@ -234,8 +234,8 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildGearDetails(const Rende
 
             std::string statName = "No Stats";
             if (info.statId > 0) {
-                auto statIt = kx::data::stat::DATA.find(info.statId);
-                if (statIt != kx::data::stat::DATA.end()) {
+                auto statIt = data::stat::DATA.find(info.statId);
+                if (statIt != data::stat::DATA.end()) {
                     statName = statIt->second.name;
                 }
                 else {

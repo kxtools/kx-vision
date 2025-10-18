@@ -151,6 +151,11 @@ namespace RenderingLayout {
     constexpr float TEXT_DEFAULT_BG_ROUNDING = 3.0f;          // 3px rounded corners
     constexpr float TEXT_DEFAULT_BORDER_THICKNESS = 1.0f;     // 1px crisp border
     constexpr float TEXT_DEFAULT_LINE_SPACING = 2.0f;
+
+    // Burst DPS Display
+    constexpr float BURST_DPS_HORIZONTAL_PADDING = 5.0f;     // Padding between elements
+    constexpr float BURST_DPS_FALLBACK_Y_OFFSET = 20.0f;     // Y-offset when HP bar is off
+    constexpr float HP_PERCENT_FONT_SIZE_MULTIPLIER = 0.8f;  // 80% of base font size
 }
 
 /**

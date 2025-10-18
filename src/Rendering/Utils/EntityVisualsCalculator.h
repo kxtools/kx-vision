@@ -3,6 +3,7 @@
 #include <optional>
 #include "glm.hpp"
 #include "../Data/ESPData.h"
+#include "../Data/ESPEntityTypes.h"
 
 // Forward declarations
 namespace kx {
@@ -12,7 +13,14 @@ namespace kx {
 
 namespace kx {
 
-
+namespace {
+    struct EntityMultipliers {
+        float hostile = 1.0f;
+        float rank = 1.0f;
+        float gadgetHealth = 1.0f;
+        float healthBar = 1.0f;  // Combined multiplier for health bars
+    };
+}
 
 /**
  * @brief Utility class for calculating entity visual properties
@@ -95,6 +103,20 @@ private:
     static float CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
                                        bool useDistanceLimit, ESPEntityType entityType,
                                        float& outNormalizedDistance);
+
+    // Helper methods for internal calculations
+    static float GetRankMultiplier(Game::CharacterRank rank);
+    static float GetGadgetHealthMultiplier(float maxHealth);
+    static float CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier = 1.0f);
+    static float CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
+    
+    // Multiplier calculation
+    static EntityMultipliers CalculateEntityMultipliers(const RenderableEntity& entity);
+    
+    // Final sizes calculation
+    static void CalculateFinalSizes(VisualProperties& props, 
+                                   float scale,
+                                   const EntityMultipliers& multipliers);
 };
 
 } // namespace kx

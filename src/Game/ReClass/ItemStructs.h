@@ -11,9 +11,9 @@ namespace kx {
          * @brief Wrapper for the game's Item Definition structure.
          * Contains the core properties of an item, like its ID and rarity.
          */
-        class ItemDef : public kx::SafeForeignClass {
+        class ItemDef : public SafeForeignClass {
         public:
-            ItemDef(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ItemDef(void* ptr) : SafeForeignClass(ptr) {}
 
             uint32_t GetId() const {
                 // Reads the unique item ID (e.g., 49371 for Quiver of Swift Flight).

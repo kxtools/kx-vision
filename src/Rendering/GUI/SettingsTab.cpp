@@ -12,16 +12,16 @@ namespace kx {
     namespace GUI {
         void RenderSettingsTab() {
             if (ImGui::BeginTabItem("Settings")) {
-                auto& settings = kx::AppState::Get().GetSettings();
+                auto& settings = AppState::Get().GetSettings();
 
                 // NEW SECTION
                 if (ImGui::CollapsingHeader("Settings Management")) {
                     if (ImGui::Button("Save Settings")) {
-                        kx::SettingsManager::Save(settings);
+                        SettingsManager::Save(settings);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Reload Settings")) {
-                        kx::SettingsManager::Load(settings);
+                        SettingsManager::Load(settings);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Reset to Defaults")) {
@@ -33,7 +33,7 @@ namespace kx {
                         ImGui::Text("Are you sure? This will reset all settings to their default values.");
                         ImGui::Separator();
                         if (ImGui::Button("OK", ImVec2(120, 0))) { 
-                            settings = kx::Settings(); // Reset to default
+                            settings = Settings(); // Reset to default
                             ImGui::CloseCurrentPopup(); 
                         }
                         ImGui::SetItemDefaultFocus();
@@ -85,12 +85,12 @@ namespace kx {
                         ImGui::Separator();
                         ImGui::Text("Log Level:");
                         
-                        static int currentLogLevel = static_cast<int>(kx::AppConfig::DEFAULT_LOG_LEVEL);
+                        static int currentLogLevel = static_cast<int>(AppConfig::DEFAULT_LOG_LEVEL);
                         const char* logLevels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" };
                         
                         if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
                             // Update log level when changed
-                            kx::Debug::Logger::SetMinLogLevel(static_cast<kx::Debug::Logger::Level>(currentLogLevel));
+                            Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(currentLogLevel));
                         }
                         
                         if (ImGui::IsItemHovered()) {
@@ -107,7 +107,7 @@ namespace kx {
                 // Debug Info (Development only)
                 if (ImGui::CollapsingHeader("Debug Info")) {
                     // Context Collection
-                    void* pContextCollection = kx::AddressManager::GetContextCollectionPtr();
+                    void* pContextCollection = AddressManager::GetContextCollectionPtr();
                     char ctxCollectionAddrStr[32];
                     snprintf(ctxCollectionAddrStr, sizeof(ctxCollectionAddrStr), "0x%p", pContextCollection);
                     ImGui::Text("ContextCollection:");
@@ -116,10 +116,10 @@ namespace kx {
                     ImGui::PopItemWidth();
 
                     if (pContextCollection) {
-                        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
+                        ReClass::ContextCollection ctxCollection(pContextCollection);
 
                         // Character Context
-                        kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+                        ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
                         char charCtxAddrStr[32];
                         snprintf(charCtxAddrStr, sizeof(charCtxAddrStr), "0x%p", charContext.data());
                         ImGui::Text("ChCliContext:");
@@ -129,7 +129,7 @@ namespace kx {
 
                         if (charContext) {
                             // Character List
-                            kx::ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
+                            ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
                             uint32_t characterCapacity = charContext.GetCharacterListCapacity();
                             char charListAddrStr[32];
                             snprintf(charListAddrStr, sizeof(charListAddrStr), "0x%p", (void*)characterList);
@@ -139,7 +139,7 @@ namespace kx {
                             ImGui::PopItemWidth();
 
                             // Player List
-                            kx::ReClass::ChCliPlayer** playerList = charContext.GetPlayerList();
+                            ReClass::ChCliPlayer** playerList = charContext.GetPlayerList();
                             uint32_t playerListSize = charContext.GetPlayerListSize();
                             char playerListAddrStr[32];
                             snprintf(playerListAddrStr, sizeof(playerListAddrStr), "0x%p", (void*)playerList);
@@ -152,7 +152,7 @@ namespace kx {
                         ImGui::Separator();
 
                         // Gadget Context
-                        kx::ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();
+                        ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();
                         char gadgetCtxAddrStr[32];
                         snprintf(gadgetCtxAddrStr, sizeof(gadgetCtxAddrStr), "0x%p", gadgetCtx.data());
                         ImGui::Text("GdCliContext:");
@@ -162,7 +162,7 @@ namespace kx {
 
                         if (gadgetCtx) {
                             // Gadget List
-                            kx::ReClass::GdCliGadget** gadgetList = gadgetCtx.GetGadgetList();
+                            ReClass::GdCliGadget** gadgetList = gadgetCtx.GetGadgetList();
                             uint32_t gadgetCapacity = gadgetCtx.GetGadgetListCapacity();
                             uint32_t gadgetCount = gadgetCtx.GetGadgetListCount();
                             char gadgetListAddrStr[32];

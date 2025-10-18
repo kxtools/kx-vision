@@ -13,9 +13,9 @@ namespace kx {
         /**
          * @brief Character health management wrapper
          */
-        class ChCliHealth : public kx::SafeForeignClass {
+        class ChCliHealth : public SafeForeignClass {
         public:
-            ChCliHealth(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ChCliHealth(void* ptr) : SafeForeignClass(ptr) {}
             
             float GetCurrent() const { 
                 LOG_MEMORY("ChCliHealth", "GetCurrent", data(), Offsets::ChCliHealth::CURRENT);
@@ -57,9 +57,9 @@ namespace kx {
         /**
          * @brief Character mount/special energy management wrapper
          */
-        class ChCliSpecialEnergies : public kx::SafeForeignClass {
+        class ChCliSpecialEnergies : public SafeForeignClass {
         public:
-            ChCliSpecialEnergies(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ChCliSpecialEnergies(void* ptr) : SafeForeignClass(ptr) {}
             
             float GetCurrent() const { 
                 LOG_MEMORY("ChCliSpecialEnergies", "GetCurrent", data(), Offsets::ChCliSpecialEnergies::CURRENT);
@@ -83,9 +83,9 @@ namespace kx {
         /**
          * @brief Character dodge/endurance management wrapper
          */
-        class ChCliEnergies : public kx::SafeForeignClass {
+        class ChCliEnergies : public SafeForeignClass {
         public:
-            ChCliEnergies(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ChCliEnergies(void* ptr) : SafeForeignClass(ptr) {}
             
             float GetCurrent() const { 
                 LOG_MEMORY("ChCliEnergies", "GetCurrent", data(), Offsets::ChCliEnergies::CURRENT);
@@ -109,9 +109,9 @@ namespace kx {
         /**
          * @brief Character core statistics wrapper
          */
-        class ChCliCoreStats : public kx::SafeForeignClass {
+        class ChCliCoreStats : public SafeForeignClass {
         public:
-            ChCliCoreStats(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ChCliCoreStats(void* ptr) : SafeForeignClass(ptr) {}
             
             Game::Race GetRace() const { 
                 LOG_MEMORY("ChCliCoreStats", "GetRace", data(), Offsets::ChCliCoreStats::RACE);
@@ -164,9 +164,9 @@ namespace kx {
         /**
          * @brief Main character wrapper with access to all character subsystems
          */
-        class ChCliCharacter : public kx::SafeForeignClass {
+        class ChCliCharacter : public SafeForeignClass {
         public:
-            ChCliCharacter(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ChCliCharacter(void* ptr) : SafeForeignClass(ptr) {}
 
             AgChar GetAgent() const {
                 return ReadPointer<AgChar>(Offsets::ChCliCharacter::AGENT);
@@ -246,9 +246,9 @@ namespace kx {
         /**
          * @brief Player wrapper that contains character data and player name
          */
-        class ChCliPlayer : public kx::SafeForeignClass {
+        class ChCliPlayer : public SafeForeignClass {
         public:
-            ChCliPlayer(void* ptr) : kx::SafeForeignClass(ptr) {}
+            ChCliPlayer(void* ptr) : SafeForeignClass(ptr) {}
             
             ChCliCharacter GetCharacter() const { 
                 if (!data()) {

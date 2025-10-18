@@ -28,9 +28,9 @@ void AddressManager::SetContextCollectionPtr(void* ptr)
 }
 
 void AddressManager::ScanAgentArray() {
-    std::optional<uintptr_t> avContextFuncOpt = kx::PatternScanner::FindPattern(
-        std::string(kx::AGENT_VIEW_CONTEXT_PATTERN),
-        std::string(kx::TARGET_PROCESS_NAME)
+    std::optional<uintptr_t> avContextFuncOpt = PatternScanner::FindPattern(
+        std::string(AGENT_VIEW_CONTEXT_PATTERN),
+        std::string(TARGET_PROCESS_NAME)
     );
 
     if (!avContextFuncOpt) {
@@ -42,7 +42,7 @@ void AddressManager::ScanAgentArray() {
     uintptr_t avContextFuncAddr = *avContextFuncOpt;
     LOG_INFO("[AddressManager] Found AgentViewContext at: 0x%p", (void*)avContextFuncAddr);
 
-    std::optional<uintptr_t> leaInstructionOpt = kx::PatternScanner::FindPattern(std::string(kx::AGENT_ARRAY_LEA_PATTERN), avContextFuncAddr, AddressingConstants::AGENT_ARRAY_SEARCH_RANGE);
+    std::optional<uintptr_t> leaInstructionOpt = PatternScanner::FindPattern(std::string(AGENT_ARRAY_LEA_PATTERN), avContextFuncAddr, AddressingConstants::AGENT_ARRAY_SEARCH_RANGE);
 
     if (!leaInstructionOpt) {
         LOG_ERROR("[AddressManager] Could not find AgentArray LEA instruction inside AvContext.");
@@ -60,9 +60,9 @@ void AddressManager::ScanAgentArray() {
 }
 
 void AddressManager::ScanWorldViewContextPtr() {
-    std::optional<uintptr_t> landmarkOpt = kx::PatternScanner::FindPattern(
-        std::string(kx::WORLD_VIEW_CONTEXT_PATTERN),
-        std::string(kx::TARGET_PROCESS_NAME)
+    std::optional<uintptr_t> landmarkOpt = PatternScanner::FindPattern(
+        std::string(WORLD_VIEW_CONTEXT_PATTERN),
+        std::string(TARGET_PROCESS_NAME)
     );
 
     if (!landmarkOpt) {
@@ -90,9 +90,9 @@ void AddressManager::ScanWorldViewContextPtr() {
 
 void AddressManager::ScanBgfxContextFunc()
 {
-    std::optional<uintptr_t> getContextOpt = kx::PatternScanner::FindPattern(
-        std::string(kx::BGFX_CONTEXT_FUNC_PATTERN),
-        std::string(kx::TARGET_PROCESS_NAME)
+    std::optional<uintptr_t> getContextOpt = PatternScanner::FindPattern(
+        std::string(BGFX_CONTEXT_FUNC_PATTERN),
+        std::string(TARGET_PROCESS_NAME)
     );
 
     if (!getContextOpt) {
@@ -114,9 +114,9 @@ void AddressManager::ScanBgfxContextFunc()
 
 void AddressManager::ScanContextCollectionFunc()
 {
-    std::optional<uintptr_t> funcOpt = kx::PatternScanner::FindPattern(
-        std::string(kx::CONTEXT_COLLECTION_FUNC_PATTERN),
-        std::string(kx::TARGET_PROCESS_NAME)
+    std::optional<uintptr_t> funcOpt = PatternScanner::FindPattern(
+        std::string(CONTEXT_COLLECTION_FUNC_PATTERN),
+        std::string(TARGET_PROCESS_NAME)
     );
 
     if (!funcOpt) {
@@ -130,9 +130,9 @@ void AddressManager::ScanContextCollectionFunc()
 }
 
 void AddressManager::ScanGameThreadUpdateFunc() {
-    std::optional<uintptr_t> locatorOpt = kx::PatternScanner::FindPattern(
-        std::string(kx::ALERT_CONTEXT_LOCATOR_PATTERN),
-        std::string(kx::TARGET_PROCESS_NAME)
+    std::optional<uintptr_t> locatorOpt = PatternScanner::FindPattern(
+        std::string(ALERT_CONTEXT_LOCATOR_PATTERN),
+        std::string(TARGET_PROCESS_NAME)
     );
 
     if (!locatorOpt) {

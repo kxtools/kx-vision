@@ -6,7 +6,7 @@
 #include <windows.h>
 
 #include "Core/ESPRenderer.h"
-#include "GuiStyle.h"
+#include "ImGuiStyle.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../../libs/ImGui/imgui_impl_dx11.h"
 #include "../../libs/ImGui/imgui_impl_win32.h"
@@ -37,8 +37,8 @@ bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
 
-    GUIStyle::LoadAppFont();
-    GUIStyle::ApplyCustomStyle();
+    kx::GUI::LoadAppFont();
+    kx::GUI::ApplyCustomStyle();
 
     if (!ImGui_ImplWin32_Init(hwnd)) return false;
     if (!ImGui_ImplDX11_Init(device, context)) return false;

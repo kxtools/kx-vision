@@ -20,8 +20,8 @@ public:
     /**
      * @brief Render a 3D gyroscope sphere for gadgets, with LOD transition to a 2D circle.
      */
-    static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera,
-        const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale);
+    static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& entityContext, Camera& camera,
+        const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale, float screenWidth, float screenHeight);
 
     /**
      * @brief Render a bounding box around an entity

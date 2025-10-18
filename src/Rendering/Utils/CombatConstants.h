@@ -45,6 +45,10 @@ namespace kx {
 
         // --- State Management ---
         constexpr uint64_t STATE_CLEANUP_THRESHOLD_MS = 3000;
+
+        // --- DPS Display ---
+        constexpr float DPS_FORMATTING_THRESHOLD = 1000.0f;  // Display as "1.0k" above this value
+        constexpr float DPS_FONT_SIZE_MULTIPLIER = 0.9f;      // 90% of base font size
     }
 
     namespace ESPBarColors {
@@ -67,6 +71,9 @@ namespace kx {
 
         // Energy bar
         // Keep using ESPColors::ENERGY_BAR for fill, it already fits the scheme
+
+        // Burst DPS
+        constexpr unsigned int BURST_DPS_TEXT = IM_COL32(255, 200, 50, 255); // Gold/yellow for DPS
     }
 
 } // namespace kx

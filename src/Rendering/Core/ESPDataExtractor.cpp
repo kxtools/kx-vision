@@ -1,5 +1,5 @@
 #include "ESPDataExtractor.h"
-#include "../Extractors/EntityExtractor.h"
+#include "EntityExtractor.h"
 #include "../../Game/AddressManager.h"
 #include "../../Game/ReClassStructs.h"
 #include "../../Utils/SafeIterators.h"
@@ -15,17 +15,17 @@ namespace kx {
         pooledData.Reset();
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
-        if (!pContextCollection || !kx::SafeAccess::IsMemorySafe(pContextCollection)) {
+        if (!pContextCollection || !SafeAccess::IsMemorySafe(pContextCollection)) {
             return;
         }
 
         // Build the map of character pointers to player names
         std::unordered_map<void*, const wchar_t*> characterToPlayerNameMap;
         {
-            kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-            kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+            ReClass::ContextCollection ctxCollection(pContextCollection);
+            ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
             if (charContext.data()) {
-                kx::SafeAccess::PlayerList playerList(charContext);
+                SafeAccess::PlayerList playerList(charContext);
                 for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
                     if (playerIt.IsValid()) {
                         characterToPlayerNameMap[playerIt.GetCharacterDataPtr()] = playerIt.GetName();
@@ -52,14 +52,14 @@ namespace kx {
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection) return;
 
-        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-        kx::ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
+        ReClass::ContextCollection ctxCollection(pContextCollection);
+        ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
         if (!charContext.data()) return;
 
         void* localPlayerPtr = AddressManager::GetLocalPlayer();
 
         // Single pass over the character list - process both players and NPCs
-        kx::SafeAccess::CharacterList characterList(charContext);
+        SafeAccess::CharacterList characterList(charContext);
         for (const auto& character : characterList) {
             void* charPtr = const_cast<void*>(character.data());
             
@@ -95,11 +95,11 @@ namespace kx {
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection) return;
 
-        kx::ReClass::ContextCollection ctxCollection(pContextCollection);
-        kx::ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
+        ReClass::ContextCollection ctxCollection(pContextCollection);
+        ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
         if (!gadgetContext.data()) return;
 
-        kx::SafeAccess::GadgetList gadgetList(gadgetContext);
+        SafeAccess::GadgetList gadgetList(gadgetContext);
         for (const auto& gadget : gadgetList) {
             RenderableGadget* renderableGadget = gadgetPool.Get();
             if (!renderableGadget) break; // Pool exhausted

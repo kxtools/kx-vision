@@ -56,8 +56,8 @@ namespace kx {
 #ifndef GW2AL_BUILD
         // Only initialize D3D hook in standalone DLL mode
         // In GW2AL mode, this is handled by GW2AL_Integration.cpp
-        if (!kx::Hooking::D3DRenderHook::Initialize()) {
-            kx::Hooking::HookManager::Shutdown();
+        if (!Hooking::D3DRenderHook::Initialize()) {
+            Hooking::HookManager::Shutdown();
             AppState::Get().SetPresentHookStatus(HookStatus::Failed);
             return false;
         }
@@ -106,10 +106,10 @@ namespace kx {
 #ifndef GW2AL_BUILD
         // Only shutdown D3D hook in standalone DLL mode
         // In GW2AL mode, this is handled by GW2AL_Integration.cpp
-        kx::Hooking::D3DRenderHook::Shutdown();
+        Hooking::D3DRenderHook::Shutdown();
 #endif
 
-        kx::Hooking::HookManager::Shutdown();
+        Hooking::HookManager::Shutdown();
 
         LOG_INFO("[Hooks] Cleanup finished.");
     }

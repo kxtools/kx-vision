@@ -1,10 +1,10 @@
 #pragma once
 
-#include "TextElement.h"
+#include "../Data/TextElement.h"
 #include <vector>
 #include <string>
 
-#include "GameEnums.h"
+#include "../../Game/GameEnums.h"
 
 namespace kx {
 
