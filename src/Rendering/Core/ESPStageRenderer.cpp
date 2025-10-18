@@ -5,6 +5,8 @@
 #include "../../Game/Camera.h"
 #include "../Utils/ESPMath.h"
 #include "../Utils/ESPStyling.h"
+#include "../Utils/CombatConstants.h"
+#include "../Utils/LayoutConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
@@ -306,8 +308,8 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
 
     // --- FORMATTING ---
     std::stringstream ss;
-    if (entityContext.burstDPS >= 1000.0f) {
-        ss << std::fixed << std::setprecision(1) << (entityContext.burstDPS / 1000.0f) << "k";
+    if (entityContext.burstDPS >= CombatEffects::DPS_FORMATTING_THRESHOLD) {
+        ss << std::fixed << std::setprecision(1) << (entityContext.burstDPS / CombatEffects::DPS_FORMATTING_THRESHOLD) << "k";
     }
     else {
         ss << std::fixed << std::setprecision(0) << entityContext.burstDPS;
@@ -317,33 +319,33 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
     glm::vec2 anchorPos;
     if (entityContext.renderHealthBar) {
         // Base anchor is vertically centered on the bar.
-        anchorPos = { layout.healthBarAnchor.x + props.finalHealthBarWidth + 5.0f, layout.healthBarAnchor.y + props.finalHealthBarHeight / 2.0f };
+        anchorPos = { layout.healthBarAnchor.x + props.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, layout.healthBarAnchor.y + props.finalHealthBarHeight / 2.0f };
 
         // If the HP% text is also being rendered, calculate its width and add it to our offset.
         if (entityContext.renderHealthPercentage && healthPercent >= 0.0f) {
             std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f));
 
             // Calculate the size of the HP text using the same font size it will be rendered with.
-            float hpFontSize = props.finalFontSize * 0.8f;
+            float hpFontSize = props.finalFontSize * RenderingLayout::HP_PERCENT_FONT_SIZE_MULTIPLIER;
             ImFont* font = ImGui::GetFont();
             ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.c_str());
 
             // Add the width of the HP text plus another padding amount to the total offset.
-            anchorPos.x += hpTextSize.x + 5.0f; // HP Text Width + 5px padding
+            anchorPos.x += hpTextSize.x + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING; // HP Text Width + padding
         }
 
     }
     else {
         // FALLBACK: If HP bar is off, anchor below the entity's name/details.
-        anchorPos = { props.screenPos.x, props.screenPos.y + 20.0f }; // Adjust Y-offset as needed
+        anchorPos = { props.screenPos.x, props.screenPos.y + RenderingLayout::BURST_DPS_FALLBACK_Y_OFFSET };
     }
 
     // --- RENDER LOGIC ---
     TextElement element(ss.str(), anchorPos, TextAnchor::Custom);
     element.SetAlignment(TextAlignment::Left);
-    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * 0.9f);
+    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * CombatEffects::DPS_FONT_SIZE_MULTIPLIER);
     style.enableBackground = false;
-    style.textColor = IM_COL32(255, 200, 50, 255); // A distinct gold/yellow for DPS
+    style.textColor = ESPBarColors::BURST_DPS_TEXT;
     element.SetStyle(style);
     TextRenderer::Render(context.drawList, element);
 }
