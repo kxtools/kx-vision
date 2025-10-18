@@ -252,7 +252,16 @@ namespace kx {
                     return T();
                 }
                 
-                return ((T(__thiscall*)(void*, Ts...))(function_ptr))(m_ptr, args...);
+                // Wrap the virtual function call in exception handling for maximum safety
+                T result = T();
+                __try {
+                    result = ((T(__thiscall*)(void*, Ts...))(function_ptr))(m_ptr, args...);
+                }
+                __except (EXCEPTION_EXECUTE_HANDLER) {
+                    // Virtual function call failed - return default value
+                    return T();
+                }
+                return result;
             }
             catch (...) {
                 return T(); // Return default value on any exception

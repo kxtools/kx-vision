@@ -57,7 +57,7 @@ private:
     static std::string LevelToString(Level level) noexcept;
     static void CleanupRateLimitCache() noexcept; // Assumes caller holds s_rateLimitMutex
     static bool ShouldLogMessage(const std::string& message) noexcept;
-    static bool ShouldRateLimit(const std::string& key, std::chrono::milliseconds interval) noexcept;
+    static bool IsRateLimited(const std::string& key, std::chrono::milliseconds interval) noexcept;
     static void LogImpl(Level level, const std::string& message, const std::string& context = "") noexcept;
     static bool InitializeLogFile() noexcept;
     static std::string GetLogFilePath() noexcept;

@@ -73,6 +73,35 @@ std::optional<uintptr_t> PatternScanner::FindPattern(const std::string& pattern,
     return FindPattern(pattern, baseAddress, scanSize);
 }
 
+// Helper function to perform the actual pattern scanning with __try/__except
+static uintptr_t ScanPatternWithExceptionHandling(const std::vector<int>& patternBytes, uintptr_t startAddress, size_t scanSize) {
+    size_t patternSize = patternBytes.size();
+    
+    for (uintptr_t i = 0; i <= scanSize - patternSize; ++i) {
+        bool found = true;
+        
+        __try {
+            for (size_t j = 0; j < patternSize; ++j) {
+                // Check if the byte is a wildcard (-1) or if the memory matches the pattern byte
+                if (patternBytes[j] != -1 && patternBytes[j] != *reinterpret_cast<unsigned char*>(startAddress + i + j)) {
+                    found = false;
+                    break;
+                }
+            }
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            // Memory access violation - skip this location
+            found = false;
+        }
+
+        if (found) {
+            return startAddress + i;
+        }
+    }
+    
+    return 0; // Pattern not found
+}
+
 std::optional<uintptr_t> PatternScanner::FindPattern(const std::string& pattern, uintptr_t startAddress, size_t scanSize) {
     std::vector<int> patternBytes;
     if (!PatternToBytes(pattern, patternBytes)) {
@@ -87,24 +116,15 @@ std::optional<uintptr_t> PatternScanner::FindPattern(const std::string& pattern,
         return std::nullopt; // Cannot possibly find the pattern
     }
 
-    for (uintptr_t i = 0; i <= scanSize - patternSize; ++i) {
-        bool found = true;
-        for (size_t j = 0; j < patternSize; ++j) {
-            // Check if the byte is a wildcard (-1) or if the memory matches the pattern byte
-            if (patternBytes[j] != -1 && patternBytes[j] != *reinterpret_cast<unsigned char*>(startAddress + i + j)) {
-                found = false;
-                break;
-            }
-        }
-
-        if (found) {
-            return startAddress + i;
-        }
+    uintptr_t result = ScanPatternWithExceptionHandling(patternBytes, startAddress, scanSize);
+    
+    if (result == 0) {
+        // Pattern not found
+        LOG_WARN("[PatternScanner] Pattern not found in specified memory range.");
+        return std::nullopt;
     }
-
-    // Pattern not found
-    LOG_WARN("[PatternScanner] Pattern not found in specified memory range.");
-    return std::nullopt;
+    
+    return result;
 }
 
 

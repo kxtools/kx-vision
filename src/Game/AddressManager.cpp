@@ -167,7 +167,33 @@ void AddressManager::ScanGameThreadUpdateFunc() {
         return;
     }
 
+    // Validate VTable pointer is within module bounds
+    uintptr_t moduleBase = GetModuleBase();
+    size_t moduleSize = GetModuleSize();
+    uintptr_t vtableAddr = reinterpret_cast<uintptr_t>(vtable);
+
+    if (moduleBase == 0 || moduleSize == 0) {
+        LOG_ERROR("[AddressManager] Module information not available for VTable validation");
+        s_pointers.gameThreadUpdateFunc = 0;
+        return;
+    }
+
+    if (vtableAddr < moduleBase || vtableAddr >= (moduleBase + moduleSize)) {
+        LOG_ERROR("[AddressManager] VTable pointer 0x%p outside module bounds [0x%p - 0x%p]",
+                  (void*)vtableAddr, (void*)moduleBase, (void*)(moduleBase + moduleSize));
+        s_pointers.gameThreadUpdateFunc = 0;
+        return;
+    }
+
     s_pointers.gameThreadUpdateFunc = vtable[AddressingConstants::GAME_THREAD_UPDATE_VTABLE_INDEX];
+
+    // Also validate the final function pointer
+    uintptr_t funcAddr = s_pointers.gameThreadUpdateFunc;
+    if (funcAddr < moduleBase || funcAddr >= (moduleBase + moduleSize)) {
+        LOG_ERROR("[AddressManager] GameThreadUpdate function 0x%p outside module bounds", (void*)funcAddr);
+        s_pointers.gameThreadUpdateFunc = 0;
+        return;
+    }
 
     LOG_INFO("[AddressManager] -> SUCCESS: GameThreadUpdate function resolved to: 0x%p", (void*)s_pointers.gameThreadUpdateFunc);
 }
