@@ -86,7 +86,7 @@ namespace kx::Hooking {
 
         if (hr == S_OK) {
             void** vTable = *reinterpret_cast<void***>(pSwapChain);
-            m_pTargetPresent = reinterpret_cast<Present>(vTable[8]);
+            m_pTargetPresent = reinterpret_cast<Present>(vTable[VTableIndices::DXGI_PRESENT]);
             pSwapChain->Release();
             pDevice->Release();
             success = true;

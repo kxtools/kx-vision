@@ -13,6 +13,11 @@ namespace kx {
 
 namespace kx::Hooking {
 
+    // DXGI VTable indices
+    namespace VTableIndices {
+        constexpr size_t DXGI_PRESENT = 8;  // IDXGISwapChain::Present function index
+    }
+
     typedef long(__stdcall* Present)(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
 
     /**
