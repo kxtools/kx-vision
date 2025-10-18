@@ -295,13 +295,19 @@ void Logger::LogImpl(Level level, const std::string& message, const std::string&
         {
             std::lock_guard<std::mutex> lock(s_fileMutex);
             
-            // Console output
-            if (level >= ERR) {
-                std::cerr << logLine << std::endl;
-                std::cerr.flush();
+            // Console output - check if console is available
+            HWND consoleWindow = GetConsoleWindow();
+            if (consoleWindow != NULL) {
+                if (level >= ERR) {
+                    std::cerr << logLine << std::endl;
+                    std::cerr.flush();
+                } else {
+                    std::cout << logLine << std::endl;
+                    std::cout.flush();
+                }
             } else {
-                std::cout << logLine << std::endl;
-                std::cout.flush();
+                // Fallback to OutputDebugString when console not available
+                OutputDebugStringA((logLine + "\n").c_str());
             }
             
             // File output

@@ -18,7 +18,11 @@ namespace kx {
         // 2. Try to allocate a new console.
         if (!AllocConsole()) {
             // Log the failure using Windows' GetLastError() for a specific reason.
-            LOG_ERROR("[Console] Failed to allocate console. Error code: %d", GetLastError());
+            DWORD error = GetLastError();
+            char errorMsg[256];
+            sprintf_s(errorMsg, "[Console] AllocConsole failed with error %lu\n", error);
+            OutputDebugStringA(errorMsg);  // Use OutputDebugString as fallback
+            LOG_ERROR("[Console] Failed to allocate console. Error code: %d", error);
             return;
         }
 
