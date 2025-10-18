@@ -50,6 +50,11 @@ namespace kx::Hooking {
         static WNDPROC m_pOriginalWndProc;
         static AppLifecycleManager* m_pLifecycleManager;
 
+        // WndProc state (DLL mode only)
+        static bool m_rightMouseDown;
+        static bool m_leftMouseDown;
+        static bool m_wasOverImGuiWindow;
+
         // Methods
         static bool FindPresentPointer();
         static HRESULT __stdcall DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);

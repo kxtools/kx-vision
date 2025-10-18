@@ -37,6 +37,12 @@ namespace kx::Hooking {
         }
 
         LOG_INFO("[D3DRenderHook] Present hook created and enabled.");
+        
+        // Initialize WndProc state
+        m_rightMouseDown = false;
+        m_leftMouseDown = false;
+        m_wasOverImGuiWindow = false;
+        
         AppState::Get().SetPresentHookStatus(HookStatus::OK);
         return true;
     }
@@ -203,15 +209,13 @@ namespace kx::Hooking {
 
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         // Complex WndProc for DLL injection mode - handle camera rotation conflicts
-        static bool rightMouseDown = false;
-        static bool leftMouseDown = false;
-        static bool wasOverImGuiWindow = false;
+        // Using class static members instead of function static variables for proper lifecycle management
 
         // Update mouse button states
-        if (uMsg == WM_RBUTTONDOWN) rightMouseDown = true;
-        else if (uMsg == WM_RBUTTONUP) rightMouseDown = false;
-        else if (uMsg == WM_LBUTTONDOWN) leftMouseDown = true;
-        else if (uMsg == WM_LBUTTONUP) leftMouseDown = false;
+        if (uMsg == WM_RBUTTONDOWN) m_rightMouseDown = true;
+        else if (uMsg == WM_RBUTTONUP) m_rightMouseDown = false;
+        else if (uMsg == WM_LBUTTONDOWN) m_leftMouseDown = true;
+        else if (uMsg == WM_LBUTTONUP) m_leftMouseDown = false;
 
         // Only process ImGui input if overlay is visible
         if (m_isInit && AppState::Get().IsVisionWindowOpen()) {
@@ -221,10 +225,10 @@ namespace kx::Hooking {
             if (uMsg == WM_MOUSEMOVE) {
                 isOverImGuiWindow = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) ||
                     ImGui::IsAnyItemHovered();
-                wasOverImGuiWindow = isOverImGuiWindow;
+                m_wasOverImGuiWindow = isOverImGuiWindow;
             }
             else {
-                isOverImGuiWindow = wasOverImGuiWindow;
+                isOverImGuiWindow = m_wasOverImGuiWindow;
             }
 
             // Special handling for left mouse button for camera rotation
@@ -234,7 +238,7 @@ namespace kx::Hooking {
             }
 
             // Handle other inputs - if RMB isn't down OR mouse is over ImGui window
-            if (!rightMouseDown || isOverImGuiWindow) {
+            if (!m_rightMouseDown || isOverImGuiWindow) {
                 ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
                 ImGuiIO& io = ImGui::GetIO();
 

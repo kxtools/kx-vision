@@ -22,6 +22,11 @@ namespace kx::Hooking {
     ID3D11RenderTargetView* D3DRenderHook::m_pMainRenderTargetView = nullptr;
     WNDPROC D3DRenderHook::m_pOriginalWndProc = nullptr;
     AppLifecycleManager* D3DRenderHook::m_pLifecycleManager = nullptr;
+    
+    // WndProc state initialization
+    bool D3DRenderHook::m_rightMouseDown = false;
+    bool D3DRenderHook::m_leftMouseDown = false;
+    bool D3DRenderHook::m_wasOverImGuiWindow = false;
 
     bool D3DRenderHook::InitializeFromDevice(ID3D11Device* device, IDXGISwapChain* pSwapChain) {
         if (m_isInit) return true;
@@ -45,7 +50,15 @@ namespace kx::Hooking {
             HRESULT hr = pSwapChain->GetDesc(&sd);
             if (FAILED(hr)) {
                 LOG_ERROR("[D3DRenderHook] Failed to get swap chain description. HRESULT: 0x%08X", hr);
-                // No resources to clean up yet, just return.
+                // Clean up resources before returning
+                if (m_pContext) {
+                    m_pContext->Release();
+                    m_pContext = nullptr;
+                }
+                if (m_pDevice) {
+                    m_pDevice->Release();
+                    m_pDevice = nullptr;
+                }
                 return false;
             }
             m_hWindow = sd.OutputWindow;
@@ -103,7 +116,8 @@ namespace kx::Hooking {
         LOG_INFO("[D3DRenderHook] Handling resize event");
 
         // Release the old cached render target view if it exists
-        // It will be recreated on the next Present call
+        // Note: In GW2AL mode, the RTV is recreated per-frame in OnPresent callback
+        // In DLL mode, it would need to be recreated here or on next Present call
         if (m_pMainRenderTargetView) {
             m_pMainRenderTargetView->Release();
             m_pMainRenderTargetView = nullptr;
@@ -122,6 +136,11 @@ namespace kx::Hooking {
         // Clean up all D3D resources and restore WndProc
         CleanupD3DResources(true);
         LOG_INFO("[D3DRenderHook] D3D resources released.");
+
+        // Reset WndProc state
+        m_rightMouseDown = false;
+        m_leftMouseDown = false;
+        m_wasOverImGuiWindow = false;
 
         m_isInit = false;
         m_pOriginalPresent = nullptr;
