@@ -11,56 +11,6 @@
 
 namespace kx {
 
-namespace {
-    // Helper to get a size multiplier based on NPC rank
-    float GetRankMultiplier(Game::CharacterRank rank) {
-        switch (rank) {
-            case Game::CharacterRank::Veteran:    return 1.25f;
-            case Game::CharacterRank::Elite:      return 1.5f;
-            case Game::CharacterRank::Champion:   return 1.75f;
-            case Game::CharacterRank::Legendary:  return 2.0f;
-            default:                              return 1.0f;
-        }
-    }
-
-    // Helper to get a size multiplier for gadgets based on max health
-    float GetGadgetHealthMultiplier(float maxHealth) {
-        if (maxHealth >= 1000000.0f) return 2.0f;
-        if (maxHealth >= 500000.0f) return 1.75f;
-        if (maxHealth >= 250000.0f) return 1.5f;
-        if (maxHealth >= 100000.0f) return 1.25f;
-        return 1.0f;
-    }
-
-    // Helper to calculate final scaled size with clamping and multipliers
-    float CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier = 1.0f) {
-        float scaledSize = baseSize * scale * multiplier;
-        return std::clamp(scaledSize, minLimit, maxLimit);
-    }
-
-    // Calculates the alpha value for distance-based fading.
-    float CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
-        if (!useDistanceLimit) {
-            return 1.0f; // Fully visible when no distance limit
-        }
-        
-        // Calculate fade zone distances
-        const float fadeZonePercentage = 0.11f; // RenderingEffects::FADE_ZONE_PERCENTAGE
-        const float fadeZoneDistance = distanceLimit * fadeZonePercentage;
-        const float fadeStartDistance = distanceLimit - fadeZoneDistance; // e.g., 80m for 90m limit
-        const float fadeEndDistance = distanceLimit; // e.g., 90m for 90m limit
-        
-        if (distance <= fadeStartDistance) {
-            return 1.0f; // Fully visible
-        } else if (distance >= fadeEndDistance) {
-            return 0.0f; // Fully transparent (should be culled in filter)
-        } else {
-            // Linear interpolation in fade zone
-            const float fadeProgress = (distance - fadeStartDistance) / fadeZoneDistance;
-            return 1.0f - fadeProgress; // Fade from 1.0 to 0.0
-        }
-    }
-} // anonymous namespace
 
 std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const RenderableEntity& entity,
                                                                    Camera& camera,
@@ -78,7 +28,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
 
     // 2. Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();
-    props.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance,
+    props.distanceFadeAlpha = EntityVisualsCalculator::CalculateDistanceFadeAlpha(entity.gameplayDistance,
                                                          settings.distance.useDistanceLimit,
                                                          settings.distance.renderDistanceLimit);
 
@@ -132,34 +82,8 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
 
     // 7. Calculate scaled sizes with limits
-    // Determine multipliers
-    float hostileMultiplier = 1.0f;
-    if (entity.entityType == ESPEntityType::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(&entity);
-        if (player->attitude == Game::Attitude::Hostile) {
-            hostileMultiplier = RenderingEffects::HOSTILE_PLAYER_VISUAL_MULTIPLIER;
-        }
-    }
-
-    float rankMultiplier = 1.0f;
-    if (entity.entityType == ESPEntityType::NPC) {
-        const auto* npc = static_cast<const RenderableNpc*>(&entity);
-        rankMultiplier = GetRankMultiplier(npc->rank);
-    }
-
-    float gadgetHealthMultiplier = 1.0f;
-    if (entity.entityType == ESPEntityType::Gadget) {
-        gadgetHealthMultiplier = GetGadgetHealthMultiplier(entity.maxHealth);
-    }
-
-    // Calculate final sizes using the helper
-    props.finalFontSize = CalculateFinalSize(settings.sizes.baseFontSize, props.scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, hostileMultiplier);
-    props.finalBoxThickness = CalculateFinalSize(settings.sizes.baseBoxThickness, props.scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, hostileMultiplier);
-    props.finalDotRadius = CalculateFinalSize(settings.sizes.baseDotRadius, props.scale, ScalingLimits::MIN_DOT_RADIUS, ScalingLimits::MAX_DOT_RADIUS);
-
-    float healthBarMultiplier = hostileMultiplier * rankMultiplier * gadgetHealthMultiplier;
-    props.finalHealthBarWidth = CalculateFinalSize(settings.sizes.baseHealthBarWidth, props.scale, ScalingLimits::MIN_HEALTH_BAR_WIDTH, ScalingLimits::MAX_HEALTH_BAR_WIDTH, healthBarMultiplier);
-    props.finalHealthBarHeight = CalculateFinalSize(settings.sizes.baseHealthBarHeight, props.scale, ScalingLimits::MIN_HEALTH_BAR_HEIGHT, ScalingLimits::MAX_HEALTH_BAR_HEIGHT, healthBarMultiplier);
+    EntityMultipliers multipliers = EntityVisualsCalculator::CalculateEntityMultipliers(entity);
+    EntityVisualsCalculator::CalculateFinalSizes(props, props.scale, multipliers);
 
     return props;
 }
@@ -353,6 +277,95 @@ float EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(float damageToD
     float multiplier = MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
     
     return multiplier; // No need for std::min with MAX_MULTIPLIER here, as progress is clamped
+}
+
+// Helper method implementations
+float EntityVisualsCalculator::GetRankMultiplier(Game::CharacterRank rank) {
+    switch (rank) {
+        case Game::CharacterRank::Veteran:    return 1.25f;
+        case Game::CharacterRank::Elite:      return 1.5f;
+        case Game::CharacterRank::Champion:   return 1.75f;
+        case Game::CharacterRank::Legendary:  return 2.0f;
+        default:                              return 1.0f;
+    }
+}
+
+float EntityVisualsCalculator::GetGadgetHealthMultiplier(float maxHealth) {
+    if (maxHealth >= 1000000.0f) return 2.0f;
+    if (maxHealth >= 500000.0f) return 1.75f;
+    if (maxHealth >= 250000.0f) return 1.5f;
+    if (maxHealth >= 100000.0f) return 1.25f;
+    return 1.0f;
+}
+
+float EntityVisualsCalculator::CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier) {
+    float scaledSize = baseSize * scale * multiplier;
+    return std::clamp(scaledSize, minLimit, maxLimit);
+}
+
+float EntityVisualsCalculator::CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
+    if (!useDistanceLimit) {
+        return 1.0f; // Fully visible when no distance limit
+    }
+    
+    // Calculate fade zone distances
+    const float fadeZonePercentage = 0.11f; // RenderingEffects::FADE_ZONE_PERCENTAGE
+    const float fadeZoneDistance = distanceLimit * fadeZonePercentage;
+    const float fadeStartDistance = distanceLimit - fadeZoneDistance; // e.g., 80m for 90m limit
+    const float fadeEndDistance = distanceLimit; // e.g., 90m for 90m limit
+    
+    if (distance <= fadeStartDistance) {
+        return 1.0f; // Fully visible
+    } else if (distance >= fadeEndDistance) {
+        return 0.0f; // Fully transparent (should be culled in filter)
+    } else {
+        // Linear interpolation in fade zone
+        const float fadeProgress = (distance - fadeStartDistance) / fadeZoneDistance;
+        return 1.0f - fadeProgress; // Fade from 1.0 to 0.0
+    }
+}
+
+EntityMultipliers EntityVisualsCalculator::CalculateEntityMultipliers(const RenderableEntity& entity) {
+    EntityMultipliers multipliers;
+    
+    // Calculate hostile multiplier
+    if (entity.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(&entity);
+        if (player->attitude == Game::Attitude::Hostile) {
+            multipliers.hostile = RenderingEffects::HOSTILE_PLAYER_VISUAL_MULTIPLIER;
+        }
+    }
+    
+    // Calculate rank multiplier
+    if (entity.entityType == ESPEntityType::NPC) {
+        const auto* npc = static_cast<const RenderableNpc*>(&entity);
+        multipliers.rank = EntityVisualsCalculator::GetRankMultiplier(npc->rank);
+    }
+    
+    // Calculate gadget health multiplier
+    if (entity.entityType == ESPEntityType::Gadget) {
+        multipliers.gadgetHealth = EntityVisualsCalculator::GetGadgetHealthMultiplier(entity.maxHealth);
+    }
+    
+    // Calculate combined health bar multiplier
+    multipliers.healthBar = multipliers.hostile * multipliers.rank * multipliers.gadgetHealth;
+    
+    return multipliers;
+}
+
+void EntityVisualsCalculator::CalculateFinalSizes(VisualProperties& props, 
+                                                 float scale,
+                                                 const EntityMultipliers& multipliers) {
+    const auto& settings = AppState::Get().GetSettings();
+    
+    // Calculate final sizes using the helper
+    props.finalFontSize = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseFontSize, scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, multipliers.hostile);
+    props.finalBoxThickness = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseBoxThickness, scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, multipliers.hostile);
+    props.finalDotRadius = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseDotRadius, scale, ScalingLimits::MIN_DOT_RADIUS, ScalingLimits::MAX_DOT_RADIUS);
+
+    // Health bar uses combined multiplier
+    props.finalHealthBarWidth = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseHealthBarWidth, scale, ScalingLimits::MIN_HEALTH_BAR_WIDTH, ScalingLimits::MAX_HEALTH_BAR_WIDTH, multipliers.healthBar);
+    props.finalHealthBarHeight = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseHealthBarHeight, scale, ScalingLimits::MIN_HEALTH_BAR_HEIGHT, ScalingLimits::MAX_HEALTH_BAR_HEIGHT, multipliers.healthBar);
 }
 
 } // namespace kx
