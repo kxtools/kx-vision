@@ -1,10 +1,8 @@
 // In Core/ESPVisualsProcessor.cpp
 
 #include "ESPVisualsProcessor.h"
-#include "../Data/RenderableData.h"
 #include "../Utils/EntityVisualsCalculator.h"
 #include "../Factories/ESPContextFactory.h"
-#include "../Data/ESPEntityTypes.h"
 #include <vector>
 
 namespace kx {

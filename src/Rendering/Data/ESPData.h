@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "../../libs/ImGui/imgui.h" // For ImU32, ImVec2
-#include "ESPEntityTypes.h"
 #include "EntityRenderContext.h"
 
 // Forward declarations

@@ -2,7 +2,6 @@
 #include "Settings.h"
 #include "../Utils/DebugLogger.h"
 #include <fstream>
-#include <cstdlib>
 
 namespace kx {
 

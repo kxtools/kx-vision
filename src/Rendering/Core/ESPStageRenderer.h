@@ -1,14 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <map>
-#include <string>
-#include <vector>
-#include "glm.hpp"
-#include "../../../libs/ImGui/imgui.h"
 
-#include "../../Core/Settings.h"
-#include "../Data/RenderableData.h"
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Layout/LayoutCalculator.h"

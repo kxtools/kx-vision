@@ -1,6 +1,5 @@
 #include "GuiHelpers.h"
 #include "../../../libs/ImGui/imgui.h"
-#include <string>
 
 namespace kx {
     namespace GUI {

@@ -4,13 +4,11 @@
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Utils/ESPMath.h"
-#include "../Utils/ESPConstants.h"
 #include "../Utils/ESPStyling.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
 #include "../Data/EntityRenderContext.h"
-#include "../Utils/ESPFormatting.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <sstream>
 #include <iomanip>

@@ -3,14 +3,12 @@
 #include "../Combat/CombatStateManager.h" // For CombatStateManager
 #include "../Utils/ESPConstants.h" // For CombatEffects
 #include "../Data/ESPData.h"
-#include "../Core/ESPStageRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
 #include "../Utils/ESPStyling.h"
 #include "../Animations/HealthBarAnimations.h"
 #include "../Utils/ESPPlayerDetailsBuilder.h"
 #include "../Utils/ESPEntityDetailsBuilder.h"
-#include "../Utils/ESPFormatting.h"
 #include "../Data/ESPEntityTypes.h"
 
 namespace kx {
