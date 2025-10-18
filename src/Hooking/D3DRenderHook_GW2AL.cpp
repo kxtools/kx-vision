@@ -1,12 +1,6 @@
 /**
  * @file D3DRenderHook_GW2AL.cpp
  * @brief GW2AL addon mode specific functionality
- *
- * This file contains GW2AL-mode specific code:
- * - Simple WndProc that relies on GW2AL's input routing
- * - No Present hook (GW2AL provides the device directly)
- *
- * This file is only compiled when GW2AL_BUILD is defined.
  */
 
 #include "D3DRenderHook.h"
@@ -17,7 +11,6 @@
 #include "../Core/AppState.h"
 #include "../../libs/ImGui/imgui.h"
 
- // Declare the external ImGui Win32 handler
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace kx::Hooking {

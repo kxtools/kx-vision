@@ -1,14 +1,6 @@
 /**
  * @file D3DRenderHook_DLL.cpp
  * @brief DLL injection mode specific functionality
- * 
- * This file contains DLL-mode specific code:
- * - Finding the Present function pointer via dummy swap chain
- * - Creating and enabling the Present hook with MinHook
- * - DetourPresent implementation with per-frame rendering
- * - Complex WndProc for handling camera rotation conflicts
- * 
- * This file is only compiled when GW2AL_BUILD is NOT defined.
  */
 
 #include "D3DRenderHook.h"
@@ -24,7 +16,6 @@
 #include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
 
-// Declare the external ImGui Win32 handler
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace kx::Hooking {
@@ -147,35 +138,31 @@ namespace kx::Hooking {
         ID3D11Texture2D* pBackBuffer = nullptr;
         if (FAILED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer)))) {
             LOG_ERROR("[D3DRenderHook] Failed to get back buffer");
-            if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
-            if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-            m_hWindow = NULL;
+            CleanupD3DResources(false);
             return false;
         }
 
-        m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
+        HRESULT hr = m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
         pBackBuffer->Release();
+
+        if (FAILED(hr) || !m_pMainRenderTargetView) {
+            LOG_ERROR("[D3DRenderHook] Failed to create render target view. HRESULT: 0x%08X", hr);
+            CleanupD3DResources(false);
+            return false;
+        }
 
         // Hook WndProc
         m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
         if (!m_pOriginalWndProc) {
             LOG_ERROR("[D3DRenderHook] Failed to hook WndProc");
-            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-            if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
-            if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-            m_hWindow = NULL;
+            CleanupD3DResources(false);
             return false;
         }
 
         // Initialize ImGui
         if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
             LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui");
-            SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
-            m_pOriginalWndProc = nullptr;
-            if (m_pMainRenderTargetView) { m_pMainRenderTargetView->Release(); m_pMainRenderTargetView = nullptr; }
-            if (m_pContext) { m_pContext->Release(); m_pContext = nullptr; }
-            if (m_pDevice) { m_pDevice->Release(); m_pDevice = nullptr; }
-            m_hWindow = NULL;
+            CleanupD3DResources(true);
             return false;
         }
 
