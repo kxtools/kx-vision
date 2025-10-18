@@ -1,6 +1,6 @@
 #include "EntityExtractor.h"
-#include "Utils/ESPConstants.h"
-#include "Utils/ESPFormatting.h"
+#include "../Utils/ESPConstants.h"
+#include "../Utils/ESPFormatting.h"
 #include "../../Game/GameEnums.h"
 #include "../../Utils/StringHelpers.h"
 #include <vector>
