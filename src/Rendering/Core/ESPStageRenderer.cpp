@@ -24,7 +24,21 @@
 
 namespace kx {
 
-
+namespace {
+    // Helper function to calculate energy percentage for players
+    float CalculateEnergyPercent(const RenderablePlayer* player, EnergyDisplayType displayType) {
+        if (displayType == EnergyDisplayType::Dodge) {
+            if (player->maxEnergy > 0) {
+                return player->currentEnergy / player->maxEnergy;
+            }
+        } else { // Special
+            if (player->maxSpecialEnergy > 0) {
+                return player->currentSpecialEnergy / player->maxSpecialEnergy;
+            }
+        }
+        return -1.0f;
+    }
+}
 
 std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context) {
     // 1. Re-project the entity's world position to get a fresh screen position.
@@ -100,7 +114,24 @@ void ESPStageRenderer::RenderLayoutElements(
         }
     }
 
-    // RENDER BELOW BOX ELEMENTS
+    // RENDER BELOW BOX ELEMENTS using helper functions
+    RenderStatusBars(context, entityContext, props, layout);
+    RenderPlayerIdentity(context, entityContext, props, layout);
+    RenderEntityDetails(context, entityContext, props, layout);
+
+    // RENDER DEPENDENT ELEMENTS
+    // These are not part of the stack, but are anchored to layout elements (like the health bar).
+    RenderDamageNumbers(context, entityContext, props, layout);
+    RenderBurstDps(context, entityContext, props, layout);
+}
+
+void ESPStageRenderer::RenderStatusBars(
+    const FrameContext& context,
+    EntityRenderContext& entityContext,
+    const VisualProperties& props,
+    const LayoutResult& layout)
+{
+    // Health Bar
     bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
     bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
@@ -110,31 +141,31 @@ void ESPStageRenderer::RenderLayoutElements(
             glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
             ESPHealthBarRenderer::RenderStandaloneHealthBar(context.drawList, topLeft, entityContext,
                 props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
-            // healthBarAnchor is already set by LayoutCalculator
-        }
-    }
-    if (entityContext.entityType == ESPEntityType::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        float energyPercent = -1.0f;
-        if (context.settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
-            if (player->maxEnergy > 0) {
-                energyPercent = player->currentEnergy / player->maxEnergy;
-            }
-        } else { // Special
-            if (player->maxSpecialEnergy > 0) {
-                energyPercent = player->currentSpecialEnergy / player->maxSpecialEnergy;
-            }
-        }
-        if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
-        auto it = layout.elementPositions.find("energyBar");
-        if (it != layout.elementPositions.end()) {
-            glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
-            ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, energyPercent,
-                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
-        }
         }
     }
 
+    // Energy Bar (Players only)
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        float energyPercent = CalculateEnergyPercent(player, context.settings.playerESP.energyDisplayType);
+        if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
+            auto it = layout.elementPositions.find("energyBar");
+            if (it != layout.elementPositions.end()) {
+                glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
+                ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, energyPercent,
+                    props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
+            }
+        }
+    }
+}
+
+void ESPStageRenderer::RenderPlayerIdentity(
+    const FrameContext& context,
+    const EntityRenderContext& entityContext,
+    const VisualProperties& props,
+    const LayoutResult& layout)
+{
+    // Player Name
     if (entityContext.renderPlayerName && !entityContext.playerName.empty()) {
         auto it = layout.elementPositions.find("playerName");
         if (it != layout.elementPositions.end()) {
@@ -142,43 +173,47 @@ void ESPStageRenderer::RenderLayoutElements(
         }
     }
 
+    // Player Gear (Players only)
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         if (player != nullptr) {
-        switch (context.settings.playerESP.gearDisplayMode) {
-            case GearDisplayMode::Compact: {
-                auto it = layout.elementPositions.find("gearSummary");
-                if (it != layout.elementPositions.end()) {
-                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
-                    ESPTextRenderer::RenderGearSummaryAt(context.drawList, it->second, summary, props.finalAlpha, props.finalFontSize);
+            switch (context.settings.playerESP.gearDisplayMode) {
+                case GearDisplayMode::Compact: {
+                    auto it = layout.elementPositions.find("gearSummary");
+                    if (it != layout.elementPositions.end()) {
+                        auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
+                        ESPTextRenderer::RenderGearSummaryAt(context.drawList, it->second, summary, props.finalAlpha, props.finalFontSize);
+                    }
+                    break;
                 }
-                break;
-            }
-            case GearDisplayMode::Attributes: {
-                auto it = layout.elementPositions.find("dominantStats");
-                if (it != layout.elementPositions.end()) {
-                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
-                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
-                    ESPTextRenderer::RenderDominantStatsAt(context.drawList, it->second, stats, rarity, props.finalAlpha, props.finalFontSize);
+                case GearDisplayMode::Attributes: {
+                    auto it = layout.elementPositions.find("dominantStats");
+                    if (it != layout.elementPositions.end()) {
+                        auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
+                        auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
+                        ESPTextRenderer::RenderDominantStatsAt(context.drawList, it->second, stats, rarity, props.finalAlpha, props.finalFontSize);
+                    }
+                    break;
                 }
-                break;
+                default: break;
             }
-            default: break;
-        }
         }
     }
+}
 
+void ESPStageRenderer::RenderEntityDetails(
+    const FrameContext& context,
+    const EntityRenderContext& entityContext,
+    const VisualProperties& props,
+    const LayoutResult& layout)
+{
+    // Entity Details
     if (entityContext.renderDetails && !entityContext.details.empty()) {
         auto it = layout.elementPositions.find("details");
         if (it != layout.elementPositions.end()) {
             ESPTextRenderer::RenderDetailsTextAt(context.drawList, it->second, entityContext.details, props.finalAlpha, props.finalFontSize);
         }
     }
-
-    // RENDER DEPENDENT ELEMENTS
-    // These are not part of the stack, but are anchored to layout elements (like the health bar).
-    RenderDamageNumbers(context, entityContext, props, layout);
-    RenderBurstDps(context, entityContext, props, layout);
 }
 
 void ESPStageRenderer::RenderStaticElements(
@@ -210,7 +245,6 @@ void ESPStageRenderer::RenderStaticElements(
         }
     }
 }
-
 
 void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const LayoutResult& layout) {
     // For gadgets, check if combat UI should be hidden for this type

@@ -65,6 +65,19 @@ private:
         std::vector<std::pair<std::string, ImVec2>>& outAboveElements,
         std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
 
+    // Helper functions for GatherLayoutElements
+    static void GatherStatusBarElements(
+        const LayoutRequest& request,
+        std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
+    
+    static void GatherPlayerIdentityElements(
+        const LayoutRequest& request,
+        std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
+    
+    static void GatherDetailElements(
+        const LayoutRequest& request,
+        std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
+
     /**
      * @brief Calculate vertical stacking positions for a list of elements
      * @param startAnchor Starting position for the stack

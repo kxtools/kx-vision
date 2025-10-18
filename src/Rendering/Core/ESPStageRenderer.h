@@ -41,6 +41,25 @@ private:
         const VisualProperties& props,
         const LayoutResult& layout);
 
+    // Helper functions for RenderLayoutElements
+    static void RenderStatusBars(
+        const FrameContext& context,
+        EntityRenderContext& entityContext,
+        const VisualProperties& props,
+        const LayoutResult& layout);
+    
+    static void RenderPlayerIdentity(
+        const FrameContext& context,
+        const EntityRenderContext& entityContext,
+        const VisualProperties& props,
+        const LayoutResult& layout);
+    
+    static void RenderEntityDetails(
+        const FrameContext& context,
+        const EntityRenderContext& entityContext,
+        const VisualProperties& props,
+        const LayoutResult& layout);
+
     /**
      * @brief Renders static, non-layout elements like the bounding box and center dot.
      */

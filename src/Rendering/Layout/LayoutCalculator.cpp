@@ -8,6 +8,22 @@
 
 namespace kx {
 
+namespace {
+    // Helper function to calculate energy percentage for players
+    float CalculateEnergyPercent(const RenderablePlayer* player, EnergyDisplayType displayType) {
+        if (displayType == EnergyDisplayType::Dodge) {
+            if (player->maxEnergy > 0) {
+                return player->currentEnergy / player->maxEnergy;
+            }
+        } else { // Special
+            if (player->maxSpecialEnergy > 0) {
+                return player->currentSpecialEnergy / player->maxSpecialEnergy;
+            }
+        }
+        return -1.0f;
+    }
+}
+
 LayoutResult LayoutCalculator::CalculateLayout(const LayoutRequest& request) {
     LayoutResult result;
     
@@ -49,8 +65,21 @@ void LayoutCalculator::GatherLayoutElements(
         outAboveElements.push_back({"distance", size});
     }
 
-    // --- GATHER BELOW BOX ELEMENTS (Combat Priority Layout) ---
-    // 1. Status Bars (Health & Energy)
+    // --- GATHER BELOW BOX ELEMENTS using helper functions ---
+    GatherStatusBarElements(request, outBelowElements);
+    GatherPlayerIdentityElements(request, outBelowElements);
+    GatherDetailElements(request, outBelowElements);
+}
+
+void LayoutCalculator::GatherStatusBarElements(
+    const LayoutRequest& request,
+    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
+{
+    const auto& entityContext = request.entityContext;
+    const auto& props = request.visualProps;
+    const auto& context = request.frameContext;
+
+    // Health Bar
     bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
     bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
@@ -58,30 +87,34 @@ void LayoutCalculator::GatherLayoutElements(
         ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};
         outBelowElements.push_back({"healthBar", size});
     }
+
+    // Energy Bar (Players only)
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        float energyPercent = -1.0f;
-        if (context.settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
-            if (player->maxEnergy > 0) {
-                energyPercent = player->currentEnergy / player->maxEnergy;
-            }
-        } else { // Special
-            if (player->maxSpecialEnergy > 0) {
-                energyPercent = player->currentSpecialEnergy / player->maxSpecialEnergy;
-            }
-        }
+        float energyPercent = CalculateEnergyPercent(player, context.settings.playerESP.energyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
             ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
             outBelowElements.push_back({"energyBar", size});
         }
     }
+}
 
-    // 2. Identity Info (Name & Gear)
+void LayoutCalculator::GatherPlayerIdentityElements(
+    const LayoutRequest& request,
+    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
+{
+    const auto& entityContext = request.entityContext;
+    const auto& props = request.visualProps;
+    const auto& context = request.frameContext;
+
+    // Player Name
     if (entityContext.renderPlayerName && !entityContext.playerName.empty()) {
         TextElement element = TextElementFactory::CreatePlayerName(entityContext.playerName, {0,0}, 0, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
         outBelowElements.push_back({"playerName", size});
     }
+
+    // Player Gear (Players only)
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         if (player != nullptr) {
@@ -103,8 +136,16 @@ void LayoutCalculator::GatherLayoutElements(
             }
         }
     }
+}
 
-    // 3. Verbose Details (Placed last)
+void LayoutCalculator::GatherDetailElements(
+    const LayoutRequest& request,
+    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
+{
+    const auto& entityContext = request.entityContext;
+    const auto& props = request.visualProps;
+
+    // Entity Details
     if (entityContext.renderDetails && !entityContext.details.empty()) {
         TextElement element = TextElementFactory::CreateDetailsText(entityContext.details, {0,0}, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
