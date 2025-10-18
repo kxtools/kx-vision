@@ -74,18 +74,6 @@ float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showB
 } // anonymous namespace
 
 EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FrameContext& context) {
-    float healthPercent = (player->maxHealth > 0) ? (player->currentHealth / player->maxHealth) : -1.0f;
-    float energyPercent = -1.0f;
-    if (context.settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
-        if (player->maxEnergy > 0) {
-            energyPercent = player->currentEnergy / player->maxEnergy;
-        }
-    } else { // Special
-        if (player->maxSpecialEnergy > 0) {
-            energyPercent = player->currentSpecialEnergy / player->maxSpecialEnergy;
-        }
-    }
-    
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
     unsigned int color = ESPStyling::GetEntityColor(*player);
 
@@ -105,8 +93,6 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         .gameplayDistance = player->gameplayDistance,
         .color = color,
         .details = std::move(details),
-        .healthPercent = healthPercent,
-        .energyPercent = energyPercent,
         .burstDPS = burstDpsValue,
         .renderBox = context.settings.playerESP.renderBox,
         .renderDistance = context.settings.playerESP.renderDistance,
@@ -125,8 +111,6 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
 }
 
 EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FrameContext& context) {
-    float healthPercent = (npc->maxHealth > 0) ? (npc->currentHealth / npc->maxHealth) : -1.0f;
-    
     // Use attitude-based coloring for NPCs
     unsigned int color = ESPStyling::GetEntityColor(*npc);
 
@@ -147,8 +131,6 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         .gameplayDistance = npc->gameplayDistance,
         .color = color,
         .details = std::move(details),
-        .healthPercent = healthPercent,
-        .energyPercent = -1.0f, // No energy for NPCs
         .burstDPS = burstDpsValue,
         .renderBox = context.settings.npcESP.renderBox,
         .renderDistance = context.settings.npcESP.renderDistance,
@@ -187,8 +169,6 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         .gameplayDistance = gadget->gameplayDistance,
         .color = ESPStyling::GetEntityColor(*gadget),
         .details = std::move(details),
-        .healthPercent = gadget->maxHealth > 0 ? (gadget->currentHealth / gadget->maxHealth) : -1.0f,
-        .energyPercent = -1.0f, // No energy for gadgets
         .burstDPS = burstDpsValue,
         .renderBox = (context.settings.objectESP.renderCircle || context.settings.objectESP.renderSphere),
         .renderDistance = context.settings.objectESP.renderDistance,

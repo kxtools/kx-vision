@@ -103,7 +103,8 @@ void ESPStageRenderer::RenderLayoutElements(
     // RENDER BELOW BOX ELEMENTS
     bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
     bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
-    if ((isLivingEntity || isGadget) && entityContext.healthPercent >= 0.0f && entityContext.renderHealthBar) {
+    float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
+    if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
         auto it = layout.elementPositions.find("healthBar");
         if (it != layout.elementPositions.end()) {
             glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
@@ -112,12 +113,25 @@ void ESPStageRenderer::RenderLayoutElements(
             // healthBarAnchor is already set by LayoutCalculator
         }
     }
-    if (entityContext.entityType == ESPEntityType::Player && entityContext.energyPercent >= 0.0f && entityContext.renderEnergyBar) {
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        float energyPercent = -1.0f;
+        if (context.settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
+            if (player->maxEnergy > 0) {
+                energyPercent = player->currentEnergy / player->maxEnergy;
+            }
+        } else { // Special
+            if (player->maxSpecialEnergy > 0) {
+                energyPercent = player->currentSpecialEnergy / player->maxSpecialEnergy;
+            }
+        }
+        if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
         auto it = layout.elementPositions.find("energyBar");
         if (it != layout.elementPositions.end()) {
             glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
-            ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, entityContext.energyPercent,
+            ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, energyPercent,
                 props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
+        }
         }
     }
 
@@ -244,6 +258,9 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
         }
     }
 
+    // Calculate health percentage for positioning logic
+    float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
+
     // Check if the setting is enabled
     bool isEnabled = false;
     if (entityContext.entityType == ESPEntityType::Player) isEnabled = context.settings.playerESP.showBurstDps;
@@ -270,8 +287,8 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
         anchorPos = { layout.healthBarAnchor.x + props.finalHealthBarWidth + 5.0f, layout.healthBarAnchor.y + props.finalHealthBarHeight / 2.0f };
 
         // If the HP% text is also being rendered, calculate its width and add it to our offset.
-        if (entityContext.renderHealthPercentage && entityContext.healthPercent >= 0.0f) {
-            std::string hpText = std::to_string(static_cast<int>(entityContext.healthPercent * 100.0f));
+        if (entityContext.renderHealthPercentage && healthPercent >= 0.0f) {
+            std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f));
 
             // Calculate the size of the HP text using the same font size it will be rendered with.
             float hpFontSize = props.finalFontSize * 0.8f;

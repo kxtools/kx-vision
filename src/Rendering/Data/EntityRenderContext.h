@@ -89,12 +89,6 @@ struct EntityRenderContext {
     /** Pre-built detail strings with colors (level, profession, etc.) */
     std::vector<ColoredDetail> details;
     
-    /** Health percentage [0.0 - 1.0], or -1.0f if not applicable */
-    float healthPercent;
-
-    /** Energy percentage [0.0 - 1.0], or -1.0f if not applicable */
-    float energyPercent;
-
     /** Calculated live burst DPS for the current damage window */
     float burstDPS;
 

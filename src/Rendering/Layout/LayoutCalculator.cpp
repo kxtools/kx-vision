@@ -53,13 +53,27 @@ void LayoutCalculator::GatherLayoutElements(
     // 1. Status Bars (Health & Energy)
     bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
     bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
-    if ((isLivingEntity || isGadget) && entityContext.healthPercent >= 0.0f && entityContext.renderHealthBar) {
+    float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
+    if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
         ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};
         outBelowElements.push_back({"healthBar", size});
     }
-    if (entityContext.entityType == ESPEntityType::Player && entityContext.energyPercent >= 0.0f && entityContext.renderEnergyBar) {
-        ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
-        outBelowElements.push_back({"energyBar", size});
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        float energyPercent = -1.0f;
+        if (context.settings.playerESP.energyDisplayType == EnergyDisplayType::Dodge) {
+            if (player->maxEnergy > 0) {
+                energyPercent = player->currentEnergy / player->maxEnergy;
+            }
+        } else { // Special
+            if (player->maxSpecialEnergy > 0) {
+                energyPercent = player->currentSpecialEnergy / player->maxSpecialEnergy;
+            }
+        }
+        if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
+            ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
+            outBelowElements.push_back({"energyBar", size});
+        }
     }
 
     // 2. Identity Info (Name & Gear)
