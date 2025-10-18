@@ -59,9 +59,9 @@ struct VisualProperties {
 // This struct will hold all data that is constant for a single rendering frame.
 struct FrameContext {
     const uint64_t now;
-    kx::Camera& camera;
-    kx::CombatStateManager& stateManager;
-    const kx::Settings& settings;
+    Camera& camera;
+    CombatStateManager& stateManager;
+    const Settings& settings;
     ImDrawList* drawList;
     const float screenWidth;
     const float screenHeight;
@@ -70,9 +70,9 @@ struct FrameContext {
 // NEW: FinalizedRenderable struct
 // This pairs a renderable entity with its calculated visual properties and render context for the frame.
 struct FinalizedRenderable {
-    const kx::RenderableEntity* entity;
-    kx::VisualProperties visuals;
-    kx::EntityRenderContext context;
+    const RenderableEntity* entity;
+    VisualProperties visuals;
+    EntityRenderContext context;
 };
 
 // MODIFIED: PooledFrameRenderData

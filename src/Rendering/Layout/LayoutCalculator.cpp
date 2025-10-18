@@ -164,7 +164,7 @@ void LayoutCalculator::CalculateVerticalStack(
     float direction = stackUpwards ? -1.0f : 1.0f;
 
     // Start with a larger margin from the box itself.
-    currentY += kx::RenderingLayout::REGION_MARGIN_VERTICAL * direction;
+    currentY += RenderingLayout::REGION_MARGIN_VERTICAL * direction;
 
     for (const auto& item : elements) {
         const std::string& name = item.first;
@@ -183,7 +183,7 @@ void LayoutCalculator::CalculateVerticalStack(
         }
         
         // Add margin for the next element.
-        currentY += kx::RenderingLayout::ELEMENT_MARGIN_VERTICAL * direction;
+        currentY += RenderingLayout::ELEMENT_MARGIN_VERTICAL * direction;
     }
 }
 

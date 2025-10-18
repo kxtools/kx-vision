@@ -36,7 +36,7 @@ namespace kx {
 
         void RenderObjectsTab() {
             if (ImGui::BeginTabItem("Objects")) {
-                auto& settings = kx::AppState::Get().GetSettings();
+                auto& settings = AppState::Get().GetSettings();
 
                 ImGui::Checkbox("Enable Object ESP", &settings.objectESP.enabled);
 

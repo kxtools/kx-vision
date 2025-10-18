@@ -124,7 +124,7 @@ public:
             // Then check the AppState debug logging setting
             // Only check for DEBUG level logs - errors should always be allowed
             if (level == DEBUG) {
-                return kx::AppState::Get().IsDebugLoggingEnabled();
+                return AppState::Get().IsDebugLoggingEnabled();
             }
             
             // For non-debug levels (INFO, WARNING, ERROR, CRITICAL), always allow if level passes
@@ -152,7 +152,7 @@ public:
                     break;
             }
             
-            bool guiDebugEnabled = kx::AppState::Get().IsDebugLoggingEnabled();
+            bool guiDebugEnabled = AppState::Get().IsDebugLoggingEnabled();
             
             // Force output to console regardless of current level
             std::cout << "[LOGGER] Internal log level: " << levelName 

@@ -8,7 +8,7 @@ namespace kx {
 
         void RenderNPCsTab() {
             if (ImGui::BeginTabItem("NPCs")) {
-                auto& settings = kx::AppState::Get().GetSettings();
+                auto& settings = AppState::Get().GetSettings();
                 
                 ImGui::Checkbox("Enable NPC ESP", &settings.npcESP.enabled);
                 

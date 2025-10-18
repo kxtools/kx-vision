@@ -21,7 +21,7 @@ namespace kx {
         LOG_INFO("AppLifecycleManager: Starting initialization");
 
         // Initialize HookManager (MinHook)
-        if (!kx::Hooking::HookManager::Initialize()) {
+        if (!Hooking::HookManager::Initialize()) {
             LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager");
             return false;
         }
@@ -34,7 +34,7 @@ namespace kx {
         }
 
         // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
-        kx::Hooking::D3DRenderHook::SetLifecycleManager(this);
+        Hooking::D3DRenderHook::SetLifecycleManager(this);
 
         LOG_INFO("AppLifecycleManager: Hooks initialized successfully");
         m_currentState = State::WaitingForImGui;
@@ -46,7 +46,7 @@ namespace kx {
         LOG_INFO("AppLifecycleManager: Initializing for GW2AL mode");
 
         // Initialize HookManager (MinHook) - needed for game thread hook later
-        if (!kx::Hooking::HookManager::Initialize()) {
+        if (!Hooking::HookManager::Initialize()) {
             LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager");
             return false;
         }
@@ -66,7 +66,7 @@ namespace kx {
         LOG_INFO("AppLifecycleManager: Renderer initialized, waiting for player to be in-game");
 
         // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
-        kx::Hooking::D3DRenderHook::SetLifecycleManager(this);
+        Hooking::D3DRenderHook::SetLifecycleManager(this);
 
         // Transition to WaitingForGame - we'll check in OnPresent if we should initialize
         m_currentState = State::WaitingForGame;
@@ -349,7 +349,7 @@ namespace kx {
             LOG_INFO("AppLifecycleManager: Cleaning up services");
 
             // Clear lifecycle manager pointer in D3DRenderHook
-            kx::Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
+            Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
 
             // Cleanup hooks and ImGui
             CleanupHooks();
@@ -359,7 +359,7 @@ namespace kx {
     }
 
     ID3D11Device* AppLifecycleManager::GetDevice() const {
-        return kx::Hooking::D3DRenderHook::GetDevice();
+        return Hooking::D3DRenderHook::GetDevice();
     }
 
 } // namespace kx

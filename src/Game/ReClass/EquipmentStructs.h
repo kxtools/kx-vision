@@ -15,9 +15,9 @@ namespace kx {
          * @brief Wrapper for a single equipment slot.
          * Contains pointers to the item definition, stats, upgrades, etc.
          */
-        class EquipSlot : public kx::SafeForeignClass {
+        class EquipSlot : public SafeForeignClass {
         public:
-            EquipSlot(void* ptr) : kx::SafeForeignClass(ptr) {}
+            EquipSlot(void* ptr) : SafeForeignClass(ptr) {}
 
             ItemDef GetItemDefinition() const {
                 return ReadPointer<ItemDef>(Offsets::EquipSlot::ITEM_DEF);
@@ -36,9 +36,9 @@ namespace kx {
          * @brief Wrapper for the character's inventory.
          * Contains the array of equipped items.
          */
-        class Inventory : public kx::SafeForeignClass {
+        class Inventory : public SafeForeignClass {
         public:
-            Inventory(void* ptr) : kx::SafeForeignClass(ptr) {}
+            Inventory(void* ptr) : SafeForeignClass(ptr) {}
 
             EquipSlot GetEquipSlot(int slotIndex) const {
                 if (!data() || slotIndex < 0 || slotIndex >= NUM_EQUIPMENT_SLOTS) {

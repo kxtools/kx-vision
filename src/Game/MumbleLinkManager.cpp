@@ -148,7 +148,7 @@ void MumbleLinkManager::ParseIdentity() {
 
 bool MumbleLinkManager::isInCombat() const {
     if (!m_mumbleLink) return false;
-    return (m_mumbleLink->context.uiState & UiState::IsInCombat) != 0;
+    return (m_mumbleLink->context.uiState & IsInCombat) != 0;
 }
 
 bool MumbleLinkManager::isInWvW() const {

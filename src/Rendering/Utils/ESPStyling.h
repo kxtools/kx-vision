@@ -20,37 +20,37 @@ namespace ESPStyling {
 
     inline ImU32 GetRarityColor(Game::ItemRarity rarity) {
         switch (rarity) {
-            case Game::ItemRarity::Junk:       return kx::RarityColors::JUNK;
-            case Game::ItemRarity::Common:     return kx::RarityColors::COMMON;
-            case Game::ItemRarity::Fine:       return kx::RarityColors::FINE;
-            case Game::ItemRarity::Masterwork: return kx::RarityColors::MASTERWORK;
-            case Game::ItemRarity::Rare:       return kx::RarityColors::RARE;
-            case Game::ItemRarity::Exotic:     return kx::RarityColors::EXOTIC;
-            case Game::ItemRarity::Ascended:   return kx::RarityColors::ASCENDED;
-            case Game::ItemRarity::Legendary:  return kx::RarityColors::LEGENDARY;
-            default:                           return kx::RarityColors::DEFAULT;
+            case Game::ItemRarity::Junk:       return RarityColors::JUNK;
+            case Game::ItemRarity::Common:     return RarityColors::COMMON;
+            case Game::ItemRarity::Fine:       return RarityColors::FINE;
+            case Game::ItemRarity::Masterwork: return RarityColors::MASTERWORK;
+            case Game::ItemRarity::Rare:       return RarityColors::RARE;
+            case Game::ItemRarity::Exotic:     return RarityColors::EXOTIC;
+            case Game::ItemRarity::Ascended:   return RarityColors::ASCENDED;
+            case Game::ItemRarity::Legendary:  return RarityColors::LEGENDARY;
+            default:                           return RarityColors::DEFAULT;
         }
     }
 
     // Get color based on tactical role
-    inline ImU32 GetTacticalColor(kx::data::ApiAttribute attribute) {
+    inline ImU32 GetTacticalColor(data::ApiAttribute attribute) {
         switch (attribute) {
             // Offensive Stats -> Red
-            case kx::data::ApiAttribute::Power:
-            case kx::data::ApiAttribute::Precision:
-            case kx::data::ApiAttribute::CritDamage:
-            case kx::data::ApiAttribute::ConditionDamage:
+            case data::ApiAttribute::Power:
+            case data::ApiAttribute::Precision:
+            case data::ApiAttribute::CritDamage:
+            case data::ApiAttribute::ConditionDamage:
                 return IM_COL32(255, 80, 80, 255); // Red
 
             // Defensive Stats -> Blue
-            case kx::data::ApiAttribute::Toughness:
-            case kx::data::ApiAttribute::Vitality:
+            case data::ApiAttribute::Toughness:
+            case data::ApiAttribute::Vitality:
                 return IM_COL32(30, 144, 255, 255); // Blue
 
             // Support Stats -> Green
-            case kx::data::ApiAttribute::Healing:
-            case kx::data::ApiAttribute::BoonDuration:
-            case kx::data::ApiAttribute::ConditionDuration:
+            case data::ApiAttribute::Healing:
+            case data::ApiAttribute::BoonDuration:
+            case data::ApiAttribute::ConditionDuration:
                 return IM_COL32(100, 255, 100, 255); // Green
 
             default:

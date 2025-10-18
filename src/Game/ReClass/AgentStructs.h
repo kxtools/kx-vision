@@ -18,9 +18,9 @@ namespace kx {
          * @brief Havok physics phantom object - contains physics-simulated position
          * TESTED: Physics position updates similarly to Primary - smooth and accurate
          */
-        class HkpSimpleShapePhantom : public kx::SafeForeignClass {
+        class HkpSimpleShapePhantom : public SafeForeignClass {
         public:
-            HkpSimpleShapePhantom(void* ptr) : kx::SafeForeignClass(ptr) {}
+            HkpSimpleShapePhantom(void* ptr) : SafeForeignClass(ptr) {}
 
             glm::vec3 GetPhysicsPosition() const {
                 // TESTED: Updates similarly to Primary position - smooth and accurate
@@ -39,9 +39,9 @@ namespace kx {
          * - GetPositionAlt2(): LAGS BEHIND visual position - not recommended for real-time rendering
          * - GetPhysicsPhantom()->GetPhysicsPosition(): Updates similarly to Primary - smooth and accurate
          */
-        class CoCharUnknown : public kx::SafeForeignClass {
+        class CoCharUnknown : public SafeForeignClass {
         public:
-            CoCharUnknown(void* ptr) : kx::SafeForeignClass(ptr) {}
+            CoCharUnknown(void* ptr) : SafeForeignClass(ptr) {}
 
             glm::vec3 GetPositionAlt1() const {
                 // TESTED: Updates similarly to Primary position - smooth and accurate
@@ -68,9 +68,9 @@ namespace kx {
         /**
          * @brief Coordinate/Object wrapper for character positioning
          */
-        class CoChar : public kx::SafeForeignClass {
+        class CoChar : public SafeForeignClass {
         public:
-            CoChar(void* ptr) : kx::SafeForeignClass(ptr) {}
+            CoChar(void* ptr) : SafeForeignClass(ptr) {}
 
             glm::vec3 GetVisualPosition() const {
                 // TESTED: Primary position source - smooth and accurate for real-time rendering
@@ -92,9 +92,9 @@ namespace kx {
         /**
          * @brief Agent wrapper for character entities
          */
-        class AgChar : public kx::SafeForeignClass {
+        class AgChar : public SafeForeignClass {
         public:
-            AgChar(void* ptr) : kx::SafeForeignClass(ptr) {}
+            AgChar(void* ptr) : SafeForeignClass(ptr) {}
 
             CoChar GetCoChar() const {
                 LOG_MEMORY("AgChar", "GetCoChar", data(), Offsets::AgChar::CO_CHAR);

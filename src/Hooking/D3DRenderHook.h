@@ -61,7 +61,7 @@ namespace kx::Hooking {
          * @brief Sets the AppLifecycleManager for accessing Camera and MumbleLink data
          * @param lifecycleManager Pointer to the AppLifecycleManager instance
          */
-        static void SetLifecycleManager(kx::AppLifecycleManager* lifecycleManager);
+        static void SetLifecycleManager(AppLifecycleManager* lifecycleManager);
 
         static ID3D11Device* GetDevice() { return m_pDevice; }
         static ID3D11DeviceContext* GetContext() { return m_pContext; }
@@ -89,7 +89,7 @@ namespace kx::Hooking {
         static WNDPROC m_pOriginalWndProc; // Pointer to the game's original WndProc
 
         // --- Lifecycle Manager ---
-        static kx::AppLifecycleManager* m_pLifecycleManager; // Pointer to AppLifecycleManager for game state
+        static AppLifecycleManager* m_pLifecycleManager; // Pointer to AppLifecycleManager for game state
 
         // --- Private Methods ---
         /**

@@ -8,7 +8,7 @@ namespace kx {
 
         void RenderPlayersTab() {
             if (ImGui::BeginTabItem("Players")) {
-                auto& settings = kx::AppState::Get().GetSettings();
+                auto& settings = AppState::Get().GetSettings();
                 
                 ImGui::Checkbox("Enable Player ESP", &settings.playerESP.enabled);
                 

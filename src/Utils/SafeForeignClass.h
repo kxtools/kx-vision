@@ -93,7 +93,7 @@ namespace kx {
             }
             
             T result;
-            if (!kx::Debug::SafeRead<T>(data(), offset, result)) {
+            if (!Debug::SafeRead<T>(data(), offset, result)) {
                 return defaultValue;
             }
             
@@ -134,7 +134,7 @@ namespace kx {
             }
             
             PtrType ptr = nullptr;
-            if (!kx::Debug::SafeRead<PtrType>(data(), offset, ptr)) {
+            if (!Debug::SafeRead<PtrType>(data(), offset, ptr)) {
                 return WrapperType(nullptr);
             }
             
@@ -154,7 +154,7 @@ namespace kx {
             }
             
             ArrayType* arrayPtr = nullptr;
-            if (!kx::Debug::SafeRead<ArrayType*>(data(), offset, arrayPtr)) {
+            if (!Debug::SafeRead<ArrayType*>(data(), offset, arrayPtr)) {
                 return nullptr;
             }
             

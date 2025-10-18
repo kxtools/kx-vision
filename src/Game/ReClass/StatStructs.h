@@ -10,9 +10,9 @@ namespace kx {
          * @brief Wrapper for the game's Stat structure.
          * Contains the ID for an item's attribute combination (e.g., Berserker's).
          */
-        class Stat : public kx::SafeForeignClass {
+        class Stat : public SafeForeignClass {
         public:
-            Stat(void* ptr) : kx::SafeForeignClass(ptr) {}
+            Stat(void* ptr) : SafeForeignClass(ptr) {}
 
             uint32_t GetId() const {
                 // Reads the stat combination ID (e.g., 599 for Berserker's).
