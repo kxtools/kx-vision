@@ -101,31 +101,26 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
     float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.playerESP.showBurstDps);
     
     return EntityRenderContext{
-        player->position,
-        player->visualDistance,
-        player->gameplayDistance,
-        color,
-        details,
-        healthPercent,
-        energyPercent,
-        burstDpsValue, // burstDPS
-        context.settings.playerESP.renderBox,
-        context.settings.playerESP.renderDistance,
-        context.settings.playerESP.renderDot,
-        !details.empty(),
-        renderHealthBar,
-        context.settings.playerESP.showHealthPercentage,
-        context.settings.playerESP.renderEnergyBar,
-        context.settings.playerESP.renderPlayerName,
-        ESPEntityType::Player,
-        player->attitude,
-        Game::CharacterRank::Ambient, // Players are considered Ambient for rank purposes
-        context.screenWidth,
-        context.screenHeight,
-        player, // entity pointer
-        player->playerName,
-        player,
-        animState
+        .position = player->position,
+        .gameplayDistance = player->gameplayDistance,
+        .color = color,
+        .details = std::move(details),
+        .healthPercent = healthPercent,
+        .energyPercent = energyPercent,
+        .burstDPS = burstDpsValue,
+        .renderBox = context.settings.playerESP.renderBox,
+        .renderDistance = context.settings.playerESP.renderDistance,
+        .renderDot = context.settings.playerESP.renderDot,
+        .renderDetails = !details.empty(),
+        .renderHealthBar = renderHealthBar,
+        .renderHealthPercentage = context.settings.playerESP.showHealthPercentage,
+        .renderEnergyBar = context.settings.playerESP.renderEnergyBar,
+        .renderPlayerName = context.settings.playerESP.renderPlayerName,
+        .entityType = ESPEntityType::Player,
+        .attitude = player->attitude,
+        .entity = player,
+        .playerName = player->playerName,
+        .healthBarAnim = animState
     };
 }
 
@@ -148,31 +143,26 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     
     static const std::string emptyPlayerName = "";
     return EntityRenderContext{
-        npc->position,
-        npc->visualDistance,
-        npc->gameplayDistance,
-        color,
-        details,
-        healthPercent,
-        -1.0f, // No energy for NPCs
-        burstDpsValue, // burstDPS
-        context.settings.npcESP.renderBox,
-        context.settings.npcESP.renderDistance,
-        context.settings.npcESP.renderDot,
-        context.settings.npcESP.renderDetails,
-        renderHealthBar,
-        context.settings.npcESP.showHealthPercentage,
-        false, // No energy bar for NPCs
-        false,
-        ESPEntityType::NPC,
-        npc->attitude,
-        npc->rank,
-        context.screenWidth,
-        context.screenHeight,
-        npc, // entity pointer
-        emptyPlayerName,
-        nullptr,
-        animState
+        .position = npc->position,
+        .gameplayDistance = npc->gameplayDistance,
+        .color = color,
+        .details = std::move(details),
+        .healthPercent = healthPercent,
+        .energyPercent = -1.0f, // No energy for NPCs
+        .burstDPS = burstDpsValue,
+        .renderBox = context.settings.npcESP.renderBox,
+        .renderDistance = context.settings.npcESP.renderDistance,
+        .renderDot = context.settings.npcESP.renderDot,
+        .renderDetails = context.settings.npcESP.renderDetails,
+        .renderHealthBar = renderHealthBar,
+        .renderHealthPercentage = context.settings.npcESP.showHealthPercentage,
+        .renderEnergyBar = false, // No energy bar for NPCs
+        .renderPlayerName = false,
+        .entityType = ESPEntityType::NPC,
+        .attitude = npc->attitude,
+        .entity = npc,
+        .playerName = emptyPlayerName,
+        .healthBarAnim = animState
     };
 }
 
@@ -193,31 +183,26 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.objectESP.showBurstDps);
 
     return EntityRenderContext{
-        gadget->position,
-        gadget->visualDistance,
-        gadget->gameplayDistance,
-        ESPStyling::GetEntityColor(*gadget),
-        details,
-        gadget->maxHealth > 0 ? (gadget->currentHealth / gadget->maxHealth) : -1.0f,
-        -1.0f, // No energy for gadgets
-        burstDpsValue, // burstDPS
-        (context.settings.objectESP.renderCircle || context.settings.objectESP.renderSphere),
-        context.settings.objectESP.renderDistance,
-        context.settings.objectESP.renderDot,
-        context.settings.objectESP.renderDetails,
-        renderHealthBar,
-        context.settings.objectESP.showHealthPercentage,
-        false, // No energy bar for gadgets
-        false,
-        ESPEntityType::Gadget,
-        Game::Attitude::Neutral,
-        Game::CharacterRank::Normal, // Gadgets don't have ranks
-        context.screenWidth,
-        context.screenHeight,
-        gadget, // entity pointer
-        emptyPlayerName,
-        nullptr,
-        animState
+        .position = gadget->position,
+        .gameplayDistance = gadget->gameplayDistance,
+        .color = ESPStyling::GetEntityColor(*gadget),
+        .details = std::move(details),
+        .healthPercent = gadget->maxHealth > 0 ? (gadget->currentHealth / gadget->maxHealth) : -1.0f,
+        .energyPercent = -1.0f, // No energy for gadgets
+        .burstDPS = burstDpsValue,
+        .renderBox = (context.settings.objectESP.renderCircle || context.settings.objectESP.renderSphere),
+        .renderDistance = context.settings.objectESP.renderDistance,
+        .renderDot = context.settings.objectESP.renderDot,
+        .renderDetails = context.settings.objectESP.renderDetails,
+        .renderHealthBar = renderHealthBar,
+        .renderHealthPercentage = context.settings.objectESP.showHealthPercentage,
+        .renderEnergyBar = false, // No energy bar for gadgets
+        .renderPlayerName = false,
+        .entityType = ESPEntityType::Gadget,
+        .attitude = Game::Attitude::Neutral,
+        .entity = gadget,
+        .playerName = emptyPlayerName,
+        .healthBarAnim = animState
     };
 }
 

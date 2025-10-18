@@ -128,12 +128,14 @@ void ESPStageRenderer::RenderLayoutElements(
         }
     }
 
-    if (entityContext.entityType == ESPEntityType::Player && entityContext.player != nullptr) {
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        if (player != nullptr) {
         switch (context.settings.playerESP.gearDisplayMode) {
             case GearDisplayMode::Compact: {
                 auto it = layout.elementPositions.find("gearSummary");
                 if (it != layout.elementPositions.end()) {
-                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(entityContext.player);
+                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
                     ESPTextRenderer::RenderGearSummaryAt(context.drawList, it->second, summary, props.finalAlpha, props.finalFontSize);
                 }
                 break;
@@ -141,13 +143,14 @@ void ESPStageRenderer::RenderLayoutElements(
             case GearDisplayMode::Attributes: {
                 auto it = layout.elementPositions.find("dominantStats");
                 if (it != layout.elementPositions.end()) {
-                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(entityContext.player);
-                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(entityContext.player);
+                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
+                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
                     ESPTextRenderer::RenderDominantStatsAt(context.drawList, it->second, stats, rarity, props.finalAlpha, props.finalFontSize);
                 }
                 break;
             }
             default: break;
+        }
         }
     }
 
@@ -177,7 +180,7 @@ void ESPStageRenderer::RenderStaticElements(
     // Gadget Visuals (Sphere/Circle)
     if (entityContext.entityType == ESPEntityType::Gadget) {
         if (context.settings.objectESP.renderSphere) {
-            ESPShapeRenderer::RenderGadgetSphere(context.drawList, entityContext, context.camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale);
+            ESPShapeRenderer::RenderGadgetSphere(context.drawList, entityContext, context.camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale, context.screenWidth, context.screenHeight);
         }
         if (context.settings.objectESP.renderCircle) {
             context.drawList->AddCircle(ImVec2(props.screenPos.x, props.screenPos.y), props.circleRadius, props.fadedEntityColor, 0, props.finalBoxThickness);

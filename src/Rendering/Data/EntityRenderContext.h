@@ -80,9 +80,6 @@ struct EntityRenderContext {
     /** World position for real-time screen projection */
     const glm::vec3& position;
     
-    /** Visual distance (from camera to entity) */
-    float visualDistance;
-    
     /** Gameplay distance (used for filtering and display) */
     float gameplayDistance;
     
@@ -131,17 +128,6 @@ struct EntityRenderContext {
     /** Attitude/relationship for NPCs and players (used for health bar coloring) */
     Game::Attitude attitude;
 
-    /** Character rank for NPCs (used for visual scaling) */
-    Game::CharacterRank rank;
-    
-    // ===== Screen Dimensions =====
-    
-    /** Screen width for bounds checking */
-    float screenWidth;
-    
-    /** Screen height for bounds checking */
-    float screenHeight;
-    
     // ===== Entity-Specific Data =====
     
     /** Pointer to the original entity for state lookup */
@@ -149,9 +135,6 @@ struct EntityRenderContext {
 
     /** Player name (empty string for non-players) */
     const std::string& playerName;
-    
-    /** Pointer to full player object for summary rendering (nullptr for non-players) */
-    const RenderablePlayer* player;
 
     /** Transient animation state for the health bar */
     HealthBarAnimationState healthBarAnim;

@@ -68,22 +68,25 @@ void LayoutCalculator::GatherLayoutElements(
         ImVec2 size = TextRenderer::CalculateSize(element);
         outBelowElements.push_back({"playerName", size});
     }
-    if (entityContext.entityType == ESPEntityType::Player && entityContext.player != nullptr) {
-        switch (context.settings.playerESP.gearDisplayMode) {
-            case GearDisplayMode::Compact: {
-                auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(entityContext.player);
-                TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);
-                outBelowElements.push_back({"gearSummary", TextRenderer::CalculateSize(element)});
-                break;
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        if (player != nullptr) {
+            switch (context.settings.playerESP.gearDisplayMode) {
+                case GearDisplayMode::Compact: {
+                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
+                    TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);
+                    outBelowElements.push_back({"gearSummary", TextRenderer::CalculateSize(element)});
+                    break;
+                }
+                case GearDisplayMode::Attributes: {
+                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
+                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
+                    TextElement element = TextElementFactory::CreateDominantStats(stats, rarity, {0,0}, 0, props.finalFontSize);
+                    outBelowElements.push_back({"dominantStats", TextRenderer::CalculateSize(element)});
+                    break;
+                }
+                default: break;
             }
-            case GearDisplayMode::Attributes: {
-                auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(entityContext.player);
-                auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(entityContext.player);
-                TextElement element = TextElementFactory::CreateDominantStats(stats, rarity, {0,0}, 0, props.finalFontSize);
-                outBelowElements.push_back({"dominantStats", TextRenderer::CalculateSize(element)});
-                break;
-            }
-            default: break;
         }
     }
 
