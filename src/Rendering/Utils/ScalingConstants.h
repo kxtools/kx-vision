@@ -13,9 +13,15 @@ namespace AdaptiveScaling {
     constexpr float FAR_PLANE_MIN = 100.0f;   // Minimum far plane for small instances/dungeons
     constexpr float FAR_PLANE_MAX = 3000.0f;  // Maximum far plane to prevent extreme outliers
     constexpr float FAR_PLANE_DEFAULT = 800.0f; // Fallback when no gadgets present (mid-range)
+    constexpr float FAR_PLANE_INITIAL = 1500.0f; // Initial startup value
     
     // Minimum sample size for percentile calculation
     constexpr size_t MIN_ENTITIES_FOR_PERCENTILE = 10; // Need at least 10 entities for meaningful statistics
+    
+    // Adaptive far plane calculation parameters
+    constexpr float PERCENTILE_THRESHOLD = 0.95f;      // 95th percentile for scene depth
+    constexpr float SMOOTHING_FACTOR = 0.5f;           // LERP factor for temporal smoothing
+    constexpr int RECALC_INTERVAL_SECONDS = 1;         // Update frequency in seconds
     
     // Distance factors for scaling calculation (50% scale point)
     constexpr float PLAYER_NPC_DISTANCE_FACTOR = 150.0f;  // Fixed factor for players/NPCs (they're limited to ~200m)

@@ -66,8 +66,8 @@ void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentT
         // Stage 2.5: Calculate Visuals
         ESPVisualsProcessor::Process(frameContext, filteredData, s_processedRenderData);
 
-        // Stage 2.8: Update adaptive far plane
-        AppState::Get().UpdateAdaptiveFarPlane(s_processedRenderData);
+        // Stage 2.8: Update adaptive far plane (use extracted data for true scene depth)
+        AppState::Get().UpdateAdaptiveFarPlane(extractedData);
         
         s_lastUpdateTime = currentTimeSeconds;
     }
