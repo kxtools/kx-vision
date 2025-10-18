@@ -77,9 +77,9 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
             ImU32 finalColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
 
             // Draw all three rings with the same bright color and thickness.
-            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), screenRingXY.size(), finalColor, false, finalLineThickness);
-            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), screenRingXZ.size(), finalColor, false, finalLineThickness);
-            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), screenRingYZ.size(), finalColor, false, finalLineThickness);
+            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), static_cast<int>(screenRingXY.size()), finalColor, false, finalLineThickness);
+            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), static_cast<int>(screenRingXZ.size()), finalColor, false, finalLineThickness);
+            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), static_cast<int>(screenRingYZ.size()), finalColor, false, finalLineThickness);
         }
     }
 
