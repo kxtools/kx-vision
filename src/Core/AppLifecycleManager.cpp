@@ -69,6 +69,13 @@ namespace kx {
         // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
         Hooking::D3DRenderHook::SetLifecycleManager(this);
 
+        // Initialize core services early for GW2AL mode (needed for ESP rendering)
+        AddressManager::Initialize();
+        LOG_INFO("AppLifecycleManager: AddressManager initialized for GW2AL mode");
+        
+        ESPRenderer::Initialize(m_camera);
+        LOG_INFO("AppLifecycleManager: ESPRenderer initialized for GW2AL mode");
+
         // Transition to WaitingForGame - we'll check in OnPresent if we should initialize
         m_currentState = State::WaitingForGame;
     }
@@ -182,21 +189,35 @@ namespace kx {
     }
 
     void AppLifecycleManager::CheckStateTransitions() {
-        // Only check transitions for WaitingForGame state (GW2AL mode)
-        if (m_currentState != State::WaitingForGame) {
-            return;
-        }
+        // Handle state transitions and state processing for GW2AL mode
+        switch (m_currentState) {
+        case State::WaitingForGame:
+            // Initialize MumbleLink manager if needed
+            if (!m_mumbleLinkManager.IsInitialized()) {
+                m_mumbleLinkManager.Update();
+                return;
+            }
 
-        // Initialize MumbleLink manager if needed
-        if (!m_mumbleLinkManager.IsInitialized()) {
-            m_mumbleLinkManager.Update();
-            return;
-        }
+            // Check if player is in-game and transition to InitializingServices
+            if (IsPlayerInGame()) {
+                LOG_INFO("AppLifecycleManager: Player is in-game, transitioning to InitializingServices");
+                m_currentState = State::InitializingServices;
+            }
+            break;
 
-        // Check if player is in-game and transition to InitializingServices
-        if (IsPlayerInGame()) {
-            LOG_INFO("AppLifecycleManager: Player is in-game, transitioning to InitializingServices");
-            m_currentState = State::InitializingServices;
+        case State::InitializingServices:
+            // Process the InitializingServices state (GW2AL mode)
+            HandleInitializingServicesState();
+            break;
+
+        case State::Running:
+            // In GW2AL mode, we don't need to do anything special in Running state
+            // The render thread handles everything
+            break;
+
+        default:
+            // Other states don't need processing in GW2AL mode
+            break;
         }
     }
 
@@ -264,11 +285,12 @@ namespace kx {
     bool AppLifecycleManager::InitializeGameServices() {
         LOG_INFO("AppLifecycleManager: Initializing game services");
 
-        // Initialize AddressManager
+        // Initialize AddressManager (if not already initialized in GW2AL mode)
         AddressManager::Initialize();
         LOG_INFO("AppLifecycleManager: AddressManager initialized");
 
-        // Initialize ESPRenderer with Camera reference
+        // Initialize ESPRenderer with Camera reference (if not already initialized)
+        // In GW2AL mode, this may have been initialized earlier in OnRendererInitialized()
         ESPRenderer::Initialize(m_camera);
         LOG_INFO("AppLifecycleManager: ESPRenderer initialized");
 
