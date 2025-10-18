@@ -3,6 +3,7 @@
 #include "../Utils/TextElementFactory.h"
 #include "../Renderers/TextRenderer.h"
 #include "../Utils/ESPPlayerDetailsBuilder.h"
+#include "../Utils/ESPFormatting.h"
 #include "../Utils/ESPStyling.h"
 #include "../Utils/LayoutConstants.h"
 #include "../Data/ESPEntityTypes.h"
@@ -108,11 +109,26 @@ void LayoutCalculator::GatherPlayerIdentityElements(
     const auto& props = request.visualProps;
     const auto& context = request.frameContext;
 
-    // Player Name
-    if (entityContext.renderPlayerName && !entityContext.playerName.empty()) {
-        TextElement element = TextElementFactory::CreatePlayerName(entityContext.playerName, {0,0}, 0, 0, props.finalFontSize);
-        ImVec2 size = TextRenderer::CalculateSize(element);
-        outBelowElements.push_back({LayoutKeys::PLAYER_NAME, size});
+    // Player Name (fallback to profession if name is empty)
+    if (entityContext.renderPlayerName) {
+        std::string displayName = entityContext.playerName;
+        
+        // Fallback to profession for hostile players without names (WvW)
+        if (displayName.empty() && entityContext.entityType == ESPEntityType::Player) {
+            const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+            if (player != nullptr) {
+                const char* profName = ESPFormatting::GetProfessionName(player->profession);
+                if (profName != nullptr) {
+                    displayName = profName;
+                }
+            }
+        }
+        
+        if (!displayName.empty()) {
+            TextElement element = TextElementFactory::CreatePlayerName(displayName, {0,0}, 0, 0, props.finalFontSize);
+            ImVec2 size = TextRenderer::CalculateSize(element);
+            outBelowElements.push_back({LayoutKeys::PLAYER_NAME, size});
+        }
     }
 
     // Player Gear (Players only)

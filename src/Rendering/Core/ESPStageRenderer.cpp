@@ -16,6 +16,7 @@
 #include <iomanip>
 #include "../Utils/TextElementFactory.h"
 #include "../Utils/EntityVisualsCalculator.h"
+#include "../Utils/ESPFormatting.h"
 #include "../Renderers/TextRenderer.h"
 #include <optional>
 #include <vector>
@@ -166,11 +167,26 @@ void ESPStageRenderer::RenderPlayerIdentity(
     const VisualProperties& props,
     const LayoutResult& layout)
 {
-    // Player Name
-    if (entityContext.renderPlayerName && !entityContext.playerName.empty()) {
-        auto it = layout.elementPositions.find(LayoutKeys::PLAYER_NAME);
-        if (it != layout.elementPositions.end()) {
-            ESPTextRenderer::RenderPlayerNameAt(context.drawList, it->second, entityContext.playerName, props.fadedEntityColor, props.finalFontSize);
+    // Player Name (fallback to profession if name is empty)
+    if (entityContext.renderPlayerName) {
+        std::string displayName = entityContext.playerName;
+        
+        // Fallback to profession for hostile players without names (WvW)
+        if (displayName.empty() && entityContext.entityType == ESPEntityType::Player) {
+            const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+            if (player != nullptr) {
+                const char* profName = ESPFormatting::GetProfessionName(player->profession);
+                if (profName != nullptr) {
+                    displayName = profName;
+                }
+            }
+        }
+        
+        if (!displayName.empty()) {
+            auto it = layout.elementPositions.find(LayoutKeys::PLAYER_NAME);
+            if (it != layout.elementPositions.end()) {
+                ESPTextRenderer::RenderPlayerNameAt(context.drawList, it->second, displayName, props.fadedEntityColor, props.finalFontSize);
+            }
         }
     }
 
