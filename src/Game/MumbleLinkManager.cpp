@@ -208,39 +208,13 @@ float MumbleLinkManager::GetFovOrDefault(float defaultFov) const {
 
 // ====== Elite Specialization Conversion ======
 
-EliteSpec MumbleLinkManager::ConvertAnetSpecIdToEliteSpec(uint8_t anetId) const {
-    // ArenaNet uses different IDs for elite specializations than our enum
-    // This mapping is based on the official API specialization IDs
-    switch (anetId) {
-        case 5: return EliteSpec::Druid;
-        case 7: return EliteSpec::Daredevil;
-        case 18: return EliteSpec::Berserker;
-        case 27: return EliteSpec::Dragonhunter;
-        case 34: return EliteSpec::Reaper;
-        case 40: return EliteSpec::Chronomancer;
-        case 43: return EliteSpec::Scrapper;
-        case 48: return EliteSpec::Tempest;
-        case 52: return EliteSpec::Herald;
-        case 55: return EliteSpec::Soulbeast;
-        case 56: return EliteSpec::Weaver;
-        case 57: return EliteSpec::Holosmith;
-        case 58: return EliteSpec::Deadeye;
-        case 59: return EliteSpec::Mirage;
-        case 60: return EliteSpec::Scourge;
-        case 61: return EliteSpec::Spellbreaker;
-        case 62: return EliteSpec::Firebrand;
-        case 63: return EliteSpec::Renegade;
-        case 64: return EliteSpec::Harbinger;
-        case 65: return EliteSpec::Willbender;
-        case 66: return EliteSpec::Virtuoso;
-        case 67: return EliteSpec::Catalyst;
-        case 68: return EliteSpec::Bladesworn;
-        case 69: return EliteSpec::Vindicator;
-        case 70: return EliteSpec::Mechanist;
-        case 71: return EliteSpec::Specter;
-        case 72: return EliteSpec::Untamed;
-        default: return EliteSpec::None;
+Game::EliteSpec MumbleLinkManager::ConvertAnetSpecIdToEliteSpec(uint8_t anetId) const {
+    // EliteSpec enum now uses ArenaNet API IDs directly, so we can cast directly
+    // Only validate that the ID is within the known range
+    if (anetId == 0 || (anetId >= 5 && anetId <= 72)) {
+        return static_cast<Game::EliteSpec>(anetId);
     }
+    return Game::EliteSpec::None;
 }
 
 } // namespace kx
