@@ -45,9 +45,7 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
 
         // Update camera with current game state
         kx::Camera& camera = lifecycleManager.GetCamera();
-        if (mumbleLinkData) {
-            camera.Update(mumbleLinkData, windowHandle);
-        }
+        camera.Update(mumbleLinkManager, windowHandle);
 
         // Render ImGui UI
         ImGuiManager::NewFrame();

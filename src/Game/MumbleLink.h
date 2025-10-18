@@ -3,88 +3,16 @@
 #include <cstdint>
 #include <string>
 #include <windows.h>
+#include "GameEnums.h"
 
 namespace kx {
 
-// ====== Enhanced Enums from Library ======
-
-/**
- * @brief Guild Wars 2 Professions
- */
-enum class Profession : uint8_t {
-    None = 0,
-    Guardian = 1,
-    Warrior = 2,
-    Engineer = 3,
-    Ranger = 4,
-    Thief = 5,
-    Elementalist = 6,
-    Mesmer = 7,
-    Necromancer = 8,
-    Revenant = 9
-};
-
-/**
- * @brief Guild Wars 2 Races
- */
-enum class Race : uint8_t {
-    Asura = 0,
-    Charr = 1,
-    Human = 2,
-    Norn = 3,
-    Sylvari = 4
-};
-
-/**
- * @brief Guild Wars 2 Elite Specializations
- */
-enum class EliteSpec : uint8_t {
-    None = 0,
-    Berserker = 1,
-    Bladesworn = 2,
-    Catalyst = 3,
-    Chronomancer = 4,
-    Daredevil = 5,
-    Deadeye = 6,
-    Dragonhunter = 7,
-    Druid = 8,
-    Firebrand = 9,
-    Harbinger = 10,
-    Herald = 11,
-    Holosmith = 12,
-    Mechanist = 13,
-    Mirage = 14,
-    Reaper = 15,
-    Renegade = 16,
-    Scourge = 17,
-    Scrapper = 18,
-    Soulbeast = 19,
-    Specter = 20,
-    Spellbreaker = 21,
-    Tempest = 22,
-    Untamed = 23,
-    Vindicator = 24,
-    Virtuoso = 25,
-    Weaver = 26,
-    Willbender = 27
-};
-
-/**
- * @brief Guild Wars 2 Mount Types
- */
-enum class MountType : uint8_t {
-    None = 0,
-    Jackal = 1,
-    Griffon = 2,
-    Springer = 3,
-    Skimmer = 4,
-    Raptor = 5,
-    RollerBeetle = 6,
-    Warclaw = 7,
-    Skyscale = 8,
-    Skiff = 9,
-    SiegeTurtle = 10
-};
+// ====== Forward Declarations ======
+// Use consolidated enums from GameEnums.h
+using Game::Profession;
+using Game::Race;
+using Game::EliteSpec;
+using Game::MountType;
 
 // ====== UI State Flags ======
 

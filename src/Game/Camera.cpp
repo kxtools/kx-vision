@@ -1,29 +1,11 @@
 #include "Camera.h"
+#include "MumbleLinkManager.h"
 
 #include <iostream>
 #include <string>
 #include <windows.h>
 
 namespace kx {
-
-    // This helper function is only used by the Camera to get the FoV
-    // from the MumbleLink identity string. It can remain here as a static helper.
-    static float ParseFov(const wchar_t* identity) {
-        constexpr float defaultFov = 1.0472f; // ~60 degrees
-        if (!identity) return defaultFov;
-        std::wstring identityStr(identity);
-        size_t fovPos = identityStr.find(L"\"fov\":");
-        if (fovPos != std::wstring::npos) {
-            try {
-                size_t start = identityStr.find(L':', fovPos) + 1;
-                size_t end = identityStr.find_first_of(L",}", start);
-                float fov = std::stof(identityStr.substr(start, end - start));
-                return (fov > 0.01f) ? fov : defaultFov;
-            }
-            catch (...) { return defaultFov; }
-        }
-        return defaultFov;
-    }
 
     Camera::Camera() {
         m_viewMatrix = glm::mat4(1.0f);
@@ -36,7 +18,8 @@ namespace kx {
         // No longer responsible for MumbleLink cleanup
     }
 
-    void Camera::Update(const MumbleLinkData* mumbleData, HWND hWnd) {
+    void Camera::Update(const MumbleLinkManager& mumbleManager, HWND hWnd) {
+        const MumbleLinkData* mumbleData = mumbleManager.GetData();
         if (!mumbleData) {
             // If there's no data, don't update the matrices.
             // They will retain their last valid state.
@@ -73,8 +56,8 @@ namespace kx {
             screenHeight = static_cast<float>(rect.bottom - rect.top);
         }
 
-        // Parse FOV from MumbleLink identity data
-        float fov_radians = ParseFov(mumbleData->identity);
+        // Get FOV from MumbleLinkManager (already parsed from identity data)
+        float fov_radians = mumbleManager.GetFovOrDefault();
 
         // Calculate view matrix - manually implementing a left-handed lookAt
         glm::vec3 target = m_camPos + camFront;

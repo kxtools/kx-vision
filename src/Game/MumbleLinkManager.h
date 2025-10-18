@@ -74,6 +74,19 @@ public:
      * @brief Get current UI state flags
      */
     uint32_t uiState() const;
+    
+    /**
+     * @brief Get field of view from parsed identity data
+     * @return FOV in radians, or 0.0f if not available
+     */
+    float GetFov() const;
+    
+    /**
+     * @brief Get field of view with fallback to default value
+     * @param defaultFov Default FOV to use if not available (default: 1.0472f ~60 degrees)
+     * @return FOV in radians
+     */
+    float GetFovOrDefault(float defaultFov = 1.0472f) const;
 
 private:
     bool Initialize();

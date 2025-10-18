@@ -198,6 +198,14 @@ uint32_t MumbleLinkManager::uiState() const {
     return m_mumbleLink->context.uiState;
 }
 
+float MumbleLinkManager::GetFov() const {
+    return m_identity.fov;
+}
+
+float MumbleLinkManager::GetFovOrDefault(float defaultFov) const {
+    return (m_identity.fov > 0.01f) ? m_identity.fov : defaultFov;
+}
+
 // ====== Elite Specialization Conversion ======
 
 EliteSpec MumbleLinkManager::ConvertAnetSpecIdToEliteSpec(uint8_t anetId) const {

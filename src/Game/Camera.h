@@ -6,11 +6,14 @@
 
 namespace kx {
 
+    // Forward declaration
+    class MumbleLinkManager;
+
     class Camera {
     public:
         Camera();
         ~Camera();
-        void Update(const MumbleLinkData* mumbleData, HWND hWnd);
+        void Update(const MumbleLinkManager& mumbleManager, HWND hWnd);
 
         const glm::mat4& GetViewMatrix() const { return m_viewMatrix; }
         const glm::mat4& GetProjectionMatrix() const { return m_projectionMatrix; }

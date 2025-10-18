@@ -193,14 +193,18 @@ void AddressManager::ScanModuleInformation() {
 
 void AddressManager::Scan() {
     LOG_INFO("[AddressManager] Scanning for memory addresses...");
+    
+    // Scan active pointers (currently used)
     ScanModuleInformation();
     ScanContextCollectionFunc();
     ScanGameThreadUpdateFunc();
 
-    // currently unused
-    //ScanAgentArray();
-    //ScanWorldViewContextPtr();
-    //ScanBgfxContextFunc();
+    // Future feature scanners (currently inactive but kept for future use)
+    // These are commented out to avoid unnecessary scanning overhead
+    // but can be easily enabled when the features are implemented:
+    //ScanAgentArray();           // For future ESP features
+    //ScanWorldViewContextPtr();  // For future rendering features  
+    //ScanBgfxContextFunc();      // For future rendering features
 }
 
 void AddressManager::Initialize() {

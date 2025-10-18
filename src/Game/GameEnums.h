@@ -206,6 +206,53 @@ enum class BreakbarState : int {
     None = 3
 };
 
+// Elite Specializations
+enum class EliteSpec : uint8_t {
+    None = 0,
+    Berserker = 1,
+    Bladesworn = 2,
+    Catalyst = 3,
+    Chronomancer = 4,
+    Daredevil = 5,
+    Deadeye = 6,
+    Dragonhunter = 7,
+    Druid = 8,
+    Firebrand = 9,
+    Harbinger = 10,
+    Herald = 11,
+    Holosmith = 12,
+    Mechanist = 13,
+    Mirage = 14,
+    Reaper = 15,
+    Renegade = 16,
+    Scourge = 17,
+    Scrapper = 18,
+    Soulbeast = 19,
+    Specter = 20,
+    Spellbreaker = 21,
+    Tempest = 22,
+    Untamed = 23,
+    Vindicator = 24,
+    Virtuoso = 25,
+    Weaver = 26,
+    Willbender = 27
+};
+
+// Mount Types
+enum class MountType : uint8_t {
+    None = 0,
+    Jackal = 1,
+    Griffon = 2,
+    Springer = 3,
+    Skimmer = 4,
+    Raptor = 5,
+    RollerBeetle = 6,
+    Warclaw = 7,
+    Skyscale = 8,
+    Skiff = 9,
+    SiegeTurtle = 10
+};
+
 // Combat Effects - Useful for buff/debuff tracking
 enum class EffectType : uint32_t {
     None = 0,
