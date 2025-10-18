@@ -1,9 +1,8 @@
 #pragma once
 #include <filesystem>
+#include "Settings.h"
 
-namespace kx {
-    // Forward-declare the Settings struct to avoid including the full header
-    struct Settings; 
+namespace kx { 
 
     class SettingsManager {
     public:

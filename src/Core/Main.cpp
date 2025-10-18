@@ -6,7 +6,7 @@
 
 #include "AppLifecycleManager.h"
 #include "AppState.h"
-#include "Console.h"
+#include "Bootstrap.h"
 #include "../Utils/DebugLogger.h"
 
 HINSTANCE dll_handle;
@@ -14,16 +14,7 @@ static HANDLE g_hSingleInstanceMutex = NULL;
 
 // Eject thread to free the DLL
 DWORD WINAPI EjectThread(LPVOID lpParameter) {
-#ifdef _DEBUG
-    // In Debug builds, close standard streams and free the console
-    if (stdout) fclose(stdout);
-    if (stderr) fclose(stderr);
-    if (stdin) fclose(stdin);
-
-    if (!FreeConsole()) {
-        OutputDebugStringA("kx-vision: FreeConsole() failed.\n");
-    }
-#endif // _DEBUG
+    kx::Bootstrap::Cleanup();
     Sleep(100);
     FreeLibraryAndExitThread(dll_handle, 0);
     return 0;
@@ -31,19 +22,12 @@ DWORD WINAPI EjectThread(LPVOID lpParameter) {
 
 // Main function that runs in a separate thread
 DWORD WINAPI MainThread(LPVOID lpParameter) {
-    // Initialize debug logger first for early logging capability
-    LOG_INIT();
-    
-#ifdef _DEBUG
-    kx::SetupConsole(); // Only setup console in Debug builds
-#endif // _DEBUG
+    kx::Bootstrap::Initialize("DLL");
 
-    LOG_INFO("KX Vision starting up...");
-    
     // Initialize the global application lifecycle manager
     if (!kx::g_App.Initialize()) {
-        LOG_ERROR("Failed to initialize application");
-        LOG_CLEANUP();
+        LOG_ERROR("Failed to initialize application - HookManager or D3D hooks setup failed");
+        kx::Bootstrap::Cleanup();
         CreateThread(0, 0, EjectThread, 0, 0, 0);
         return 1;
     }
@@ -62,8 +46,8 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
     
     LOG_INFO("KX Vision shut down successfully");
     
-    // Cleanup logger (close log file)
-    LOG_CLEANUP();
+    // Cleanup common resources
+    kx::Bootstrap::Cleanup();
 
     // Eject the DLL and exit the thread
     CreateThread(0, 0, EjectThread, 0, 0, 0);

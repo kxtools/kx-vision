@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "AppState.h"
 #include "SettingsManager.h"
+#include "FrameCoordinator.h"
 #include "AddressManager.h"
 #include "HookManager.h"
 #include "Hooks.h"
@@ -22,14 +23,14 @@ namespace kx {
 
         // Initialize HookManager (MinHook)
         if (!Hooking::HookManager::Initialize()) {
-            LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager");
+            LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager - MinHook initialization failed");
             return false;
         }
         LOG_INFO("AppLifecycleManager: HookManager initialized");
 
         // Initialize hooks (this sets up D3D hook which creates ImGuiManager)
         if (!InitializeHooks()) {
-            LOG_ERROR("AppLifecycleManager: Failed to initialize hooks");
+            LOG_ERROR("AppLifecycleManager: Failed to initialize hooks - D3D Present hook setup failed");
             return false;
         }
 
@@ -47,7 +48,7 @@ namespace kx {
 
         // Initialize HookManager (MinHook) - needed for game thread hook later
         if (!Hooking::HookManager::Initialize()) {
-            LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager");
+            LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager for GW2AL mode - MinHook initialization failed");
             return false;
         }
         LOG_INFO("AppLifecycleManager: HookManager initialized");
@@ -180,101 +181,40 @@ namespace kx {
         Sleep(100);
     }
 
-    void AppLifecycleManager::HandleWaitingForGameState() {
-        // Initialize MumbleLink manager (needs to be done before checking if player is in-game)
-        if (!m_mumbleLinkManager.IsInitialized()) {
-            // MumbleLink manager will keep trying until it connects
-            m_mumbleLinkManager.Update();
-        }
-
-        if (IsPlayerInGame()) {
-            LOG_INFO("AppLifecycleManager: Player is in-game, transitioning to InitializingServices");
-            m_currentState = State::InitializingServices;
-    } else {
-            // Not in-game yet, wait before checking again
-            Sleep(500);
-        }
-    }
-
-    void AppLifecycleManager::CheckAndInitializeServices() {
-        // Only run this check if we're in WaitingForGame state
+    void AppLifecycleManager::CheckStateTransitions() {
+        // Only check transitions for WaitingForGame state (GW2AL mode)
         if (m_currentState != State::WaitingForGame) {
             return;
         }
 
-        // Check if MumbleLink is connected and player is in-game (GW2AL mode only)
-        // In DLL mode, this is handled by the Update() loop via HandleWaitingForGameState()
-        if (m_mumbleLinkManager.IsInitialized() && IsPlayerInGame()) {
-            LOG_INFO("AppLifecycleManager: Player is in-game, initializing services");
+        // Initialize MumbleLink manager if needed
+        if (!m_mumbleLinkManager.IsInitialized()) {
+            m_mumbleLinkManager.Update();
+            return;
+        }
 
-            if (InitializeGameServices()) {
-                LOG_INFO("AppLifecycleManager: Services initialized, transitioning to Running");
-                m_currentState = State::Running;
-                m_servicesInitialized = true;
-        } else {
-                LOG_ERROR("AppLifecycleManager: Service initialization failed");
-                m_currentState = State::ShuttingDown;
-            }
+        // Check if player is in-game and transition to InitializingServices
+        if (IsPlayerInGame()) {
+            LOG_INFO("AppLifecycleManager: Player is in-game, transitioning to InitializingServices");
+            m_currentState = State::InitializingServices;
+        }
+    }
+
+    void AppLifecycleManager::HandleWaitingForGameState() {
+        // Use the same logic as CheckStateTransitions but with sleep for DLL mode
+        CheckStateTransitions();
+        
+        // If still in WaitingForGame state, sleep before next check (DLL mode)
+        if (m_currentState == State::WaitingForGame) {
+            Sleep(500);
         }
     }
 
     void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, float displayHeight,
         ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView) {
 
-        if (m_currentState == State::ShuttingDown) {
-            return;
-        }
-
-        if (!context || !renderTargetView) {
-            return;
-        }
-
-        // Ensure ImGui is aware of the correct display size every single frame.
-        // This is robust against all resize timing issues.
-        if (ImGui::GetCurrentContext()) {
-            ImGuiIO& io = ImGui::GetIO();
-            io.DisplaySize = ImVec2(displayWidth, displayHeight);
-        }
-
-        // Handle input for UI toggle
-        static bool lastToggleKeyState = false;
-        bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
-
-        if (currentToggleKeyState && !lastToggleKeyState) {
-            bool isOpen = AppState::Get().IsVisionWindowOpen();
-            AppState::Get().SetVisionWindowOpen(!isOpen);
-        }
-        lastToggleKeyState = currentToggleKeyState;
-
-        // Declare state backup here to ensure it's available in the catch block
-        StateBackupD3D11 d3dState;
-
-        try {
-            // CRITICAL: Backup D3D state before rendering
-            BackupD3D11State(context, d3dState);
-
-            m_mumbleLinkManager.Update();
-            const MumbleLinkData* mumbleLinkData = m_mumbleLinkManager.GetData();
-
-            CheckAndInitializeServices();
-
-            if (mumbleLinkData) {
-                m_camera.Update(mumbleLinkData, windowHandle);
-            }
-
-            ImGuiManager::NewFrame();
-            ImGuiManager::RenderUI(m_camera, m_mumbleLinkManager, mumbleLinkData,
-                windowHandle, displayWidth, displayHeight);
-            ImGuiManager::Render(context, renderTargetView);
-
-            // CRITICAL: Restore D3D state after rendering
-            RestoreD3D11State(context, d3dState);
-        }
-        catch (...) {
-            LOG_ERROR("Exception caught in RenderTick");
-            // Attempt to restore the original D3D state to prevent a game crash
-            RestoreD3D11State(context, d3dState);
-        }
+        // Delegate to FrameCoordinator for the actual rendering logic
+        FrameCoordinator::Execute(*this, windowHandle, displayWidth, displayHeight, context, renderTargetView);
     }
 
     void AppLifecycleManager::HandleInitializingServicesState() {
@@ -282,8 +222,8 @@ namespace kx {
             LOG_INFO("AppLifecycleManager: Services initialized, transitioning to Running");
             m_currentState = State::Running;
             m_servicesInitialized = true;
-    } else {
-            LOG_ERROR("AppLifecycleManager: Service initialization failed, shutting down");
+        } else {
+            LOG_ERROR("AppLifecycleManager: Service initialization failed - AddressManager or ESPRenderer setup failed, shutting down");
             m_currentState = State::ShuttingDown;
         }
     }

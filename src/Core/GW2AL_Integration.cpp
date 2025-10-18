@@ -17,6 +17,7 @@
 #include <cstdio> // For fclose in console cleanup
 #include "AppState.h"
 #include "AppLifecycleManager.h"
+#include "Bootstrap.h"
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
@@ -121,7 +122,7 @@ void OnDXGIPostCreateSwapChain(D3D9_wrapper_event_data* evd) {
         kx::g_App.OnRendererInitialized();
     }
     else {
-        LOG_ERROR("[GW2AL] Failed to initialize D3DRenderHook");
+        LOG_ERROR("[GW2AL] Failed to initialize D3DRenderHook - device interface query or initialization failed");
     }
 }
 
@@ -183,16 +184,10 @@ extern "C" __declspec(dllexport) gw2al_addon_dsc* gw2addon_get_description() {
 extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* core_api) {
     g_al_api = core_api;
 
-    LOG_INIT();
-
-#ifdef _DEBUG
-    kx::SetupConsole();
-#endif
-
-    LOG_INFO("KXVision starting up in GW2AL mode...");
+    kx::Bootstrap::Initialize("GW2AL");
 
     if (!kx::g_App.InitializeForGW2AL()) {
-        LOG_ERROR("Failed to initialize AppLifecycleManager for GW2AL mode");
+        LOG_ERROR("Failed to initialize AppLifecycleManager for GW2AL mode - HookManager initialization failed");
         return GW2AL_FAIL;
     }
 
@@ -257,15 +252,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting)
     kx::g_App.Shutdown();
 
     LOG_INFO("KXVision shut down successfully in GW2AL mode");
-    LOG_CLEANUP();
-
-#ifdef _DEBUG
-    // Clean up debug console in debug builds
-    if (stdout) fclose(stdout);
-    if (stderr) fclose(stderr);
-    if (stdin) fclose(stdin);
-    FreeConsole();
-#endif
+    kx::Bootstrap::Cleanup();
 
     return GW2AL_OK;
 }
