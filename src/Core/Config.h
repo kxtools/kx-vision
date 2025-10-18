@@ -37,4 +37,11 @@ namespace kx {
         constexpr int EXIT_APPLICATION = VK_DELETE; // Shutdown application
     }
 
+    // Timing Configuration
+    namespace Timing {
+        constexpr int INIT_POLL_INTERVAL_MS = 500;     // Initial state polling (WaitingForImGui, WaitingForGame)
+        constexpr int RUNNING_POLL_INTERVAL_MS = 100;  // Active state polling (Running, WaitingForRenderer)
+        constexpr int SHUTDOWN_GRACE_MS = 250;         // Shutdown hook cleanup time
+    }
+
 } // namespace kx

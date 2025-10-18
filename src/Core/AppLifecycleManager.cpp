@@ -139,7 +139,7 @@ namespace kx {
     
         // Give hooks a moment to recognize the flag before cleanup starts
         // This helps prevent calls into ImGui after it's destroyed
-        Sleep(250);
+        Sleep(Timing::SHUTDOWN_GRACE_MS);
     
         CleanupServices();
     
@@ -176,16 +176,16 @@ namespace kx {
         if (IsImGuiReady()) {
             LOG_INFO("AppLifecycleManager: ImGui is ready, transitioning to WaitingForGame");
             m_currentState = State::WaitingForGame;
-    } else {
+        } else {
             // ImGui not initialized yet (waiting for first Present call)
-            Sleep(500);
+            Sleep(Timing::INIT_POLL_INTERVAL_MS);
         }
     }
 
     void AppLifecycleManager::HandleWaitingForRendererState() {
         // In GW2AL mode, we just wait here until OnRendererInitialized() is called
         // This state is transitioned by the GW2AL event callback
-        Sleep(100);
+        Sleep(Timing::RUNNING_POLL_INTERVAL_MS);
     }
 
     void AppLifecycleManager::CheckStateTransitions() {
@@ -227,7 +227,7 @@ namespace kx {
         
         // If still in WaitingForGame state, sleep before next check (DLL mode)
         if (m_currentState == State::WaitingForGame) {
-            Sleep(500);
+            Sleep(Timing::INIT_POLL_INTERVAL_MS);
         }
     }
 
@@ -252,7 +252,7 @@ namespace kx {
     void AppLifecycleManager::HandleRunningState() {
         // Normal operation - just sleep to avoid busy-waiting
         // Note: Camera and MumbleLink are updated per-frame in D3DRenderHook::RenderFrame
-        Sleep(100);
+        Sleep(Timing::RUNNING_POLL_INTERVAL_MS);
     }
 
     void AppLifecycleManager::HandleShuttingDownState() {
