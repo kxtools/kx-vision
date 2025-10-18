@@ -1,6 +1,7 @@
 #pragma once
 
-namespace ImGuiStyle {
+namespace kx {
+namespace GUI {
 
     // Applies a custom visual style and color theme to ImGui.
     void ApplyCustomStyle();
@@ -8,4 +9,5 @@ namespace ImGuiStyle {
     // Loads the primary application font
     bool LoadAppFont(float fontSize = 16.0f);
 
-}
+} // namespace GUI
+} // namespace kx

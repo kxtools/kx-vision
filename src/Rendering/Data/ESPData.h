@@ -2,7 +2,10 @@
 
 #include "glm.hpp"
 #include <vector>
+
 #include "../../libs/ImGui/imgui.h" // For ImU32, ImVec2
+#include "ESPEntityTypes.h"
+#include "EntityRenderContext.h"
 
 // Forward declarations
 struct ImDrawList;
@@ -17,13 +20,6 @@ namespace kx {
 }
 
 namespace kx {
-
-// ESP Entity Types for rendering differentiation
-enum class ESPEntityType {
-    Player,
-    NPC,
-    Gadget
-};
 
 /**
  * @brief Visual properties calculated for rendering an entity
@@ -72,10 +68,11 @@ struct FrameContext {
 };
 
 // NEW: FinalizedRenderable struct
-// This pairs a renderable entity with its calculated visual properties for the frame.
+// This pairs a renderable entity with its calculated visual properties and render context for the frame.
 struct FinalizedRenderable {
     const kx::RenderableEntity* entity;
     kx::VisualProperties visuals;
+    kx::EntityRenderContext context;
 };
 
 // MODIFIED: PooledFrameRenderData

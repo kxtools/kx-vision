@@ -3,6 +3,7 @@
 #include <vector>
 #include "../Data/RenderableData.h"
 #include "../Data/EntityRenderContext.h"
+#include "../Data/ESPData.h"
 
 namespace kx {
 

@@ -21,7 +21,7 @@
 #include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"
-#include "../Rendering/ImGuiManager.h"
+#include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
 
 // Declare the external ImGui Win32 handler

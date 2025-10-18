@@ -7,7 +7,7 @@
 #include "../../Game/GameEnums.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "PlayerRenderData.h"
-#include "ESPData.h"
+#include "ESPEntityTypes.h"
 
 namespace kx {
 

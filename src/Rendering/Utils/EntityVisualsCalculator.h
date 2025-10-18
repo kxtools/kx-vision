@@ -3,6 +3,7 @@
 #include <optional>
 #include "glm.hpp"
 #include "../Data/ESPData.h"
+#include "../Data/ESPEntityTypes.h"
 
 // Forward declarations
 namespace kx {

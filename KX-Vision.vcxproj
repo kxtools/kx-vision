@@ -108,7 +108,8 @@
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPVisualsProcessor.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\ESPContextFactory.cpp" />
+    <ClCompile Include="src\Rendering\Layout\LayoutCalculator.cpp" />
+    <ClCompile Include="src\Rendering\Factories\ESPContextFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPHealthBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPShapeRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPTextRenderer.cpp" />
@@ -134,10 +135,10 @@
     <ClCompile Include="src\Hooking\D3DRenderHook_Shared.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_DLL.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_GW2AL.cpp" />
-    <ClCompile Include="src\Rendering\GuiStyle.cpp" />
+    <ClCompile Include="src\Rendering\ImGui\ImGuiStyle.cpp" />
     <ClCompile Include="src\Hooking\HookManager.cpp" />
     <ClCompile Include="src\Hooking\Hooks.cpp" />
-    <ClCompile Include="src\Rendering\ImGuiManager.cpp" />
+    <ClCompile Include="src\Rendering\ImGui\ImGuiManager.cpp" />
     <ClCompile Include="libs\ImGui\imgui.cpp" />
     <ClCompile Include="libs\ImGui\imgui_demo.cpp" />
     <ClCompile Include="libs\ImGui\imgui_draw.cpp" />
@@ -185,9 +186,11 @@
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPVisualsProcessor.h" />
-    <ClInclude Include="src\Rendering\D3DState.h" />
+    <ClInclude Include="src\Rendering\Layout\LayoutCalculator.h" />
+    <ClInclude Include="src\Rendering\Core\D3DState.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\ESPData.h" />
+    <ClInclude Include="src\Rendering\Data\ESPEntityTypes.h" />
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />
     <ClInclude Include="src\Rendering\Extractors\EntityExtractor.h" />
@@ -199,7 +202,7 @@
     <ClInclude Include="src\Rendering\GUI\PlayersTab.h" />
     <ClInclude Include="src\Rendering\GUI\SettingsTab.h" />
     <ClInclude Include="src\Rendering\GUI\ValidationTab.h" />
-    <ClInclude Include="src\Rendering\Renderers\ESPContextFactory.h" />
+    <ClInclude Include="src\Rendering\Factories\ESPContextFactory.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPHealthBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPShapeRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPTextRenderer.h" />
@@ -221,10 +224,10 @@
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Utils\DebugLogger.h" />
     <ClInclude Include="src\Rendering\Utils\EntityFilter.h" />
-    <ClInclude Include="src\Rendering\GuiStyle.h" />
+    <ClInclude Include="src\Rendering\ImGui\ImGuiStyle.h" />
     <ClInclude Include="src\Hooking\HookManager.h" />
     <ClInclude Include="src\Hooking\Hooks.h" />
-    <ClInclude Include="src\Rendering\ImGuiManager.h" />
+    <ClInclude Include="src\Rendering\ImGui\ImGuiManager.h" />
     <ClInclude Include="libs\ImGui\imconfig.h" />
     <ClInclude Include="libs\ImGui\imgui.h" />
     <ClInclude Include="libs\ImGui\imgui_impl_dx11.h" />

@@ -5,6 +5,7 @@
 #include "ESPConstants.h"
 #include "Generated/EnumsAndStructs.h"
 #include "../Data/RenderableData.h" // Need this for RenderableEntity, RenderablePlayer, RenderableNpc
+#include "../Data/ESPEntityTypes.h"
 
 // Forward declaration to avoid circular dependency
 namespace kx {

@@ -37,8 +37,8 @@ bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
 
-    ImGuiStyle::LoadAppFont();
-    ImGuiStyle::ApplyCustomStyle();
+    kx::GUI::LoadAppFont();
+    kx::GUI::ApplyCustomStyle();
 
     if (!ImGui_ImplWin32_Init(hwnd)) return false;
     if (!ImGui_ImplDX11_Init(device, context)) return false;

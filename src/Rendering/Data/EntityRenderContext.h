@@ -3,7 +3,8 @@
 #include <string>
 #include <vector>
 #include "RenderableData.h"
-#include "ESPData.h"
+#include "ESPEntityTypes.h"
+#include "../../Game/GameEnums.h"
 
 namespace kx {
 

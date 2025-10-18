@@ -10,7 +10,8 @@
 #include "../../libs/ImGui/imgui.h"
 #pragma comment(lib, "Shell32.lib")
 
-namespace ImGuiStyle {
+namespace kx {
+namespace GUI {
 
     // Helper function to convert RGB to ImVec4 (alpha defaults to 1.0f)
     inline ImVec4 RgbToVec4(int r, int g, int b) {
@@ -162,4 +163,5 @@ namespace ImGuiStyle {
         colors[ImGuiCol_ModalWindowDimBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, 0.75f);
     }
 
-}
+} // namespace GUI
+} // namespace kx

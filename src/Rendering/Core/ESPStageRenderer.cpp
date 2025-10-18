@@ -1,11 +1,9 @@
 #include "ESPStageRenderer.h"
-#include "../Renderers/ESPContextFactory.h"
+#include "../Layout/LayoutCalculator.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Utils/ESPMath.h"
 #include "../Utils/ESPConstants.h"
-#include "../Utils/ESPPlayerDetailsBuilder.h"
-#include "../Utils/ESPEntityDetailsBuilder.h"
 #include "../Utils/ESPStyling.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTextRenderer.h"
@@ -22,93 +20,11 @@
 #include <vector>
 #include <string>
 #include <map>
-
-#include "../Utils/LayoutConstants.h"
+#include "../Utils/ESPPlayerDetailsBuilder.h"
 
 namespace kx {
 
-void ESPStageRenderer::CalculateVerticalStack(
-    glm::vec2 startAnchor,
-    const std::vector<std::pair<std::string, ImVec2>>& elements, // name and size
-    std::map<std::string, glm::vec2>& outPositions,
-    bool stackUpwards)
-{
-    float currentY = startAnchor.y;
-    float direction = stackUpwards ? -1.0f : 1.0f;
 
-    // Start with a larger margin from the box itself.
-    currentY += kx::RenderingLayout::REGION_MARGIN_VERTICAL * direction;
-
-    for (const auto& item : elements) {
-        const std::string& name = item.first;
-        const ImVec2& size = item.second;
-        float elementHeight = size.y;
-
-        if (stackUpwards) {
-            currentY -= elementHeight; // Position the top of the element at the cursor
-        }
-
-        // Center the element horizontally on the anchor's X.
-        outPositions[name] = { startAnchor.x, currentY };
-
-        if (!stackUpwards) {
-            currentY += elementHeight; // Move cursor down for the next element
-        }
-        
-        // Add margin for the next element.
-        currentY += kx::RenderingLayout::ELEMENT_MARGIN_VERTICAL * direction;
-    }
-}
-
-// Helper function to build the render context.
-// This consolidates the logic from the old RenderPooledPlayers/Npcs/Gadgets functions.
-static EntityRenderContext CreateEntityRenderContextForRendering(const RenderableEntity* entity, const FrameContext& context) {
-    std::vector<ColoredDetail> details;
-    // Use a switch on entity->entityType to call the correct details builder
-    switch(entity->entityType) {
-        case ESPEntityType::Player:
-        {
-            const auto* player = static_cast<const RenderablePlayer*>(entity);
-            details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
-            if (context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
-                auto gearDetails = ESPPlayerDetailsBuilder::BuildGearDetails(player);
-                if (!gearDetails.empty()) {
-                    if (!details.empty()) {
-                        details.push_back({ "--- Gear Stats ---", ESPColors::DEFAULT_TEXT });
-                    }
-                    details.insert(details.end(), gearDetails.begin(), gearDetails.end());
-                }
-            }
-            break;
-        }
-        case ESPEntityType::NPC:
-        {
-            const auto* npc = static_cast<const RenderableNpc*>(entity);
-            details = ESPEntityDetailsBuilder::BuildNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses);
-            break;
-        }
-        case ESPEntityType::Gadget:
-        {
-            const auto* gadget = static_cast<const RenderableGadget*>(entity);
-            details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
-            break;
-        }
-    }
-
-    // Now, create the context using the ESPContextFactory, just like before.
-    // We pass the main 'context' directly.
-    switch(entity->entityType) {
-        case ESPEntityType::Player:
-            return ESPContextFactory::CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), details, context);
-        case ESPEntityType::NPC:
-            return ESPContextFactory::CreateContextForNpc(static_cast<const RenderableNpc*>(entity), details, context);
-        case ESPEntityType::Gadget:
-            return ESPContextFactory::CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
-    }
-    // This should not be reached, but we need to return something.
-    // Returning a gadget context as a fallback.
-    return ESPContextFactory::CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
-}
 
 std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context) {
     // 1. Re-project the entity's world position to get a fresh screen position.
@@ -148,8 +64,8 @@ void ESPStageRenderer::RenderFrameData(const FrameContext& context, const Pooled
         
         // If the entity is on-screen, proceed with rendering.
         if (liveVisualsOpt) {
-            // Create the cheap render context.
-            EntityRenderContext entityContext = CreateEntityRenderContextForRendering(item.entity, context);
+            // Use the pre-built context from the finalized renderable.
+            EntityRenderContext entityContext = item.context;
             
             // Render using the fresh visual properties.
             RenderEntityComponents(context, entityContext, *liveVisualsOpt);
@@ -161,88 +77,20 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
     // 1. Render static elements that don't affect the layout first.
     RenderStaticElements(context, entityContext, props);
 
-    // 2. Gather all dynamic elements for the layout.
-    CalculatedLayout layout;
-    std::vector<std::pair<std::string, ImVec2>> belowBoxElements;
-    std::vector<std::pair<std::string, ImVec2>> aboveBoxElements;
-    GatherLayoutElements(context, entityContext, props, aboveBoxElements, belowBoxElements);
+    // 2. Calculate layout using the new LayoutCalculator
+    LayoutRequest request = { entityContext, props, context };
+    LayoutResult layout = LayoutCalculator::CalculateLayout(request);
 
-    // 3. Calculate the positions of all gathered elements.
-    glm::vec2 belowBoxAnchor = { props.center.x, props.boxMax.y };
-    CalculateVerticalStack(belowBoxAnchor, belowBoxElements, layout.elementPositions, false);
-
-    glm::vec2 aboveBoxAnchor = { props.center.x, props.boxMin.y };
-    CalculateVerticalStack(aboveBoxAnchor, aboveBoxElements, layout.elementPositions, true); // Stack upwards
-
-    // 4. Render the dynamic elements at their calculated positions.
+    // 3. Render the dynamic elements at their calculated positions.
     RenderLayoutElements(context, entityContext, props, layout);
 }
 
-void ESPStageRenderer::GatherLayoutElements(
-    const FrameContext& context,
-    const EntityRenderContext& entityContext,
-    const VisualProperties& props,
-    std::vector<std::pair<std::string, ImVec2>>& outAboveElements,
-    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
-{
-    // --- GATHER ABOVE BOX ELEMENTS ---
-    if (entityContext.renderDistance) {
-        TextElement element = TextElementFactory::CreateDistanceText(entityContext.gameplayDistance, {0,0}, 0, props.finalFontSize);
-        ImVec2 size = TextRenderer::CalculateSize(element);
-        outAboveElements.push_back({"distance", size});
-    }
-
-    // --- GATHER BELOW BOX ELEMENTS (Combat Priority Layout) ---
-    // 1. Status Bars (Health & Energy)
-    bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
-    bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
-    if ((isLivingEntity || isGadget) && entityContext.healthPercent >= 0.0f && entityContext.renderHealthBar) {
-        ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};
-        outBelowElements.push_back({"healthBar", size});
-    }
-    if (entityContext.entityType == ESPEntityType::Player && entityContext.energyPercent >= 0.0f && entityContext.renderEnergyBar) {
-        ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
-        outBelowElements.push_back({"energyBar", size});
-    }
-
-    // 2. Identity Info (Name & Gear)
-    if (entityContext.renderPlayerName && !entityContext.playerName.empty()) {
-        TextElement element = TextElementFactory::CreatePlayerName(entityContext.playerName, {0,0}, 0, 0, props.finalFontSize);
-        ImVec2 size = TextRenderer::CalculateSize(element);
-        outBelowElements.push_back({"playerName", size});
-    }
-    if (entityContext.entityType == ESPEntityType::Player && entityContext.player != nullptr) {
-        switch (context.settings.playerESP.gearDisplayMode) {
-            case GearDisplayMode::Compact: {
-                auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(entityContext.player);
-                TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);
-                outBelowElements.push_back({"gearSummary", TextRenderer::CalculateSize(element)});
-                break;
-            }
-            case GearDisplayMode::Attributes: {
-                auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(entityContext.player);
-                auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(entityContext.player);
-                TextElement element = TextElementFactory::CreateDominantStats(stats, rarity, {0,0}, 0, props.finalFontSize);
-                outBelowElements.push_back({"dominantStats", TextRenderer::CalculateSize(element)});
-                break;
-            }
-            default: break;
-        }
-    }
-
-    // 3. Verbose Details (Placed last)
-    if (entityContext.renderDetails && !entityContext.details.empty()) {
-        TextElement element = TextElementFactory::CreateDetailsText(entityContext.details, {0,0}, 0, props.finalFontSize);
-        ImVec2 size = TextRenderer::CalculateSize(element);
-        outBelowElements.push_back({"details", size});
-    }
-}
 
 void ESPStageRenderer::RenderLayoutElements(
     const FrameContext& context,
     EntityRenderContext& entityContext,
     const VisualProperties& props,
-    CalculatedLayout& layout)
+    const LayoutResult& layout)
 {
     // RENDER ABOVE BOX ELEMENTS
     if (entityContext.renderDistance) {
@@ -261,7 +109,7 @@ void ESPStageRenderer::RenderLayoutElements(
             glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
             ESPHealthBarRenderer::RenderStandaloneHealthBar(context.drawList, topLeft, entityContext,
                 props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
-            layout.healthBarAnchor = topLeft; // Save for damage numbers
+            // healthBarAnchor is already set by LayoutCalculator
         }
     }
     if (entityContext.entityType == ESPEntityType::Player && entityContext.energyPercent >= 0.0f && entityContext.renderEnergyBar) {
@@ -346,63 +194,8 @@ void ESPStageRenderer::RenderStaticElements(
     }
 }
 
-void ESPStageRenderer::RenderBoundingBox(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
-    bool isGadget = (context.entityType == ESPEntityType::Gadget);
 
-    // Render bounding box for players/NPCs
-    if (!isGadget && context.renderBox) {
-        ESPShapeRenderer::RenderBoundingBox(drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
-    }
-}
-
-void ESPStageRenderer::RenderGadgetVisuals(ImDrawList* drawList, const EntityRenderContext& context, Camera& camera, const VisualProperties& props, const Settings& settings) {
-    bool isGadget = (context.entityType == ESPEntityType::Gadget);
-
-    // Render gadget visuals (non-exclusive)
-    if (isGadget) {
-        if (settings.objectESP.renderSphere) {
-            ESPShapeRenderer::RenderGadgetSphere(drawList, context, camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale);
-        }
-        if (settings.objectESP.renderCircle) {
-            drawList->AddCircle(ImVec2(props.screenPos.x, props.screenPos.y), props.circleRadius, props.fadedEntityColor, 0, props.finalBoxThickness);
-        }
-    }
-}
-
-void ESPStageRenderer::RenderDistanceText(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
-    bool isGadget = (context.entityType == ESPEntityType::Gadget);
-
-    // Render distance text
-    if (context.renderDistance) {
-        if (isGadget) {
-            // For gadgets, position distance text above the circle
-            ImVec2 textAnchor(props.center.x, props.center.y - props.circleRadius);
-            ESPTextRenderer::RenderDistanceText(drawList, props.center, textAnchor, context.gameplayDistance,
-                props.finalAlpha, props.finalFontSize);
-        }
-        else {
-            // For players/NPCs, use traditional positioning
-            ESPTextRenderer::RenderDistanceText(drawList, props.center, props.boxMin, context.gameplayDistance,
-                props.finalAlpha, props.finalFontSize);
-        }
-    }
-}
-
-void ESPStageRenderer::RenderCenterDot(ImDrawList* drawList, const EntityRenderContext& context, const VisualProperties& props) {
-    bool isGadget = (context.entityType == ESPEntityType::Gadget);
-
-    // Render center dot
-    if (context.renderDot) {
-        if (isGadget) {
-            ESPShapeRenderer::RenderNaturalWhiteDot(drawList, props.screenPos, props.finalAlpha, props.finalDotRadius);
-        }
-        else {
-            ESPShapeRenderer::RenderColoredDot(drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius);
-        }
-    }
-}
-
-void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const CalculatedLayout& layout) {
+void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const LayoutResult& layout) {
     // For gadgets, check if combat UI should be hidden for this type
     if (entityContext.entityType == ESPEntityType::Gadget) {
         const auto* gadget = static_cast<const RenderableGadget*>(entityContext.entity);
@@ -439,7 +232,7 @@ void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const En
     TextRenderer::Render(context.drawList, element);
 }
 
-void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const CalculatedLayout& layout) {
+void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const LayoutResult& layout) {
     // For gadgets, check if combat UI should be hidden for this type
     if (entityContext.entityType == ESPEntityType::Gadget) {
         const auto* gadget = static_cast<const RenderableGadget*>(entityContext.entity);

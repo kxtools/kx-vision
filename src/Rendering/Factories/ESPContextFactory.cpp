@@ -11,6 +11,7 @@
 #include "../Utils/ESPPlayerDetailsBuilder.h"
 #include "../Utils/ESPEntityDetailsBuilder.h"
 #include "../Utils/ESPFormatting.h"
+#include "../Data/ESPEntityTypes.h"
 
 namespace kx {
 
