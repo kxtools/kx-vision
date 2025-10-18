@@ -70,13 +70,8 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
                                              settings.distance.useDistanceLimit, entity.entityType,
                                              normalizedDistance);
 
-    // Hostile players always render at 100% opacity (critical for PvP combat awareness)
-    if (entity.entityType == ESPEntityType::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(&entity);
-        if (player->attitude == Game::Attitude::Hostile) {
-            props.finalAlpha = 1.0f;
-        }
-    }
+    // Removed: Hostile players now fade naturally with distance for better depth perception
+    // Red color + 2x text/health bars provide sufficient emphasis
 
     // Apply final alpha to the entity color
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
@@ -358,12 +353,16 @@ void EntityVisualsCalculator::CalculateFinalSizes(VisualProperties& props,
                                                  const EntityMultipliers& multipliers) {
     const auto& settings = AppState::Get().GetSettings();
     
-    // Calculate final sizes using the helper
+    // Font size uses hostile multiplier (combat-critical: keep 2x for readability)
     props.finalFontSize = CalculateFinalSize(settings.sizes.baseFontSize, scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, multipliers.hostile);
-    props.finalBoxThickness = CalculateFinalSize(settings.sizes.baseBoxThickness, scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, multipliers.hostile);
+    
+    // Box thickness NO hostile multiplier (reduce visual clutter)
+    props.finalBoxThickness = CalculateFinalSize(settings.sizes.baseBoxThickness, scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, 1.0f);
+    
+    // Dot radius never uses hostile multiplier
     props.finalDotRadius = CalculateFinalSize(settings.sizes.baseDotRadius, scale, ScalingLimits::MIN_DOT_RADIUS, ScalingLimits::MAX_DOT_RADIUS);
 
-    // Health bar uses combined multiplier
+    // Health bar uses combined multiplier (combat-critical: keep 2x for health visibility)
     props.finalHealthBarWidth = CalculateFinalSize(settings.sizes.baseHealthBarWidth, scale, ScalingLimits::MIN_HEALTH_BAR_WIDTH, ScalingLimits::MAX_HEALTH_BAR_WIDTH, multipliers.healthBar);
     props.finalHealthBarHeight = CalculateFinalSize(settings.sizes.baseHealthBarHeight, scale, ScalingLimits::MIN_HEALTH_BAR_HEIGHT, ScalingLimits::MAX_HEALTH_BAR_HEIGHT, multipliers.healthBar);
 }

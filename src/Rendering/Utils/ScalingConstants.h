@@ -69,10 +69,10 @@ namespace RenderingEffects {
     constexpr float FADE_ZONE_PERCENTAGE = 0.11f;
     
     // Hostile player visibility enhancement (PvP combat awareness)
-    // This multiplier is applied to ALL hostile player visual elements:
-    // - Box border thickness
-    // - Health bar width/height
-    // - Player name font size
+    // This multiplier is applied to COMBAT-CRITICAL hostile player elements:
+    // - Player name font size (for quick identification)
+    // - Health bar width/height (for health tracking)
+    // NOTE: Box thickness intentionally NOT multiplied to reduce visual clutter
     constexpr float HOSTILE_PLAYER_VISUAL_MULTIPLIER = 2.0f;
 }
 
