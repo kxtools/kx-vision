@@ -148,7 +148,7 @@ namespace kx {
     bool AppLifecycleManager::IsShutdownRequested() const {
         // Only DELETE key triggers shutdown (not the window close button)
         // Closing the window (X button) just hides it - user can press INSERT to show again
-        return (GetAsyncKeyState(VK_DELETE) & 0x8000);
+        return (GetAsyncKeyState(Hotkeys::EXIT_APPLICATION) & 0x8000);
     }
 
     const char* AppLifecycleManager::GetCurrentStateName() const {

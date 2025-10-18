@@ -1,6 +1,7 @@
 #include "FrameCoordinator.h"
 #include "AppLifecycleManager.h"
 #include "AppState.h"
+#include "Config.h"
 #include "../Rendering/ImGui/ImGuiManager.h"
 #include "../Rendering/Utils/D3DState.h"
 #include "../Utils/DebugLogger.h"
@@ -66,7 +67,7 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
 void FrameCoordinator::HandleInput(HWND windowHandle) {
     // Handle input for UI toggle
     static bool lastToggleKeyState = false;
-    bool currentToggleKeyState = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
+    bool currentToggleKeyState = (GetAsyncKeyState(kx::Hotkeys::TOGGLE_OVERLAY) & 0x8000) != 0;
 
     if (currentToggleKeyState && !lastToggleKeyState) {
         bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
