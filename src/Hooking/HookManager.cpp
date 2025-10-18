@@ -7,8 +7,8 @@ namespace kx::Hooking {
     bool HookManager::Initialize() {
         MH_STATUS status = MH_Initialize();
         if (status != MH_OK) {
-                        LOG_ERROR("[HookManager] ERROR: Failed to initialize MinHook: %s",
-                MH_StatusToString(status));
+        	LOG_ERROR("[HookManager] Failed to initialize MinHook: %s",
+        	MH_StatusToString(status));
             return false;
         }
         LOG_INFO("[HookManager] MinHook initialized.");

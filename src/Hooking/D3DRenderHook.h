@@ -29,7 +29,6 @@ namespace kx::Hooking {
 
         static ID3D11Device* GetDevice() { return m_pDevice; }
         static ID3D11DeviceContext* GetContext() { return m_pContext; }
-        static ID3D11RenderTargetView* GetMainRenderTargetView() { return m_pMainRenderTargetView; }
 
         static HWND GetWindowHandle() { return m_hWindow; }
 
@@ -46,7 +45,6 @@ namespace kx::Hooking {
         static HWND m_hWindow;
         static ID3D11Device* m_pDevice;
         static ID3D11DeviceContext* m_pContext;
-        static ID3D11RenderTargetView* m_pMainRenderTargetView;
         static WNDPROC m_pOriginalWndProc;
         static AppLifecycleManager* m_pLifecycleManager;
 
@@ -60,7 +58,6 @@ namespace kx::Hooking {
         static HRESULT __stdcall DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
         static LRESULT __stdcall WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
         static bool InitializeD3DResources(IDXGISwapChain* pSwapChain);
-        static void RenderFrame();
         static void CleanupD3DResources(bool includeWndProc = true);
     };
 

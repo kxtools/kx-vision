@@ -19,7 +19,6 @@ namespace kx::Hooking {
     HWND D3DRenderHook::m_hWindow = NULL;
     ID3D11Device* D3DRenderHook::m_pDevice = nullptr;
     ID3D11DeviceContext* D3DRenderHook::m_pContext = nullptr;
-    ID3D11RenderTargetView* D3DRenderHook::m_pMainRenderTargetView = nullptr;
     WNDPROC D3DRenderHook::m_pOriginalWndProc = nullptr;
     AppLifecycleManager* D3DRenderHook::m_pLifecycleManager = nullptr;
     
@@ -40,8 +39,8 @@ namespace kx::Hooking {
 
         try {
             m_pDevice = device;
-            // Increment reference count - Shutdown() will call Release()
-            m_pDevice->AddRef();
+            // Note: Device reference is managed by the caller (GW2AL)
+            // No need to AddRef() as the caller is responsible for the reference
 
             m_pDevice->GetImmediateContext(&m_pContext);
 
@@ -50,35 +49,19 @@ namespace kx::Hooking {
             HRESULT hr = pSwapChain->GetDesc(&sd);
             if (FAILED(hr)) {
                 LOG_ERROR("[D3DRenderHook] Failed to get swap chain description. HRESULT: 0x%08X", hr);
-                // Clean up resources before returning
+                // Only release context - device reference is owned by caller (GW2AL)
                 if (m_pContext) {
                     m_pContext->Release();
                     m_pContext = nullptr;
                 }
-                if (m_pDevice) {
-                    m_pDevice->Release();
-                    m_pDevice = nullptr;
-                }
+                m_pDevice = nullptr;  // Just clear the pointer, don't release
                 return false;
             }
             m_hWindow = sd.OutputWindow;
 
-            // Create the render target view (RTV) for rendering our UI
-            ID3D11Texture2D* pBackBuffer = nullptr;
-            hr = pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
-            if (FAILED(hr) || !pBackBuffer) {
-                LOG_ERROR("[D3DRenderHook] Failed to get back buffer from swap chain. HRESULT: 0x%08X", hr);
-                return false;
-            }
-
-            hr = m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
-            pBackBuffer->Release();
-
-            if (FAILED(hr) || !m_pMainRenderTargetView) {
-                LOG_ERROR("[D3DRenderHook] Failed to create render target view. HRESULT: 0x%08X", hr);
-                CleanupD3DResources(false);
-                return false;
-            }
+            // Note: We no longer create a cached render target view here
+            // Instead, we create a fresh RTV every frame in the GW2AL OnPresent callback
+            // This ensures proper handling of window resize events
 
             // Hook the window procedure to handle input for our UI
             m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
@@ -114,16 +97,10 @@ namespace kx::Hooking {
         if (!m_isInit) return;
 
         LOG_INFO("[D3DRenderHook] Handling resize event");
-
-        // Release the old cached render target view if it exists
-        // Note: In GW2AL mode, the RTV is recreated per-frame in OnPresent callback
-        // In DLL mode, it would need to be recreated here or on next Present call
-        if (m_pMainRenderTargetView) {
-            m_pMainRenderTargetView->Release();
-            m_pMainRenderTargetView = nullptr;
-        }
-
-        LOG_INFO("[D3DRenderHook] Cached RTV released, will be recreated on next frame");
+        
+        // Note: In DLL mode, we now create a fresh RTV every frame, so no cached RTV to release
+        // In GW2AL mode, the RTV is also created per-frame, so this function is mainly for logging
+        // The actual resize handling is done automatically by creating fresh RTVs each frame
     }
 
     void D3DRenderHook::Shutdown() {
@@ -161,10 +138,8 @@ namespace kx::Hooking {
             m_pOriginalWndProc = nullptr;
         }
 
-        if (m_pMainRenderTargetView) { 
-            m_pMainRenderTargetView->Release(); 
-            m_pMainRenderTargetView = nullptr; 
-        }
+        // Note: RTVs are created and released per-frame in both DLL and GW2AL modes
+        // No cached RTV to release here
         if (m_pContext) { 
             m_pContext->Release(); 
             m_pContext = nullptr; 

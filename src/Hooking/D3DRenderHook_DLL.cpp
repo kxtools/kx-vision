@@ -118,7 +118,32 @@ namespace kx::Hooking {
 
         // Per-frame logic
         if (m_isInit) {
-            RenderFrame();
+            // Create a fresh render target view every frame (like GW2AL mode)
+            // This ensures we always have a valid RTV even after resize
+            ID3D11Texture2D* pBackBuffer = nullptr;
+            ID3D11RenderTargetView* frameRenderTargetView = nullptr;
+            
+            if (SUCCEEDED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) {
+                HRESULT hr = m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &frameRenderTargetView);
+                pBackBuffer->Release();
+                
+                if (SUCCEEDED(hr) && frameRenderTargetView) {
+                    // Get display size from swap chain
+                    DXGI_SWAP_CHAIN_DESC sd;
+                    pSwapChain->GetDesc(&sd);
+                    float displayWidth = static_cast<float>(sd.BufferDesc.Width);
+                    float displayHeight = static_cast<float>(sd.BufferDesc.Height);
+                    
+                    // Use the fresh RTV for rendering
+                    m_pLifecycleManager->RenderTick(m_hWindow, displayWidth, displayHeight, 
+                                                  m_pContext, frameRenderTargetView);
+                    
+                    // Clean up the per-frame render target view
+                    frameRenderTargetView->Release();
+                } else {
+                    LOG_WARN("[D3DRenderHook] Failed to create per-frame RTV");
+                }
+            }
         }
 
         // Call original Present function
@@ -140,27 +165,22 @@ namespace kx::Hooking {
         pSwapChain->GetDesc(&sd);
         m_hWindow = sd.OutputWindow;
 
-        // Create render target view from back buffer
-        ID3D11Texture2D* pBackBuffer = nullptr;
-        if (FAILED(pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer)))) {
-            LOG_ERROR("[D3DRenderHook] Failed to get back buffer");
-            CleanupD3DResources(false);
-            return false;
-        }
-
-        HRESULT hr = m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pMainRenderTargetView);
-        pBackBuffer->Release();
-
-        if (FAILED(hr) || !m_pMainRenderTargetView) {
-            LOG_ERROR("[D3DRenderHook] Failed to create render target view. HRESULT: 0x%08X", hr);
-            CleanupD3DResources(false);
-            return false;
-        }
+        // Note: We no longer create a cached render target view here
+        // Instead, we create a fresh RTV every frame in DetourPresent() to handle resize properly
 
         // Hook WndProc
         m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
         if (!m_pOriginalWndProc) {
             LOG_ERROR("[D3DRenderHook] Failed to hook WndProc");
+            // Release partially initialized resources before cleanup
+            if (m_pContext) {
+                m_pContext->Release();
+                m_pContext = nullptr;
+            }
+            if (m_pDevice) {
+                m_pDevice->Release();
+                m_pDevice = nullptr;
+            }
             CleanupD3DResources(false);
             return false;
         }
@@ -175,36 +195,6 @@ namespace kx::Hooking {
         m_isInit = true;
         LOG_INFO("[D3DRenderHook] D3D resources and ImGui initialized successfully");
         return true;
-    }
-
-    void D3DRenderHook::RenderFrame() {
-        // Double-check shutdown flag and ImGui context before rendering
-        if (AppState::Get().IsShuttingDown() || ImGui::GetCurrentContext() == nullptr) {
-            return;
-        }
-
-        // Check if we have a lifecycle manager to get game state from
-        if (!m_pLifecycleManager) {
-            OutputDebugStringA("[D3DRenderHook::RenderFrame] No lifecycle manager set\n");
-            return;
-        }
-
-        try {
-            // Get display size
-            ImGuiIO& io = ImGui::GetIO();
-            
-            // === Centralized per-frame tick (update + render) ===
-            m_pLifecycleManager->RenderTick(m_hWindow, io.DisplaySize.x, io.DisplaySize.y, 
-                                            m_pContext, m_pMainRenderTargetView);
-        }
-        catch (const std::exception& e) {
-            OutputDebugStringA("[D3DRenderHook::RenderFrame] ImGui Exception: ");
-            OutputDebugStringA(e.what());
-            OutputDebugStringA("\n");
-        }
-        catch (...) {
-            OutputDebugStringA("[D3DRenderHook::RenderFrame] Unknown ImGui Exception\n");
-        }
     }
 
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
