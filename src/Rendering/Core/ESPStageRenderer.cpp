@@ -1,5 +1,6 @@
 #include "ESPStageRenderer.h"
 #include "../Layout/LayoutCalculator.h"
+#include "../Layout/LayoutElementKeys.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Utils/ESPMath.h"
@@ -108,7 +109,7 @@ void ESPStageRenderer::RenderLayoutElements(
 {
     // RENDER ABOVE BOX ELEMENTS
     if (entityContext.renderDistance) {
-        auto it = layout.elementPositions.find("distance");
+        auto it = layout.elementPositions.find(LayoutKeys::DISTANCE);
         if (it != layout.elementPositions.end()) {
             ESPTextRenderer::RenderDistanceTextAt(context.drawList, it->second, entityContext.gameplayDistance, props.finalAlpha, props.finalFontSize);
         }
@@ -136,7 +137,7 @@ void ESPStageRenderer::RenderStatusBars(
     bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
     if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
-        auto it = layout.elementPositions.find("healthBar");
+        auto it = layout.elementPositions.find(LayoutKeys::HEALTH_BAR);
         if (it != layout.elementPositions.end()) {
             glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
             ESPHealthBarRenderer::RenderStandaloneHealthBar(context.drawList, topLeft, entityContext,
@@ -149,7 +150,7 @@ void ESPStageRenderer::RenderStatusBars(
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         float energyPercent = CalculateEnergyPercent(player, context.settings.playerESP.energyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
-            auto it = layout.elementPositions.find("energyBar");
+            auto it = layout.elementPositions.find(LayoutKeys::ENERGY_BAR);
             if (it != layout.elementPositions.end()) {
                 glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
                 ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, energyPercent,
@@ -167,7 +168,7 @@ void ESPStageRenderer::RenderPlayerIdentity(
 {
     // Player Name
     if (entityContext.renderPlayerName && !entityContext.playerName.empty()) {
-        auto it = layout.elementPositions.find("playerName");
+        auto it = layout.elementPositions.find(LayoutKeys::PLAYER_NAME);
         if (it != layout.elementPositions.end()) {
             ESPTextRenderer::RenderPlayerNameAt(context.drawList, it->second, entityContext.playerName, props.fadedEntityColor, props.finalFontSize);
         }
@@ -179,7 +180,7 @@ void ESPStageRenderer::RenderPlayerIdentity(
         if (player != nullptr) {
             switch (context.settings.playerESP.gearDisplayMode) {
                 case GearDisplayMode::Compact: {
-                    auto it = layout.elementPositions.find("gearSummary");
+                    auto it = layout.elementPositions.find(LayoutKeys::GEAR_SUMMARY);
                     if (it != layout.elementPositions.end()) {
                         auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
                         ESPTextRenderer::RenderGearSummaryAt(context.drawList, it->second, summary, props.finalAlpha, props.finalFontSize);
@@ -187,7 +188,7 @@ void ESPStageRenderer::RenderPlayerIdentity(
                     break;
                 }
                 case GearDisplayMode::Attributes: {
-                    auto it = layout.elementPositions.find("dominantStats");
+                    auto it = layout.elementPositions.find(LayoutKeys::DOMINANT_STATS);
                     if (it != layout.elementPositions.end()) {
                         auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
                         auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
@@ -209,7 +210,7 @@ void ESPStageRenderer::RenderEntityDetails(
 {
     // Entity Details
     if (entityContext.renderDetails && !entityContext.details.empty()) {
-        auto it = layout.elementPositions.find("details");
+        auto it = layout.elementPositions.find(LayoutKeys::DETAILS);
         if (it != layout.elementPositions.end()) {
             ESPTextRenderer::RenderDetailsTextAt(context.drawList, it->second, entityContext.details, props.finalAlpha, props.finalFontSize);
         }

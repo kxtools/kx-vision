@@ -1,4 +1,5 @@
 #include "LayoutCalculator.h"
+#include "LayoutElementKeys.h"
 #include "../Utils/TextElementFactory.h"
 #include "../Renderers/TextRenderer.h"
 #include "../Utils/ESPPlayerDetailsBuilder.h"
@@ -41,7 +42,7 @@ LayoutResult LayoutCalculator::CalculateLayout(const LayoutRequest& request) {
     CalculateVerticalStack(aboveBoxAnchor, aboveBoxElements, result.elementPositions, true);
 
     // Set health bar anchor for dependent elements
-    auto healthBarIt = result.elementPositions.find("healthBar");
+    auto healthBarIt = result.elementPositions.find(LayoutKeys::HEALTH_BAR);
     if (healthBarIt != result.elementPositions.end()) {
         result.healthBarAnchor = { healthBarIt->second.x - request.visualProps.finalHealthBarWidth / 2.0f, healthBarIt->second.y };
     }
@@ -62,7 +63,7 @@ void LayoutCalculator::GatherLayoutElements(
     if (entityContext.renderDistance) {
         TextElement element = TextElementFactory::CreateDistanceText(entityContext.gameplayDistance, {0,0}, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
-        outAboveElements.push_back({"distance", size});
+        outAboveElements.push_back({LayoutKeys::DISTANCE, size});
     }
 
     // --- GATHER BELOW BOX ELEMENTS using helper functions ---
@@ -85,7 +86,7 @@ void LayoutCalculator::GatherStatusBarElements(
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
     if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
         ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};
-        outBelowElements.push_back({"healthBar", size});
+        outBelowElements.push_back({LayoutKeys::HEALTH_BAR, size});
     }
 
     // Energy Bar (Players only)
@@ -94,7 +95,7 @@ void LayoutCalculator::GatherStatusBarElements(
         float energyPercent = CalculateEnergyPercent(player, context.settings.playerESP.energyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
             ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
-            outBelowElements.push_back({"energyBar", size});
+            outBelowElements.push_back({LayoutKeys::ENERGY_BAR, size});
         }
     }
 }
@@ -111,7 +112,7 @@ void LayoutCalculator::GatherPlayerIdentityElements(
     if (entityContext.renderPlayerName && !entityContext.playerName.empty()) {
         TextElement element = TextElementFactory::CreatePlayerName(entityContext.playerName, {0,0}, 0, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
-        outBelowElements.push_back({"playerName", size});
+        outBelowElements.push_back({LayoutKeys::PLAYER_NAME, size});
     }
 
     // Player Gear (Players only)
@@ -122,14 +123,14 @@ void LayoutCalculator::GatherPlayerIdentityElements(
                 case GearDisplayMode::Compact: {
                     auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
                     TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);
-                    outBelowElements.push_back({"gearSummary", TextRenderer::CalculateSize(element)});
+                    outBelowElements.push_back({LayoutKeys::GEAR_SUMMARY, TextRenderer::CalculateSize(element)});
                     break;
                 }
                 case GearDisplayMode::Attributes: {
                     auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
                     auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
                     TextElement element = TextElementFactory::CreateDominantStats(stats, rarity, {0,0}, 0, props.finalFontSize);
-                    outBelowElements.push_back({"dominantStats", TextRenderer::CalculateSize(element)});
+                    outBelowElements.push_back({LayoutKeys::DOMINANT_STATS, TextRenderer::CalculateSize(element)});
                     break;
                 }
                 default: break;
@@ -149,7 +150,7 @@ void LayoutCalculator::GatherDetailElements(
     if (entityContext.renderDetails && !entityContext.details.empty()) {
         TextElement element = TextElementFactory::CreateDetailsText(entityContext.details, {0,0}, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
-        outBelowElements.push_back({"details", size});
+        outBelowElements.push_back({LayoutKeys::DETAILS, size});
     }
 }
 

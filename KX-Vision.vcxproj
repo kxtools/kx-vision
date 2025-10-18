@@ -187,6 +187,7 @@
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPVisualsProcessor.h" />
     <ClInclude Include="src\Rendering\Layout\LayoutCalculator.h" />
+    <ClInclude Include="src\Rendering\Layout\LayoutElementKeys.h" />
     <ClInclude Include="src\Rendering\Utils\D3DState.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\ESPData.h" />
