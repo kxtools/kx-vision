@@ -28,7 +28,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
 
     // 2. Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();
-    props.distanceFadeAlpha = EntityVisualsCalculator::CalculateDistanceFadeAlpha(entity.gameplayDistance,
+    props.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance,
                                                          settings.distance.useDistanceLimit,
                                                          settings.distance.renderDistanceLimit);
 
@@ -82,8 +82,8 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
 
     // 7. Calculate scaled sizes with limits
-    EntityMultipliers multipliers = EntityVisualsCalculator::CalculateEntityMultipliers(entity);
-    EntityVisualsCalculator::CalculateFinalSizes(props, props.scale, multipliers);
+    EntityMultipliers multipliers = CalculateEntityMultipliers(entity);
+    CalculateFinalSizes(props, props.scale, multipliers);
 
     return props;
 }
@@ -339,12 +339,12 @@ EntityMultipliers EntityVisualsCalculator::CalculateEntityMultipliers(const Rend
     // Calculate rank multiplier
     if (entity.entityType == ESPEntityType::NPC) {
         const auto* npc = static_cast<const RenderableNpc*>(&entity);
-        multipliers.rank = EntityVisualsCalculator::GetRankMultiplier(npc->rank);
+        multipliers.rank = GetRankMultiplier(npc->rank);
     }
     
     // Calculate gadget health multiplier
     if (entity.entityType == ESPEntityType::Gadget) {
-        multipliers.gadgetHealth = EntityVisualsCalculator::GetGadgetHealthMultiplier(entity.maxHealth);
+        multipliers.gadgetHealth = GetGadgetHealthMultiplier(entity.maxHealth);
     }
     
     // Calculate combined health bar multiplier
@@ -359,13 +359,13 @@ void EntityVisualsCalculator::CalculateFinalSizes(VisualProperties& props,
     const auto& settings = AppState::Get().GetSettings();
     
     // Calculate final sizes using the helper
-    props.finalFontSize = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseFontSize, scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, multipliers.hostile);
-    props.finalBoxThickness = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseBoxThickness, scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, multipliers.hostile);
-    props.finalDotRadius = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseDotRadius, scale, ScalingLimits::MIN_DOT_RADIUS, ScalingLimits::MAX_DOT_RADIUS);
+    props.finalFontSize = CalculateFinalSize(settings.sizes.baseFontSize, scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, multipliers.hostile);
+    props.finalBoxThickness = CalculateFinalSize(settings.sizes.baseBoxThickness, scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, multipliers.hostile);
+    props.finalDotRadius = CalculateFinalSize(settings.sizes.baseDotRadius, scale, ScalingLimits::MIN_DOT_RADIUS, ScalingLimits::MAX_DOT_RADIUS);
 
     // Health bar uses combined multiplier
-    props.finalHealthBarWidth = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseHealthBarWidth, scale, ScalingLimits::MIN_HEALTH_BAR_WIDTH, ScalingLimits::MAX_HEALTH_BAR_WIDTH, multipliers.healthBar);
-    props.finalHealthBarHeight = EntityVisualsCalculator::CalculateFinalSize(settings.sizes.baseHealthBarHeight, scale, ScalingLimits::MIN_HEALTH_BAR_HEIGHT, ScalingLimits::MAX_HEALTH_BAR_HEIGHT, multipliers.healthBar);
+    props.finalHealthBarWidth = CalculateFinalSize(settings.sizes.baseHealthBarWidth, scale, ScalingLimits::MIN_HEALTH_BAR_WIDTH, ScalingLimits::MAX_HEALTH_BAR_WIDTH, multipliers.healthBar);
+    props.finalHealthBarHeight = CalculateFinalSize(settings.sizes.baseHealthBarHeight, scale, ScalingLimits::MIN_HEALTH_BAR_HEIGHT, ScalingLimits::MAX_HEALTH_BAR_HEIGHT, multipliers.healthBar);
 }
 
 } // namespace kx
