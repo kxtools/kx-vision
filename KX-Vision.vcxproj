@@ -113,8 +113,8 @@
     <ClCompile Include="src\Rendering\Renderers\ESPHealthBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPShapeRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPTextRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Text\TextElementFactory.cpp" />
-    <ClCompile Include="src\Rendering\Text\TextRenderer.cpp" />
+    <ClCompile Include="src\Rendering\Utils\TextElementFactory.cpp" />
+    <ClCompile Include="src\Rendering\Renderers\TextRenderer.cpp" />
     <ClCompile Include="src\Rendering\Utils\EntityVisualsCalculator.cpp" />
     <ClCompile Include="src\Rendering\Utils\ESPEntityDetailsBuilder.cpp" />
     <ClCompile Include="src\Rendering\Utils\ESPMath.cpp" />
@@ -206,9 +206,9 @@
     <ClInclude Include="src\Rendering\Renderers\ESPHealthBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPShapeRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPTextRenderer.h" />
-    <ClInclude Include="src\Rendering\Text\TextElement.h" />
-    <ClInclude Include="src\Rendering\Text\TextElementFactory.h" />
-    <ClInclude Include="src\Rendering\Text\TextRenderer.h" />
+    <ClInclude Include="src\Rendering\Data\TextElement.h" />
+    <ClInclude Include="src\Rendering\Utils\TextElementFactory.h" />
+    <ClInclude Include="src\Rendering\Renderers\TextRenderer.h" />
     <ClInclude Include="src\Rendering\Utils\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Utils\ColorConstants.h" />
     <ClInclude Include="src\Rendering\Utils\CombatConstants.h" />

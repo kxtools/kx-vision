@@ -13,9 +13,9 @@
 #include "../../../libs/ImGui/imgui.h"
 #include <sstream>
 #include <iomanip>
-#include "../Text/TextElementFactory.h"
+#include "../Utils/TextElementFactory.h"
 #include "../Utils/EntityVisualsCalculator.h"
-#include "Text/TextRenderer.h"
+#include "../Renderers/TextRenderer.h"
 #include <optional>
 #include <vector>
 #include <string>

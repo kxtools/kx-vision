@@ -9,8 +9,8 @@
 #include "../Data/EntityRenderContext.h"
 #include <algorithm>
 #include "../Utils/EntityVisualsCalculator.h"
-#include "Text/TextElement.h"
-#include "Text/TextRenderer.h"
+#include "../Data/TextElement.h"
+#include "TextRenderer.h"
 
 namespace kx {
 

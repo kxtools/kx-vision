@@ -7,7 +7,7 @@
 #include "glm.hpp"
 #include "../../../libs/ImGui/imgui.h"
 
-#include "Settings.h"
+#include "../../Core/Settings.h"
 #include "../Data/RenderableData.h"
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"

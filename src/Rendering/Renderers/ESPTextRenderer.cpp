@@ -1,6 +1,6 @@
 #include "ESPTextRenderer.h"
-#include "../Text/TextRenderer.h"
-#include "../Text/TextElementFactory.h"
+#include "TextRenderer.h"
+#include "../Utils/TextElementFactory.h"
 #include "../../../libs/ImGui/imgui.h"
 
 namespace kx {

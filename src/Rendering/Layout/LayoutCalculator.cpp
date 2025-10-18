@@ -1,6 +1,6 @@
 #include "LayoutCalculator.h"
-#include "../Text/TextElementFactory.h"
-#include "../Text/TextRenderer.h"
+#include "../Utils/TextElementFactory.h"
+#include "../Renderers/TextRenderer.h"
 #include "../Utils/ESPPlayerDetailsBuilder.h"
 #include "../Utils/ESPStyling.h"
 #include "../Utils/LayoutConstants.h"

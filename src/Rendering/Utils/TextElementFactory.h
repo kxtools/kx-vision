@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "GameEnums.h"
+#include "../../Game/GameEnums.h"
 
 namespace kx {
 
