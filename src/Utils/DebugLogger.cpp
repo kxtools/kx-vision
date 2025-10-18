@@ -175,7 +175,7 @@ bool Logger::IsRateLimited(const std::string& key, std::chrono::milliseconds int
             CleanupRateLimitCache();
         }
         
-        return !shouldLog; // Return true if IS rate limited
+        return !shouldLog; // Return true if should NOT log (is rate limited)
     }
     catch (...) {
         return false; // On error, allow logging (not rate limited)
@@ -244,7 +244,7 @@ bool Logger::ShouldLogMessage(const std::string& message) noexcept {
             interval = std::chrono::milliseconds(50); // Very aggressive for spam patterns
         }
         
-        return IsRateLimited(key, interval);
+        return !IsRateLimited(key, interval);
     }
     catch (...) {
         return true; // On error, allow logging
@@ -351,7 +351,7 @@ void Logger::LogPointer(const std::string& name, const void* ptr) noexcept {
     try {
         // Create a simplified key for rate limiting pointer logs
         std::string key = "ptr_" + name;
-        if (IsRateLimited(key, std::chrono::milliseconds(500))) {
+        if (!IsRateLimited(key, std::chrono::milliseconds(500))) {
             return; // Rate limited
         }
         
@@ -376,7 +376,7 @@ void Logger::LogMemoryAccess(const std::string& className, const std::string& me
     try {
         // Create a simplified key for rate limiting memory access logs
         std::string key = "mem_" + className + "::" + method + "_" + std::to_string(offset);
-        if (IsRateLimited(key, std::chrono::milliseconds(500))) {
+        if (!IsRateLimited(key, std::chrono::milliseconds(500))) {
             return; // Rate limited
         }
         
