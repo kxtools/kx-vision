@@ -1,14 +1,11 @@
 #pragma once
 
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <unordered_map>
-#include <chrono>
-#include <mutex>
 #include <memory>
 #include <Windows.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 #include "../Core/AppState.h"
 #include "MemorySafety.h"
 
@@ -16,14 +13,15 @@ namespace kx {
 namespace Debug {
 
 /**
- * @brief Thread-safe logging system with rate limiting and configurable levels
+ * @brief spdlog-based logging system with configurable levels and sinks
  * 
  * Features:
- * - Thread-safe operation with mutex protection
- * - Rate limiting to prevent log spam
+ * - Thread-safe operation (handled by spdlog)
+ * - Console output with colors (Debug builds)
+ * - Rotating file output for persistent logs
  * - Configurable log levels
- * - Memory management for rate limiting cache
- * - Exception-safe file operations
+ * - Exception-safe operations
+ * - Async logging support for better performance
  */
 class Logger {
 public:
@@ -36,75 +34,27 @@ public:
     };
 
 private:
-    // Thread-safe static members
+    // spdlog logger instance
+    static std::shared_ptr<spdlog::logger> s_logger;
     static std::atomic<Level> s_minLogLevel;
-    static std::atomic<size_t> s_rateLimitCacheSize;
-    static std::mutex s_rateLimitMutex;
-    static std::unordered_map<std::string, std::chrono::steady_clock::time_point> s_lastLogTime;
-    static std::mutex s_fileMutex;
-    static std::chrono::steady_clock::time_point s_lastCleanup;
-    static std::unique_ptr<std::ofstream> s_logFile;
-    static std::string s_logFilePath;
-    
-    // Configuration constants
-    static constexpr std::chrono::milliseconds RATE_LIMIT_INTERVAL{500}; // 500ms between identical messages (more aggressive)
-    static constexpr std::chrono::milliseconds AGGRESSIVE_RATE_LIMIT{100}; // 100ms for high-frequency patterns
-    static constexpr size_t MAX_RATE_LIMIT_ENTRIES = 1000; // Prevent memory growth
-    static constexpr std::chrono::minutes RATE_LIMIT_CLEANUP_INTERVAL{5}; // Clean old entries every 5 minutes
     
     // Helper methods
-    static std::string GetTimestamp() noexcept;
-    static std::string LevelToString(Level level) noexcept;
-    static void CleanupRateLimitCache() noexcept; // Assumes caller holds s_rateLimitMutex
-    static bool ShouldLogMessage(const std::string& message) noexcept;
-    static bool IsRateLimited(const std::string& key, std::chrono::milliseconds interval) noexcept;
-    static void LogImpl(Level level, const std::string& message, const std::string& context = "") noexcept;
-    static bool InitializeLogFile() noexcept;
     static std::string GetLogFilePath() noexcept;
+    static spdlog::level::level_enum ConvertLevel(Level level) noexcept;
 
 public:
     // Initialize logger (call once at startup for guaranteed proper initialization)
-    static void Initialize() noexcept {
-        try {
-            // Ensure static members are properly initialized
-            s_rateLimitCacheSize.store(0, std::memory_order_release);
-            
-            // Lock and clear any existing data to ensure clean state
-            std::lock_guard<std::mutex> lock(s_rateLimitMutex);
-            s_lastLogTime.clear();
-            s_lastCleanup = std::chrono::steady_clock::now();
-            
-            // Initialize log file
-            InitializeLogFile();
-        }
-        catch (...) {
-            // If initialization fails, logger will work with defaults
-        }
-    }
+    static void Initialize() noexcept;
+    
+    // Reinitialize logger (call after console setup to enable console output)
+    static void Reinitialize() noexcept;
     
     // Cleanup logger (call at shutdown to properly close files)
-    static void Cleanup() noexcept {
-        try {
-            std::lock_guard<std::mutex> lock(s_fileMutex);
-            if (s_logFile && s_logFile->is_open()) {
-                s_logFile->flush();
-                s_logFile->close();
-            }
-            s_logFile.reset();
-        }
-        catch (...) {
-            // Ignore cleanup errors
-        }
-    }
+    static void Cleanup() noexcept;
     
     // Thread-safe log level management
-    static void SetMinLogLevel(Level level) noexcept {
-        s_minLogLevel.store(level, std::memory_order_release);
-    }
-
-    static Level GetMinLogLevel() noexcept {
-        return s_minLogLevel.load(std::memory_order_acquire);
-    }
+    static void SetMinLogLevel(Level level) noexcept;
+    static Level GetMinLogLevel() noexcept;
 
     // Convenience methods for setting common log levels
     static void SetLogLevelDebug() noexcept { SetMinLogLevel(DEBUG); }
@@ -113,58 +63,14 @@ public:
     static void SetLogLevelError() noexcept { SetMinLogLevel(ERR); }
     static void SetLogLevelCritical() noexcept { SetMinLogLevel(CRITICAL); }
     
+    // Get the underlying spdlog logger for direct access
+    static std::shared_ptr<spdlog::logger> GetLogger() noexcept { return s_logger; }
+    
     // Helper function to check if a level should be logged (used by macros)
-    static bool ShouldLog(Level level) noexcept {
-        try {
-            // First check the internal log level
-            if (level < s_minLogLevel.load(std::memory_order_acquire)) {
-                return false;
-            }
-            
-            // Then check the AppState debug logging setting
-            // Only check for DEBUG level logs - errors should always be allowed
-            if (level == DEBUG) {
-                return AppState::Get().IsDebugLoggingEnabled();
-            }
-            
-            // For non-debug levels (INFO, WARNING, ERROR, CRITICAL), always allow if level passes
-            return true;
-        }
-        catch (...) {
-            // If we can't check AppState for any reason, fall back to level-only check
-            return level >= s_minLogLevel.load(std::memory_order_acquire);
-        }
-    }
+    static bool ShouldLog(Level level) noexcept;
     
     // Debug function to verify current log level (useful for troubleshooting)
-    static void PrintCurrentLogLevel() noexcept {
-        try {
-            Level current = GetMinLogLevel();
-            const char* levelName = "UNKNOWN";
-            switch (current) {
-                case DEBUG: levelName = "DEBUG"; break;
-                case INFO: levelName = "INFO"; break;
-                case WARNING: levelName = "WARNING"; break;
-                case ERR: levelName = "ERROR"; break;
-                case CRITICAL: levelName = "CRITICAL"; break;
-                default: 
-                    if (current >= 999) levelName = "DISABLED";
-                    break;
-            }
-            
-            bool guiDebugEnabled = AppState::Get().IsDebugLoggingEnabled();
-            
-            // Force output to console regardless of current level
-            std::cout << "[LOGGER] Internal log level: " << levelName 
-                      << " (" << static_cast<int>(current) << ")" << std::endl;
-            std::cout << "[LOGGER] GUI Debug Logging: " << (guiDebugEnabled ? "ENABLED" : "DISABLED") << std::endl;
-            std::cout << "[LOGGER] DEBUG logs will " << (ShouldLog(DEBUG) ? "BE SHOWN" : "BE HIDDEN") << std::endl;
-            std::cout.flush();
-        }
-        catch (...) {
-            std::cout << "[LOGGER] Error checking log status" << std::endl;
-        }
-    }
+    static void PrintCurrentLogLevel() noexcept;
     
     // Disable all logging by setting an impossibly high log level
     static void DisableLogging() noexcept { 
@@ -174,29 +80,43 @@ public:
     // Main logging function - thread-safe and exception-safe
     static void Log(Level level, const std::string& message) noexcept;
     
+    // Helper function to format printf-style strings
+    template<typename... Args>
+    static std::string FormatPrintf(const char* format, Args&&... args) noexcept {
+        try {
+            char buffer[1024];
+            int result = snprintf(buffer, sizeof(buffer), format, std::forward<Args>(args)...);
+            
+            if (result > 0 && result < static_cast<int>(sizeof(buffer))) {
+                return std::string(buffer);
+            } else {
+                // Fallback for formatting errors
+                return std::string("LOG FORMAT ERROR: ") + format;
+            }
+        }
+        catch (...) {
+            return std::string("LOG FORMAT ERROR");
+        }
+    }
+    
     // Formatted logging functions (printf-style) - accepts const char*
     template<typename... Args>
     static void LogFormatted(Level level, const char* format, Args&&... args) noexcept {
         try {
-            // Quick level check first with proper memory ordering
+            if (!s_logger) return;
+            
+            // Quick level check first
             if (level < s_minLogLevel.load(std::memory_order_acquire)) {
                 return;
             }
             
             if constexpr (sizeof...(args) == 0) {
                 // No additional arguments, treat as simple string
-                Log(level, std::string(format));
+                s_logger->log(ConvertLevel(level), format);
             } else {
-                // Format the message with arguments
-                char buffer[1024];
-                int result = snprintf(buffer, sizeof(buffer), format, std::forward<Args>(args)...);
-                
-                if (result > 0 && result < static_cast<int>(sizeof(buffer))) {
-                    Log(level, std::string(buffer));
-                } else {
-                    // Fallback for formatting errors
-                    Log(level, std::string("LOG FORMAT ERROR: ") + format);
-                }
+                // Format the message with arguments using printf
+                std::string formatted = FormatPrintf(format, std::forward<Args>(args)...);
+                s_logger->log(ConvertLevel(level), formatted);
             }
         }
         catch (...) {
@@ -208,25 +128,20 @@ public:
     template<typename... Args>
     static void LogFormatted(Level level, const std::string& format, Args&&... args) noexcept {
         try {
-            // Quick level check first with proper memory ordering
+            if (!s_logger) return;
+            
+            // Quick level check first
             if (level < s_minLogLevel.load(std::memory_order_acquire)) {
                 return;
             }
             
             if constexpr (sizeof...(args) == 0) {
                 // No additional arguments, just log the string directly
-                Log(level, format);
+                s_logger->log(ConvertLevel(level), format);
             } else {
-                // Format the message with arguments using c_str()
-                char buffer[1024];
-                int result = snprintf(buffer, sizeof(buffer), format.c_str(), std::forward<Args>(args)...);
-                
-                if (result > 0 && result < static_cast<int>(sizeof(buffer))) {
-                    Log(level, std::string(buffer));
-                } else {
-                    // Fallback for formatting errors
-                    Log(level, std::string("LOG FORMAT ERROR: ") + format);
-                }
+                // Format the message with arguments using printf
+                std::string formatted = FormatPrintf(format.c_str(), std::forward<Args>(args)...);
+                s_logger->log(ConvertLevel(level), formatted);
             }
         }
         catch (...) {
@@ -243,7 +158,7 @@ public:
 };
 
 // Macros for easier usage - all wrapped for exception safety with runtime level checks
-// Support both string and printf-style formatting
+// Support both string and printf-style formatting using custom printf formatting
 #define LOG_DEBUG(...) do { \
     if (kx::Debug::Logger::ShouldLog(kx::Debug::Logger::DEBUG)) { \
         try { \
@@ -322,6 +237,9 @@ public:
 
 // Convenience macro to initialize logger
 #define LOG_INIT() kx::Debug::Logger::Initialize()
+
+// Convenience macro to reinitialize logger (after console setup)
+#define LOG_REINIT() kx::Debug::Logger::Reinitialize()
 
 // Convenience macro to cleanup logger
 #define LOG_CLEANUP() kx::Debug::Logger::Cleanup()
@@ -469,3 +387,4 @@ inline bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result,
 
 } // namespace Debug
 } // namespace kx
+

@@ -5,21 +5,17 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/null_sink.h>
 
 namespace kx {
 namespace Debug {
 
-// Initialize static atomic members with thread-safe default values
+// Initialize static members
+std::shared_ptr<spdlog::logger> Logger::s_logger = nullptr;
 std::atomic<Logger::Level> Logger::s_minLogLevel{static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL)};
-std::atomic<size_t> Logger::s_rateLimitCacheSize{0};
-
-// Initialize rate limiting infrastructure with proper thread safety
-std::unordered_map<std::string, std::chrono::steady_clock::time_point> Logger::s_lastLogTime;
-std::mutex Logger::s_rateLimitMutex;
-std::mutex Logger::s_fileMutex;
-std::chrono::steady_clock::time_point Logger::s_lastCleanup = std::chrono::steady_clock::now();
-std::unique_ptr<std::ofstream> Logger::s_logFile = nullptr;
-std::string Logger::s_logFilePath = "";
 
 /**
  * @brief Get the path for the log file
@@ -48,322 +44,256 @@ std::string Logger::GetLogFilePath() noexcept {
 }
 
 /**
- * @brief Initialize the log file for output
- * @return true if file was successfully opened, false otherwise
+ * @brief Convert our log level to spdlog level
+ * @param level Our internal log level
+ * @return Corresponding spdlog level
  */
-bool Logger::InitializeLogFile() noexcept {
-    try {
-        std::lock_guard<std::mutex> lock(s_fileMutex);
-        
-        // Close existing file if open
-        if (s_logFile && s_logFile->is_open()) {
-            s_logFile->close();
-        }
-        
-        // Get log file path
-        s_logFilePath = GetLogFilePath();
-        
-        // Create new file stream
-        s_logFile = std::make_unique<std::ofstream>(s_logFilePath, std::ios::app);
-        
-        if (s_logFile && s_logFile->is_open()) {
-            // Write startup message
-            auto now = std::chrono::system_clock::now();
-            auto time_t = std::chrono::system_clock::to_time_t(now);
-            struct tm timeinfo;
-            if (localtime_s(&timeinfo, &time_t) == 0) {
-                *s_logFile << "\n=== KX-Vision Debug Logger Started at " 
-                          << std::put_time(&timeinfo, "%Y-%m-%d %H:%M:%S") 
-                          << " ===\n" << std::flush;
-            }
-            return true;
-        }
-        
-        return false;
-    }
-    catch (...) {
-        return false;
-    }
-}
-
-/**
- * @brief Get current timestamp as formatted string for logging
- * @return Formatted timestamp string in HH:MM:SS format
- */
-std::string Logger::GetTimestamp() noexcept {
-    try {
-        auto now = std::chrono::system_clock::now();
-        auto time_t = std::chrono::system_clock::to_time_t(now);
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-            now.time_since_epoch()) % 1000;
-        
-        // Use safe localtime_s instead of deprecated localtime
-        struct tm timeinfo;
-        errno_t result = localtime_s(&timeinfo, &time_t);
-        if (result != 0) {
-            return "??:??:??.???"; // Return fallback on error
-        }
-        
-        std::stringstream ss;
-        ss << std::put_time(&timeinfo, "%H:%M:%S")
-           << '.' << std::setfill('0') << std::setw(3) << ms.count();
-        return ss.str();
-    }
-    catch (...) {
-        return "??:??:??.???"; // Fallback timestamp
-    }
-}
-
-/**
- * @brief Clean up old entries from rate limiting cache to prevent memory growth
- * @note Called automatically when cache size exceeds threshold
- * @note Assumes caller already holds s_rateLimitMutex lock
- */
-void Logger::CleanupRateLimitCache() noexcept {
-    try {
-        // Don't acquire lock here - caller must already hold it
-        auto now = std::chrono::steady_clock::now();
-        auto cleanupThreshold = now - RATE_LIMIT_CLEANUP_INTERVAL;
-        
-        auto it = s_lastLogTime.begin();
-        while (it != s_lastLogTime.end()) {
-            if (it->second < cleanupThreshold) {
-                it = s_lastLogTime.erase(it);
-            } else {
-                ++it;
-            }
-        }
-        
-        s_rateLimitCacheSize.store(s_lastLogTime.size(), std::memory_order_release);
-        s_lastCleanup = now;
-    }
-    catch (...) {
-        // Ignore cleanup errors to prevent cascading failures
-    }
-}
-
-/**
- * @brief Check if a message should be rate limited
- * @param key Unique key for rate limiting (typically function name + message hash)
- * @param interval Minimum interval between messages with the same key
- * @return true if message should be logged, false if rate limited
- */
-bool Logger::IsRateLimited(const std::string& key, std::chrono::milliseconds interval) noexcept {
-    try {
-        std::lock_guard<std::mutex> lock(s_rateLimitMutex);
-        
-        auto now = std::chrono::steady_clock::now();
-        auto it = s_lastLogTime.find(key);
-        
-        // Check if we need cleanup before processing this request
-        bool needsCleanup = false;
-        if (s_rateLimitCacheSize.load(std::memory_order_acquire) > MAX_RATE_LIMIT_ENTRIES ||
-            (now - s_lastCleanup) > RATE_LIMIT_CLEANUP_INTERVAL) {
-            needsCleanup = true;
-        }
-        
-        // Check rate limiting
-        bool shouldLog = false;
-        if (it == s_lastLogTime.end() || (now - it->second) >= interval) {
-            s_lastLogTime[key] = now;
-            s_rateLimitCacheSize.store(s_lastLogTime.size(), std::memory_order_release);
-            shouldLog = true;
-        }
-        
-        // Perform cleanup if needed (while still holding the lock)
-        if (needsCleanup) {
-            CleanupRateLimitCache();
-        }
-        
-        return !shouldLog; // Return true if should NOT log (is rate limited)
-    }
-    catch (...) {
-        return false; // On error, allow logging (not rate limited)
-    }
-}
-
-/**
- * @brief Check if a message should be logged based on rate limiting
- * @param message The message to potentially log
- * @return true if message should be logged, false if rate limited
- */
-bool Logger::ShouldLogMessage(const std::string& message) noexcept {
-    try {
-        // For memory access patterns and repetitive debug messages, 
-        // create a simplified key by removing dynamic content
-        std::string simplifiedMessage = message;
-        
-        // Remove hex addresses (0x followed by hex digits) to group similar memory access patterns
-        size_t pos = 0;
-        while ((pos = simplifiedMessage.find("0x", pos)) != std::string::npos) {
-            size_t hexEnd = pos + 2;
-            while (hexEnd < simplifiedMessage.length() && 
-                   ((simplifiedMessage[hexEnd] >= '0' && simplifiedMessage[hexEnd] <= '9') ||
-                    (simplifiedMessage[hexEnd] >= 'a' && simplifiedMessage[hexEnd] <= 'f') ||
-                    (simplifiedMessage[hexEnd] >= 'A' && simplifiedMessage[hexEnd] <= 'F'))) {
-                hexEnd++;
-            }
-            simplifiedMessage.replace(pos, hexEnd - pos, "0xXXX");
-            pos += 5; // Length of "0xXXX"
-        }
-        
-        // Remove floating point numbers to group similar value patterns
-        pos = 0;
-        while ((pos = simplifiedMessage.find_first_of("0123456789", pos)) != std::string::npos) {
-            size_t numEnd = pos;
-            bool hasDecimal = false;
-            while (numEnd < simplifiedMessage.length() && 
-                   (simplifiedMessage[numEnd] >= '0' && simplifiedMessage[numEnd] <= '9' || 
-                    (simplifiedMessage[numEnd] == '.' && !hasDecimal))) {
-                if (simplifiedMessage[numEnd] == '.') hasDecimal = true;
-                numEnd++;
-            }
-            if (numEnd > pos + 1) { // Only replace if it's more than a single digit
-                simplifiedMessage.replace(pos, numEnd - pos, "###");
-                pos += 3; // Length of "###"
-            } else {
-                pos++;
-            }
-        }
-        
-        // Create rate limiting key from simplified message
-        std::hash<std::string> hasher;
-        auto messageHash = hasher(simplifiedMessage);
-        std::string key = "pattern_" + std::to_string(messageHash);
-        
-        // Use aggressive rate limiting for high-frequency patterns
-        std::chrono::milliseconds interval = AGGRESSIVE_RATE_LIMIT;
-        
-        // Identify common high-frequency patterns that need more aggressive limiting
-        if (simplifiedMessage.find("accessing") != std::string::npos ||
-            simplifiedMessage.find("GetCurrent") != std::string::npos ||
-            simplifiedMessage.find("GetMax") != std::string::npos ||
-            simplifiedMessage.find("GetLevel") != std::string::npos ||
-            simplifiedMessage.find("GetHealth") != std::string::npos ||
-            simplifiedMessage.find("ContextCollection") != std::string::npos) {
-            interval = std::chrono::milliseconds(50); // Very aggressive for spam patterns
-        }
-        
-        return !IsRateLimited(key, interval);
-    }
-    catch (...) {
-        return true; // On error, allow logging
-    }
-}
-
-/**
- * @brief Format log level as string with consistent padding
- * @param level Log level to format
- * @return Formatted level string
- */
-std::string Logger::LevelToString(Level level) noexcept {
+spdlog::level::level_enum Logger::ConvertLevel(Level level) noexcept {
     switch (level) {
-        case DEBUG:    return "[DEBUG]";
-        case INFO:     return "[INFO ]";
-        case WARNING:  return "[WARN ]";
-        case ERR:      return "[ERROR]";
-        case CRITICAL: return "[CRIT ]";
-        default:       return "[?????]";
+        case DEBUG:    return spdlog::level::debug;
+        case INFO:     return spdlog::level::info;
+        case WARNING:  return spdlog::level::warn;
+        case ERR:      return spdlog::level::err;
+        case CRITICAL: return spdlog::level::critical;
+        default:       return spdlog::level::info;
     }
 }
 
 /**
- * @brief Core logging implementation with thread safety and error handling
- * @param level Log level
- * @param message Message to log
- * @param context Optional context information
+ * @brief Initialize spdlog logger with console and file sinks
  */
-void Logger::LogImpl(Level level, const std::string& message, const std::string& context) noexcept {
+void Logger::Initialize() noexcept {
     try {
-        // Quick atomic check for log level filtering with proper memory ordering
-        if (level < s_minLogLevel.load(std::memory_order_acquire)) {
-            return;
+        // Create sinks
+        std::vector<spdlog::sink_ptr> sinks;
+        
+        // Console sink with colors (Debug builds only)
+        // Check if console is available before creating console sink
+#ifdef _DEBUG
+        HWND consoleWindow = GetConsoleWindow();
+        if (consoleWindow != NULL) {
+            try {
+                auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+                console_sink->set_level(spdlog::level::debug);
+                console_sink->set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
+                sinks.push_back(console_sink);
+            }
+            catch (...) {
+                // Console sink failed, continue without it
+            }
+        }
+#endif
+        
+        // Rotating file sink
+        try {
+            auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+                GetLogFilePath(), 1024 * 1024 * 5, 3); // 5MB per file, 3 files
+            file_sink->set_level(spdlog::level::debug);
+            file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
+            sinks.push_back(file_sink);
+        }
+        catch (...) {
+            // File sink failed, try basic file sink as fallback
+            try {
+                auto basic_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(GetLogFilePath());
+                basic_file_sink->set_level(spdlog::level::debug);
+                basic_file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
+                sinks.push_back(basic_file_sink);
+            }
+            catch (...) {
+                // Both file sinks failed, continue without file logging
+            }
         }
         
-        // Build log message
-        std::stringstream ss;
-        ss << GetTimestamp() << " " << LevelToString(level) << " ";
-        
-        if (!context.empty()) {
-            ss << "[" << context << "] ";
+        // If no sinks were created, create a null sink to prevent crashes
+        if (sinks.empty()) {
+            auto null_sink = std::make_shared<spdlog::sinks::null_sink_mt>();
+            sinks.push_back(null_sink);
         }
         
-        ss << message;
-        std::string logLine = ss.str();
+        // Create logger
+        s_logger = std::make_shared<spdlog::logger>("kx-vision", sinks.begin(), sinks.end());
+        s_logger->set_level(ConvertLevel(static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL)));
+        s_logger->flush_on(spdlog::level::err); // Flush on errors
         
-        // Thread-safe console and file output
-        {
-            std::lock_guard<std::mutex> lock(s_fileMutex);
-            
-            // Console output - check if console is available
-            HWND consoleWindow = GetConsoleWindow();
-            if (consoleWindow != NULL) {
-                if (level >= ERR) {
-                    std::cerr << logLine << std::endl;
-                    std::cerr.flush();
-                } else {
-                    std::cout << logLine << std::endl;
-                    std::cout.flush();
+        // Register as default logger
+        spdlog::register_logger(s_logger);
+        
+        // Log startup message
+        s_logger->info("=== KX-Vision Debug Logger Started ===");
+    }
+    catch (...) {
+        // If initialization fails, create a null logger
+        s_logger = nullptr;
+    }
+}
+
+/**
+ * @brief Reinitialize logger (call after console setup to enable console output)
+ */
+void Logger::Reinitialize() noexcept {
+    try {
+        if (!s_logger) return;
+        
+        // Check if console is now available and add console sink if needed
+#ifdef _DEBUG
+        HWND consoleWindow = GetConsoleWindow();
+        if (consoleWindow != NULL) {
+            // Check if we already have a console sink
+            bool hasConsoleSink = false;
+            for (auto& sink : s_logger->sinks()) {
+                if (dynamic_cast<spdlog::sinks::stdout_color_sink_mt*>(sink.get()) != nullptr) {
+                    hasConsoleSink = true;
+                    break;
                 }
-            } else {
-                // Fallback to OutputDebugString when console not available
-                OutputDebugStringA((logLine + "\n").c_str());
             }
             
-            // File output
-            if (s_logFile && s_logFile->is_open()) {
-                *s_logFile << logLine << std::endl;
-                s_logFile->flush(); // Ensure immediate write for debugging
+            // Add console sink if we don't have one
+            if (!hasConsoleSink) {
+                try {
+                    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+                    console_sink->set_level(spdlog::level::debug);
+                    console_sink->set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
+                    s_logger->sinks().push_back(console_sink);
+                    s_logger->info("Console output enabled");
+                }
+                catch (...) {
+                    // Console sink failed, continue without it
+                }
             }
+        }
+#endif
+    }
+    catch (...) {
+        // Ignore reinitialization errors
+    }
+}
+
+/**
+ * @brief Cleanup spdlog logger
+ */
+void Logger::Cleanup() noexcept {
+    try {
+        if (s_logger) {
+            s_logger->info("=== KX-Vision Debug Logger Shutting Down ===");
+            s_logger->flush();
+            s_logger.reset();
+        }
+        spdlog::shutdown();
+    }
+    catch (...) {
+        // Ignore cleanup errors
+    }
+}
+
+/**
+ * @brief Set minimum log level
+ */
+void Logger::SetMinLogLevel(Level level) noexcept {
+    try {
+        s_minLogLevel.store(level, std::memory_order_release);
+        if (s_logger) {
+            s_logger->set_level(ConvertLevel(level));
         }
     }
     catch (...) {
-        // Logging should never throw - if we can't log, fail silently
-        // Could potentially write to Windows Event Log here as last resort
+        // Ignore errors
+    }
+}
+
+/**
+ * @brief Get minimum log level
+ */
+Logger::Level Logger::GetMinLogLevel() noexcept {
+    return s_minLogLevel.load(std::memory_order_acquire);
+}
+
+/**
+ * @brief Check if a level should be logged (used by macros)
+ */
+bool Logger::ShouldLog(Level level) noexcept {
+    try {
+        // First check the internal log level
+        if (level < s_minLogLevel.load(std::memory_order_acquire)) {
+            return false;
+        }
+        
+        // Then check the AppState debug logging setting
+        // Only check for DEBUG level logs - errors should always be allowed
+        if (level == DEBUG) {
+            return AppState::Get().IsDebugLoggingEnabled();
+        }
+        
+        // For non-debug levels (INFO, WARNING, ERROR, CRITICAL), always allow if level passes
+        return true;
+    }
+    catch (...) {
+        // If we can't check AppState for any reason, fall back to level-only check
+        return level >= s_minLogLevel.load(std::memory_order_acquire);
+    }
+}
+
+/**
+ * @brief Debug function to verify current log level (useful for troubleshooting)
+ */
+void Logger::PrintCurrentLogLevel() noexcept {
+    try {
+        Level current = GetMinLogLevel();
+        const char* levelName = "UNKNOWN";
+        switch (current) {
+            case DEBUG: levelName = "DEBUG"; break;
+            case INFO: levelName = "INFO"; break;
+            case WARNING: levelName = "WARNING"; break;
+            case ERR: levelName = "ERROR"; break;
+            case CRITICAL: levelName = "CRITICAL"; break;
+            default: 
+                if (current >= 999) levelName = "DISABLED";
+                break;
+        }
+        
+        bool guiDebugEnabled = AppState::Get().IsDebugLoggingEnabled();
+        
+        // Force output to console regardless of current level
+        std::cout << "[LOGGER] Internal log level: " << levelName 
+                  << " (" << static_cast<int>(current) << ")" << std::endl;
+        std::cout << "[LOGGER] GUI Debug Logging: " << (guiDebugEnabled ? "ENABLED" : "DISABLED") << std::endl;
+        std::cout << "[LOGGER] DEBUG logs will " << (ShouldLog(DEBUG) ? "BE SHOWN" : "BE HIDDEN") << std::endl;
+        std::cout.flush();
+    }
+    catch (...) {
+        std::cout << "[LOGGER] Error checking log status" << std::endl;
     }
 }
 
 /**
  * @brief Main logging function - thread-safe and exception-safe
- * @param level Log level
- * @param message Message to log
  */
 void Logger::Log(Level level, const std::string& message) noexcept {
     try {
+        if (!s_logger) return;
+        
         // Quick level check first
         if (level < s_minLogLevel.load(std::memory_order_acquire)) {
             return;
         }
         
-        // Apply rate limiting for DEBUG and INFO messages to prevent spam
-        if (level <= INFO && !ShouldLogMessage(message)) {
-            return; // Rate limited - skip this message
-        }
-        
-        LogImpl(level, message, "");
+        // Log using spdlog
+        s_logger->log(ConvertLevel(level), message);
     }
     catch (...) {
-        // If rate limiting fails, fall back to logging without rate limiting
-        LogImpl(level, message, "");
+        // Ignore logging errors
     }
 }
 
+
 /**
  * @brief Log pointer information for debugging
- * @param name Name/description of the pointer
- * @param ptr Pointer to log
  */
 void Logger::LogPointer(const std::string& name, const void* ptr) noexcept {
     try {
-        // Create a simplified key for rate limiting pointer logs
-        std::string key = "ptr_" + name;
-        if (!IsRateLimited(key, std::chrono::milliseconds(500))) {
-            return; // Rate limited
-        }
+        if (!s_logger) return;
         
-        std::stringstream ss;
-        ss << name << ": 0x" << std::hex << reinterpret_cast<uintptr_t>(ptr);
-        LogImpl(DEBUG, ss.str(), "PTR");
+        s_logger->debug("[PTR] {}: 0x{:x}", name, reinterpret_cast<uintptr_t>(ptr));
     }
     catch (...) {
         // Ignore formatting errors
@@ -372,25 +302,16 @@ void Logger::LogPointer(const std::string& name, const void* ptr) noexcept {
 
 /**
  * @brief Log memory access for debugging foreign class operations
- * @param className Name of the class performing the access
- * @param method Name of the method
- * @param ptr Base pointer
- * @param offset Offset being accessed
  */
 void Logger::LogMemoryAccess(const std::string& className, const std::string& method,
                            const void* ptr, uintptr_t offset) noexcept {
     try {
-        // Create a simplified key for rate limiting memory access logs
-        std::string key = "mem_" + className + "::" + method + "_" + std::to_string(offset);
-        if (!IsRateLimited(key, std::chrono::milliseconds(500))) {
-            return; // Rate limited
-        }
+        if (!s_logger) return;
         
-        std::stringstream ss;
-        ss << className << "::" << method << " accessing 0x" << std::hex 
-           << reinterpret_cast<uintptr_t>(ptr) << " + 0x" << std::hex << offset
-           << " = 0x" << std::hex << (reinterpret_cast<uintptr_t>(ptr) + offset);
-        LogImpl(DEBUG, ss.str(), "MEM");
+        uintptr_t baseAddr = reinterpret_cast<uintptr_t>(ptr);
+        uintptr_t finalAddr = baseAddr + offset;
+        s_logger->debug("[MEM] {}::{} accessing 0x{:x} + 0x{:x} = 0x{:x}", 
+                       className, method, baseAddr, offset, finalAddr);
     }
     catch (...) {
         // Ignore formatting errors
@@ -399,24 +320,24 @@ void Logger::LogMemoryAccess(const std::string& className, const std::string& me
 
 /**
  * @brief Log exception information
- * @param className Name of the class where exception occurred
- * @param method Name of the method where exception occurred
- * @param details Optional details about the exception
  */
 void Logger::LogException(const std::string& className, const std::string& method,
                         const std::string& details) noexcept {
     try {
+        if (!s_logger) return;
+        
         std::stringstream ss;
         ss << "Exception in " << className << "::" << method;
         if (!details.empty()) {
             ss << " - " << details;
         }
-        LogImpl(ERR, ss.str(), "EXC");
+        s_logger->error("[EXC] {}", ss.str());
     }
     catch (...) {
         // Ignore formatting errors
     }
 }
+
 
 } // namespace Debug
 } // namespace kx

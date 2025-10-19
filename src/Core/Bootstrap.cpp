@@ -12,6 +12,7 @@ namespace kx {
     void Bootstrap::InitializeConsole() {
 #ifdef _DEBUG
         SetupConsole();
+        LOG_REINIT(); // Reinitialize logger to enable console output
 #endif
     }
 
