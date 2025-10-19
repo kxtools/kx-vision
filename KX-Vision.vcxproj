@@ -104,6 +104,7 @@
     <ClCompile Include="src\Game\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
+    <ClCompile Include="src\Hooking\D3DRenderHook_WndProc.cpp" />
     <ClCompile Include="src\Rendering\Animations\HealthBarAnimations.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPDataExtractor.cpp" />
@@ -137,7 +138,6 @@
     <ClCompile Include="src\Utils\Console.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_Shared.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_DLL.cpp" />
-    <ClCompile Include="src\Hooking\D3DRenderHook_GW2AL.cpp" />
     <ClCompile Include="src\Rendering\ImGui\ImGuiStyle.cpp" />
     <ClCompile Include="src\Hooking\HookManager.cpp" />
     <ClCompile Include="src\Hooking\Hooks.cpp" />
