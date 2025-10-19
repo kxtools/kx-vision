@@ -39,8 +39,8 @@ namespace kx::Hooking {
 
         try {
             m_pDevice = device;
-            // Note: Device reference is managed by the caller (GW2AL)
-            // No need to AddRef() as the caller is responsible for the reference
+            // Device reference was incremented by QueryInterface in caller
+            // We are responsible for releasing it in CleanupD3DResources()
 
             m_pDevice->GetImmediateContext(&m_pContext);
 
