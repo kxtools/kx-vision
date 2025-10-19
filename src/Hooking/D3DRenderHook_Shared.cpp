@@ -9,6 +9,7 @@
 #include "../Utils/DebugLogger.h"
 #include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
+#include "HookManager.h"
 
 namespace kx::Hooking {
 
@@ -104,8 +105,16 @@ namespace kx::Hooking {
     }
 
     void D3DRenderHook::Shutdown() {
-        // Shutdown ImGui first
         if (m_isInit) {
+            // CRITICAL: Disable and remove Present hook BEFORE destroying ImGui
+            // This prevents new Present calls from entering while we destroy resources
+            if (m_pTargetPresent && m_pOriginalPresent) {
+                HookManager::DisableHook(m_pTargetPresent);
+                HookManager::RemoveHook(m_pTargetPresent);
+                LOG_INFO("[D3DRenderHook] Present hook disabled and removed.");
+            }
+
+            // Now safe to shutdown ImGui
             ImGuiManager::Shutdown();
             LOG_INFO("[D3DRenderHook] ImGui shutdown.");
         }
@@ -121,6 +130,7 @@ namespace kx::Hooking {
 
         m_isInit = false;
         m_pOriginalPresent = nullptr;
+        m_pTargetPresent = nullptr;
         AppState::Get().SetPresentHookStatus(HookStatus::Unknown);
     }
 

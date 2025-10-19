@@ -30,7 +30,7 @@ namespace kx::Hooking {
         
         // Handle focus loss - clear all input states (like Nexus/GW2Common)
         if (uMsg == WM_KILLFOCUS || uMsg == WM_ACTIVATEAPP) {
-            if (m_isInit) {
+            if (m_isInit && ImGui::GetCurrentContext()) {
                 ImGuiIO& io = ImGui::GetIO();
                 // Clear all mouse buttons
                 for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
@@ -46,8 +46,8 @@ namespace kx::Hooking {
             m_leftMouseDown = false;
         }
 
-        // Only process ImGui input when initialized and window is open
-        if (m_isInit && AppState::Get().IsVisionWindowOpen()) {
+        // Only process ImGui input when initialized, window is open, and context is valid
+        if (m_isInit && AppState::Get().IsVisionWindowOpen() && ImGui::GetCurrentContext()) {
             // For mouse button events, only call ImGui handler if we're over ImGui or an item is active
             bool isMouseButtonEvent = (uMsg >= WM_LBUTTONDOWN && uMsg <= WM_XBUTTONDBLCLK);
             bool shouldCallImGuiHandler = !isMouseButtonEvent || 

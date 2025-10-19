@@ -85,6 +85,11 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         return;
     }
 
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext()) {
+        return;
+    }
+
     const uint64_t now = GetTickCount64();
     const float currentTimeSeconds = now / 1000.0f;
 

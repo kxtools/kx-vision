@@ -301,6 +301,9 @@ void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const En
 }
 
 void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const LayoutResult& layout) {
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext()) return;
+    
     // For gadgets, check if combat UI should be hidden for this type
     if (entityContext.entityType == ESPEntityType::Gadget) {
         const auto* gadget = static_cast<const RenderableGadget*>(entityContext.entity);

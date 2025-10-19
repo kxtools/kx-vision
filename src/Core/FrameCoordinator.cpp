@@ -23,6 +23,11 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         return;
     }
 
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext()) {
+        return;
+    }
+
     // Update ImGui display size
     UpdateImGuiDisplaySize(displayWidth, displayHeight);
 

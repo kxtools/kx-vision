@@ -15,7 +15,7 @@ static HANDLE g_hSingleInstanceMutex = NULL;
 // Eject thread to free the DLL
 DWORD WINAPI EjectThread(LPVOID lpParameter) {
     kx::Bootstrap::Cleanup();
-    Sleep(100);
+    Sleep(500); // Increased from 100ms to ensure all in-flight Present calls complete
     FreeLibraryAndExitThread(dll_handle, 0);
     return 0;
 }

@@ -96,6 +96,7 @@ namespace kx {
         }
 
 #ifndef GW2AL_BUILD
+        // D3DRenderHook::Shutdown() now handles Present hook cleanup internally
         Hooking::D3DRenderHook::Shutdown();
 #endif
 

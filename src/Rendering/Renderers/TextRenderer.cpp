@@ -9,6 +9,9 @@ namespace kx {
 void TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
     if (!drawList) return;
     
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext()) return;
+    
     const auto& lines = element.GetLines();
     if (lines.empty()) return;
     
