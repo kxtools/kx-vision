@@ -204,15 +204,27 @@ namespace kx::Hooking {
         else if (uMsg == WM_RBUTTONUP) m_rightMouseDown = false;
         else if (uMsg == WM_LBUTTONDOWN) m_leftMouseDown = true;
         else if (uMsg == WM_LBUTTONUP) m_leftMouseDown = false;
+        
+        // Handle focus loss - clear all input states (like Nexus/GW2Common)
+        if (uMsg == WM_KILLFOCUS || uMsg == WM_ACTIVATEAPP) {
+            if (m_isInit) {
+                ImGuiIO& io = ImGui::GetIO();
+                // Clear all mouse buttons
+                for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
+                    io.MouseDown[i] = false;
+                }
+                // Clear all keyboard keys (newer ImGui versions use KeysData)
+                for (int i = 0; i < IM_ARRAYSIZE(io.KeysData); i++) {
+                    io.KeysData[i].Down = false;
+                }
+                ImGui::ClearActiveID();
+            }
+            m_rightMouseDown = false;
+            m_leftMouseDown = false;
+        }
 
         // Only process ImGui input when initialized and window is open
         if (m_isInit && AppState::Get().IsVisionWindowOpen()) {
-            // Check if cursor is hidden (camera rotation mode)
-            CURSORINFO curInfo{};
-            curInfo.cbSize = sizeof(CURSORINFO);
-            GetCursorInfo(&curInfo);
-            bool isCursorHidden = !(curInfo.flags & CURSOR_SHOWING);
-            
             // For mouse button events, only call ImGui handler if we're over ImGui or an item is active
             bool isMouseButtonEvent = (uMsg >= WM_LBUTTONDOWN && uMsg <= WM_XBUTTONDBLCLK);
             bool shouldCallImGuiHandler = !isMouseButtonEvent || 
@@ -255,13 +267,11 @@ namespace kx::Hooking {
                 case WM_RBUTTONUP:
                 case WM_MBUTTONUP:
                 case WM_XBUTTONUP:
-                    // Only block if an item is currently active (being dragged)
-                    if (ImGui::IsAnyItemActive()) {
-                        return 1;
-                    }
+                    // NEVER block mouse UP - always let them pass through (like Nexus does)
                     break;
                     
                 case WM_MOUSEWHEEL:
+                case WM_MOUSEHWHEEL:
                     // Always call handler for mouse wheel, then check if ImGui wants it
                     if (!shouldCallImGuiHandler) {
                         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
@@ -279,6 +289,10 @@ namespace kx::Hooking {
                 case WM_KEYUP:
                 case WM_SYSKEYDOWN:
                 case WM_SYSKEYUP:
+                    // Bounds check wParam (like Nexus does)
+                    if (wParam >= 256) {
+                        break;
+                    }
                     // Always call handler for keyboard events
                     if (!shouldCallImGuiHandler) {
                         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
