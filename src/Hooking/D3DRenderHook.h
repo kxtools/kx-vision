@@ -53,7 +53,7 @@ namespace kx::Hooking {
         static WNDPROC m_pOriginalWndProc;
         static AppLifecycleManager* m_pLifecycleManager;
 
-        // WndProc state (DLL mode only)
+        // WndProc state (used in both modes)
         static bool m_rightMouseDown;
         static bool m_leftMouseDown;
         static bool m_wasOverImGuiWindow;
