@@ -75,9 +75,14 @@ void MumbleLinkManager::Update() {
         if (m_status == MumbleStatus::Connected) {
             // If we were connected, it means the game just closed. Disconnect fully.
             m_status = MumbleStatus::Disconnected;
-            CloseHandle(m_mumbleLinkFile);
-            m_mumbleLinkFile = nullptr;
-            m_mumbleLink = nullptr;
+            if (m_mumbleLink) {
+                UnmapViewOfFile(m_mumbleLink);  // Properly unmap the view
+                m_mumbleLink = nullptr;
+            }
+            if (m_mumbleLinkFile) {
+                CloseHandle(m_mumbleLinkFile);
+                m_mumbleLinkFile = nullptr;
+            }
         } else {
             // Otherwise, we are connected to a file, but it has no valid game data.
             // This is the "Connecting" state. The GUI will handle what to do with it.
