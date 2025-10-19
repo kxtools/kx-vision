@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string_view> // For std::string_view
-#include <windows.h>   // For VK_INSERT, VK_DELETE
 
 // ===== Build Configuration =====
 // Uncomment the line below to build for GW2AL (addon loader) mode.

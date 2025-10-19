@@ -81,6 +81,11 @@ namespace kx {
     }
 
     void AppLifecycleManager::Update() {
+#ifdef GW2AL_BUILD
+        LOG_ERROR("AppLifecycleManager::Update() should not be called in GW2AL mode - state transitions handled by render thread");
+        return;
+#endif
+
         switch (m_currentState) {
         case State::PreInit:
             HandlePreInitState();

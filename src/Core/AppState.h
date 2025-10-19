@@ -64,6 +64,7 @@ namespace kx {
         AppState();
         ~AppState() = default;
 
+    private:
         // Application state members
         Settings m_settings;
         HookStatus m_presentHookStatus = HookStatus::Unknown;
