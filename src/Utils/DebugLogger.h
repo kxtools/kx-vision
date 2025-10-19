@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <atomic>
 #include <Windows.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -75,6 +76,7 @@ public:
     // Disable all logging by setting an impossibly high log level
     static void DisableLogging() noexcept { 
         SetMinLogLevel(static_cast<Level>(999)); 
+        if (s_logger) s_logger->set_level(spdlog::level::off);
     }
 
     // Main logging function - thread-safe and exception-safe

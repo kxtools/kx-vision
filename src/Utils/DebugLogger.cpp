@@ -5,6 +5,7 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <chrono>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -118,6 +119,10 @@ void Logger::Initialize() noexcept {
         
         // Register as default logger
         spdlog::register_logger(s_logger);
+        spdlog::set_default_logger(s_logger);
+        
+        // Set periodic flush for crash safety
+        spdlog::flush_every(std::chrono::seconds(2));
         
         // Log startup message
         s_logger->info("=== KX-Vision Debug Logger Started ===");
@@ -135,7 +140,7 @@ void Logger::Reinitialize() noexcept {
     try {
         if (!s_logger) return;
         
-        // Check if console is now available and add console sink if needed
+        // Check if console is now available and rebuild logger if needed
 #ifdef _DEBUG
         HWND consoleWindow = GetConsoleWindow();
         if (consoleWindow != NULL) {
@@ -148,13 +153,34 @@ void Logger::Reinitialize() noexcept {
                 }
             }
             
-            // Add console sink if we don't have one
+            // Rebuild logger with console sink if we don't have one
             if (!hasConsoleSink) {
                 try {
+                    // Create new sinks list
+                    std::vector<spdlog::sink_ptr> sinks;
+                    
+                    // Add console sink
                     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
                     console_sink->set_level(spdlog::level::debug);
                     console_sink->set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
-                    s_logger->sinks().push_back(console_sink);
+                    sinks.push_back(console_sink);
+                    
+                    // Copy existing file sinks
+                    for (auto& sink : s_logger->sinks()) {
+                        if (dynamic_cast<spdlog::sinks::stdout_color_sink_mt*>(sink.get()) == nullptr) {
+                            sinks.push_back(sink);
+                        }
+                    }
+                    
+                    // Create new logger with updated sinks
+                    auto new_logger = std::make_shared<spdlog::logger>("kx-vision", sinks.begin(), sinks.end());
+                    new_logger->set_level(s_logger->level());
+                    new_logger->flush_on(spdlog::level::err);
+                    
+                    // Replace the logger atomically
+                    s_logger = new_logger;
+                    spdlog::set_default_logger(s_logger);
+                    
                     s_logger->info("Console output enabled");
                 }
                 catch (...) {
