@@ -54,6 +54,12 @@ namespace kx {
     }
 
     bool InitializeGameThreadHook() {
+        static bool s_initialized = false;
+        if (s_initialized) {
+            LOG_WARN("[Hooks] GameThread hook already initialized, skipping.");
+            return true;
+        }
+
         uintptr_t gameThreadFuncAddr = AddressManager::GetGameThreadUpdateFunc();
         if (!gameThreadFuncAddr) {
             LOG_WARN("[Hooks] GameThread hook target not found. Character ESP will be disabled.");
@@ -74,6 +80,7 @@ namespace kx {
             return false;
         }
 
+        s_initialized = true;
         LOG_INFO("[Hooks] GameThread hook created and enabled.");
         return true;
     }

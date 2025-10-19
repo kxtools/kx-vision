@@ -41,8 +41,10 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         mumbleLinkManager.Update();
         const kx::MumbleLinkData* mumbleLinkData = mumbleLinkManager.GetData();
 
-        // Check for state transitions (GW2AL mode)
+        // Check for state transitions (GW2AL mode only)
+#ifdef GW2AL_BUILD
         lifecycleManager.CheckStateTransitions();
+#endif
 
         // Update camera with current game state
         kx::Camera& camera = lifecycleManager.GetCamera();
