@@ -15,6 +15,7 @@
 #include "HookManager.h"
 #include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
+#include "ImGui/imgui_internal.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -198,44 +199,104 @@ namespace kx::Hooking {
     }
 
     LRESULT __stdcall D3DRenderHook::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-        // Complex WndProc for DLL injection mode - handle camera rotation conflicts
-        // Using class static members instead of function static variables for proper lifecycle management
-
-        // Update mouse button states
+        // Track mouse button states
         if (uMsg == WM_RBUTTONDOWN) m_rightMouseDown = true;
         else if (uMsg == WM_RBUTTONUP) m_rightMouseDown = false;
         else if (uMsg == WM_LBUTTONDOWN) m_leftMouseDown = true;
         else if (uMsg == WM_LBUTTONUP) m_leftMouseDown = false;
 
-        // Only process ImGui input if overlay is visible
+        // Only process ImGui input when initialized and window is open
         if (m_isInit && AppState::Get().IsVisionWindowOpen()) {
-            // Check if the mouse is over an ImGui window
-            bool isOverImGuiWindow = false;
-
-            if (uMsg == WM_MOUSEMOVE) {
-                isOverImGuiWindow = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) ||
-                    ImGui::IsAnyItemHovered();
-                m_wasOverImGuiWindow = isOverImGuiWindow;
-            }
-            else {
-                isOverImGuiWindow = m_wasOverImGuiWindow;
-            }
-
-            // Special handling for left mouse button for camera rotation
-            if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP) && !isOverImGuiWindow) {
-                // If LMB and not over ImGui, pass directly to game
-                return CallWindowProc(m_pOriginalWndProc, hWnd, uMsg, wParam, lParam);
-            }
-
-            // Handle other inputs - if RMB isn't down OR mouse is over ImGui window
-            if (!m_rightMouseDown || isOverImGuiWindow) {
+            // Check if cursor is hidden (camera rotation mode)
+            CURSORINFO curInfo{};
+            curInfo.cbSize = sizeof(CURSORINFO);
+            GetCursorInfo(&curInfo);
+            bool isCursorHidden = !(curInfo.flags & CURSOR_SHOWING);
+            
+            // For mouse button events, only call ImGui handler if we're over ImGui or an item is active
+            bool isMouseButtonEvent = (uMsg >= WM_LBUTTONDOWN && uMsg <= WM_XBUTTONDBLCLK);
+            bool shouldCallImGuiHandler = !isMouseButtonEvent || 
+                ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) ||
+                ImGui::IsAnyItemActive();
+            
+            if (shouldCallImGuiHandler) {
                 ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-                ImGuiIO& io = ImGui::GetIO();
-
-                // If ImGui wants the input, don't pass to the game
-                if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
-                    return 1;
-                }
+            }
+            
+            // Get ImGui IO state AFTER calling handler (if we called it)
+            ImGuiIO& io = ImGui::GetIO();
+            
+            // Update hover tracking for mouse move
+            if (uMsg == WM_MOUSEMOVE) {
+                m_wasOverImGuiWindow = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+            }
+            
+            // For mouse button events, use selective blocking
+            switch (uMsg) {
+                case WM_LBUTTONDOWN:
+                case WM_RBUTTONDOWN:
+                case WM_MBUTTONDOWN:
+                case WM_XBUTTONDOWN:
+                case WM_LBUTTONDBLCLK:
+                case WM_RBUTTONDBLCLK:
+                case WM_MBUTTONDBLCLK:
+                case WM_XBUTTONDBLCLK:
+                    // Only block if we called ImGui handler AND ImGui wants the mouse
+                    if (shouldCallImGuiHandler && io.WantCaptureMouse) {
+                        return 1;
+                    }
+                    else {
+                        // CRITICAL: Clear any active ImGui items when clicking outside
+                        ImGui::ClearActiveID();
+                    }
+                    break;
+                    
+                case WM_LBUTTONUP:
+                case WM_RBUTTONUP:
+                case WM_MBUTTONUP:
+                case WM_XBUTTONUP:
+                    // Only block if an item is currently active (being dragged)
+                    if (ImGui::IsAnyItemActive()) {
+                        return 1;
+                    }
+                    break;
+                    
+                case WM_MOUSEWHEEL:
+                    // Always call handler for mouse wheel, then check if ImGui wants it
+                    if (!shouldCallImGuiHandler) {
+                        ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+                    }
+                    if (io.WantCaptureMouse) {
+                        return 1;
+                    }
+                    break;
+                    
+                case WM_MOUSEMOVE:
+                    // Never block mouse move
+                    break;
+                    
+                case WM_KEYDOWN:
+                case WM_KEYUP:
+                case WM_SYSKEYDOWN:
+                case WM_SYSKEYUP:
+                    // Always call handler for keyboard events
+                    if (!shouldCallImGuiHandler) {
+                        ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+                    }
+                    if (io.WantCaptureKeyboard) {
+                        return 1;
+                    }
+                    break;
+                    
+                case WM_CHAR:
+                    // Always call handler for char events
+                    if (!shouldCallImGuiHandler) {
+                        ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+                    }
+                    if (io.WantTextInput) {
+                        return 1;
+                    }
+                    break;
             }
         }
 
