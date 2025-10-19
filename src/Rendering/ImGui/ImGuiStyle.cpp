@@ -31,6 +31,11 @@ namespace GUI {
     // Should be called after ImGui::CreateContext() and before renderer init.
     // Returns true if custom font was loaded successfully, false otherwise.
     bool LoadAppFont(float fontSize) {
+        // Critical: Check if ImGui context is still valid before any ImGui operations
+        if (!ImGui::GetCurrentContext()) {
+            return false;
+        }
+
         ImGuiIO& io = ImGui::GetIO();
         bool success = false;
 
@@ -60,6 +65,11 @@ namespace GUI {
     }
 
     void ApplyCustomStyle() {
+        // Critical: Check if ImGui context is still valid before any ImGui operations
+        if (!ImGui::GetCurrentContext()) {
+            return;
+        }
+
         ImGuiStyle& style = ImGui::GetStyle();
         ImVec4* colors = style.Colors;
 

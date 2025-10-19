@@ -55,7 +55,10 @@ namespace kx::Hooking {
                 ImGui::IsAnyItemActive();
             
             if (shouldCallImGuiHandler) {
-                ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+                // Additional safety: Check context again before calling backend handler
+                if (ImGui::GetCurrentContext()) {
+                    ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+                }
             }
             
             // Get ImGui IO state AFTER calling handler (if we called it)
@@ -96,7 +99,7 @@ namespace kx::Hooking {
                 case WM_MOUSEWHEEL:
                 case WM_MOUSEHWHEEL:
                     // Always call handler for mouse wheel, then check if ImGui wants it
-                    if (!shouldCallImGuiHandler) {
+                    if (!shouldCallImGuiHandler && ImGui::GetCurrentContext()) {
                         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
                     }
                     if (io.WantCaptureMouse) {
@@ -117,7 +120,7 @@ namespace kx::Hooking {
                         break;
                     }
                     // Always call handler for keyboard events
-                    if (!shouldCallImGuiHandler) {
+                    if (!shouldCallImGuiHandler && ImGui::GetCurrentContext()) {
                         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
                     }
                     if (io.WantCaptureKeyboard) {
@@ -127,7 +130,7 @@ namespace kx::Hooking {
                     
                 case WM_CHAR:
                     // Always call handler for char events
-                    if (!shouldCallImGuiHandler) {
+                    if (!shouldCallImGuiHandler && ImGui::GetCurrentContext()) {
                         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
                     }
                     if (io.WantTextInput) {

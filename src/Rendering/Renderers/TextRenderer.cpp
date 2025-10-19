@@ -191,6 +191,9 @@ void TextRenderer::RenderBorder(ImDrawList* drawList, const ImVec2& textPos, con
 }
 
 void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& segments, const ImVec2& basePos, const TextStyle& style) {
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext()) return;
+    
     ImFont* font = ImGui::GetFont();
     ImVec2 currentPos = basePos;
     
@@ -233,6 +236,9 @@ ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) {
 }
 
 float TextRenderer::CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize) {
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext()) return 0.0f;
+    
     ImFont* font = ImGui::GetFont();
     float totalWidth = 0.0f;
     

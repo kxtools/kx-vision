@@ -114,13 +114,20 @@ namespace kx::Hooking {
                 LOG_INFO("[D3DRenderHook] Present hook disabled and removed.");
             }
 
+            // CRITICAL: Restore WndProc BEFORE destroying ImGui to prevent WndProc from calling ImGui during destruction
+            if (m_hWindow && m_pOriginalWndProc) {
+                SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_pOriginalWndProc));
+                m_pOriginalWndProc = nullptr;
+                LOG_INFO("[D3DRenderHook] WndProc restored before ImGui shutdown.");
+            }
+
             // Now safe to shutdown ImGui
             ImGuiManager::Shutdown();
             LOG_INFO("[D3DRenderHook] ImGui shutdown.");
         }
 
-        // Clean up all D3D resources and restore WndProc
-        CleanupD3DResources(true);
+        // Clean up remaining D3D resources (WndProc already restored above)
+        CleanupD3DResources(false);
         LOG_INFO("[D3DRenderHook] D3D resources released.");
 
         // Reset WndProc state

@@ -48,6 +48,11 @@ bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
 }
 
 void ImGuiManager::NewFrame() {
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext() || !m_isInitialized) {
+        return;
+    }
+
     // Prepare ImGui for a new frame of rendering
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -55,6 +60,11 @@ void ImGuiManager::NewFrame() {
 }
 
 void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView) {
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext() || !m_isInitialized) {
+        return;
+    }
+
     // Finish the frame and render ImGui elements
     ImGui::EndFrame();
     ImGui::Render();
@@ -65,6 +75,11 @@ void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* 
 }
 
 void ImGuiManager::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, const kx::MumbleLinkData* mumbleData) {
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext() || !m_isInitialized) {
+        return;
+    }
+
     // Use AppState singleton instead of global variable
     if (!kx::AppState::Get().IsVisionWindowOpen()) return;
 
@@ -161,6 +176,11 @@ void ImGuiManager::RenderUI(kx::Camera& camera,
                             HWND windowHandle,
                             float displayWidth,
                             float displayHeight) {
+    // Critical: Check if ImGui context is still valid and manager is initialized
+    if (!ImGui::GetCurrentContext() || !m_isInitialized) {
+        return;
+    }
+
     // Render the ESP overlay
     kx::ESPRenderer::Render(displayWidth, displayHeight, mumbleLinkData);
     
@@ -171,6 +191,11 @@ void ImGuiManager::RenderUI(kx::Camera& camera,
 }
 
 void ImGuiManager::RenderHints() {
+    // Critical: Check if ImGui context is still valid before any ImGui operations
+    if (!ImGui::GetCurrentContext() || !m_isInitialized) {
+        return;
+    }
+
     // Display keyboard shortcuts with consistent styling
 #ifdef GW2AL_BUILD
     const char* hints[] = {
@@ -191,10 +216,18 @@ void ImGuiManager::RenderHints() {
 }
 
 void ImGuiManager::Shutdown() {
+    // Critical: Check if ImGui context exists before attempting shutdown
+    if (!ImGui::GetCurrentContext() || !m_isInitialized) {
+        return;
+    }
+
     // Clean up ImGui resources in reverse order of initialization
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+    
+    // Explicitly set context to null after destruction for extra safety
+    ImGui::SetCurrentContext(nullptr);
     
     m_isInitialized = false;
 }
