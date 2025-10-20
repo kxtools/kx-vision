@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <unordered_map>
+#include <unordered_set>
 #include <chrono>
 #include "../Game/AddressManager.h"
 
@@ -21,13 +21,8 @@ namespace SafeAccess {
 
     // --- Pointer Cache for Performance ---
     // Thread-safe cache accessors using function-local statics
-    
-    struct ValidatedPointer {
-        uint64_t lastValidated;
-    };
-    
-    inline std::unordered_map<uintptr_t, ValidatedPointer>& GetValidPointersCache() {
-        thread_local std::unordered_map<uintptr_t, ValidatedPointer> cache;
+    inline std::unordered_set<uintptr_t>& GetValidPointersCache() {
+        thread_local std::unordered_set<uintptr_t> cache;
         return cache;
     }
     
@@ -69,20 +64,12 @@ namespace SafeAccess {
         // Clear cache periodically to handle entity despawning
         ClearCacheIfNeeded();
         
-        // Get current timestamp for stale detection
-        auto now = std::chrono::steady_clock::now();
-        auto nowMs = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count());
-        
-        // Check cache first - avoid expensive VirtualQuery if recently validated
+        // Check cache first - avoid expensive VirtualQuery if already validated
+        // Use find() for single lookup instead of count() + insert()
         auto& validPointers = GetValidPointersCache();
         auto it = validPointers.find(address);
         if (it != validPointers.end()) {
-            // Check if cached validation is still fresh (within 100ms)
-            if ((nowMs - it->second.lastValidated) < 100) {
-                return true;
-            }
-            // Cached validation is stale, remove from cache and re-validate
-            validPointers.erase(it);
+            return true;
         }
         
         MEMORY_BASIC_INFORMATION mbi = {};
@@ -95,8 +82,8 @@ namespace SafeAccess {
         if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) return false;
         if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) return false;
         
-        // Cache the valid pointer with current timestamp for future use
-        validPointers.emplace(address, ValidatedPointer{nowMs});
+        // Cache the valid pointer for future use
+        validPointers.emplace(address);
         
         return true;
     }
