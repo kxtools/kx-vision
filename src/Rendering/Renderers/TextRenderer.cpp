@@ -173,8 +173,9 @@ void TextRenderer::RenderBackground(ImDrawList* drawList, const ImVec2& textPos,
     ImVec2 bgMin(textPos.x - style.backgroundPadding.x, textPos.y - style.backgroundPadding.y);
     ImVec2 bgMax(textPos.x + textSize.x + style.backgroundPadding.x, textPos.y + textSize.y + style.backgroundPadding.y);
     
-    // Use more precise alpha calculation to avoid jitter
-    float alphaf = style.backgroundAlpha * style.fadeAlpha * 255.0f;
+    // Apply global opacity to text backgrounds
+    const auto& settings = AppState::Get().GetSettings();
+    float alphaf = style.backgroundAlpha * style.fadeAlpha * settings.appearance.globalOpacity * 255.0f;
     unsigned int bgAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
     bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha; // Clamp
     ImU32 bgColor = IM_COL32(0, 0, 0, bgAlpha);
@@ -208,7 +209,7 @@ void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSe
         if (style.enableShadow) {
             // Apply global text alpha setting
             const auto& settings = AppState::Get().GetSettings();
-            float alphaf = style.shadowAlpha * style.fadeAlpha * settings.sizes.globalTextAlpha * 255.0f;
+            float alphaf = style.shadowAlpha * style.fadeAlpha * settings.appearance.globalOpacity * 255.0f;
             unsigned int shadowAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
             shadowAlpha = (shadowAlpha > 255) ? 255 : shadowAlpha; // Clamp
             ImVec2 shadowPos(currentPos.x + style.shadowOffset.x, currentPos.y + style.shadowOffset.y);
@@ -219,7 +220,7 @@ void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSe
         ImU32 textColor = style.useCustomTextColor ? segment.color : style.textColor;
         // Apply global text alpha setting
         const auto& settings = AppState::Get().GetSettings();
-        float combinedAlpha = style.fadeAlpha * settings.sizes.globalTextAlpha;
+        float combinedAlpha = style.fadeAlpha * settings.appearance.globalOpacity;
         textColor = ApplyFade(textColor, combinedAlpha);
         drawList->AddText(font, style.fontSize, currentPos, textColor, segment.text.c_str());
         

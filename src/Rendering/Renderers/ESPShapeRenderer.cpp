@@ -8,6 +8,7 @@
 #include "../../../libs/ImGui/imgui.h"
 #include "../Utils/ESPMath.h"
 #include "../Data/EntityRenderContext.h"
+#include "../../Core/AppState.h"
 
 namespace kx {
 
@@ -139,6 +140,10 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
                         segmentColor = IM_COL32(r, g, b, a);
                     }
                     
+                    // Apply global opacity to gadget sphere rings
+                    const auto& settings = AppState::Get().GetSettings();
+                    segmentColor = ApplyAlphaToColor(segmentColor, settings.appearance.globalOpacity);
+                    
                     float segmentThickness = finalLineThickness * thicknessFactor;
                     
                     // Draw the segment
@@ -185,38 +190,51 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
 }
 
 void ESPShapeRenderer::RenderGadgetCircle(ImDrawList* drawList, const glm::vec2& screenPos, float radius, unsigned int color, float thickness) {
-    drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), radius, color, 0, thickness);
+    // Apply global opacity to gadget circles
+    const auto& settings = AppState::Get().GetSettings();
+    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), radius, finalColor, 0, thickness);
 }
 
 void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax,
                                         unsigned int color, float thickness) {
-    // Main box only - no corner indicators for cleaner appearance
-    drawList->AddRect(boxMin, boxMax, color, 0.0f, 0, thickness);
+    // Apply global opacity to bounding boxes
+    const auto& settings = AppState::Get().GetSettings();
+    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    drawList->AddRect(boxMin, boxMax, finalColor, 0.0f, 0, thickness);
 }
 
 void ESPShapeRenderer::RenderColoredDot(ImDrawList* drawList, const glm::vec2& feetPos,
                                        unsigned int color, float radius) {
-    // Extract fade alpha from the color parameter
-    float fadeAlpha = ((color >> 24) & 0xFF) / 255.0f;
+    // Apply global opacity to colored dots
+    const auto& settings = AppState::Get().GetSettings();
+    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    
+    // Extract fade alpha from the final color parameter
+    float fadeAlpha = ((finalColor >> 24) & 0xFF) / 255.0f;
 
     // Small, minimalistic dot with subtle outline for visibility
     // Dark outline with distance fade
     unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_SHADOW_ALPHA * fadeAlpha);
     drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), radius, IM_COL32(0, 0, 0, shadowAlpha));
     // Main dot using entity color (already has faded alpha)
-    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, color);
+    drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, finalColor);
 }
 
 void ESPShapeRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos,
                                             float fadeAlpha, float radius) {
+    // Apply global opacity to natural dots
+    const auto& settings = AppState::Get().GetSettings();
+    float combinedAlpha = fadeAlpha * settings.appearance.globalOpacity;
+    
     ImVec2 pos(feetPos.x, feetPos.y);
 
-    // Shadow with distance fade
-    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_BORDER_ALPHA * fadeAlpha);
+    // Shadow with combined alpha
+    unsigned int shadowAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_BORDER_ALPHA * combinedAlpha);
     drawList->AddCircleFilled(ImVec2(pos.x + RenderingLayout::TEXT_SHADOW_OFFSET, pos.y + RenderingLayout::TEXT_SHADOW_OFFSET), radius, IM_COL32(0, 0, 0, shadowAlpha));
 
-    // Dot with distance fade
-    unsigned int dotAlpha = static_cast<unsigned int>(255 * fadeAlpha);
+    // Dot with combined alpha
+    unsigned int dotAlpha = static_cast<unsigned int>(255 * combinedAlpha);
     drawList->AddCircleFilled(pos, radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, IM_COL32(255, 255, 255, dotAlpha));
 }
 

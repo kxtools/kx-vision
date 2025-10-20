@@ -19,6 +19,7 @@ namespace kx {
         DistanceSettings distance;
         ScalingSettings scaling;
         ElementSizeSettings sizes;
+        AppearanceSettings appearance;
         
         // Performance settings
         float espUpdateRate = 60.0f;            // ESP updates per second (30-360 FPS range, 60 = smooth, lower = better performance)
@@ -40,7 +41,7 @@ namespace kx {
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings, settingsVersion, playerESP, npcESP, objectESP, distance, scaling,
-                                       sizes, espUpdateRate, hideDepletedNodes, autoSaveOnExit, enableDebugLogging,
+                                       sizes, appearance, espUpdateRate, hideDepletedNodes, autoSaveOnExit, enableDebugLogging,
                                        showDebugAddresses);
 
 } // namespace kx

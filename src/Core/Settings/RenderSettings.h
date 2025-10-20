@@ -16,14 +16,9 @@ namespace kx {
         // --- Distance Limiting ---
         bool useDistanceLimit = true;           // Enable/disable distance-based culling
         float renderDistanceLimit = 90.0f;      // Hard cutoff distance (mimics game's native culling range)
-        
-        // --- Advanced Fading (No Limit Mode Only) ---
-        bool enablePlayerNpcFade = true;        // Apply subtle fade to players/NPCs at long range (80m-120m)
-        float playerNpcMinAlpha = 0.5f;         // Minimum opacity for players/NPCs at max range (50% for depth)
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DistanceSettings, useDistanceLimit, renderDistanceLimit, enablePlayerNpcFade,
-                                       playerNpcMinAlpha);
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DistanceSettings, useDistanceLimit, renderDistanceLimit);
 
     /**
      * @brief Scaling curve configuration
@@ -53,6 +48,23 @@ namespace kx {
                                        limitScalingExponent, noLimitScalingExponent);
 
     /**
+     * @brief Visual appearance and styling options
+     * 
+     * Controls the visual styling of ESP elements (not their sizes).
+     * These settings affect how elements look, not their dimensions.
+     */
+    struct AppearanceSettings {
+        // --- Global Controls ---
+        float globalOpacity = 0.8f;             // Global opacity multiplier for ALL ESP elements (50-100%, default 80%)
+        
+        // --- Text Styling ---
+        bool enableTextBackgrounds = true;      // Add dark backgrounds behind text (except damage numbers)
+        bool enableTextShadows = true;          // Add shadows behind text for better contrast
+    };
+
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AppearanceSettings, globalOpacity, enableTextBackgrounds, enableTextShadows);
+
+    /**
      * @brief Base sizes for ESP elements before scaling
      * 
      * These are the "100% scale" sizes. Distance-based scaling multiplies these values.
@@ -71,16 +83,10 @@ namespace kx {
         
         // --- Health Bars ---
         float baseHealthBarWidth = 60.0f;       // Health bar width (33% wider than box, maximum prominence)
-        float baseHealthBarHeight = 7.0f;        // Health bar height (~8.5:1 ratio, bold visibility)
-        
-        // --- Text Display Options ---
-        bool enableTextBackgrounds = true;   // Global toggle for text backgrounds (except damage numbers)
-        bool enableTextShadows = true;       // Global toggle for text shadows (all text types)
-        float globalTextAlpha = 0.8f;        // Global text opacity multiplier (0.5-1.0 range) - 80% matches GW2's subtle UI
+        float baseHealthBarHeight = 7.0f;       // Health bar height (~8.5:1 ratio, bold visibility)
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ElementSizeSettings, baseFontSize, minFontSize, baseDotRadius, baseBoxThickness,
-                                       baseBoxHeight, baseBoxWidth, baseHealthBarWidth, baseHealthBarHeight,
-                                       enableTextBackgrounds, enableTextShadows, globalTextAlpha);
+                                       baseBoxHeight, baseBoxWidth, baseHealthBarWidth, baseHealthBarHeight);
 
 } // namespace kx

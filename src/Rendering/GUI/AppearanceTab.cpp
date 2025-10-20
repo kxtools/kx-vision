@@ -19,12 +19,30 @@ namespace kx {
                     }
                 }
 
+                // --- Global Opacity (affects ALL elements) ---
+                ImGui::Separator();
+                float displayValue = settings.appearance.globalOpacity * 100.0f;
+                if (ImGui::SliderFloat("Global Opacity", &displayValue, 50.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp)) {
+                    settings.appearance.globalOpacity = displayValue / 100.0f;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Global opacity multiplier for ALL ESP elements.\n\n"
+                        "80%% (Default): Subtle integration, matches GW2's UI style\n"
+                        "100%%: Full opacity, maximum visibility\n"
+                        "50-70%%: Very subtle, minimal presence\n\n"
+                        "Applies to: Text, boxes, health bars, dots, and all visual elements.\n"
+                        "Combines with distance fading for natural depth perception."
+                    );
+                }
+
+                // --- Text Display Options (text-specific controls) ---
                 ImGui::Separator();
                 ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "Text Display Options");
                 ImGui::Spacing();
 
                 // Checkbox options
-                ImGui::Checkbox("Enable Text Backgrounds", &settings.sizes.enableTextBackgrounds);
+                ImGui::Checkbox("Enable Text Backgrounds", &settings.appearance.enableTextBackgrounds);
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip(
                         "Add subtle dark backgrounds behind ESP text for better readability.\n"
@@ -33,30 +51,12 @@ namespace kx {
                     );
                 }
 
-                ImGui::Checkbox("Enable Text Shadows", &settings.sizes.enableTextShadows);
+                ImGui::Checkbox("Enable Text Shadows", &settings.appearance.enableTextShadows);
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip(
                         "Add subtle shadows behind text for better contrast and readability.\n"
                         "Disable for maximum performance in crowded scenes or ultra-minimal UI.\n\n"
                         "Performance: Disabling shadows reduces draw calls (useful in massive zergs)."
-                    );
-                }
-
-                ImGui::Spacing();
-
-                // Slider option
-                float displayValue = settings.sizes.globalTextAlpha * 100.0f;
-                if (ImGui::SliderFloat("Text Opacity", &displayValue, 50.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp)) {
-                    settings.sizes.globalTextAlpha = displayValue / 100.0f;
-                }
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "Global opacity multiplier for all ESP text.\n\n"
-                        "80%% (Default): Subtle integration, matches GW2's non-targeted UI\n"
-                        "100%%: Full opacity, maximum readability\n"
-                        "50-70%%: Very subtle, minimal presence\n\n"
-                        "Note: Combines with distance fading - distant entities will be even more subtle.\n"
-                        "Lower values reduce visual clutter while keeping information visible."
                     );
                 }
             }
@@ -176,32 +176,6 @@ namespace kx {
                 RenderGlobalSettings(settings);
                 RenderScalingSettings(settings);
                 RenderBaseSizeSettings(settings);
-
-                // --- Advanced Fading Section ---
-                if (ImGui::CollapsingHeader("Advanced Fading (Unlimited Mode)")) {
-                    if (settings.distance.useDistanceLimit) {
-                        ImGui::TextDisabled("These settings only apply when 'Use Distance Limit' is OFF.");
-                    } else {
-                        ImGui::Checkbox("Enable Player & NPC Fade", &settings.distance.enablePlayerNpcFade);
-                        if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip(
-                                "Apply a subtle fade to players and NPCs at long range (90m to 300m).\n"
-                                "Provides depth perception without compromising combat clarity."
-                            );
-                        }
-
-                        if (settings.distance.enablePlayerNpcFade) {
-                            ImGui::SliderFloat("Player/NPC Min Alpha", &settings.distance.playerNpcMinAlpha, 0.5f, 1.0f, "%.2f");
-                            if (ImGui::IsItemHovered()) {
-                                ImGui::SetTooltip(
-                                    "The minimum opacity for players/NPCs at their maximum render distance.\n"
-                                    "Default: 0.50 (50%%) - maintains high visibility while adding subtle depth.\n"
-                                    "Lower values increase fade intensity, higher values reduce it."
-                                );
-                            }
-                        }
-                    }
-                }
 
                 ImGui::EndTabItem();
             }

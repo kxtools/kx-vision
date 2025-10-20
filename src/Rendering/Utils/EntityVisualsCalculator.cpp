@@ -353,26 +353,24 @@ float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, fl
     }
     else {
         // --- TIER 3: PLAYERS & NPCs (Subtle Fixed-Range Fade) ---
-        // Goal: Depth perception without compromising combat clarity
+        // Always enabled for depth perception (consistent with gadget fading)
+        // Users control overall visibility via Global Opacity slider
         
-        if (!settings.distance.enablePlayerNpcFade) {
-            return 1.0f; // Effect disabled - always 100% opaque
-        }
-
-        const float fadeStart = AdaptiveScaling::PLAYER_NPC_FADE_START;
-        const float fadeEnd = AdaptiveScaling::PLAYER_NPC_FADE_END;
+        const float fadeStart = AdaptiveScaling::PLAYER_NPC_FADE_START;  // 90m
+        const float fadeEnd = AdaptiveScaling::PLAYER_NPC_FADE_END;      // 300m
+        const float minAlpha = AdaptiveScaling::PLAYER_NPC_MIN_ALPHA;
 
         if (gameplayDistance <= fadeStart) {
-            return 1.0f; // Fully opaque up close
+            return 1.0f; // Fully visible up close
         }
         if (gameplayDistance >= fadeEnd) {
-            return settings.distance.playerNpcMinAlpha; // Clamp to user-defined minimum at max range
+            return minAlpha; // 50% at max range
         }
 
-        // Linear interpolation within the fixed fade zone
+        // Linear fade from 90m to 300m
         float fadeRange = fadeEnd - fadeStart;
         float progress = (gameplayDistance - fadeStart) / fadeRange;
-        return 1.0f - (progress * (1.0f - settings.distance.playerNpcMinAlpha));
+        return 1.0f - (progress * (1.0f - minAlpha));
     }
 }
 

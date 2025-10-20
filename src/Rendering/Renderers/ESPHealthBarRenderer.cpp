@@ -11,6 +11,7 @@
 #include "../Utils/EntityVisualsCalculator.h"
 #include "../Data/TextElement.h"
 #include "TextRenderer.h"
+#include "../../Core/AppState.h"
 
 namespace kx {
 
@@ -45,8 +46,10 @@ namespace kx {
         ImVec2 hMin = barMin;
         ImVec2 hMax(barMin.x + hpWidth, barMax.y);
 
+        // Apply global opacity to health bar fill
+        const auto& settings = AppState::Get().GetSettings();
         unsigned int healthAlpha =
-            static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha + 0.5f);
+	        static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f);
         unsigned int baseColorNoA = (entityColor & 0x00FFFFFF);
         ImU32 baseHealthColor = (baseColorNoA) | (ClampAlpha(healthAlpha) << 24);
 
@@ -66,7 +69,9 @@ namespace kx {
         ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
         ImVec2 oMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
 
-        ImU32 color = ApplyAlphaToColor(ESPBarColors::HEAL_OVERLAY, anim.healOverlayAlpha * fadeAlpha);
+        // Apply global opacity to heal overlay
+        const auto& settings = AppState::Get().GetSettings();
+        ImU32 color = ApplyAlphaToColor(ESPBarColors::HEAL_OVERLAY, anim.healOverlayAlpha * fadeAlpha * settings.appearance.globalOpacity);
         DrawFilledRect(dl, oMin, oMax, color, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
@@ -86,8 +91,10 @@ namespace kx {
         ImVec2 fMin(barMin.x + barWidth * startPercent, barMin.y);
         ImVec2 fMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
 
+        // Apply global opacity to heal flash
+        const auto& settings = AppState::Get().GetSettings();
         ImU32 flashColor = IM_COL32( // keep runtime alpha because it varies per frame
-            255, 255, 255, static_cast<int>(anim.healFlashAlpha * 255 * fadeAlpha));
+            255, 255, 255, static_cast<int>(anim.healFlashAlpha * 255 * fadeAlpha * settings.appearance.globalOpacity));
         flashColor = (ESPBarColors::HEAL_FLASH & 0x00FFFFFF) | (flashColor & 0xFF000000);
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
@@ -113,8 +120,9 @@ namespace kx {
         ImU32 base = ESPBarColors::DAMAGE_ACCUM;
         unsigned int a = (base >> 24) & 0xFF;
         // --- THIS IS THE FIX ---
-        // Multiply by the overall bar fade AND the specific accumulator fade animation alpha
-        unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha * anim.damageAccumulatorAlpha + 0.5f);
+        // Multiply by the overall bar fade AND the specific accumulator fade animation alpha AND global opacity
+        const auto& settings = AppState::Get().GetSettings();
+        unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha * anim.damageAccumulatorAlpha * settings.appearance.globalOpacity + 0.5f);
         base = (base & 0x00FFFFFF) | (ClampAlpha(finalA) << 24);
         DrawFilledRect(dl, oMin, oMax, base, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
@@ -137,7 +145,9 @@ namespace kx {
         ImVec2 fMax(barMin.x + barWidth * previousPercent, barMin.y + barHeight);
 
         ImU32 flashColor = ESPBarColors::DAMAGE_FLASH;
-        unsigned int a = static_cast<unsigned int>(255 * anim.damageFlashAlpha * fadeAlpha);
+        // Apply global opacity to damage flash
+        const auto& settings = AppState::Get().GetSettings();
+        unsigned int a = static_cast<unsigned int>(255 * anim.damageFlashAlpha * fadeAlpha * settings.appearance.globalOpacity);
         flashColor = (flashColor & 0x00FFFFFF) | (ClampAlpha(a) << 24);
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
@@ -161,8 +171,10 @@ namespace kx {
         const float healthPercent = entity->currentHealth / entity->maxHealth;
         const float barrierPercent = animatedBarrier / entity->maxHealth;
 
-        const ImU32 barrierColor = ApplyAlphaToColor(ESPBarColors::BARRIER_FILL, fadeAlpha);
-        const ImU32 overflowOutlineColor = ApplyAlphaToColor(ESPBarColors::BARRIER_SEPARATOR, fadeAlpha);
+        // Apply global opacity to barrier overlay
+        const auto& settings = AppState::Get().GetSettings();
+        const ImU32 barrierColor = ApplyAlphaToColor(ESPBarColors::BARRIER_FILL, fadeAlpha * settings.appearance.globalOpacity);
+        const ImU32 overflowOutlineColor = ApplyAlphaToColor(ESPBarColors::BARRIER_SEPARATOR, fadeAlpha * settings.appearance.globalOpacity);
 
         // 1) Barrier inside the remaining health segment, left to right
         if (healthPercent < 1.0f) {
@@ -221,8 +233,9 @@ namespace kx {
         ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
 
         // Background
+        const auto& settings = AppState::Get().GetSettings();
         unsigned int bgAlpha =
-            static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha + 0.5f);
+            static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f);
         drawList->AddRectFilled(barMin,
             barMax,
             IM_COL32(0, 0, 0, ClampAlpha(bgAlpha)),
@@ -240,7 +253,7 @@ namespace kx {
 
 		// Outer stroke settings
         const float outset = 1.0f; // 1 px outside, feels "harder" and more separated
-        unsigned int outerA = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha + 0.5f);
+        unsigned int outerA = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f);
         ImU32 outerDark = IM_COL32(0, 0, 0, ClampAlpha(outerA));
 
         // Hostile
@@ -377,8 +390,9 @@ namespace kx {
         ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
 
         // Background
+        const auto& settings = AppState::Get().GetSettings();
         unsigned int bgAlpha =
-            ClampAlpha(static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha + 0.5f));
+            ClampAlpha(static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f));
         drawList->AddRectFilled(barMin,
             barMax,
             IM_COL32(0, 0, 0, bgAlpha),
@@ -391,7 +405,7 @@ namespace kx {
 
         ImU32 energyColor = ESPColors::ENERGY_BAR;
         float colorA = ((energyColor >> 24) & 0xFF) / 255.0f;
-        ImU32 finalColor = ApplyAlphaToColor(energyColor, colorA * fadeAlpha);
+        ImU32 finalColor = ApplyAlphaToColor(energyColor, colorA * fadeAlpha * settings.appearance.globalOpacity);
 
         DrawFilledRect(drawList, eMin, eMax, finalColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }

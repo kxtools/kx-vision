@@ -34,6 +34,7 @@ namespace AdaptiveScaling {
     // Alpha fading constants (Players/NPCs - subtle fixed-range fade)
     constexpr float PLAYER_NPC_FADE_START = 80.0f;  // Start fade at same point as Limit Mode (consistent feel)
     constexpr float PLAYER_NPC_FADE_END = 120.0f;   // End fade at earliest culling distance (game culls at 120-200m)
+    constexpr float PLAYER_NPC_MIN_ALPHA = 0.5f;     // 50% minimum (higher than gadgets for combat clarity)
 }
 
 /**
