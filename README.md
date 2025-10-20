@@ -66,27 +66,18 @@ This isn't your typical game overlay. KX-Vision demonstrates production-grade pa
 
 ### Building From Source
 
-**Dual Mode Support:** KX-Vision can be built in two modes:
-- **GW2AL Addon Mode:** Integrates with the [Guild Wars 2 Addon Loader](https://github.com/gw2-addon-loader/loader-core) framework for safer, community-supported addon loading.
-- **DLL Injection Mode:** A traditional standalone DLL for development and testing.
-
-**Prerequisites:**
-*   **Visual Studio:** 2019 or newer
-*   **Windows SDK:** 10.0.19041.0 or newer
-*   **C++17 Support**
+**Prerequisites:** Visual Studio 2019+, Windows SDK 10.0.19041.0+, C++23
 
 **Build Instructions:**
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/kxtools/kx-vision.git
-    cd kx-vision
-    ```
-2.  Open `KX-Vision.sln` in Visual Studio.
-3.  Choose your build configuration:
-    - **For GW2AL Addon Mode:** `Release-GW2AL | x64`
-    - **For DLL Injection Mode:** `Release | x64`
-4.  Build the solution (F7 or Build → Build Solution).
-5.  Find the output DLL in the `x64/Release` or `x64/Release-GW2AL` directory.
+1. Clone: `git clone https://github.com/kxtools/kx-vision.git`
+2. **(Optional)** For GW2AL mode: Uncomment `#define GW2AL_BUILD` in `src/Core/Config.h`
+3. Open `KX-Vision.sln` and build (F7)
+
+Output: `x64/Release/KX-Vision.dll`
+
+**Dual Mode Support:**
+- **GW2AL Mode** - Integrates with [GW2 Addon Loader](https://github.com/gw2-addon-loader/loader-core) (uncomment Config.h define)
+- **DLL Mode** - Standalone injection (default)
 
 ### Contributing
 
