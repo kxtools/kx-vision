@@ -63,6 +63,8 @@ This isn't your typical game overlay. KX-Vision demonstrates production-grade pa
 *   **Two-stage rendering pipeline** - throttled calculations + per-frame screen projection
 *   **Adaptive far plane** - intelligent scaling based on scene depth
 *   **Combat tracking** - burst DPS calculator with smooth animations
+*   **Object pooling** - zero heap allocations during rendering for consistent frame times
+*   **In-game validation system** - built-in Catch2 tests verify pattern scanning and memory offsets
 
 📚 **[Read Technical Documentation](docs/index.md)** for architecture deep-dives
 
