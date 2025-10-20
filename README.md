@@ -28,10 +28,6 @@ For detailed, step-by-step instructions, please read our complete:
 
 KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real-time information overlays. Track players, enemies, and objects around you with customizable ESP displays. Inspect player gear at a glance, monitor combat performance, and never miss a resource node or vista again. Built using GW2's official MumbleLink API.
 
-**Dual Mode Support:** KX-Vision can be built in two modes:
-- **GW2AL Addon Mode:** Integrates with the [Guild Wars 2 Addon Loader](https://github.com/gw2-addon-loader/loader-core) framework for safer, community-supported addon loading.
-- **DLL Injection Mode:** A traditional standalone DLL for development and testing.
-
 ## Features
 
 *   **Player ESP:** Track nearby players with customizable filters (friendly, hostile, neutral), gear inspection (3 modes), profession/race/level display.
@@ -69,6 +65,10 @@ This isn't your typical game overlay. KX-Vision demonstrates production-grade pa
 📚 **[Read Technical Documentation](docs/index.md)** for architecture deep-dives
 
 ### Building From Source
+
+**Dual Mode Support:** KX-Vision can be built in two modes:
+- **GW2AL Addon Mode:** Integrates with the [Guild Wars 2 Addon Loader](https://github.com/gw2-addon-loader/loader-core) framework for safer, community-supported addon loading.
+- **DLL Injection Mode:** A traditional standalone DLL for development and testing.
 
 **Prerequisites:**
 *   **Visual Studio:** 2019 or newer
