@@ -37,35 +37,32 @@ namespace kx
 		}
 	}
 
+	// Detects state changes (max HP changes, respawns, address reuse) for ALL entity types
 	bool CombatStateManager::DetectStateChangeOrRespawn(RenderableEntity* entity, EntityCombatState& state, uint64_t now)
 	{
 		const float currentHealth = entity->currentHealth;
 		const float currentMaxHealth = entity->maxHealth;
 
-		// --- Gadget State Change Detection ---
-		if (entity->entityType == ESPEntityType::Gadget)
+		// --- Universal State Change Detection (All Entity Types) ---
+		// Case 1: Max health changes (handles downed state, mounting, phase transitions, address reuse)
+		if (state.lastKnownMaxHealth > 0 && abs(currentMaxHealth - state.lastKnownMaxHealth) > 1.0f)
 		{
-			// Case 1: Max health changes (Existing logic)
-			if (state.lastKnownMaxHealth > 0 && abs(currentMaxHealth - state.lastKnownMaxHealth) > 1.0f)
-			{
-				ResetForRespawn(state, currentHealth, now);
-				state.lastKnownMaxHealth = currentMaxHealth; // Update max health after reset
-				return true; // State was reset, skip further processing this frame
-			}
-
-			// Case 2: Instant destruction from full health (MOVED FROM HandleDamage)
-			// Detects when a gadget instantly goes from full health to zero. This is a state change,
-			// not a death, so we reset its state without setting a death timestamp.
-			if (state.lastKnownMaxHealth > 0 &&
-				state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
-				currentHealth <= 0.0f) // Is now at zero or less
-			{
-				ResetForRespawn(state, currentHealth, now);
-				return true; // State was reset, skip further processing this frame
-			}
+			ResetForRespawn(state, currentHealth, now);
+			state.lastKnownMaxHealth = currentMaxHealth; // Update max health after reset
+			return true; // State was reset, skip further processing this frame
 		}
 
-		// No changes needed for non-gadget entities in this function
+		// Case 2: Instant destruction from full health (primarily for gadgets, but harmless for all)
+		// Detects when an entity instantly goes from full health to zero. This is a state change,
+		// not a death, so we reset its state without setting a death timestamp.
+		if (state.lastKnownMaxHealth > 0 &&
+			state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
+			currentHealth <= 0.0f) // Is now at zero or less
+		{
+			ResetForRespawn(state, currentHealth, now);
+			return true; // State was reset, skip further processing this frame
+		}
+
 		return false;
 	}
 
