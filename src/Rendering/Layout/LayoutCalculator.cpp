@@ -93,7 +93,7 @@ void LayoutCalculator::GatherStatusBarElements(
     // Energy Bar (Players only)
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        float energyPercent = CalculateEnergyPercent(player, context.settings.playerESP.energyDisplayType);
+        float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
             ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
             outBelowElements.push_back({LayoutKeys::ENERGY_BAR, size});
@@ -135,7 +135,7 @@ void LayoutCalculator::GatherPlayerIdentityElements(
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         if (player != nullptr) {
-            switch (context.settings.playerESP.gearDisplayMode) {
+            switch (entityContext.playerGearDisplayMode) {
                 case GearDisplayMode::Compact: {
                     auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
                     TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);

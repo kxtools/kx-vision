@@ -149,7 +149,7 @@ void ESPStageRenderer::RenderStatusBars(
     // Energy Bar (Players only)
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        float energyPercent = CalculateEnergyPercent(player, context.settings.playerESP.energyDisplayType);
+        float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
             auto it = layout.elementPositions.find(LayoutKeys::ENERGY_BAR);
             if (it != layout.elementPositions.end()) {
@@ -194,7 +194,7 @@ void ESPStageRenderer::RenderPlayerIdentity(
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         if (player != nullptr) {
-            switch (context.settings.playerESP.gearDisplayMode) {
+            switch (entityContext.playerGearDisplayMode) {
                 case GearDisplayMode::Compact: {
                     auto it = layout.elementPositions.find(LayoutKeys::GEAR_SUMMARY);
                     if (it != layout.elementPositions.end()) {
@@ -245,10 +245,10 @@ void ESPStageRenderer::RenderStaticElements(
 
     // Gadget Visuals (Sphere/Circle)
     if (entityContext.entityType == ESPEntityType::Gadget) {
-        if (context.settings.objectESP.renderSphere) {
+        if (entityContext.renderGadgetSphere) {
             ESPShapeRenderer::RenderGadgetSphere(context.drawList, entityContext, context.camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale, context.screenWidth, context.screenHeight);
         }
-        if (context.settings.objectESP.renderCircle) {
+        if (entityContext.renderGadgetCircle) {
             context.drawList->AddCircle(ImVec2(props.screenPos.x, props.screenPos.y), props.circleRadius, props.fadedEntityColor, 0, props.finalBoxThickness);
         }
     }
@@ -264,21 +264,8 @@ void ESPStageRenderer::RenderStaticElements(
 }
 
 void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const LayoutResult& layout) {
-    // For gadgets, check if combat UI should be hidden for this type
-    if (entityContext.entityType == ESPEntityType::Gadget) {
-        const auto* gadget = static_cast<const RenderableGadget*>(entityContext.entity);
-        if (gadget && ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
-            return;
-        }
-    }
-
-    // Check if the setting is enabled for the specific entity type
-    bool isEnabled = false;
-    if (entityContext.entityType == ESPEntityType::Player) isEnabled = context.settings.playerESP.showDamageNumbers;
-    else if (entityContext.entityType == ESPEntityType::NPC) isEnabled = context.settings.npcESP.showDamageNumbers;
-    else if (entityContext.entityType == ESPEntityType::Gadget) isEnabled = context.settings.objectESP.showDamageNumbers;
-
-    if (!isEnabled || entityContext.healthBarAnim.damageNumberAlpha <= 0.0f) {
+    // Check if combat UI should be shown and damage numbers are enabled
+    if (!entityContext.showCombatUI || !entityContext.showDamageNumbers || entityContext.healthBarAnim.damageNumberAlpha <= 0.0f) {
         return;
     }
 
@@ -304,26 +291,13 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext()) return;
     
-    // For gadgets, check if combat UI should be hidden for this type
-    if (entityContext.entityType == ESPEntityType::Gadget) {
-        const auto* gadget = static_cast<const RenderableGadget*>(entityContext.entity);
-        if (gadget && ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
-            return;
-        }
+    // Check if combat UI should be shown and burst DPS is enabled
+    if (!entityContext.showCombatUI || !entityContext.showBurstDps || entityContext.burstDPS <= 0.0f || entityContext.healthBarAnim.healthBarFadeAlpha <= 0.0f) {
+        return;
     }
 
     // Calculate health percentage for positioning logic
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
-
-    // Check if the setting is enabled
-    bool isEnabled = false;
-    if (entityContext.entityType == ESPEntityType::Player) isEnabled = context.settings.playerESP.showBurstDps;
-    else if (entityContext.entityType == ESPEntityType::NPC) isEnabled = context.settings.npcESP.showBurstDps;
-    else if (entityContext.entityType == ESPEntityType::Gadget) isEnabled = context.settings.objectESP.showBurstDps;
-
-    if (!isEnabled || entityContext.burstDPS <= 0.0f || entityContext.healthBarAnim.healthBarFadeAlpha <= 0.0f) {
-        return;
-    }
 
     // --- FORMATTING ---
     std::stringstream ss;

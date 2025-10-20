@@ -104,7 +104,14 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         .attitude = player->attitude,
         .entity = player,
         .playerName = player->playerName,
-        .healthBarAnim = animState
+        .healthBarAnim = animState,
+        .renderGadgetSphere = false,
+        .renderGadgetCircle = false,
+        .playerGearDisplayMode = context.settings.playerESP.gearDisplayMode,
+        .playerEnergyDisplayType = context.settings.playerESP.energyDisplayType,
+        .showCombatUI = true,
+        .showDamageNumbers = context.settings.playerESP.showDamageNumbers,
+        .showBurstDps = context.settings.playerESP.showBurstDps
     };
 }
 
@@ -142,7 +149,14 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         .attitude = npc->attitude,
         .entity = npc,
         .playerName = emptyPlayerName,
-        .healthBarAnim = animState
+        .healthBarAnim = animState,
+        .renderGadgetSphere = false,
+        .renderGadgetCircle = false,
+        .playerGearDisplayMode = GearDisplayMode::Off,
+        .playerEnergyDisplayType = EnergyDisplayType::Special,
+        .showCombatUI = true,
+        .showDamageNumbers = context.settings.npcESP.showDamageNumbers,
+        .showBurstDps = context.settings.npcESP.showBurstDps
     };
 }
 
@@ -162,13 +176,16 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
 
     float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.objectESP.showBurstDps);
 
+    // Check if combat UI should be hidden for this gadget type
+    bool hideCombatUI = ESPStyling::ShouldHideCombatUIForGadget(gadget->type);
+
     return EntityRenderContext{
         .position = gadget->position,
         .gameplayDistance = gadget->gameplayDistance,
         .color = ESPStyling::GetEntityColor(*gadget),
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = (context.settings.objectESP.renderCircle || context.settings.objectESP.renderSphere),
+        .renderBox = false, // Gadgets use circles/spheres, not boxes (see ESPStageRenderer::RenderStaticElements)
         .renderDistance = context.settings.objectESP.renderDistance,
         .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,
@@ -180,7 +197,14 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         .attitude = Game::Attitude::Neutral,
         .entity = gadget,
         .playerName = emptyPlayerName,
-        .healthBarAnim = animState
+        .healthBarAnim = animState,
+        .renderGadgetSphere = context.settings.objectESP.renderSphere,
+        .renderGadgetCircle = context.settings.objectESP.renderCircle,
+        .playerGearDisplayMode = GearDisplayMode::Off,
+        .playerEnergyDisplayType = EnergyDisplayType::Special,
+        .showCombatUI = !hideCombatUI,
+        .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
+        .showBurstDps = context.settings.objectESP.showBurstDps
     };
 }
 

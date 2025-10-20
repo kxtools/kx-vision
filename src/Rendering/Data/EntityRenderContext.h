@@ -5,6 +5,7 @@
 #include "RenderableData.h"
 #include "ESPEntityTypes.h"
 #include "../../Game/GameEnums.h"
+#include "../../Core/Settings/SettingsConstants.h"
 
 namespace kx {
 
@@ -132,6 +133,23 @@ struct EntityRenderContext {
 
     /** Transient animation state for the health bar */
     HealthBarAnimationState healthBarAnim;
+
+    // ===== NEW: Complete Render Policy Fields =====
+    
+    /** Gadget-specific rendering flags */
+    bool renderGadgetSphere;
+    bool renderGadgetCircle;
+    
+    /** Player-specific display modes (avoid checking settings in renderer) */
+    GearDisplayMode playerGearDisplayMode;
+    EnergyDisplayType playerEnergyDisplayType;
+    
+    /** Combat UI visibility (consolidate the ShouldHideCombatUIForGadget check) */
+    bool showCombatUI;  // false for decorative gadgets (vistas, waypoints, etc.)
+    
+    /** Damage/DPS feature flags (per-entity settings) */
+    bool showDamageNumbers;
+    bool showBurstDps;
 };
 
 } // namespace kx
