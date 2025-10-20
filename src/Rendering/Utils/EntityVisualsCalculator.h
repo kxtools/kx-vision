@@ -92,6 +92,72 @@ private:
                                             float& outBoxWidth, float& outBoxHeight);
 
     /**
+     * @brief Calculate 3D bounding box projection to screen space
+     * 
+     * Projects an 8-corner 3D bounding box from world space to screen space,
+     * providing perspective-correct bounding boxes for players/NPCs.
+     * 
+     * @param entityPos Entity position in world space
+     * @param worldWidth Width of bounding box in world space (meters)
+     * @param worldDepth Depth of bounding box in world space (meters)
+     * @param worldHeight Height of bounding box in world space (meters)
+     * @param camera Camera for projection
+     * @param screenWidth Screen width in pixels
+     * @param screenHeight Screen height in pixels
+     * @param outBoxMin Output minimum screen coordinates
+     * @param outBoxMax Output maximum screen coordinates
+     * @param outValid Output whether projection was successful
+     */
+    static void Calculate3DBoundingBox(
+        const glm::vec3& entityPos,
+        float worldWidth,
+        float worldDepth,
+        float worldHeight,
+        Camera& camera,
+        float screenWidth,
+        float screenHeight,
+        ImVec2& outBoxMin,
+        ImVec2& outBoxMax,
+        bool& outValid);
+
+    /**
+     * @brief Get world-space bounds for entity type
+     */
+    static void GetWorldBoundsForEntity(
+        ESPEntityType entityType,
+        float& outWidth,
+        float& outDepth,
+        float& outHeight);
+
+    /**
+     * @brief Apply fallback 2D box if 3D projection fails
+     */
+    static void ApplyFallback2DBox(
+        const RenderableEntity& entity,
+        VisualProperties& props,
+        float scale,
+        const glm::vec2& screenPos);
+
+    /**
+     * @brief Calculate gadget circle dimensions
+     */
+    static void CalculateGadgetDimensions(
+        const RenderableEntity& entity,
+        VisualProperties& props,
+        float scale);
+
+    /**
+     * @brief Calculate player/NPC 3D bounding box dimensions
+     */
+    static void CalculatePlayerNPCDimensions(
+        const RenderableEntity& entity,
+        Camera& camera,
+        float screenWidth,
+        float screenHeight,
+        VisualProperties& props,
+        float scale);
+
+    /**
      * @brief Calculate adaptive alpha based on rendering mode and entity type
      * @param gameplayDistance Distance from player to entity
      * @param distanceFadeAlpha Pre-calculated distance fade alpha (for Limit Mode)

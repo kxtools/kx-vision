@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "EntityVisualsCalculator.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
@@ -44,24 +46,9 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
 
     // 5. Calculate rendering dimensions (box or circle)
     if (entity.entityType == ESPEntityType::Gadget) {
-        // Gadgets use circle rendering - calculate radius from base box width
-        float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
-        props.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * props.scale);
-
-        // For gadgets, screenPos IS the center (no box needed)
-        props.center = ImVec2(props.screenPos.x, props.screenPos.y);
-        // Set dummy box values for text positioning (will be overridden for circles)
-        props.boxMin = ImVec2(props.screenPos.x - props.circleRadius, props.screenPos.y - props.circleRadius);
-        props.boxMax = ImVec2(props.screenPos.x + props.circleRadius, props.screenPos.y + props.circleRadius);
+        CalculateGadgetDimensions(entity, props, props.scale);
     } else {
-        // Players/NPCs use traditional box rendering
-        float boxWidth, boxHeight;
-        CalculateEntityBoxDimensions(entity.entityType, props.scale, boxWidth, boxHeight);
-
-        props.boxMin = ImVec2(props.screenPos.x - boxWidth / 2, props.screenPos.y - boxHeight);
-        props.boxMax = ImVec2(props.screenPos.x + boxWidth / 2, props.screenPos.y);
-        props.center = ImVec2(props.screenPos.x, props.screenPos.y - boxHeight / 2);
-        props.circleRadius = 0.0f; // No circle for players/NPCs
+        CalculatePlayerNPCDimensions(entity, camera, screenWidth, screenHeight, props, props.scale);
     }
 
     // 6. Calculate adaptive alpha
@@ -186,6 +173,146 @@ void EntityVisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityT
         }
         break;
     }
+}
+
+void EntityVisualsCalculator::Calculate3DBoundingBox(
+    const glm::vec3& entityPos,
+    float worldWidth,
+    float worldDepth,
+    float worldHeight,
+    Camera& camera,
+    float screenWidth,
+    float screenHeight,
+    ImVec2& outBoxMin,
+    ImVec2& outBoxMax,
+    bool& outValid)
+{
+    // Define 8 corners of 3D bounding box in world space
+    // Entity position is at feet center
+    std::vector<glm::vec3> worldCorners = {
+        // Bottom 4 corners (at entity feet level)
+        entityPos + glm::vec3(-worldWidth/2, 0.0f, -worldDepth/2),
+        entityPos + glm::vec3( worldWidth/2, 0.0f, -worldDepth/2),
+        entityPos + glm::vec3(-worldWidth/2, 0.0f,  worldDepth/2),
+        entityPos + glm::vec3( worldWidth/2, 0.0f,  worldDepth/2),
+        // Top 4 corners (at entity head level)
+        entityPos + glm::vec3(-worldWidth/2, worldHeight, -worldDepth/2),
+        entityPos + glm::vec3( worldWidth/2, worldHeight, -worldDepth/2),
+        entityPos + glm::vec3(-worldWidth/2, worldHeight,  worldDepth/2),
+        entityPos + glm::vec3( worldWidth/2, worldHeight,  worldDepth/2)
+    };
+    
+    // Project all 8 corners to screen space
+    float minX = FLT_MAX, minY = FLT_MAX;
+    float maxX = -FLT_MAX, maxY = -FLT_MAX;
+    int validCorners = 0;
+    
+    for (const auto& corner : worldCorners) {
+        glm::vec2 screenCorner;
+        if (ESPMath::WorldToScreen(corner, camera, screenWidth, screenHeight, screenCorner)) {
+            minX = std::min(minX, screenCorner.x);
+            minY = std::min(minY, screenCorner.y);
+            maxX = std::max(maxX, screenCorner.x);
+            maxY = std::max(maxY, screenCorner.y);
+            validCorners++;
+        }
+    }
+    
+    // Box is valid if at least 3 corners projected successfully
+    outValid = (validCorners >= 3);
+    
+    if (outValid) {
+        outBoxMin = ImVec2(minX, minY);
+        outBoxMax = ImVec2(maxX, maxY);
+    }
+}
+
+void EntityVisualsCalculator::GetWorldBoundsForEntity(
+    ESPEntityType entityType,
+    float& outWidth,
+    float& outDepth,
+    float& outHeight)
+{
+    if (entityType == ESPEntityType::Player) {
+        outWidth = EntityWorldBounds::PLAYER_WORLD_WIDTH;
+        outDepth = EntityWorldBounds::PLAYER_WORLD_DEPTH;
+        outHeight = EntityWorldBounds::PLAYER_WORLD_HEIGHT;
+    } else {
+        outWidth = EntityWorldBounds::NPC_WORLD_WIDTH;
+        outDepth = EntityWorldBounds::NPC_WORLD_DEPTH;
+        outHeight = EntityWorldBounds::NPC_WORLD_HEIGHT;
+    }
+}
+
+void EntityVisualsCalculator::ApplyFallback2DBox(
+    const RenderableEntity& entity,
+    VisualProperties& props,
+    float scale,
+    const glm::vec2& screenPos)
+{
+    float boxWidth, boxHeight;
+    CalculateEntityBoxDimensions(entity.entityType, scale, boxWidth, boxHeight);
+    props.boxMin = ImVec2(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
+    props.boxMax = ImVec2(screenPos.x + boxWidth / 2, screenPos.y);
+}
+
+void EntityVisualsCalculator::CalculateGadgetDimensions(
+    const RenderableEntity& entity,
+    VisualProperties& props,
+    float scale)
+{
+    const auto& settings = AppState::Get().GetSettings();
+    
+    // Gadgets use circle rendering - calculate radius from base box width
+    float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
+    props.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * scale);
+
+    // For gadgets, screenPos IS the center (no box needed)
+    props.center = ImVec2(props.screenPos.x, props.screenPos.y);
+    
+    // Set dummy box values for text positioning (will be overridden for circles)
+    props.boxMin = ImVec2(props.screenPos.x - props.circleRadius, props.screenPos.y - props.circleRadius);
+    props.boxMax = ImVec2(props.screenPos.x + props.circleRadius, props.screenPos.y + props.circleRadius);
+}
+
+void EntityVisualsCalculator::CalculatePlayerNPCDimensions(
+    const RenderableEntity& entity,
+    Camera& camera,
+    float screenWidth,
+    float screenHeight,
+    VisualProperties& props,
+    float scale)
+{
+    // Get world-space dimensions for entity type
+    float worldWidth, worldDepth, worldHeight;
+    GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
+    
+    // Try 3D bounding box projection
+    bool boxValid = false;
+    Calculate3DBoundingBox(
+        entity.position,
+        worldWidth,
+        worldDepth,
+        worldHeight,
+        camera,
+        screenWidth,
+        screenHeight,
+        props.boxMin,
+        props.boxMax,
+        boxValid
+    );
+    
+    // Fallback to 2D method if 3D projection fails (edge cases)
+    if (!boxValid) {
+        ApplyFallback2DBox(entity, props, scale, props.screenPos);
+    }
+    
+    // Calculate center from projected box
+    props.center = ImVec2(
+        (props.boxMin.x + props.boxMax.x) / 2,
+        (props.boxMin.y + props.boxMax.y) / 2
+    );
+    props.circleRadius = 0.0f; // No circle for players/NPCs
 }
 
 float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,

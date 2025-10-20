@@ -24,6 +24,28 @@ namespace MinimumSizes {
 }
 
 /**
+ * @brief World-space bounding box dimensions for 3D projection
+ * 
+ * These constants define the actual physical dimensions (in meters) of entities
+ * in the game world, used for proper 3D bounding box projection to screen space.
+ * 
+ * Design philosophy:
+ * - NPCs: Cube-like dimensions (0.7m all sides) for square appearance from most angles
+ * - Players: Rectangular dimensions (narrow width, tall height) for distinct humanoid shape
+ */
+namespace EntityWorldBounds {
+    // Player bounding box in world space (meters) - RECTANGULAR feel
+    constexpr float PLAYER_WORLD_WIDTH = 0.6f;   // 0.6m width (wider, less narrow - was 0.4m)
+    constexpr float PLAYER_WORLD_DEPTH = 0.6f;   // 0.6m depth (matches width)
+    constexpr float PLAYER_WORLD_HEIGHT = 1.4f;  // 1.4m height (tall for distinct rectangle - 2.3:1 ratio)
+    
+    // NPC bounding box in world space (meters) - SQUARE/CUBE feel
+    constexpr float NPC_WORLD_WIDTH = 0.6f;      // 0.6m - smaller cube for less screen clutter
+    constexpr float NPC_WORLD_DEPTH = 0.6f;      // 0.6m - matches width
+    constexpr float NPC_WORLD_HEIGHT = 0.6f;     // 0.6m - matches width (1:1:1 cube)
+}
+
+/**
  * @brief Entity size ratios and proportions
  * 
  * Defines the relative sizing and proportions for different entity types.
