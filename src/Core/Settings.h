@@ -21,7 +21,7 @@ namespace kx {
         ElementSizeSettings sizes;
         
         // Performance settings
-        float espUpdateRate = 60.0f;            // ESP updates per second (60 = smooth, lower = better performance)
+        float espUpdateRate = 60.0f;            // ESP updates per second (30-360 FPS range, 60 = smooth, lower = better performance)
         
         // Enhanced filtering options
         bool hideDepletedNodes = true;          // Hide depleted resource nodes (visual clutter reduction)

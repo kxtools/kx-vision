@@ -17,7 +17,7 @@
 
 ### ⚙️ Installation
 
-> **Quick Tip:** After installing, press the **`INSERT`** key in-game to show or hide the main window. Adjust ESP update rate (15-120 FPS) in settings for optimal performance.
+> **Quick Tip:** After installing, press the **`INSERT`** key in-game to show or hide the main window. Adjust ESP update rate (30-360 FPS) in settings for optimal performance.
 
 For detailed, step-by-step instructions, please read our complete:
 ### [**Installation Guide (INSTALL.md)**](INSTALL.md)
@@ -36,7 +36,7 @@ KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real
 *   **Real-time Combat Info:** Burst DPS tracking, animated damage numbers, health/energy bars with smooth transitions.
 *   **Adaptive Visuals:** Automatic distance-based scaling and fading for clean, uncluttered display.
 *   **Flexible Customization:** Per-entity visual controls (boxes, dots, health bars, distance), collapsible detail panels.
-*   **Performance Tuning:** Adjustable ESP update rate (15-120 FPS), zero performance impact even in WvW zergs.
+*   **Performance Tuning:** Adjustable ESP update rate (30-360 FPS), zero performance impact even in WvW zergs.
 *   **Settings Management:** Save/load presets, auto-save on exit, reset to defaults.
 *   **MumbleLink Integration:** Utilizes GW2's officially supported MumbleLink API for player and game state data.
 *   **Modern UI Design:** Clean, organized ImGui interface with collapsible sections and intuitive controls.
@@ -45,7 +45,7 @@ KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real
 ## ⚡ Performance
 
 *   **Zero FPS impact** - even in crowded WvW/meta events
-*   **Configurable update rate** - tune 15-120 FPS in settings (default: 60)
+*   **Configurable update rate** - tune 30-360 FPS in settings (default: 60)
 *   **Optimized pipeline** - two-stage architecture separates expensive calculations from rendering
 
 ### Compatibility
