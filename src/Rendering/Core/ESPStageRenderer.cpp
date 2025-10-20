@@ -239,7 +239,7 @@ void ESPStageRenderer::RenderStaticElements(
             ESPShapeRenderer::RenderGadgetSphere(context.drawList, entityContext, context.camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale, context.screenWidth, context.screenHeight);
         }
         if (entityContext.renderGadgetCircle) {
-            context.drawList->AddCircle(ImVec2(props.screenPos.x, props.screenPos.y), props.circleRadius, props.fadedEntityColor, 0, props.finalBoxThickness);
+            ESPShapeRenderer::RenderGadgetCircle(context.drawList, props.screenPos, props.circleRadius, props.fadedEntityColor, props.finalBoxThickness);
         }
     }
 

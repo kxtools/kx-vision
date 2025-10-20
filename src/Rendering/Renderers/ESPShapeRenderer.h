@@ -24,6 +24,11 @@ public:
         const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale, float screenWidth, float screenHeight);
 
     /**
+     * @brief Render a simple 2D circle for gadgets
+     */
+    static void RenderGadgetCircle(ImDrawList* drawList, const glm::vec2& screenPos, float radius, unsigned int color, float thickness);
+
+    /**
      * @brief Render a bounding box around an entity
      * @param drawList ImGui draw list for rendering
      * @param boxMin Upper-left corner of the bounding box

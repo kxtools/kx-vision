@@ -82,26 +82,10 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
             if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), static_cast<int>(screenRingYZ.size()), finalColor, false, finalLineThickness);
         }
     }
+}
 
-    // --- RENDER THE 2D CIRCLE (if it's visible) ---
-    if (circleAlpha > 0.0f) {
-        // Calculate the radius for the 2D circle based on scale
-        float circleRadius = std::clamp(GadgetSphere::CIRCLE_RADIUS_BASE * scale, GadgetSphere::CIRCLE_RADIUS_MIN, GadgetSphere::CIRCLE_RADIUS_MAX);
-
-        // Create the color with the calculated LOD alpha
-        unsigned int masterAlpha = ((fadedEntityColor & 0xFF000000) >> 24);
-        unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * circleAlpha);
-        ImU32 circleColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
-
-        // Use the simple "Holographic Disc" from our earlier discussion for a nice look
-        ImU32 glowColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::GLOW_ALPHA_RATIO) << 24);
-        ImU32 coreColor = (circleColor & 0x00FFFFFF) | (static_cast<unsigned int>(finalLODAlpha * GadgetSphere::CORE_ALPHA_RATIO) << 24);
-        ImU32 hotspotColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(255 * circleAlpha * finalAlpha));
-
-        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius, glowColor);
-        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.7f, coreColor);
-        drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), circleRadius * 0.2f, hotspotColor);
-    }
+void ESPShapeRenderer::RenderGadgetCircle(ImDrawList* drawList, const glm::vec2& screenPos, float radius, unsigned int color, float thickness) {
+    drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), radius, color, 0, thickness);
 }
 
 void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax,

@@ -163,8 +163,8 @@ namespace RenderingLayout {
  */
 namespace GadgetSphere {
     // LOD Transition
-    constexpr float LOD_TRANSITION_START = 180.0f;
-    constexpr float LOD_TRANSITION_END = 200.0f;
+    constexpr float LOD_TRANSITION_START = 80.0f;
+    constexpr float LOD_TRANSITION_END = 90.0f;
 
     // Geometry
     constexpr int NUM_RING_POINTS = 16;
