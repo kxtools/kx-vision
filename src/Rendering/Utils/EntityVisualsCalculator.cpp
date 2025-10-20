@@ -382,42 +382,43 @@ float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, fl
 
 float EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(float damageToDisplay) {
     if (damageToDisplay <= 0.0f) {
-        return 2.0f; // Minimum multiplier for any damage
+        return DamageNumberScaling::MIN_MULTIPLIER;
     }
 
-    const float MIN_MULTIPLIER = 2.0f; // Minimum multiplier for any damage
-    const float MAX_MULTIPLIER = 4.0f; // Cap the multiplier
-    const float DAMAGE_TO_REACH_MAX_MULTIPLIER = 200000.0f; // Damage at which multiplier reaches MAX_MULTIPLIER
-
-    // Calculate how much additional multiplier to add based on damage
-    // The scaling range is (MAX_MULTIPLIER - MIN_MULTIPLIER)
-    // We want to scale from MIN_MULTIPLIER to MAX_MULTIPLIER over DAMAGE_TO_REACH_MAX_MULTIPLIER
+    const float MIN_MULTIPLIER = DamageNumberScaling::MIN_MULTIPLIER;
+    const float MAX_MULTIPLIER = DamageNumberScaling::MAX_MULTIPLIER;
+    const float DAMAGE_TO_REACH_MAX = DamageNumberScaling::DAMAGE_TO_REACH_MAX;
     
-    float progress = damageToDisplay / DAMAGE_TO_REACH_MAX_MULTIPLIER;
-    progress = (std::min)(progress, 1.0f); // Clamp progress to 1.0
+    float progress = damageToDisplay / DAMAGE_TO_REACH_MAX;
+    progress = (std::min)(progress, 1.0f);
 
-    float multiplier = MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
-    
-    return multiplier; // No need for std::min with MAX_MULTIPLIER here, as progress is clamped
+    return MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
 }
 
 // Helper method implementations
 float EntityVisualsCalculator::GetRankMultiplier(Game::CharacterRank rank) {
     switch (rank) {
-        case Game::CharacterRank::Veteran:    return 1.25f;
-        case Game::CharacterRank::Elite:      return 1.5f;
-        case Game::CharacterRank::Champion:   return 1.75f;
-        case Game::CharacterRank::Legendary:  return 2.0f;
-        default:                              return 1.0f;
+        case Game::CharacterRank::Veteran:    return RankMultipliers::VETERAN;
+        case Game::CharacterRank::Elite:      return RankMultipliers::ELITE;
+        case Game::CharacterRank::Champion:   return RankMultipliers::CHAMPION;
+        case Game::CharacterRank::Legendary:  return RankMultipliers::LEGENDARY;
+        default:                              return RankMultipliers::NORMAL;
     }
 }
 
 float EntityVisualsCalculator::GetGadgetHealthMultiplier(float maxHealth) {
-    if (maxHealth >= 1000000.0f) return 2.0f;
-    if (maxHealth >= 500000.0f) return 1.75f;
-    if (maxHealth >= 250000.0f) return 1.5f;
-    if (maxHealth >= 100000.0f) return 1.25f;
-    return 1.0f;
+    if (maxHealth <= 0.0f) {
+        return 1.0f; // No boost for invalid/zero health
+    }
+    
+    const float MIN_MULTIPLIER = GadgetHealthScaling::MIN_MULTIPLIER;    // Normal gadgets
+    const float MAX_MULTIPLIER = GadgetHealthScaling::MAX_MULTIPLIER;    // Epic structures (matches legendary rank)
+    const float HP_TO_REACH_MAX = GadgetHealthScaling::HP_TO_REACH_MAX; // 1M HP = max emphasis
+    
+    float progress = maxHealth / HP_TO_REACH_MAX;
+    progress = (std::min)(progress, 1.0f); // Clamp to prevent > 2.0x
+    
+    return MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
 }
 
 float EntityVisualsCalculator::CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier) {

@@ -82,4 +82,47 @@ namespace RenderingEffects {
     constexpr float HOSTILE_PLAYER_VISUAL_MULTIPLIER = 2.0f;
 }
 
+/**
+ * @brief Gadget health scaling constants
+ * 
+ * Constants for dynamic scaling of gadget health bars based on maximum health.
+ * Provides smooth visual progression from normal gadgets to epic structures.
+ */
+namespace GadgetHealthScaling {
+    constexpr float MIN_MULTIPLIER = 1.0f;    // Normal gadgets
+    constexpr float MAX_MULTIPLIER = 2.0f;    // Epic structures (matches legendary rank)
+    constexpr float HP_TO_REACH_MAX = 1000000.0f; // 1M HP = max emphasis
+}
+
+/**
+ * @brief Damage number scaling constants
+ * 
+ * Constants for dynamic scaling of damage numbers based on burst DPS totals.
+ * Tuned for GW2 2025 burst ranges:
+ * - Normal rotation: 50-83K (top builds)
+ * - Big crits: 220K (Bladesworn)
+ * - Defiance burst: 660K (broken defiance bar)
+ * - Group spike: 400K+ (coordinated)
+ */
+namespace DamageNumberScaling {
+    constexpr float MIN_MULTIPLIER = 2.0f;       // All damage emphasized (GW2 numbers are large)
+    constexpr float MAX_MULTIPLIER = 5.0f;       // Increased from 4.0f for better visual range
+    constexpr float DAMAGE_TO_REACH_MAX = 400000.0f; // Covers Bladesworn crits + group spikes
+}
+
+/**
+ * @brief NPC rank multiplier constants
+ * 
+ * Health bar size multipliers for different NPC rank tiers.
+ * Creates visual hierarchy matching threat level.
+ * Max of 2.0x maintains consistency with gadget health and hostile player systems.
+ */
+namespace RankMultipliers {
+    constexpr float NORMAL = 1.0f;      // Baseline
+    constexpr float VETERAN = 1.25f;    // +25%
+    constexpr float ELITE = 1.5f;       // +50%
+    constexpr float CHAMPION = 1.75f;   // +75%
+    constexpr float LEGENDARY = 2.0f;   // +100% (matches unified max)
+}
+
 } // namespace kx
