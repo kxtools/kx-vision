@@ -432,7 +432,7 @@ float EntityVisualsCalculator::CalculateDistanceFadeAlpha(float distance, bool u
     }
     
     // Calculate fade zone distances
-    const float fadeZonePercentage = 0.11f; // RenderingEffects::FADE_ZONE_PERCENTAGE
+    const float fadeZonePercentage = RenderingEffects::FADE_ZONE_PERCENTAGE;
     const float fadeZoneDistance = distanceLimit * fadeZonePercentage;
     const float fadeStartDistance = distanceLimit - fadeZoneDistance; // e.g., 80m for 90m limit
     const float fadeEndDistance = distanceLimit; // e.g., 90m for 90m limit
