@@ -18,6 +18,18 @@ namespace kx {
                         ImGui::SetTooltip("Entities beyond this distance will not be rendered based on gameplay distance (player-to-target).");
                     }
                 }
+
+                ImGui::Separator();
+                ImGui::Text("Text Display");
+                ImGui::Checkbox("Enable Text Backgrounds", &settings.sizes.enableTextBackgrounds);
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Add subtle dark backgrounds behind ESP text for better readability.\n"
+                        "Disable for a cleaner, minimal UI appearance.\n\n"
+                        "Note: Damage numbers always have no background for maximum clarity.\n"
+                        "Text shadows remain in both modes for basic readability."
+                    );
+                }
             }
         }
 

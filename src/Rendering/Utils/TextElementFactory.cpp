@@ -3,6 +3,7 @@
 #include "../Data/PlayerRenderData.h"
 #include "../Utils/ESPConstants.h"
 #include "../Utils/ESPStyling.h"
+#include "../../Core/AppState.h"
 #include <sstream>
 #include <iomanip>
 
@@ -262,8 +263,9 @@ TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int e
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::PLAYER_NAME_SHADOW_ALPHA / 255.0f;
     
-    // Background
-    style.enableBackground = true;
+    // Background (respect global setting)
+    const auto& settings = AppState::Get().GetSettings();
+    style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::PLAYER_NAME_BG_PADDING_X, RenderingLayout::PLAYER_NAME_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::PLAYER_NAME_BG_ALPHA / 255.0f;
     style.backgroundRounding = RenderingLayout::PLAYER_NAME_BG_ROUNDING;
@@ -287,8 +289,9 @@ TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha, float fontSize) 
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::DISTANCE_TEXT_SHADOW_ALPHA / 255.0f;
     
-    // Background
-    style.enableBackground = true;
+    // Background (respect global setting)
+    const auto& settings = AppState::Get().GetSettings();
+    style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::DISTANCE_TEXT_BG_PADDING_X, RenderingLayout::DISTANCE_TEXT_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::DISTANCE_TEXT_BG_ALPHA / 255.0f;
     style.backgroundRounding = RenderingLayout::DISTANCE_TEXT_BG_ROUNDING;
@@ -310,8 +313,9 @@ TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha, float fontSize) {
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::DETAILS_TEXT_SHADOW_ALPHA / 255.0f;
     
-    // Background
-    style.enableBackground = true;
+    // Background (respect global setting)
+    const auto& settings = AppState::Get().GetSettings();
+    style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::DETAILS_TEXT_BG_PADDING_X, RenderingLayout::DETAILS_TEXT_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::DETAILS_TEXT_BG_ALPHA / 255.0f;
     style.backgroundRounding = RenderingLayout::DETAILS_TEXT_BG_ROUNDING;
@@ -335,8 +339,9 @@ TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha, float fontSize) {
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::SUMMARY_SHADOW_ALPHA / 255.0f;
     
-    // Background
-    style.enableBackground = true;
+    // Background (respect global setting)
+    const auto& settings = AppState::Get().GetSettings();
+    style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::SUMMARY_BG_PADDING_X, RenderingLayout::SUMMARY_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::SUMMARY_BG_ALPHA / 255.0f;
     style.backgroundRounding = RenderingLayout::SUMMARY_BG_ROUNDING;

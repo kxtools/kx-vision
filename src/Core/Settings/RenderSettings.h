@@ -72,9 +72,13 @@ namespace kx {
         // --- Health Bars ---
         float baseHealthBarWidth = 60.0f;       // Health bar width (33% wider than box, maximum prominence)
         float baseHealthBarHeight = 7.0f;        // Health bar height (~8.5:1 ratio, bold visibility)
+        
+        // --- Text Display Options ---
+        bool enableTextBackgrounds = true;  // Global toggle for text backgrounds (except damage numbers)
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ElementSizeSettings, baseFontSize, minFontSize, baseDotRadius, baseBoxThickness,
-                                       baseBoxHeight, baseBoxWidth, baseHealthBarWidth, baseHealthBarHeight);
+                                       baseBoxHeight, baseBoxWidth, baseHealthBarWidth, baseHealthBarHeight,
+                                       enableTextBackgrounds);
 
 } // namespace kx
