@@ -18,7 +18,8 @@ void AnimateOverallFade(const EntityCombatState* state, HealthBarAnimationState&
         if (sinceDeath > CombatEffects::DEATH_BURST_DURATION_MS) {
             uint64_t intoFade = sinceDeath - CombatEffects::DEATH_BURST_DURATION_MS;
             if (intoFade < CombatEffects::DEATH_FINAL_FADE_DURATION_MS) {
-                timeFade = 1.0f - static_cast<float>(intoFade) / CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
+                float progress = static_cast<float>(intoFade) / CombatEffects::DEATH_FINAL_FADE_DURATION_MS;
+                timeFade = 1.0f - Animation::EaseOutCubic(progress);
             } else {
                 timeFade = 0.0f;
             }
