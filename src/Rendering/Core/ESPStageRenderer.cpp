@@ -109,11 +109,9 @@ void ESPStageRenderer::RenderLayoutElements(
     const LayoutResult& layout)
 {
     // RENDER ABOVE BOX ELEMENTS
-    if (entityContext.renderDistance) {
-        auto it = layout.elementPositions.find(LayoutKeys::DISTANCE);
-        if (it != layout.elementPositions.end()) {
-            ESPTextRenderer::RenderDistanceTextAt(context.drawList, it->second, entityContext.gameplayDistance, props.finalAlpha, props.finalFontSize);
-        }
+    if (entityContext.renderDistance && layout.HasElement(LayoutElementKey::Distance)) {
+        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::Distance);
+        ESPTextRenderer::RenderDistanceTextAt(context.drawList, position, entityContext.gameplayDistance, props.finalAlpha, props.finalFontSize);
     }
 
     // RENDER BELOW BOX ELEMENTS using helper functions
@@ -137,26 +135,22 @@ void ESPStageRenderer::RenderStatusBars(
     bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
     bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
-    if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
-        auto it = layout.elementPositions.find(LayoutKeys::HEALTH_BAR);
-        if (it != layout.elementPositions.end()) {
-            glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
-            ESPHealthBarRenderer::RenderStandaloneHealthBar(context.drawList, topLeft, entityContext,
-                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
-        }
+    if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar && layout.HasElement(LayoutElementKey::HealthBar)) {
+        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::HealthBar);
+        glm::vec2 topLeft = { position.x - props.finalHealthBarWidth / 2.0f, position.y };
+        ESPHealthBarRenderer::RenderStandaloneHealthBar(context.drawList, topLeft, entityContext,
+            props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
     }
 
     // Energy Bar (Players only)
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
-        if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
-            auto it = layout.elementPositions.find(LayoutKeys::ENERGY_BAR);
-            if (it != layout.elementPositions.end()) {
-                glm::vec2 topLeft = { it->second.x - props.finalHealthBarWidth / 2.0f, it->second.y };
-                ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, energyPercent,
-                    props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
-            }
+        if (energyPercent >= 0.0f && entityContext.renderEnergyBar && layout.HasElement(LayoutElementKey::EnergyBar)) {
+            glm::vec2 position = layout.GetElementPosition(LayoutElementKey::EnergyBar);
+            glm::vec2 topLeft = { position.x - props.finalHealthBarWidth / 2.0f, position.y };
+            ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, energyPercent,
+                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
         }
     }
 }
@@ -182,11 +176,9 @@ void ESPStageRenderer::RenderPlayerIdentity(
             }
         }
         
-        if (!displayName.empty()) {
-            auto it = layout.elementPositions.find(LayoutKeys::PLAYER_NAME);
-            if (it != layout.elementPositions.end()) {
-                ESPTextRenderer::RenderPlayerNameAt(context.drawList, it->second, displayName, props.fadedEntityColor, props.finalFontSize);
-            }
+        if (!displayName.empty() && layout.HasElement(LayoutElementKey::PlayerName)) {
+            glm::vec2 position = layout.GetElementPosition(LayoutElementKey::PlayerName);
+            ESPTextRenderer::RenderPlayerNameAt(context.drawList, position, displayName, props.fadedEntityColor, props.finalFontSize);
         }
     }
 
@@ -196,19 +188,19 @@ void ESPStageRenderer::RenderPlayerIdentity(
         if (player != nullptr) {
             switch (entityContext.playerGearDisplayMode) {
                 case GearDisplayMode::Compact: {
-                    auto it = layout.elementPositions.find(LayoutKeys::GEAR_SUMMARY);
-                    if (it != layout.elementPositions.end()) {
+                    if (layout.HasElement(LayoutElementKey::GearSummary)) {
+                        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::GearSummary);
                         auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
-                        ESPTextRenderer::RenderGearSummaryAt(context.drawList, it->second, summary, props.finalAlpha, props.finalFontSize);
+                        ESPTextRenderer::RenderGearSummaryAt(context.drawList, position, summary, props.finalAlpha, props.finalFontSize);
                     }
                     break;
                 }
                 case GearDisplayMode::Attributes: {
-                    auto it = layout.elementPositions.find(LayoutKeys::DOMINANT_STATS);
-                    if (it != layout.elementPositions.end()) {
+                    if (layout.HasElement(LayoutElementKey::DominantStats)) {
+                        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::DominantStats);
                         auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
                         auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
-                        ESPTextRenderer::RenderDominantStatsAt(context.drawList, it->second, stats, rarity, props.finalAlpha, props.finalFontSize);
+                        ESPTextRenderer::RenderDominantStatsAt(context.drawList, position, stats, rarity, props.finalAlpha, props.finalFontSize);
                     }
                     break;
                 }
@@ -225,11 +217,9 @@ void ESPStageRenderer::RenderEntityDetails(
     const LayoutResult& layout)
 {
     // Entity Details
-    if (entityContext.renderDetails && !entityContext.details.empty()) {
-        auto it = layout.elementPositions.find(LayoutKeys::DETAILS);
-        if (it != layout.elementPositions.end()) {
-            ESPTextRenderer::RenderDetailsTextAt(context.drawList, it->second, entityContext.details, props.finalAlpha, props.finalFontSize);
-        }
+    if (entityContext.renderDetails && !entityContext.details.empty() && layout.HasElement(LayoutElementKey::Details)) {
+        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::Details);
+        ESPTextRenderer::RenderDetailsTextAt(context.drawList, position, entityContext.details, props.finalAlpha, props.finalFontSize);
     }
 }
 

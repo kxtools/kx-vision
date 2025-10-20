@@ -29,23 +29,27 @@ namespace {
 LayoutResult LayoutCalculator::CalculateLayout(const LayoutRequest& request) {
     LayoutResult result;
     
+    // Initialize arrays
+    result.elementPositions.fill(glm::vec2(0.0f));
+    result.hasElement.fill(false);
+    
     // Gather all elements that need layout
-    std::vector<std::pair<std::string, ImVec2>> aboveBoxElements;
-    std::vector<std::pair<std::string, ImVec2>> belowBoxElements;
+    std::vector<std::pair<LayoutElementKey, ImVec2>> aboveBoxElements;
+    std::vector<std::pair<LayoutElementKey, ImVec2>> belowBoxElements;
     GatherLayoutElements(request, aboveBoxElements, belowBoxElements);
 
     // Calculate positions for elements below the box
     glm::vec2 belowBoxAnchor = { request.visualProps.center.x, request.visualProps.boxMax.y };
-    CalculateVerticalStack(belowBoxAnchor, belowBoxElements, result.elementPositions, false);
+    CalculateVerticalStack(belowBoxAnchor, belowBoxElements, result.elementPositions, result.hasElement, false);
 
     // Calculate positions for elements above the box
     glm::vec2 aboveBoxAnchor = { request.visualProps.center.x, request.visualProps.boxMin.y };
-    CalculateVerticalStack(aboveBoxAnchor, aboveBoxElements, result.elementPositions, true);
+    CalculateVerticalStack(aboveBoxAnchor, aboveBoxElements, result.elementPositions, result.hasElement, true);
 
     // Set health bar anchor for dependent elements
-    auto healthBarIt = result.elementPositions.find(LayoutKeys::HEALTH_BAR);
-    if (healthBarIt != result.elementPositions.end()) {
-        result.healthBarAnchor = { healthBarIt->second.x - request.visualProps.finalHealthBarWidth / 2.0f, healthBarIt->second.y };
+    if (result.HasElement(LayoutElementKey::HealthBar)) {
+        glm::vec2 healthBarPos = result.GetElementPosition(LayoutElementKey::HealthBar);
+        result.healthBarAnchor = { healthBarPos.x - request.visualProps.finalHealthBarWidth / 2.0f, healthBarPos.y };
     }
 
     return result;
@@ -53,8 +57,8 @@ LayoutResult LayoutCalculator::CalculateLayout(const LayoutRequest& request) {
 
 void LayoutCalculator::GatherLayoutElements(
     const LayoutRequest& request,
-    std::vector<std::pair<std::string, ImVec2>>& outAboveElements,
-    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outAboveElements,
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
 {
     const auto& entityContext = request.entityContext;
     const auto& props = request.visualProps;
@@ -64,7 +68,7 @@ void LayoutCalculator::GatherLayoutElements(
     if (entityContext.renderDistance) {
         TextElement element = TextElementFactory::CreateDistanceText(entityContext.gameplayDistance, {0,0}, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
-        outAboveElements.push_back({LayoutKeys::DISTANCE, size});
+        outAboveElements.push_back({LayoutElementKey::Distance, size});
     }
 
     // --- GATHER BELOW BOX ELEMENTS using helper functions ---
@@ -75,7 +79,7 @@ void LayoutCalculator::GatherLayoutElements(
 
 void LayoutCalculator::GatherStatusBarElements(
     const LayoutRequest& request,
-    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
 {
     const auto& entityContext = request.entityContext;
     const auto& props = request.visualProps;
@@ -87,7 +91,7 @@ void LayoutCalculator::GatherStatusBarElements(
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
     if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
         ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};
-        outBelowElements.push_back({LayoutKeys::HEALTH_BAR, size});
+        outBelowElements.push_back({LayoutElementKey::HealthBar, size});
     }
 
     // Energy Bar (Players only)
@@ -96,14 +100,14 @@ void LayoutCalculator::GatherStatusBarElements(
         float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
             ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
-            outBelowElements.push_back({LayoutKeys::ENERGY_BAR, size});
+            outBelowElements.push_back({LayoutElementKey::EnergyBar, size});
         }
     }
 }
 
 void LayoutCalculator::GatherPlayerIdentityElements(
     const LayoutRequest& request,
-    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
 {
     const auto& entityContext = request.entityContext;
     const auto& props = request.visualProps;
@@ -127,7 +131,7 @@ void LayoutCalculator::GatherPlayerIdentityElements(
         if (!displayName.empty()) {
             TextElement element = TextElementFactory::CreatePlayerName(displayName, {0,0}, 0, 0, props.finalFontSize);
             ImVec2 size = TextRenderer::CalculateSize(element);
-            outBelowElements.push_back({LayoutKeys::PLAYER_NAME, size});
+            outBelowElements.push_back({LayoutElementKey::PlayerName, size});
         }
     }
 
@@ -139,14 +143,14 @@ void LayoutCalculator::GatherPlayerIdentityElements(
                 case GearDisplayMode::Compact: {
                     auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
                     TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);
-                    outBelowElements.push_back({LayoutKeys::GEAR_SUMMARY, TextRenderer::CalculateSize(element)});
+                    outBelowElements.push_back({LayoutElementKey::GearSummary, TextRenderer::CalculateSize(element)});
                     break;
                 }
                 case GearDisplayMode::Attributes: {
                     auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
                     auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
                     TextElement element = TextElementFactory::CreateDominantStats(stats, rarity, {0,0}, 0, props.finalFontSize);
-                    outBelowElements.push_back({LayoutKeys::DOMINANT_STATS, TextRenderer::CalculateSize(element)});
+                    outBelowElements.push_back({LayoutElementKey::DominantStats, TextRenderer::CalculateSize(element)});
                     break;
                 }
                 default: break;
@@ -157,7 +161,7 @@ void LayoutCalculator::GatherPlayerIdentityElements(
 
 void LayoutCalculator::GatherDetailElements(
     const LayoutRequest& request,
-    std::vector<std::pair<std::string, ImVec2>>& outBelowElements)
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
 {
     const auto& entityContext = request.entityContext;
     const auto& props = request.visualProps;
@@ -166,14 +170,15 @@ void LayoutCalculator::GatherDetailElements(
     if (entityContext.renderDetails && !entityContext.details.empty()) {
         TextElement element = TextElementFactory::CreateDetailsText(entityContext.details, {0,0}, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
-        outBelowElements.push_back({LayoutKeys::DETAILS, size});
+        outBelowElements.push_back({LayoutElementKey::Details, size});
     }
 }
 
 void LayoutCalculator::CalculateVerticalStack(
     glm::vec2 startAnchor,
-    const std::vector<std::pair<std::string, ImVec2>>& elements,
-    std::map<std::string, glm::vec2>& outPositions,
+    const std::vector<std::pair<LayoutElementKey, ImVec2>>& elements,
+    std::array<glm::vec2, (size_t)LayoutElementKey::Count>& outPositions,
+    std::array<bool, (size_t)LayoutElementKey::Count>& outHasElement,
     bool stackUpwards)
 {
     float currentY = startAnchor.y;
@@ -183,7 +188,7 @@ void LayoutCalculator::CalculateVerticalStack(
     currentY += RenderingLayout::REGION_MARGIN_VERTICAL * direction;
 
     for (const auto& item : elements) {
-        const std::string& name = item.first;
+        const LayoutElementKey& key = item.first;
         const ImVec2& size = item.second;
         float elementHeight = size.y;
 
@@ -192,7 +197,9 @@ void LayoutCalculator::CalculateVerticalStack(
         }
 
         // Center the element horizontally on the anchor's X.
-        outPositions[name] = { startAnchor.x, currentY };
+        size_t index = (size_t)key;
+        outPositions[index] = { startAnchor.x, currentY };
+        outHasElement[index] = true;
 
         if (!stackUpwards) {
             currentY += elementHeight; // Move cursor down for the next element

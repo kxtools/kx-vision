@@ -3,10 +3,12 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <array>
 #include "glm.hpp"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Data/ESPData.h"
+#include "LayoutElementKeys.h"
 
 namespace kx {
 
@@ -27,13 +29,19 @@ struct LayoutRequest {
  * @brief Result structure for layout calculations
  */
 struct LayoutResult {
-    std::map<std::string, glm::vec2> elementPositions;
+    std::array<glm::vec2, (size_t)LayoutElementKey::Count> elementPositions;
+    std::array<bool, (size_t)LayoutElementKey::Count> hasElement;
     glm::vec2 healthBarAnchor;
     
     // Helper to get position for a specific element
-    glm::vec2 GetElementPosition(const std::string& elementName) const {
-        auto it = elementPositions.find(elementName);
-        return (it != elementPositions.end()) ? it->second : glm::vec2(0.0f);
+    glm::vec2 GetElementPosition(LayoutElementKey key) const {
+        size_t index = (size_t)key;
+        return hasElement[index] ? elementPositions[index] : glm::vec2(0.0f);
+    }
+    
+    // Helper to check if an element exists
+    bool HasElement(LayoutElementKey key) const {
+        return hasElement[(size_t)key];
     }
 };
 
@@ -62,33 +70,35 @@ private:
      */
     static void GatherLayoutElements(
         const LayoutRequest& request,
-        std::vector<std::pair<std::string, ImVec2>>& outAboveElements,
-        std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outAboveElements,
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
 
     // Helper functions for GatherLayoutElements
     static void GatherStatusBarElements(
         const LayoutRequest& request,
-        std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
     
     static void GatherPlayerIdentityElements(
         const LayoutRequest& request,
-        std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
     
     static void GatherDetailElements(
         const LayoutRequest& request,
-        std::vector<std::pair<std::string, ImVec2>>& outBelowElements);
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
 
     /**
      * @brief Calculate vertical stacking positions for a list of elements
      * @param startAnchor Starting position for the stack
      * @param elements List of elements with their sizes
-     * @param outPositions Output map of element positions
+     * @param outPositions Output array of element positions
+     * @param outHasElement Output array tracking which elements are active
      * @param stackUpwards Whether to stack upwards (true) or downwards (false)
      */
     static void CalculateVerticalStack(
         glm::vec2 startAnchor,
-        const std::vector<std::pair<std::string, ImVec2>>& elements,
-        std::map<std::string, glm::vec2>& outPositions,
+        const std::vector<std::pair<LayoutElementKey, ImVec2>>& elements,
+        std::array<glm::vec2, (size_t)LayoutElementKey::Count>& outPositions,
+        std::array<bool, (size_t)LayoutElementKey::Count>& outHasElement,
         bool stackUpwards);
 };
 
