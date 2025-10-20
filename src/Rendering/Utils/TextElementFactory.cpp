@@ -143,7 +143,9 @@ TextElement TextElementFactory::CreateDamageNumber(const std::string& number, co
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     style.textColor = IM_COL32(255, 255, 255, 255); // Full white
-    style.enableShadow = true;
+    // Shadow (respect global setting)
+    const auto& settings = AppState::Get().GetSettings();
+    style.enableShadow = settings.sizes.enableTextShadows;
     style.shadowAlpha = RenderingLayout::TEXT_SHADOW_ALPHA;
     style.enableBackground = false; // No background, just the number
 
@@ -253,18 +255,20 @@ TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int e
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     
+    // Get settings once for both shadow and background
+    const auto& settings = AppState::Get().GetSettings();
+    
     // Text - use entityColor directly (already has proper RGB values from ESPColors constants)
     // Just replace the alpha component with our text alpha
     unsigned int textAlpha = static_cast<unsigned int>(RenderingLayout::PLAYER_NAME_TEXT_ALPHA);
     style.textColor = (entityColor & 0x00FFFFFF) | (textAlpha << 24);
     
-    // Shadow
-    style.enableShadow = true;
+    // Shadow (respect global setting)
+    style.enableShadow = settings.sizes.enableTextShadows;
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::PLAYER_NAME_SHADOW_ALPHA / 255.0f;
     
     // Background (respect global setting)
-    const auto& settings = AppState::Get().GetSettings();
     style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::PLAYER_NAME_BG_PADDING_X, RenderingLayout::PLAYER_NAME_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::PLAYER_NAME_BG_ALPHA / 255.0f;
@@ -281,16 +285,18 @@ TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha, float fontSize) 
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     
+    // Get settings once for both shadow and background
+    const auto& settings = AppState::Get().GetSettings();
+    
     // Text
     style.textColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(RenderingLayout::DISTANCE_TEXT_TEXT_ALPHA));
     
-    // Shadow
-    style.enableShadow = true;
+    // Shadow (respect global setting)
+    style.enableShadow = settings.sizes.enableTextShadows;
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::DISTANCE_TEXT_SHADOW_ALPHA / 255.0f;
     
     // Background (respect global setting)
-    const auto& settings = AppState::Get().GetSettings();
     style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::DISTANCE_TEXT_BG_PADDING_X, RenderingLayout::DISTANCE_TEXT_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::DISTANCE_TEXT_BG_ALPHA / 255.0f;
@@ -308,13 +314,15 @@ TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha, float fontSize) {
     style.fadeAlpha = fadeAlpha;
     style.useCustomTextColor = true;  // Details have per-line colors
     
-    // Shadow
-    style.enableShadow = true;
+    // Get settings once for both shadow and background
+    const auto& settings = AppState::Get().GetSettings();
+    
+    // Shadow (respect global setting)
+    style.enableShadow = settings.sizes.enableTextShadows;
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::DETAILS_TEXT_SHADOW_ALPHA / 255.0f;
     
     // Background (respect global setting)
-    const auto& settings = AppState::Get().GetSettings();
     style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::DETAILS_TEXT_BG_PADDING_X, RenderingLayout::DETAILS_TEXT_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::DETAILS_TEXT_BG_ALPHA / 255.0f;
@@ -331,16 +339,18 @@ TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha, float fontSize) {
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     
+    // Get settings once for both shadow and background
+    const auto& settings = AppState::Get().GetSettings();
+    
     // Text - use SUMMARY_TEXT_RGB base color with custom alpha
     style.textColor = (ESPColors::SUMMARY_TEXT_RGB & 0x00FFFFFF) | (static_cast<unsigned int>(RenderingLayout::SUMMARY_TEXT_ALPHA) << 24);
     
-    // Shadow
-    style.enableShadow = true;
+    // Shadow (respect global setting)
+    style.enableShadow = settings.sizes.enableTextShadows;
     style.shadowOffset = ImVec2(RenderingLayout::TEXT_SHADOW_OFFSET, RenderingLayout::TEXT_SHADOW_OFFSET);
     style.shadowAlpha = RenderingLayout::SUMMARY_SHADOW_ALPHA / 255.0f;
     
     // Background (respect global setting)
-    const auto& settings = AppState::Get().GetSettings();
     style.enableBackground = settings.sizes.enableTextBackgrounds;
     style.backgroundPadding = ImVec2(RenderingLayout::SUMMARY_BG_PADDING_X, RenderingLayout::SUMMARY_BG_PADDING_Y);
     style.backgroundAlpha = RenderingLayout::SUMMARY_BG_ALPHA / 255.0f;

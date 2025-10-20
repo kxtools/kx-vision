@@ -1,6 +1,7 @@
 #include "TextRenderer.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Utils/ESPConstants.h"
+#include "../../Core/AppState.h"
 
 using namespace kx::RenderingLayout;
 
@@ -205,7 +206,9 @@ void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSe
         
         // Render shadow
         if (style.enableShadow) {
-            float alphaf = style.shadowAlpha * style.fadeAlpha * 255.0f;
+            // Apply global text alpha setting
+            const auto& settings = AppState::Get().GetSettings();
+            float alphaf = style.shadowAlpha * style.fadeAlpha * settings.sizes.globalTextAlpha * 255.0f;
             unsigned int shadowAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
             shadowAlpha = (shadowAlpha > 255) ? 255 : shadowAlpha; // Clamp
             ImVec2 shadowPos(currentPos.x + style.shadowOffset.x, currentPos.y + style.shadowOffset.y);
@@ -214,7 +217,10 @@ void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSe
         
         // Render main text
         ImU32 textColor = style.useCustomTextColor ? segment.color : style.textColor;
-        textColor = ApplyFade(textColor, style.fadeAlpha);
+        // Apply global text alpha setting
+        const auto& settings = AppState::Get().GetSettings();
+        float combinedAlpha = style.fadeAlpha * settings.sizes.globalTextAlpha;
+        textColor = ApplyFade(textColor, combinedAlpha);
         drawList->AddText(font, style.fontSize, currentPos, textColor, segment.text.c_str());
         
         // Move to next segment position

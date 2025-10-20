@@ -74,11 +74,13 @@ namespace kx {
         float baseHealthBarHeight = 7.0f;        // Health bar height (~8.5:1 ratio, bold visibility)
         
         // --- Text Display Options ---
-        bool enableTextBackgrounds = true;  // Global toggle for text backgrounds (except damage numbers)
+        bool enableTextBackgrounds = true;   // Global toggle for text backgrounds (except damage numbers)
+        bool enableTextShadows = true;       // Global toggle for text shadows (all text types)
+        float globalTextAlpha = 0.8f;        // Global text opacity multiplier (0.5-1.0 range) - 80% matches GW2's subtle UI
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ElementSizeSettings, baseFontSize, minFontSize, baseDotRadius, baseBoxThickness,
                                        baseBoxHeight, baseBoxWidth, baseHealthBarWidth, baseHealthBarHeight,
-                                       enableTextBackgrounds);
+                                       enableTextBackgrounds, enableTextShadows, globalTextAlpha);
 
 } // namespace kx

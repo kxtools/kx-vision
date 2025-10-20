@@ -20,14 +20,43 @@ namespace kx {
                 }
 
                 ImGui::Separator();
-                ImGui::Text("Text Display");
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "Text Display Options");
+                ImGui::Spacing();
+
+                // Checkbox options
                 ImGui::Checkbox("Enable Text Backgrounds", &settings.sizes.enableTextBackgrounds);
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip(
                         "Add subtle dark backgrounds behind ESP text for better readability.\n"
                         "Disable for a cleaner, minimal UI appearance.\n\n"
-                        "Note: Damage numbers always have no background for maximum clarity.\n"
-                        "Text shadows remain in both modes for basic readability."
+                        "Note: Damage numbers always have no background for maximum clarity."
+                    );
+                }
+
+                ImGui::Checkbox("Enable Text Shadows", &settings.sizes.enableTextShadows);
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Add subtle shadows behind text for better contrast and readability.\n"
+                        "Disable for maximum performance in crowded scenes or ultra-minimal UI.\n\n"
+                        "Performance: Disabling shadows reduces draw calls (useful in massive zergs)."
+                    );
+                }
+
+                ImGui::Spacing();
+
+                // Slider option
+                float displayValue = settings.sizes.globalTextAlpha * 100.0f;
+                if (ImGui::SliderFloat("Text Opacity", &displayValue, 50.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp)) {
+                    settings.sizes.globalTextAlpha = displayValue / 100.0f;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Global opacity multiplier for all ESP text.\n\n"
+                        "80%% (Default): Subtle integration, matches GW2's non-targeted UI\n"
+                        "100%%: Full opacity, maximum readability\n"
+                        "50-70%%: Very subtle, minimal presence\n\n"
+                        "Note: Combines with distance fading - distant entities will be even more subtle.\n"
+                        "Lower values reduce visual clutter while keeping information visible."
                     );
                 }
             }
