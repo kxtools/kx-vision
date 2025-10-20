@@ -48,6 +48,11 @@ KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real
 *   **Configurable update rate** - tune 15-120 FPS in settings (default: 60)
 *   **Optimized pipeline** - two-stage architecture separates expensive calculations from rendering
 
+### Compatibility
+
+- Works alongside popular GW2 addons (e.g., ArcDPS, GW2Radial) via GW2AL.
+- Compatible with Raidcore Nexus via chainloading — see [INSTALL.md](INSTALL.md) for setup.
+
 ## 🛠️ For Developers
 
 ### Architecture Highlights
