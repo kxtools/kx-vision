@@ -110,6 +110,7 @@ namespace RenderingLayout {
 
     // Common (base rendering elements)
     constexpr float TEXT_SHADOW_OFFSET = 1.0f;       // 1px shadow for crisp text readability
+    constexpr float TEXT_SHADOW_ALPHA = 0.8f;        // 80% opacity for subtle readable shadow
     constexpr float DOT_RADIUS_MULTIPLIER = 0.8f;    // 80% of base radius (2.4px from 3px base)
 
     // Standalone Health Bar (horizontal bars below entities)

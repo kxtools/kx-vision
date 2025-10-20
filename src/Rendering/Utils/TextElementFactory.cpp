@@ -143,7 +143,7 @@ TextElement TextElementFactory::CreateDamageNumber(const std::string& number, co
     style.fadeAlpha = fadeAlpha;
     style.textColor = IM_COL32(255, 255, 255, 255); // Full white
     style.enableShadow = true;
-    style.shadowAlpha = 0.8f;
+    style.shadowAlpha = RenderingLayout::TEXT_SHADOW_ALPHA;
     style.enableBackground = false; // No background, just the number
 
     element.SetStyle(style);

@@ -154,14 +154,10 @@ void EntityVisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityT
         break;
         
     case ESPEntityType::Gadget:
-        // NOTE: This case is unused - gadgets use circle rendering (see Calculate())
-        // Keeping for safety/fallback, but gadgets are rendered as circles with radius = baseBoxWidth x 0.15
-        outBoxHeight = (settings.sizes.baseBoxWidth * 0.3f) * scale;
-        outBoxWidth = (settings.sizes.baseBoxWidth * 0.3f) * scale;
-        if (outBoxHeight < MinimumSizes::GADGET_MIN_HEIGHT) {
-            outBoxHeight = MinimumSizes::GADGET_MIN_HEIGHT;
-            outBoxWidth = MinimumSizes::GADGET_MIN_WIDTH;
-        }
+        // Gadgets always use circle rendering (see CalculateGadgetDimensions)
+        // This case should never be reached - fallback to base box dimensions
+        outBoxHeight = settings.sizes.baseBoxHeight * scale;
+        outBoxWidth = settings.sizes.baseBoxWidth * scale;
         break;
         
     default:
