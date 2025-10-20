@@ -52,15 +52,18 @@ namespace kx
 			return true; // State was reset, skip further processing this frame
 		}
 
-		// Case 2: Instant destruction from full health (primarily for gadgets, but harmless for all)
-		// Detects when an entity instantly goes from full health to zero. This is a state change,
-		// not a death, so we reset its state without setting a death timestamp.
-		if (state.lastKnownMaxHealth > 0 &&
-			state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
-			currentHealth <= 0.0f) // Is now at zero or less
+		// Case 2: Instant destruction from full health (gadget-only behavior)
+		// Gadgets can instantly go from full health to zero when destroyed/reset.
+		// This is NOT typical for players/NPCs, so we restrict this check to gadgets only.
+		if (entity->entityType == ESPEntityType::Gadget)
 		{
-			ResetForRespawn(state, currentHealth, now);
-			return true; // State was reset, skip further processing this frame
+			if (state.lastKnownMaxHealth > 0 &&
+				state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
+				currentHealth <= 0.0f) // Is now at zero or less
+			{
+				ResetForRespawn(state, currentHealth, now);
+				return true; // State was reset, skip further processing this frame
+			}
 		}
 
 		return false;
