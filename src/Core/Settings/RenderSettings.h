@@ -61,7 +61,7 @@ namespace kx {
     struct ElementSizeSettings {
         // --- Text ---
         float baseFontSize = 16.0f;             // Optimal for Bahnschrift (wide letterforms, good balance)
-        float minFontSize = 9.0f;               // Absolute minimum font size (readability floor)
+        float minFontSize = 8.0f;               // Absolute minimum font size (readability floor)
         
         // --- Shapes ---
         float baseDotRadius = 3.0f;             // Center dot size (clean, minimal at 2.4px actual with multiplier)
