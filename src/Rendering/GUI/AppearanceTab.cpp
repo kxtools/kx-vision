@@ -13,7 +13,7 @@ namespace kx {
             if (ImGui::CollapsingHeader("Global Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::Checkbox("Use Distance Limit", &settings.distance.useDistanceLimit);
                 if (settings.distance.useDistanceLimit) {
-                    ImGui::SliderFloat("Render Distance Limit", &settings.distance.renderDistanceLimit, 10.0f, 2000.0f, "%.0fm");
+                    ImGui::SliderFloat("Render Distance Limit", &settings.distance.renderDistanceLimit, 10.0f, 500.0f, "%.0fm");
                     if (ImGui::IsItemHovered()) {
                         ImGui::SetTooltip("Entities beyond this distance will not be rendered based on gameplay distance (player-to-target).");
                     }
