@@ -17,7 +17,7 @@
 
 ### ⚙️ Installation
 
-> **Quick Tip:** After installing, press the **`INSERT`** key in-game to show or hide the main window.
+> **Quick Tip:** After installing, press the **`INSERT`** key in-game to show or hide the main window. Adjust ESP update rate (15-120 FPS) in settings for optimal performance.
 
 For detailed, step-by-step instructions, please read our complete:
 ### [**Installation Guide (INSTALL.md)**](INSTALL.md)
@@ -26,9 +26,7 @@ For detailed, step-by-step instructions, please read our complete:
 
 ## Overview
 
-KX-Vision is an open-source Guild Wars 2 addon that demonstrates advanced UI overlay techniques using the officially supported MumbleLink API. It features a real-time information display for player positions, a multi-level gear inspector, and showcases clean C++ architecture for game addon development with ImGui and DirectX 11.
-
-**Educational Purpose Only:** This project is developed solely for educational purposes, demonstrating advanced addon development techniques including real-time overlay rendering, DirectX 11 integration, and MumbleLink API usage in Guild Wars 2.
+KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real-time information overlays. Track players, enemies, and objects around you with customizable ESP displays. Inspect player gear at a glance, monitor combat performance, and never miss a resource node or vista again. Built using GW2's official MumbleLink API.
 
 **Dual Mode Support:** KX-Vision can be built in two modes:
 - **GW2AL Addon Mode:** Integrates with the [Guild Wars 2 Addon Loader](https://github.com/gw2-addon-loader/loader-core) framework for safer, community-supported addon loading.
@@ -36,16 +34,37 @@ KX-Vision is an open-source Guild Wars 2 addon that demonstrates advanced UI ove
 
 ## Features
 
+*   **Player ESP:** Track nearby players with customizable filters (friendly, hostile, neutral), gear inspection (3 modes), profession/race/level display.
+*   **NPC ESP:** See all enemies and NPCs with rank filtering (legendary, champion, elite, veteran), health tracking, attitude colors.
+*   **Object ESP:** Find resource nodes, waypoints, vistas, crafting stations, and 15+ object types with smart filtering.
+*   **Real-time Combat Info:** Burst DPS tracking, animated damage numbers, health/energy bars with smooth transitions.
+*   **Adaptive Visuals:** Automatic distance-based scaling and fading for clean, uncluttered display.
+*   **Flexible Customization:** Per-entity visual controls (boxes, dots, health bars, distance), collapsible detail panels.
+*   **Performance Tuning:** Adjustable ESP update rate (15-120 FPS), zero performance impact even in WvW zergs.
+*   **Settings Management:** Save/load presets, auto-save on exit, reset to defaults.
 *   **MumbleLink Integration:** Utilizes GW2's officially supported MumbleLink API for player and game state data.
-*   **Real-Time Information Display:** Shows character positions, distances, and game world data with comprehensive memory safety.
-*   **Advanced Gear Inspector:** Examine player equipment with three detailed modes (Off, Compact, Detailed). The compact view provides a color-coded summary of stat sets and rarity for quick build analysis.
-*   **Stable Architecture:** A two-stage, thread-safe rendering pipeline that ensures crash-free operation.
-*   **Customizable Overlay:** Flexible visual options including boxes, distance indicators, position markers, and status bars.
 *   **Modern UI Design:** Clean, organized ImGui interface with collapsible sections and intuitive controls.
 *   **Update Resilient:** Uses pattern scanning to locate game functions, maintaining compatibility across game updates.
-*   **Developer Tools:** Comprehensive debug logging system for addon development and troubleshooting.
+
+## ⚡ Performance
+
+*   **Zero FPS impact** - even in crowded WvW/meta events
+*   **Configurable update rate** - tune 15-120 FPS in settings (default: 60)
+*   **Optimized pipeline** - two-stage architecture separates expensive calculations from rendering
 
 ## 🛠️ For Developers
+
+### Architecture Highlights
+
+This isn't your typical game overlay. KX-Vision demonstrates production-grade patterns rarely seen in open-source game addons:
+
+*   **Crash-proof memory safety** - multi-layer validation (SafeForeignClass, SafeIterators, VirtualQuery caching)
+*   **Thread-safe capture system** - stable data extraction from game logic thread
+*   **Two-stage rendering pipeline** - throttled calculations + per-frame screen projection
+*   **Adaptive far plane** - intelligent scaling based on scene depth
+*   **Combat tracking** - burst DPS calculator with smooth animations
+
+📚 **[Read Technical Documentation](docs/index.md)** for architecture deep-dives
 
 ### Building From Source
 
@@ -69,13 +88,11 @@ KX-Vision is an open-source Guild Wars 2 addon that demonstrates advanced UI ove
 
 ### Contributing
 
-Contributions are welcome! This project serves as a learning platform, and we encourage developers to learn by contributing.
-
-Please check the [GitHub Issues](https://github.com/kxtools/kx-vision/issues) tab to find tasks to work on. Look for issues tagged with `good first issue` if you're new to addon development. When submitting a pull request, please provide a clear description of your changes.
+Pull requests welcome! Check [Issues](https://github.com/kxtools/kx-vision/issues) for tasks, look for `good first issue` tags if you're new to addon development.
 
 ## Disclaimer
 
-This software is created and released for **EDUCATIONAL AND DEVELOPMENT PURPOSES ONLY**. It is a learning tool to help developers understand addon development, real-time rendering, and game integration.
+This software is created and released for **EDUCATIONAL AND DEVELOPMENT PURPOSES ONLY**. It is a learning tool to help developers understand addon development, real-time rendering, DirectX 11 integration, and MumbleLink API usage in Guild Wars 2.
 
 **Please use responsibly:**
 *   Always review and respect ArenaNet's policies regarding third-party tools.
