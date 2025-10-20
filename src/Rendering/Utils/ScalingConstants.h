@@ -29,7 +29,7 @@ namespace AdaptiveScaling {
     
     // Alpha fading constants (Gadgets - adaptive long-range fade)
     constexpr float FADE_START_DISTANCE = 90.0f; // Start fading beyond game's natural entity culling range
-    constexpr float MIN_ALPHA = 0.5f;            // Minimum opacity for gadgets at extreme distances (50%)
+    constexpr float MIN_ALPHA = 0.3f;            // Minimum opacity for gadgets at extreme distances (30%)
     
     // Alpha fading constants (Players/NPCs - subtle fixed-range fade)
     constexpr float PLAYER_NPC_FADE_START = 80.0f;  // Start fade at same point as Limit Mode (consistent feel)

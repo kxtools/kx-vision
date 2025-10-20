@@ -150,11 +150,11 @@ namespace kx {
                         }
 
                         if (settings.distance.enablePlayerNpcFade) {
-                            ImGui::SliderFloat("Player/NPC Min Alpha", &settings.distance.playerNpcMinAlpha, 0.3f, 1.0f, "%.2f");
+                            ImGui::SliderFloat("Player/NPC Min Alpha", &settings.distance.playerNpcMinAlpha, 0.5f, 1.0f, "%.2f");
                             if (ImGui::IsItemHovered()) {
                                 ImGui::SetTooltip(
                                     "The minimum opacity for players/NPCs at their maximum render distance.\n"
-                                    "Default: 0.70 (70%%) - maintains high visibility while adding subtle depth.\n"
+                                    "Default: 0.50 (50%%) - maintains high visibility while adding subtle depth.\n"
                                     "Lower values increase fade intensity, higher values reduce it."
                                 );
                             }
