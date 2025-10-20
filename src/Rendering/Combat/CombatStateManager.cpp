@@ -165,13 +165,11 @@ namespace kx
 		const float damage = state.lastKnownHealth - currentHealth;
 		if (damage <= 0.0f) return;
 
-        // <<< ADD THIS BLOCK >>>
-        // If this is the first damage in a new burst, record the start time.
-        if (state.accumulatedDamage <= 0.0f)
-        {
-            state.burstStartTime = now;
-        }
-        // <<< END ADD >>>
+		// If this is the first damage in a new burst, record the start time.
+		if (state.accumulatedDamage <= 0.0f)
+		{
+			state.burstStartTime = now;
+		}
 
 		state.accumulatedDamage += damage;
 	
@@ -214,8 +212,12 @@ namespace kx
 	                                         float currentHealth,
 	                                         uint64_t now)
 	{
+		// Preserve current barrier state to prevent phantom barrier change detection
+		const float currentBarrier = state.lastKnownBarrier;
+		
 		state = {};
 		state.lastKnownHealth = currentHealth;
+		state.lastKnownBarrier = currentBarrier; // Preserve barrier state
 		state.lastSeenTimestamp = now;
 		// No heal effects triggered; respawn is treated as a fresh baseline.
 	}
