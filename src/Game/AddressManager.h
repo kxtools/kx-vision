@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 
 namespace kx {
@@ -42,7 +43,7 @@ struct GamePointers {
     uintptr_t bgfxContextFunc = 0;
     uintptr_t contextCollectionFunc = 0;
     uintptr_t gameThreadUpdateFunc = 0;
-    void* pContextCollection = nullptr;
+    std::atomic<void*> pContextCollection{nullptr};
     
     // Module information for VTable validation
     uintptr_t moduleBase = 0;
@@ -62,7 +63,9 @@ public:
     static uintptr_t GetBgfxContextFunc() { return s_pointers.bgfxContextFunc; }
     static uintptr_t GetContextCollectionFunc() { return s_pointers.contextCollectionFunc; }
     static uintptr_t GetGameThreadUpdateFunc() { return s_pointers.gameThreadUpdateFunc; }
-    static void* GetContextCollectionPtr() { return s_pointers.pContextCollection; }
+    static void* GetContextCollectionPtr() { 
+        return s_pointers.pContextCollection.load(std::memory_order_acquire); 
+    }
     
     // Module information getters for VTable validation
     static uintptr_t GetModuleBase() { return s_pointers.moduleBase; }

@@ -24,7 +24,7 @@ uintptr_t ResolveRelativeAddress(uintptr_t instructionAddress, size_t instructio
 
 void AddressManager::SetContextCollectionPtr(void* ptr)
 {
-    s_pointers.pContextCollection = ptr;
+    s_pointers.pContextCollection.store(ptr, std::memory_order_release);
 }
 
 void AddressManager::ScanAgentArray() {
