@@ -1,7 +1,7 @@
 # KX-Vision for Guild Wars 2
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.9-green.svg)
+![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0-green.svg)
 
 ![KX-Vision GUI](images/gui_v2.jpg)
 
@@ -101,12 +101,12 @@ This software is created and released for **EDUCATIONAL AND DEVELOPMENT PURPOSES
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Credits
 
-*   Initial concept and development by Krixx
-*   Uses [Dear ImGui](https://github.com/ocornut/imgui), [GLM](https://github.com/g-truc/glm), [MinHook](https://github.com/TsudaKageyu/minhook), [nlohmann/json](https://github.com/nlohmann/json), and [Catch2](https://github.com/catchorg/Catch2)
+*   Created and developed by [Krixx](https://github.com/Krixx1337)
+*   Uses [Dear ImGui](https://github.com/ocornut/imgui), [GLM](https://github.com/g-truc/glm), [MinHook](https://github.com/TsudaKageyu/minhook), [spdlog](https://github.com/gabime/spdlog), [nlohmann/json](https://github.com/nlohmann/json), and [Catch2](https://github.com/catchorg/Catch2)
 *   **Hacklib:** A valuable learning resource. [https://bitbucket.org/rafzi/hacklib_gw2/src/master/](https://bitbucket.org/rafzi/hacklib_gw2/src/master/)
 *   **Community Contributors:** Thanks to the GW2 addon development community for sharing knowledge.
 
