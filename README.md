@@ -61,6 +61,7 @@ This isn't your typical game overlay. KX-Vision demonstrates production-grade pa
 *   **Combat tracking** - burst DPS calculator with smooth animations
 *   **Object pooling** - zero heap allocations during rendering for consistent frame times
 *   **In-game validation system** - built-in Catch2 tests verify pattern scanning and memory offsets
+*   **Modern ImGui 1.92+** - unlike most GW2 addons limited to 1.80
 
 📚 **[Read Technical Documentation](docs/index.md)** for architecture deep-dives
 
