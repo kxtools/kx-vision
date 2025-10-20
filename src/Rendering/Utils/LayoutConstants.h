@@ -186,6 +186,13 @@ namespace GadgetSphere {
     constexpr float CIRCLE_RADIUS_MAX = 15.0f;
     constexpr float GLOW_ALPHA_RATIO = 0.3f;
     constexpr float CORE_ALPHA_RATIO = 0.7f;
+
+    // Camera-facing perception
+    constexpr float DEPTH_BRIGHTNESS_MIN = 0.5f;  // Minimum brightness for back-facing segments
+    constexpr float DEPTH_BRIGHTNESS_MAX = 1.0f;  // Maximum brightness for front-facing segments
+    constexpr float DEPTH_THICKNESS_MIN = 0.8f;   // Thickness multiplier for back-facing segments
+    constexpr float DEPTH_THICKNESS_MAX = 1.3f;   // Thickness multiplier for front-facing segments
+    constexpr bool ENABLE_PER_SEGMENT_DEPTH = true; // Toggle for facing effects
 }
 
 } // namespace kx

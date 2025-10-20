@@ -1,6 +1,8 @@
+#define NOMINMAX
 #include "ESPShapeRenderer.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "../Utils/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -51,35 +53,133 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
     if (gyroscopeAlpha > 0.0f) {
         const float finalLineThickness = std::clamp(GadgetSphere::BASE_THICKNESS * scale, GadgetSphere::MIN_THICKNESS, GadgetSphere::MAX_THICKNESS);
 
-        // --- Project points ---
+        // --- Project points with camera-facing information ---
         std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
+        std::vector<float> facingRingXY, facingRingXZ, facingRingYZ;
         bool projection_ok = true;
-        auto project_ring = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points) {
+        
+        // Get camera position once for all rings (optimization)
+        glm::vec3 cameraPos = camera.GetCameraPosition();
+        
+        auto project_ring_with_facing = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points, std::vector<float>& facing_points) {
             if (!projection_ok) return;
             screen_points.reserve(local_points.size());
+            facing_points.reserve(local_points.size());
+            
             for (const auto& point : local_points) {
+                glm::vec3 worldPoint = entityContext.position + point;
                 glm::vec2 sp;
-                if (ESPMath::WorldToScreen(entityContext.position + point, camera, screenWidth, screenHeight, sp)) {
+                
+                if (ESPMath::WorldToScreen(worldPoint, camera, screenWidth, screenHeight, sp)) {
                     screen_points.push_back(ImVec2(sp.x, sp.y));
+                    
+                    // Calculate camera-facing factor using dot product
+                    glm::vec3 viewDir = glm::normalize(worldPoint - cameraPos);
+                    glm::vec3 outwardNormal = glm::normalize(point); // point is local offset from sphere center
+                    float facingFactor = glm::dot(outwardNormal, -viewDir);
+                    
+                    facing_points.push_back(facingFactor);
                 }
-                else { projection_ok = false; screen_points.clear(); return; }
+                else { 
+                    projection_ok = false; 
+                    screen_points.clear(); 
+                    facing_points.clear(); 
+                    return; 
+                }
             }
-            };
-        project_ring(localRingXY, screenRingXY);
-        project_ring(localRingXZ, screenRingXZ);
-        project_ring(localRingYZ, screenRingYZ);
+        };
+        
+        project_ring_with_facing(localRingXY, screenRingXY, facingRingXY);
+        project_ring_with_facing(localRingXZ, screenRingXZ, facingRingXZ);
+        project_ring_with_facing(localRingYZ, screenRingYZ, facingRingYZ);
 
-        // --- Draw the 3D sphere ---
+        // --- Draw the 3D sphere with camera-facing rendering ---
         if (projection_ok) {
-            // Define the single, final color for all rings.
+            // Define the base color for all rings
             unsigned int masterAlpha = (fadedEntityColor >> 24) & 0xFF;
             unsigned int finalLODAlpha = static_cast<unsigned int>(masterAlpha * gyroscopeAlpha);
-            ImU32 finalColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
+            ImU32 baseColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
 
-            // Draw all three rings with the same bright color and thickness.
-            if (!screenRingXY.empty()) drawList->AddPolyline(screenRingXY.data(), static_cast<int>(screenRingXY.size()), finalColor, false, finalLineThickness);
-            if (!screenRingXZ.empty()) drawList->AddPolyline(screenRingXZ.data(), static_cast<int>(screenRingXZ.size()), finalColor, false, finalLineThickness);
-            if (!screenRingYZ.empty()) drawList->AddPolyline(screenRingYZ.data(), static_cast<int>(screenRingYZ.size()), finalColor, false, finalLineThickness);
+            // Helper function to render ring with camera-facing segments
+            auto render_ring_with_facing = [&](const std::vector<ImVec2>& screen_points, const std::vector<float>& facing_points, const char* ring_name) {
+                if (screen_points.empty() || facing_points.empty()) return;
+                
+                // Render each segment individually with facing-based modulation
+                for (size_t i = 0; i < screen_points.size(); ++i) {
+                    size_t next_i = (i + 1) % screen_points.size();
+                    
+                    // Calculate average facing factor for this segment
+                    float avgFacing = (facing_points[i] + facing_points[next_i]) * 0.5f;
+                    
+                    // Map facing factor from [-1, 1] to [0, 1]
+                    // facing = 1.0 (toward camera) → normalized = 1.0 → bright
+                    // facing = -1.0 (away from camera) → normalized = 0.0 → dim
+                    float normalizedFacing = (avgFacing + 1.0f) * 0.5f;
+                    normalizedFacing = std::clamp(normalizedFacing, 0.0f, 1.0f);
+                    
+                    // Apply facing-based modulation
+                    float brightnessFactor = GadgetSphere::ENABLE_PER_SEGMENT_DEPTH ? 
+                        GadgetSphere::DEPTH_BRIGHTNESS_MIN + (GadgetSphere::DEPTH_BRIGHTNESS_MAX - GadgetSphere::DEPTH_BRIGHTNESS_MIN) * normalizedFacing : 1.0f;
+                    float thicknessFactor = GadgetSphere::ENABLE_PER_SEGMENT_DEPTH ? 
+                        GadgetSphere::DEPTH_THICKNESS_MIN + (GadgetSphere::DEPTH_THICKNESS_MAX - GadgetSphere::DEPTH_THICKNESS_MIN) * normalizedFacing : 1.0f;
+                    
+                    // Calculate modulated color and thickness
+                    ImU32 segmentColor = baseColor;
+                    if (GadgetSphere::ENABLE_PER_SEGMENT_DEPTH && brightnessFactor < 1.0f) {
+                        // Extract RGB components and apply brightness modulation
+                        int r = (baseColor >> IM_COL32_R_SHIFT) & 0xFF;
+                        int g = (baseColor >> IM_COL32_G_SHIFT) & 0xFF;
+                        int b = (baseColor >> IM_COL32_B_SHIFT) & 0xFF;
+                        int a = (baseColor >> IM_COL32_A_SHIFT) & 0xFF;
+                        
+                        r = static_cast<int>(r * brightnessFactor);
+                        g = static_cast<int>(g * brightnessFactor);
+                        b = static_cast<int>(b * brightnessFactor);
+                        
+                        segmentColor = IM_COL32(r, g, b, a);
+                    }
+                    
+                    float segmentThickness = finalLineThickness * thicknessFactor;
+                    
+                    // Draw the segment
+                    drawList->AddLine(screen_points[i], screen_points[next_i], segmentColor, segmentThickness);
+                }
+            };
+            
+            // Optional: Ring facing sorting for proper back-to-front rendering
+            struct RingData {
+                const std::vector<ImVec2>* screenPoints;
+                const std::vector<float>* facingPoints;
+                const char* name;
+                float avgFacing;
+            };
+            
+            std::vector<RingData> rings = {
+                {&screenRingXY, &facingRingXY, "XY", 0.0f},
+                {&screenRingXZ, &facingRingXZ, "XZ", 0.0f},
+                {&screenRingYZ, &facingRingYZ, "YZ", 0.0f}
+            };
+            
+            // Calculate average facing for each ring
+            for (auto& ring : rings) {
+                if (!ring.facingPoints->empty()) {
+                    float sum = 0.0f;
+                    for (float facing : *ring.facingPoints) {
+                        sum += facing;
+                    }
+                    ring.avgFacing = sum / ring.facingPoints->size();
+                }
+            }
+            
+            // Sort rings by facing (least facing first for proper layering)
+            std::sort(rings.begin(), rings.end(), [](const RingData& a, const RingData& b) {
+                return a.avgFacing < b.avgFacing; // Lower facing = farther = draw first
+            });
+            
+            // Render rings in sorted order
+            for (const auto& ring : rings) {
+                render_ring_with_facing(*ring.screenPoints, *ring.facingPoints, ring.name);
+            }
         }
     }
 }
