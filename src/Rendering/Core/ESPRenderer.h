@@ -22,12 +22,6 @@ private:
      */
     static void UpdateESPData(const FrameContext& context, float currentTimeSeconds);
 
-    /**
-     * @brief Handles periodic cleanup tasks, such as removing stale combat state entries.
-     * @param now The current timestamp in milliseconds.
-     */
-    static void HandlePeriodicCleanup(uint64_t now);
-
     static Camera* s_camera; // Camera reference for world-to-screen projections
 };
 

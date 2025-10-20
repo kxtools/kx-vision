@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "CombatState.h"
 #include "../Data/RenderableData.h" // For RenderableEntity
@@ -29,9 +30,10 @@ namespace kx
 		void Update(const std::vector<RenderableEntity*>& entities, uint64_t now);
 
 		/**
-		 * @brief Remove stale entries that have not been seen recently.
+		 * @brief Remove combat state for entities that are no longer present in the game.
+		 * @param activeEntities Set of entity addresses that are currently active in the game.
 		 */
-		void Cleanup(uint64_t now);
+		void Prune(const std::unordered_set<const void*>& activeEntities);
 
 		/**
 		 * @brief Get immutable pointer to stored entity combat state (nullptr if missing).

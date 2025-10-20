@@ -4,6 +4,7 @@
 #include "../Data/ESPData.h"
 
 #include <algorithm>
+#include <unordered_set>
 #include <Windows.h>
 
 #include "../../Core/AppState.h"
@@ -31,7 +32,6 @@ static ObjectPool<RenderableGadget> s_gadgetPool(5000);
 static PooledFrameRenderData s_processedRenderData; // Filtered data ready for rendering
 static float s_lastUpdateTime = 0.0f;
 static CombatStateManager g_combatStateManager;
-static uint64_t s_lastCleanupTime = 0;
 
 void ESPRenderer::Initialize(Camera& camera) {
     s_camera = &camera;
@@ -50,6 +50,15 @@ void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentT
         // Stage 1: Extract
         PooledFrameRenderData extractedData;
         ESPDataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, extractedData);
+        
+        // Build a set of all currently active entity addresses
+        std::unordered_set<const void*> activeEntities;
+        for (auto* e : extractedData.players) { activeEntities.insert(e->address); }
+        for (auto* e : extractedData.npcs) { activeEntities.insert(e->address); }
+        for (auto* e : extractedData.gadgets) { activeEntities.insert(e->address); }
+
+        // Tell the CombatStateManager to remove any state for entities that no longer exist.
+        g_combatStateManager.Prune(activeEntities);
         
         // Stage 1.5: Update combat state
         std::vector<RenderableEntity*> allEntities;
@@ -73,12 +82,6 @@ void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentT
     }
 }
 
-void ESPRenderer::HandlePeriodicCleanup(uint64_t now) {
-    if (now - s_lastCleanupTime > 5000) { // 5000ms interval
-        g_combatStateManager.Cleanup(now);
-        s_lastCleanupTime = now;
-    }
-}
 
 void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData) {
     if (!s_camera || ShouldHideESP(mumbleData)) {
@@ -107,10 +110,7 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     // 2. Run the low-frequency logic/update pipeline if needed
     UpdateESPData(frameContext, currentTimeSeconds);
 
-    // 3. Handle periodic maintenance tasks
-    HandlePeriodicCleanup(now);
-
-    // 4. Render the final, processed data every frame
+    // 3. Render the final, processed data every frame
     ESPStageRenderer::RenderFrameData(frameContext, s_processedRenderData);
 }
 

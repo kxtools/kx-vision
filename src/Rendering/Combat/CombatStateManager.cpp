@@ -234,17 +234,14 @@ namespace kx
 		return (it != m_entityStates.end()) ? &it->second : nullptr;
 	}
 
-	void CombatStateManager::Cleanup(uint64_t now)
+	void CombatStateManager::Prune(const std::unordered_set<const void*>& activeEntities)
 	{
-		// uint64_t now = GetTickCount64(); // This line is removed
 		for (auto it = m_entityStates.begin(); it != m_entityStates.end();)
 		{
-			if (now - it->second.lastSeenTimestamp > CombatEffects::STATE_CLEANUP_THRESHOLD_MS)
-			{
+			// If the entity address is NOT in the active list, it's truly gone.
+			if (activeEntities.find(it->first) == activeEntities.end()) {
 				it = m_entityStates.erase(it);
-			}
-			else
-			{
+			} else {
 				++it;
 			}
 		}
