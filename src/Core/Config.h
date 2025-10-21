@@ -24,11 +24,7 @@ namespace kx {
     constexpr std::string_view ALERT_CONTEXT_LOCATOR_PATTERN = "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 41 0F 28 CA 48 8B 08 48 8B 51 58"; // "ViewAdvanceAlert"
 
     namespace AppConfig {
-#ifdef _DEBUG
-        constexpr int DEFAULT_LOG_LEVEL = 1; // INFO
-#else
-        constexpr int DEFAULT_LOG_LEVEL = 3; // ERR
-#endif
+        constexpr int DEFAULT_LOG_LEVEL = 1; // INFO (good balance for both Debug and Release)
     }
 
     // Hotkey Configuration
