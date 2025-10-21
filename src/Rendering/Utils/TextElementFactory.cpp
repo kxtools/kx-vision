@@ -4,10 +4,40 @@
 #include "../Utils/ESPConstants.h"
 #include "../Utils/ESPStyling.h"
 #include "../../Core/AppState.h"
+#include "../../Utils/UnitConversion.h"
 #include <sstream>
 #include <iomanip>
 
 namespace kx {
+
+namespace {
+    /**
+     * @brief Format distance based on user's display mode preference
+     * @param meters Distance in meters
+     * @return Formatted distance string
+     */
+    std::string FormatDistance(float meters) {
+        const auto& settings = AppState::Get().GetSettings();
+        float units = UnitConversion::MetersToGW2Units(meters);
+        
+        std::ostringstream oss;
+        oss << std::fixed;
+        
+        switch (settings.distance.displayMode) {
+            case DistanceDisplayMode::Meters:
+                oss << std::setprecision(1) << meters << "m";
+                break;
+            case DistanceDisplayMode::GW2Units:
+                oss << std::setprecision(0) << units;
+                break;
+            case DistanceDisplayMode::Both:
+                oss << std::setprecision(0) << units << " (" << std::setprecision(1) << meters << "m)";
+                break;
+        }
+        
+        return oss.str();
+    }
+}
 
 TextElement TextElementFactory::CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
     unsigned int entityColor, float fadeAlpha, float fontSize) {
@@ -16,20 +46,10 @@ TextElement TextElementFactory::CreatePlayerName(const std::string& playerName, 
     return element;
 }
 
-TextElement TextElementFactory::CreateDistanceText(float distance, const glm::vec2& anchorPos, float fadeAlpha, float fontSize) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(1) << distance << "m";
-    
-    TextElement element(oss.str(), {0,0});
-    element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize));
-    return element;
-}
-
 TextElement TextElementFactory::CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(1) << distance << "m";
+    std::string formattedDistance = FormatDistance(distance);
     
-    TextElement element(oss.str(), position, TextAnchor::AbsoluteTopLeft);
+    TextElement element(formattedDistance, position, TextAnchor::AbsoluteTopLeft);
     element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize));
     element.SetAlignment(TextAlignment::Center);
     return element;

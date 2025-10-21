@@ -19,18 +19,6 @@ void ESPTextRenderer::RenderPlayerName(ImDrawList* drawList, const glm::vec2& fe
     TextRenderer::Render(drawList, element);
 }
 
-void ESPTextRenderer::RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin,
-                                        float distance, float fadeAlpha, float fontSize) {
-    // Calculate anchor position (above the box)
-    glm::vec2 anchorPos(center.x, boxMin.y);
-    
-    // Use factory to create distance text element
-    TextElement element = TextElementFactory::CreateDistanceText(distance, anchorPos, fadeAlpha, fontSize);
-    
-    // Render the element using static method
-    TextRenderer::Render(drawList, element);
-}
-
 void ESPTextRenderer::RenderDistanceTextAt(ImDrawList* drawList, const glm::vec2& position, float distance, float fadeAlpha, float fontSize) {
     TextElement element = TextElementFactory::CreateDistanceTextAt(distance, position, fadeAlpha, fontSize);
     TextRenderer::Render(drawList, element);

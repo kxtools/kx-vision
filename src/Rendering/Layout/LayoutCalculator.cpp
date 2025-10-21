@@ -66,7 +66,7 @@ void LayoutCalculator::GatherLayoutElements(
 
     // --- GATHER ABOVE BOX ELEMENTS ---
     if (entityContext.renderDistance) {
-        TextElement element = TextElementFactory::CreateDistanceText(entityContext.gameplayDistance, {0,0}, 0, props.finalFontSize);
+        TextElement element = TextElementFactory::CreateDistanceTextAt(entityContext.gameplayDistance, {0,0}, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
         outAboveElements.push_back({LayoutElementKey::Distance, size});
     }

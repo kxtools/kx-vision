@@ -11,6 +11,11 @@ namespace kx {
         // Renders the global settings like distance limit.
         static void RenderGlobalSettings(Settings& settings) {
             if (ImGui::CollapsingHeader("Global Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                
+                // ===== DISTANCE SETTINGS =====
+                ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "Distance Settings");
+                ImGui::Spacing();
+                
                 ImGui::Checkbox("Use Distance Limit", &settings.distance.useDistanceLimit);
                 if (settings.distance.useDistanceLimit) {
                     ImGui::SliderFloat("Render Distance Limit", &settings.distance.renderDistanceLimit, 10.0f, 500.0f, "%.0fm");
@@ -19,8 +24,29 @@ namespace kx {
                     }
                 }
 
-                // --- Global Opacity (affects ALL elements) ---
                 ImGui::Separator();
+                
+                const char* displayModes[] = { "Meters", "GW2 Units", "Both" };
+                int currentMode = static_cast<int>(settings.distance.displayMode);
+                if (ImGui::Combo("Distance Format", &currentMode, displayModes, 3)) {
+                    settings.distance.displayMode = static_cast<DistanceDisplayMode>(currentMode);
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Choose how distances are displayed:\n\n"
+                        "Meters: 30.5m (default, matches Mumble Link)\n"
+                        "GW2 Units: 1200 (matches skill tooltips)\n"
+                        "Both: 1200 (30.5m) (comprehensive)\n\n"
+                        "Note: 1 GW2 unit = 1 inch = 0.0254 meters"
+                    );
+                }
+
+                // ===== APPEARANCE SETTINGS =====
+                ImGui::Separator();
+                ImGui::Spacing();
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.6f, 1.0f), "Appearance Settings");
+                ImGui::Spacing();
+                
                 float displayValue = settings.appearance.globalOpacity * 100.0f;
                 if (ImGui::SliderFloat("Global Opacity", &displayValue, 50.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp)) {
                     settings.appearance.globalOpacity = displayValue / 100.0f;
@@ -36,12 +62,8 @@ namespace kx {
                     );
                 }
 
-                // --- Text Display Options (text-specific controls) ---
                 ImGui::Separator();
-                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "Text Display Options");
-                ImGui::Spacing();
-
-                // Checkbox options
+                
                 ImGui::Checkbox("Enable Text Backgrounds", &settings.appearance.enableTextBackgrounds);
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip(

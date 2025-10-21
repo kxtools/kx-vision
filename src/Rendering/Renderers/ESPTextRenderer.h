@@ -37,8 +37,6 @@ public:
      * @param fadeAlpha Distance-based fade alpha (0.0-1.0)
      * @param fontSize Font size to use
      */
-    static void RenderDistanceText(ImDrawList* drawList, const ImVec2& center, const ImVec2& boxMin,
-                                  float distance, float fadeAlpha, float fontSize);
     static void RenderDistanceTextAt(ImDrawList* drawList, const glm::vec2& position, float distance, float fadeAlpha, float fontSize);
 
     /**

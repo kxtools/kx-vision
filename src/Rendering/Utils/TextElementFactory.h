@@ -42,7 +42,6 @@ public:
      * @param fontSize Font size to use
      * @return Styled text element
      */
-    static TextElement CreateDistanceText(float distance, const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
     static TextElement CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize);
     
     /**

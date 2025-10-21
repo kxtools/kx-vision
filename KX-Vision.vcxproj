@@ -261,6 +261,7 @@
     <ClInclude Include="src\Utils\SafeForeignClass.h" />
     <ClInclude Include="src\Utils\SafeIterators.h" />
     <ClInclude Include="src\Utils\StringHelpers.h" />
+    <ClInclude Include="src\Utils\UnitConversion.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

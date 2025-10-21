@@ -5,6 +5,15 @@
 namespace kx {
 
     /**
+     * @brief Distance display format options
+     */
+    enum class DistanceDisplayMode {
+        Meters,      // "30.5m"
+        GW2Units,    // "1200"
+        Both         // "1200 (30.5m)"
+    };
+
+    /**
      * @brief Distance-based rendering configuration
      * 
      * Controls how entities are culled and faded based on distance.
@@ -16,9 +25,12 @@ namespace kx {
         // --- Distance Limiting ---
         bool useDistanceLimit = true;           // Enable/disable distance-based culling
         float renderDistanceLimit = 90.0f;      // Hard cutoff distance (mimics game's native culling range)
+        
+        // --- Distance Display Format ---
+        DistanceDisplayMode displayMode = DistanceDisplayMode::Meters;  // How to display distances
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DistanceSettings, useDistanceLimit, renderDistanceLimit);
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DistanceSettings, useDistanceLimit, renderDistanceLimit, displayMode);
 
     /**
      * @brief Scaling curve configuration
