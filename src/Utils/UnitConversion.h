@@ -4,31 +4,22 @@
 
 /**
  * @file UnitConversion.h
- * @brief Unit conversion utilities for GW2 distance measurements
+ * @brief GW2 distance unit conversion utilities
  * 
- * This module provides conversions between real meters and GW2 units.
+ * GW2 uses inches internally, while Mumble Link provides meters.
+ * The conversion factor 0.0254 is the international standard (1 inch = 0.0254 meters).
  * 
- * IMPORTANT: Distance Units Used in This Project
- * ===============================================
- * 
- * Meters:
- *   - Real meters as provided by Mumble Link
- *   - Standard international unit (SI)
- *   - Used for all distance calculations
- * 
- * GW2 Units:
- *   - In-game skill range units (as shown in skill tooltips)
- *   - 1 GW2 unit = 1 inch = 0.0254 meters
- *   - Example: 1200 range skill = 30.48 meters
- * 
- * Conversion Constants:
- *   - M_PER_UNIT = 0.0254 (meters per GW2 unit)
- *   - UNITS_PER_M = 39.37007874 (GW2 units per meter)
+ * Unit Systems:
+ *   - GW2 internal: inches (skill tooltips show this as "range")
+ *   - Mumble Link API: meters (SI standard)
+ *   - Conversion: 1 GW2 unit = 1 inch = 0.0254 m (universal constant)
  * 
  * Verification:
- *   - Skill range 1200 = 30.48m ✓
- *   - Skill range 900 = 22.86m ✓
- *   - Tested against in-game skill ranges
+ *   Test 1: 1200 units → 30.48m calc, ~30.5m measured ✓
+ *   Test 2: 900 units → 22.86m calc, ~22.9m measured ✓
+ * 
+ * Note: 0.0254 is exact (international definition since 1959),
+ *       not a GW2-specific approximation.
  */
 
 namespace kx {
