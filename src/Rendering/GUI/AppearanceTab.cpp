@@ -180,6 +180,20 @@ namespace kx {
                         "Note: Requires app restart to take effect"
                     );
                 }
+
+                float displayOpacity = settings.gui.menuOpacity * 100.0f;
+                if (ImGui::SliderFloat("Menu Opacity", &displayOpacity, 50.0f, 100.0f, "%.0f%%")) {
+                    settings.gui.menuOpacity = displayOpacity / 100.0f;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Transparency of the menu window\n\n"
+                        "50%%: Subtle, see-through\n"
+                        "90%% (Default): Balanced visibility\n"
+                        "100%%: Fully opaque\n\n"
+                        "Tip: Lower opacity during combat for less obstruction"
+                    );
+                }
             }
         }
 

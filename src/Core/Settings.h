@@ -42,10 +42,11 @@ namespace kx {
         // GUI appearance settings
         struct GuiSettings {
             float uiScale = 1.0f;               // Menu UI scale (0.8 - 1.5)
+            float menuOpacity = 0.90f;          // Menu window opacity (0.5 - 1.0), 90% matches current style
         } gui;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings::GuiSettings, uiScale);
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings::GuiSettings, uiScale, menuOpacity);
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings, settingsVersion, playerESP, npcESP, objectESP, distance, scaling,
                                        sizes, appearance, espUpdateRate, hideDepletedNodes, autoSaveOnExit, enableDebugLogging,
                                        showDebugAddresses, gui);

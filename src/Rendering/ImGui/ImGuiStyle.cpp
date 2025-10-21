@@ -16,6 +16,21 @@ namespace GUI {
 namespace {
     constexpr float DEFAULT_BASE_FONT_SIZE = 16.0f;  // Industry standard for game overlays
     constexpr const char* CUSTOM_FONT_NAME = "bahnschrift.ttf";
+    
+    // Opacity constants for UI elements
+    constexpr float WINDOW_BG_OPACITY = 1.0f;        // Main window (controlled by SetNextWindowBgAlpha)
+    constexpr float CHILD_BG_OPACITY = 0.85f;        // Child windows (slightly more transparent)
+    constexpr float POPUP_BG_OPACITY = 0.95f;        // Popups (more opaque for readability)
+    constexpr float TITLE_COLLAPSED_OPACITY = 0.85f; // Collapsed title bars
+    constexpr float TAB_UNFOCUSED_OPACITY = 0.80f;   // Unfocused tabs
+    constexpr float TAB_UNFOCUSED_ACTIVE_OPACITY = 0.60f; // Unfocused active tabs
+    constexpr float RESIZE_GRIP_OPACITY = 0.50f;     // Resize grip handles
+    constexpr float TABLE_BORDER_OPACITY = 0.60f;    // Table borders
+    constexpr float TABLE_ROW_ALT_OPACITY = 0.07f;   // Alternating table rows
+    constexpr float TEXT_SELECTED_OPACITY = 0.40f;   // Selected text highlight
+    constexpr float DRAG_DROP_OPACITY = 0.95f;       // Drag-drop target
+    constexpr float NAV_DIM_OPACITY = 0.20f;         // Navigation dimming
+    constexpr float MODAL_DIM_OPACITY = 0.75f;       // Modal background dimming
 }
 
     // Helper function to convert RGB to ImVec4 (alpha defaults to 1.0f)
@@ -132,9 +147,9 @@ namespace {
         // Apply Colors (With Natural Transparency)
         colors[ImGuiCol_Text] = aliceBlue;
         colors[ImGuiCol_TextDisabled] = coolGray;
-        colors[ImGuiCol_WindowBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, 0.90f); // 90% opacity for natural look
-        colors[ImGuiCol_ChildBg] = ImVec4(oxfordBlue.x, oxfordBlue.y, oxfordBlue.z, 0.85f); // Slightly transparent child windows
-        colors[ImGuiCol_PopupBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, 0.95f); // Popups more opaque for readability
+        colors[ImGuiCol_WindowBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, WINDOW_BG_OPACITY); // Main window (controlled by SetNextWindowBgAlpha)
+        colors[ImGuiCol_ChildBg] = ImVec4(oxfordBlue.x, oxfordBlue.y, oxfordBlue.z, CHILD_BG_OPACITY); // Slightly transparent child windows
+        colors[ImGuiCol_PopupBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, POPUP_BG_OPACITY); // Popups more opaque for readability
         colors[ImGuiCol_Border] = spaceCadet;
         colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         colors[ImGuiCol_FrameBg] = spaceCadet;
@@ -142,7 +157,7 @@ namespace {
         colors[ImGuiCol_FrameBgActive] = spaceCadetActive;
         colors[ImGuiCol_TitleBg] = richBlack;
         colors[ImGuiCol_TitleBgActive] = oxfordBlue;
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4(richBlack.x, richBlack.y, richBlack.z, 0.85f);
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4(richBlack.x, richBlack.y, richBlack.z, TITLE_COLLAPSED_OPACITY);
         colors[ImGuiCol_MenuBarBg] = oxfordBlue;
         colors[ImGuiCol_ScrollbarBg] = richBlack;
         colors[ImGuiCol_ScrollbarGrab] = coolGray;
@@ -160,29 +175,29 @@ namespace {
         colors[ImGuiCol_Separator] = spaceCadet;
         colors[ImGuiCol_SeparatorHovered] = azure;
         colors[ImGuiCol_SeparatorActive] = neonBlue;
-        colors[ImGuiCol_ResizeGrip] = ImVec4(coolGray.x, coolGray.y, coolGray.z, 0.5f);
+        colors[ImGuiCol_ResizeGrip] = ImVec4(coolGray.x, coolGray.y, coolGray.z, RESIZE_GRIP_OPACITY);
         colors[ImGuiCol_ResizeGripHovered] = coolGray;
         colors[ImGuiCol_ResizeGripActive] = neonBlue;
         colors[ImGuiCol_Tab] = oxfordBlue;
         colors[ImGuiCol_TabHovered] = azure;
         colors[ImGuiCol_TabActive] = neonBlue;
-        colors[ImGuiCol_TabUnfocused] = ImVec4(oxfordBlue.x, oxfordBlue.y, oxfordBlue.z, 0.8f);
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4(neonBlue.x, neonBlue.y, neonBlue.z, 0.6f);
+        colors[ImGuiCol_TabUnfocused] = ImVec4(oxfordBlue.x, oxfordBlue.y, oxfordBlue.z, TAB_UNFOCUSED_OPACITY);
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4(neonBlue.x, neonBlue.y, neonBlue.z, TAB_UNFOCUSED_ACTIVE_OPACITY);
         colors[ImGuiCol_PlotLines] = coolGray;
         colors[ImGuiCol_PlotLinesHovered] = azure;
         colors[ImGuiCol_PlotHistogram] = neonBlue;
         colors[ImGuiCol_PlotHistogramHovered] = azure;
         colors[ImGuiCol_TableHeaderBg] = oxfordBlue;
         colors[ImGuiCol_TableBorderStrong] = spaceCadet;
-        colors[ImGuiCol_TableBorderLight] = ImVec4(spaceCadet.x, spaceCadet.y, spaceCadet.z, 0.6f);
+        colors[ImGuiCol_TableBorderLight] = ImVec4(spaceCadet.x, spaceCadet.y, spaceCadet.z, TABLE_BORDER_OPACITY);
         colors[ImGuiCol_TableRowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-        colors[ImGuiCol_TableRowBgAlt] = ImVec4(aliceBlue.x, aliceBlue.y, aliceBlue.z, 0.07f);
-        colors[ImGuiCol_TextSelectedBg] = ImVec4(azure.x, azure.y, azure.z, 0.40f);
-        colors[ImGuiCol_DragDropTarget] = ImVec4(neonBlue.x, neonBlue.y, neonBlue.z, 0.95f);
+        colors[ImGuiCol_TableRowBgAlt] = ImVec4(aliceBlue.x, aliceBlue.y, aliceBlue.z, TABLE_ROW_ALT_OPACITY);
+        colors[ImGuiCol_TextSelectedBg] = ImVec4(azure.x, azure.y, azure.z, TEXT_SELECTED_OPACITY);
+        colors[ImGuiCol_DragDropTarget] = ImVec4(neonBlue.x, neonBlue.y, neonBlue.z, DRAG_DROP_OPACITY);
         colors[ImGuiCol_NavHighlight] = azure;
         colors[ImGuiCol_NavWindowingHighlight] = aliceBlue;
-        colors[ImGuiCol_NavWindowingDimBg] = ImVec4(coolGray.x, coolGray.y, coolGray.z, 0.20f);
-        colors[ImGuiCol_ModalWindowDimBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, 0.75f);
+        colors[ImGuiCol_NavWindowingDimBg] = ImVec4(coolGray.x, coolGray.y, coolGray.z, NAV_DIM_OPACITY);
+        colors[ImGuiCol_ModalWindowDimBg] = ImVec4(richBlack.x, richBlack.y, richBlack.z, MODAL_DIM_OPACITY);
     }
 
 } // namespace GUI

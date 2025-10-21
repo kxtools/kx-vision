@@ -100,6 +100,9 @@ void ImGuiManager::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, con
     ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
     ImGui::SetNextWindowPos(ImVec2(center.x - initialSize.x * 0.5f, center.y - initialSize.y * 0.5f), ImGuiCond_FirstUseEver);
     
+    // Apply menu opacity setting
+    ImGui::SetNextWindowBgAlpha(settings.gui.menuOpacity);
+    
     // Pass a direct pointer to the singleton's vision window state
     ImGui::Begin(windowTitle.c_str(), kx::AppState::Get().GetVisionWindowOpenRef());
 
