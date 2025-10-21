@@ -9,3 +9,6 @@ This section documents the reverse-engineered details of specific Guild Wars 2 e
 
 - **[Data Access Patterns](./data-access-patterns.md):**
   Compares different methods for accessing core gameplay data and justifies why the `ContextCollection` approach was chosen for its superior stability and architectural soundness.
+
+- **[Unit Systems & Coordinate Conversions](./unit-systems.md):**
+  Explains GW2's 4 coordinate/unit systems (Meters, GW2 Units, VisualPosition, Navmesh) with evidence-based conversions and axis mappings.
