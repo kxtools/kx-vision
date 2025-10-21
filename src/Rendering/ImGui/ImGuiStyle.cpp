@@ -13,6 +13,11 @@
 namespace kx {
 namespace GUI {
 
+namespace {
+    constexpr float DEFAULT_BASE_FONT_SIZE = 16.0f;  // Industry standard for game overlays
+    constexpr const char* CUSTOM_FONT_NAME = "bahnschrift.ttf";
+}
+
     // Helper function to convert RGB to ImVec4 (alpha defaults to 1.0f)
     inline ImVec4 RgbToVec4(int r, int g, int b) {
         return ImVec4(static_cast<float>(r) / 255.0f, static_cast<float>(g) / 255.0f, static_cast<float>(b) / 255.0f, 1.0f);
@@ -30,7 +35,7 @@ namespace GUI {
     // Loads the primary application font (Bahnschrift).
     // Should be called after ImGui::CreateContext() and before renderer init.
     // Returns true if custom font was loaded successfully, false otherwise.
-    bool LoadAppFont(float fontSize) {
+    bool LoadAppFont(float scale) {
         // Critical: Check if ImGui context is still valid before any ImGui operations
         if (!ImGui::GetCurrentContext()) {
             return false;
@@ -39,14 +44,21 @@ namespace GUI {
         ImGuiIO& io = ImGui::GetIO();
         bool success = false;
 
+        // Clear existing fonts
+        io.Fonts->Clear();
+
+        // Calculate scaled font size
+        float baseFontSize = DEFAULT_BASE_FONT_SIZE;
+        float scaledFontSize = baseFontSize * scale;
+
         // Add default font first as a fallback
         io.Fonts->AddFontDefault();
 
         std::string fontsDir = GetSystemFontsPath();
         if (!fontsDir.empty()) {
-            std::string fontPath = fontsDir + "\\bahnschrift.ttf"; // Use Bahnschrift
+            std::string fontPath = fontsDir + "\\" + std::string(CUSTOM_FONT_NAME); // Use Bahnschrift
 
-            ImFont* customFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontSize);
+            ImFont* customFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), scaledFontSize);
 
             if (customFont) {
                 // Set the loaded font as the default for ImGui to use.

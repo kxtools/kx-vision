@@ -38,10 +38,16 @@ namespace kx {
 #else
         bool showDebugAddresses = false;
 #endif
+
+        // GUI appearance settings
+        struct GuiSettings {
+            float uiScale = 1.0f;               // Menu UI scale (0.8 - 1.5)
+        } gui;
     };
 
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings::GuiSettings, uiScale);
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings, settingsVersion, playerESP, npcESP, objectESP, distance, scaling,
                                        sizes, appearance, espUpdateRate, hideDepletedNodes, autoSaveOnExit, enableDebugLogging,
-                                       showDebugAddresses);
+                                       showDebugAddresses, gui);
 
 } // namespace kx

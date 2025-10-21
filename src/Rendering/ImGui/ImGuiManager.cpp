@@ -37,7 +37,9 @@ bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
 
-    kx::GUI::LoadAppFont();
+    // Load font with saved UI scale
+    float uiScale = kx::AppState::Get().GetSettings().gui.uiScale;
+    kx::GUI::LoadAppFont(uiScale);
     kx::GUI::ApplyCustomStyle();
 
     if (!ImGui_ImplWin32_Init(hwnd)) return false;

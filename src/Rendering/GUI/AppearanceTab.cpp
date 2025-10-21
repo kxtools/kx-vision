@@ -164,6 +164,25 @@ namespace kx {
             }
         }
 
+        // Renders menu appearance settings (UI scale, etc.)
+        static void RenderMenuAppearance(Settings& settings) {
+            if (ImGui::CollapsingHeader("Menu Appearance")) {
+                if (ImGui::SliderFloat("UI Scale", &settings.gui.uiScale, 0.8f, 1.5f, "%.1fx")) {
+                    // Scale change will be applied on next app restart
+                }
+                
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Scale the menu interface size\n\n"
+                        "0.8x: Compact (more content visible)\n"
+                        "1.0x: Default (recommended)\n"
+                        "1.5x: Large (better for 4K displays)\n\n"
+                        "Note: Requires app restart to take effect"
+                    );
+                }
+            }
+        }
+
         // --- Main Tab Rendering Function ---
 
         void RenderAppearanceTab() {
@@ -176,6 +195,7 @@ namespace kx {
                 RenderGlobalSettings(settings);
                 RenderScalingSettings(settings);
                 RenderBaseSizeSettings(settings);
+                RenderMenuAppearance(settings);
 
                 ImGui::EndTabItem();
             }

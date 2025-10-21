@@ -7,7 +7,7 @@ namespace GUI {
     void ApplyCustomStyle();
 
     // Loads the primary application font
-    bool LoadAppFont(float fontSize = 16.0f);
+    bool LoadAppFont(float scale = 1.0f);
 
 } // namespace GUI
 } // namespace kx
