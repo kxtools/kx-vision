@@ -13,14 +13,19 @@ namespace kx {
         Both         // "1200 (30.5m)"
     };
 
-    /**
-     * @brief Distance-based rendering configuration
-     * 
-     * Controls how entities are culled and faded based on distance.
-     * Two modes with different philosophies:
-     * - Limit Mode: Natural Integration - mimics game's native behavior
-     * - No Limit Mode: Maximum Information Clarity - adaptive to scene
-     */
+/**
+ * @brief Distance-based rendering configuration
+ *
+ * Controls how entities are culled and faded based on distance.
+ * Two modes with different philosophies:
+ * - Limit Mode: Natural Integration - mimics game's native behavior
+ * - No Limit Mode: Maximum Information Clarity - adaptive to scene
+ * 
+ * Distance Measurement:
+ *   - All distances use real meters (Mumble Link standard)
+ *   - Display can show meters, GW2 units, or both
+ *   - 1 GW2 unit = 1 inch = 0.0254 meters
+ */
     struct DistanceSettings {
         // --- Distance Limiting ---
         bool useDistanceLimit = true;           // Enable/disable distance-based culling
