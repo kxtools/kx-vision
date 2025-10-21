@@ -148,11 +148,12 @@ namespace kx {
                     ImGui::Separator();
                     ImGui::Text("Log Level:");
                     
+#ifdef _DEBUG
+                    // Debug builds: Allow DEBUG level
                     int currentLogLevel = static_cast<int>(Debug::Logger::GetMinLogLevel());
                     const char* logLevels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" };
                     
                     if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
-                        // Update log level when changed
                         Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(currentLogLevel));
                     }
                     
@@ -163,6 +164,26 @@ namespace kx {
                                         "ERROR: Show only errors and critical (recommended)\n" 
                                         "CRITICAL: Show only critical errors");
                     }
+#else
+                    // Release builds: Start from INFO (skip DEBUG)
+                    int currentLogLevel = static_cast<int>(Debug::Logger::GetMinLogLevel());
+                    const char* logLevels[] = { "INFO", "WARNING", "ERROR", "CRITICAL" };
+                    
+                    // Adjust index: Logger uses 0=DEBUG, 1=INFO, but Release array starts at INFO
+                    int comboIndex = std::max(0, currentLogLevel - 1);
+                    
+                    if (ImGui::Combo("##LogLevel", &comboIndex, logLevels, IM_ARRAYSIZE(logLevels))) {
+                        // Map back: combo index 0=INFO (logger level 1), 1=WARNING (logger level 2), etc.
+                        Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(comboIndex + 1));
+                    }
+                    
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("INFO: Show info and above\n" 
+                                        "WARNING: Show warnings and above\n" 
+                                        "ERROR: Show only errors and critical (recommended)\n" 
+                                        "CRITICAL: Show only critical errors");
+                    }
+#endif
                 }
 
                 // Log Viewer (only show when debug logging is enabled)
