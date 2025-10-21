@@ -148,7 +148,7 @@ namespace kx {
                     ImGui::Separator();
                     ImGui::Text("Log Level:");
                     
-                    static int currentLogLevel = static_cast<int>(AppConfig::DEFAULT_LOG_LEVEL);
+                    int currentLogLevel = static_cast<int>(Debug::Logger::GetMinLogLevel());
                     const char* logLevels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" };
                     
                     if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
