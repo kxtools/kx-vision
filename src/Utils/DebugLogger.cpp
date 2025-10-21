@@ -17,6 +17,7 @@ namespace Debug {
 // Initialize static members
 std::shared_ptr<spdlog::logger> Logger::s_logger = nullptr;
 std::atomic<Logger::Level> Logger::s_minLogLevel{static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL)};
+std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> Logger::s_ringbuffer_sink = nullptr;
 
 /**
  * @brief Get the path for the log file
@@ -67,6 +68,18 @@ void Logger::Initialize() noexcept {
     try {
         // Create sinks
         std::vector<spdlog::sink_ptr> sinks;
+        
+        // Ringbuffer sink for GUI log viewer (1000 messages)
+        try {
+            s_ringbuffer_sink = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(1000);
+            s_ringbuffer_sink->set_level(spdlog::level::debug);
+            s_ringbuffer_sink->set_pattern("[%H:%M:%S.%e] [%l] %v");
+            sinks.push_back(s_ringbuffer_sink);
+        }
+        catch (...) {
+            // Ringbuffer sink failed, continue without it
+            s_ringbuffer_sink = nullptr;
+        }
         
         // Console sink with colors (Debug builds only)
         // Check if console is available before creating console sink
@@ -165,7 +178,7 @@ void Logger::Reinitialize() noexcept {
                     console_sink->set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
                     sinks.push_back(console_sink);
                     
-                    // Copy existing file sinks
+                    // Copy existing file sinks and ringbuffer sink
                     for (auto& sink : s_logger->sinks()) {
                         if (dynamic_cast<spdlog::sinks::stdout_color_sink_mt*>(sink.get()) == nullptr) {
                             sinks.push_back(sink);
@@ -361,6 +374,22 @@ void Logger::LogException(const std::string& className, const std::string& metho
     }
     catch (...) {
         // Ignore formatting errors
+    }
+}
+
+/**
+ * @brief Get recent logs from ringbuffer for GUI display
+ */
+std::vector<std::string> Logger::GetRecentLogs(size_t limit) noexcept {
+    try {
+        if (!s_ringbuffer_sink) {
+            return std::vector<std::string>();
+        }
+        
+        return s_ringbuffer_sink->last_formatted(limit);
+    }
+    catch (...) {
+        return std::vector<std::string>();
     }
 }
 

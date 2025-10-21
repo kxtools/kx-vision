@@ -1,5 +1,6 @@
 #include "SettingsTab.h"
 #include <string>
+#include <algorithm>
 #include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
 #include "../../Core/SettingsManager.h"
@@ -10,6 +11,69 @@
 
 namespace kx {
     namespace GUI {
+        
+        // Helper function to parse log level from formatted log string
+        static std::string ExtractLogLevel(const std::string& logLine) {
+            // Format: [HH:MM:SS.mmm] [level] message
+            size_t firstBracket = logLine.find(']');
+            if (firstBracket != std::string::npos && firstBracket + 2 < logLine.length()) {
+                size_t secondBracket = logLine.find(']', firstBracket + 1);
+                if (secondBracket != std::string::npos) {
+                    return logLine.substr(firstBracket + 2, secondBracket - firstBracket - 2);
+                }
+            }
+            return "info"; // Default fallback
+        }
+        
+        // Helper function to get color for log level
+        static ImVec4 GetLogLevelColor(const std::string& level) {
+            if (level == "debug") return ImVec4(0.7f, 0.7f, 0.7f, 1.0f);      // Gray
+            if (level == "info") return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // White
+            if (level == "warn") return ImVec4(1.0f, 0.8f, 0.0f, 1.0f);       // Yellow
+            if (level == "err") return ImVec4(1.0f, 0.3f, 0.3f, 1.0f);        // Red
+            if (level == "critical") return ImVec4(1.0f, 0.0f, 0.0f, 1.0f);   // Bright red
+            return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Default white
+        }
+        
+        void RenderLogViewer() {
+            // Cache logs for performance - only fetch when count changes
+            static std::vector<std::string> cachedLogs;
+            static size_t lastLogCount = 0;
+            
+            // Check if we need to refresh logs
+            auto currentLogs = Debug::Logger::GetRecentLogs();
+            if (currentLogs.size() != lastLogCount) {
+                cachedLogs = std::move(currentLogs);
+                lastLogCount = cachedLogs.size();
+            }
+            
+            // Log viewer controls
+            ImGui::Text("Showing %zu logs", cachedLogs.size());
+            ImGui::SameLine();
+            if (ImGui::Button("Copy All")) {
+                std::string allLogs;
+                for (const auto& log : cachedLogs) {
+                    allLogs += log + "\n";
+                }
+                ImGui::SetClipboardText(allLogs.c_str());
+            }
+            
+            // Log display area
+            ImGui::Separator();
+            if (ImGui::BeginChild("LogViewer", ImVec2(0, 200), true, ImGuiWindowFlags_HorizontalScrollbar)) {
+                for (const auto& log : cachedLogs) {
+                    std::string level = ExtractLogLevel(log);
+                    ImVec4 color = GetLogLevelColor(level);
+                    
+                    ImGui::PushStyleColor(ImGuiCol_Text, color);
+                    ImGui::TextUnformatted(log.c_str());
+                    ImGui::PopStyleColor();
+                }
+                
+                ImGui::EndChild();
+            }
+        }
+        
         void RenderSettingsTab() {
             if (ImGui::BeginTabItem("Settings")) {
                 auto& settings = AppState::Get().GetSettings();
@@ -80,26 +144,31 @@ namespace kx {
                     }
 #endif
 
-                    // Log level selection
-                    if (settings.enableDebugLogging) {
-                        ImGui::Separator();
-                        ImGui::Text("Log Level:");
-                        
-                        static int currentLogLevel = static_cast<int>(AppConfig::DEFAULT_LOG_LEVEL);
-                        const char* logLevels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" };
-                        
-                        if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
-                            // Update log level when changed
-                            Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(currentLogLevel));
-                        }
-                        
-                        if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("DEBUG: Show all logs (very verbose)\n" 
-                                            "INFO: Show info and above\n" 
-                                            "WARNING: Show warnings and above\n" 
-                                            "ERROR: Show only errors and critical (recommended)\n" 
-                                            "CRITICAL: Show only critical errors");
-                        }
+                    // Log level selection (always visible)
+                    ImGui::Separator();
+                    ImGui::Text("Log Level:");
+                    
+                    static int currentLogLevel = static_cast<int>(AppConfig::DEFAULT_LOG_LEVEL);
+                    const char* logLevels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" };
+                    
+                    if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
+                        // Update log level when changed
+                        Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(currentLogLevel));
+                    }
+                    
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("DEBUG: Show all logs (very verbose)\n" 
+                                        "INFO: Show info and above\n" 
+                                        "WARNING: Show warnings and above\n" 
+                                        "ERROR: Show only errors and critical (recommended)\n" 
+                                        "CRITICAL: Show only critical errors");
+                    }
+                }
+
+                // Log Viewer (only show when debug logging is enabled)
+                if (settings.enableDebugLogging) {
+                    if (ImGui::CollapsingHeader("Log Viewer")) {
+                        RenderLogViewer();
                     }
                 }
 

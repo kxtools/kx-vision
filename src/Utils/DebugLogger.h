@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/ringbuffer_sink.h>
 #include "../Core/AppState.h"
 #include "MemorySafety.h"
 
@@ -38,6 +39,7 @@ private:
     // spdlog logger instance
     static std::shared_ptr<spdlog::logger> s_logger;
     static std::atomic<Level> s_minLogLevel;
+    static std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> s_ringbuffer_sink;
     
     // Helper methods
     static std::string GetLogFilePath() noexcept;
@@ -66,6 +68,9 @@ public:
     
     // Get the underlying spdlog logger for direct access
     static std::shared_ptr<spdlog::logger> GetLogger() noexcept { return s_logger; }
+    
+    // Get recent logs from ringbuffer for GUI display
+    static std::vector<std::string> GetRecentLogs(size_t limit = 0) noexcept;
     
     // Helper function to check if a level should be logged (used by macros)
     static bool ShouldLog(Level level) noexcept;
