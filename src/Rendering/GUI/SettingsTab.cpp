@@ -86,6 +86,7 @@ namespace kx {
                     ImGui::SameLine();
                     if (ImGui::Button("Reload Settings")) {
                         SettingsManager::Load(settings);
+                        Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(settings.logLevel));
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Reset to Defaults")) {
@@ -98,6 +99,7 @@ namespace kx {
                         ImGui::Separator();
                         if (ImGui::Button("OK", ImVec2(120, 0))) { 
                             settings = Settings(); // Reset to default
+                            Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(settings.logLevel));
                             ImGui::CloseCurrentPopup(); 
                         }
                         ImGui::SetItemDefaultFocus();
