@@ -1,6 +1,7 @@
 #include "Bootstrap.h"
 #include "../Utils/DebugLogger.h"
 #include "../Utils/Console.h"
+#include "AppState.h"
 #include <cstdio>
 
 namespace kx {
@@ -35,6 +36,11 @@ namespace kx {
 
     void Bootstrap::Initialize(const char* modeName) {
         InitializeLogging();
+        
+        // Load settings and apply saved log level early
+        AppState::Get();  // Force settings load
+        LOG_INIT_WITH_SETTINGS();
+        
         InitializeConsole();
         LOG_INFO("KX Vision starting up in %s mode...", modeName);
     }

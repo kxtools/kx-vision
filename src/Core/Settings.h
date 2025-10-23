@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "../../libs/nlohmann/json.hpp"
 #include "Settings/SettingsConstants.h"
 #include "Settings/ESPSettings.h"
@@ -32,6 +33,7 @@ namespace kx {
 
         // Debug options
         bool enableDebugLogging = true;
+        int logLevel = AppConfig::DEFAULT_LOG_LEVEL;  // Log level (0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR, 4=CRITICAL)
 
 #ifdef _DEBUG
         bool showDebugAddresses = true;         // Show entity memory addresses on ESP
@@ -49,6 +51,6 @@ namespace kx {
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings::GuiSettings, uiScale, menuOpacity);
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings, settingsVersion, playerESP, npcESP, objectESP, distance, scaling,
                                        sizes, appearance, espUpdateRate, hideDepletedNodes, autoSaveOnExit, enableDebugLogging,
-                                       showDebugAddresses, gui);
+                                       logLevel, showDebugAddresses, gui);
 
 } // namespace kx

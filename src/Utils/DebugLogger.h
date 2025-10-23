@@ -49,6 +49,9 @@ public:
     // Initialize logger (call once at startup for guaranteed proper initialization)
     static void Initialize() noexcept;
     
+    // Initialize logger with settings (call after settings are loaded)
+    static void InitializeWithSettings() noexcept;
+    
     // Reinitialize logger (call after console setup to enable console output)
     static void Reinitialize() noexcept;
     
@@ -244,6 +247,9 @@ public:
 
 // Convenience macro to initialize logger
 #define LOG_INIT() kx::Debug::Logger::Initialize()
+
+// Convenience macro to initialize logger with settings
+#define LOG_INIT_WITH_SETTINGS() kx::Debug::Logger::InitializeWithSettings()
 
 // Convenience macro to reinitialize logger (after console setup)
 #define LOG_REINIT() kx::Debug::Logger::Reinitialize()

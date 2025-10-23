@@ -155,6 +155,8 @@ namespace kx {
                     
                     if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
                         Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(currentLogLevel));
+                        auto& settings = AppState::Get().GetSettings();
+                        settings.logLevel = currentLogLevel;
                     }
                     
                     if (ImGui::IsItemHovered()) {
@@ -174,7 +176,10 @@ namespace kx {
                     
                     if (ImGui::Combo("##LogLevel", &comboIndex, logLevels, IM_ARRAYSIZE(logLevels))) {
                         // Map back: combo index 0=INFO (logger level 1), 1=WARNING (logger level 2), etc.
-                        Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(comboIndex + 1));
+                        int actualLogLevel = comboIndex + 1;
+                        Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(actualLogLevel));
+                        auto& settings = AppState::Get().GetSettings();
+                        settings.logLevel = actualLogLevel;
                     }
                     
                     if (ImGui::IsItemHovered()) {

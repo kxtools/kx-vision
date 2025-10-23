@@ -147,6 +147,37 @@ void Logger::Initialize() noexcept {
 }
 
 /**
+ * @brief Initialize logger with settings (call after settings are loaded)
+ */
+void Logger::InitializeWithSettings() noexcept {
+    try {
+        // Get log level from settings, fallback to default if not available
+        int logLevel = AppConfig::DEFAULT_LOG_LEVEL;
+        try {
+            logLevel = AppState::Get().GetSettings().logLevel;
+        }
+        catch (...) {
+            // If AppState is not available yet, use default
+        }
+        
+        // Set the log level
+        s_minLogLevel.store(static_cast<Level>(logLevel), std::memory_order_release);
+        if (s_logger) {
+            s_logger->set_level(ConvertLevel(static_cast<Level>(logLevel)));
+        }
+        
+        LOG_INFO("Logger initialized with log level: %d", logLevel);
+    }
+    catch (...) {
+        // If initialization fails, use default log level
+        s_minLogLevel.store(static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL), std::memory_order_release);
+        if (s_logger) {
+            s_logger->set_level(ConvertLevel(static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL)));
+        }
+    }
+}
+
+/**
  * @brief Reinitialize logger (call after console setup to enable console output)
  */
 void Logger::Reinitialize() noexcept {
