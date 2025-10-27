@@ -239,11 +239,11 @@ void ESPShapeRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::ve
 }
 
 unsigned int ESPShapeRenderer::ApplyAlphaToColor(unsigned int color, float alpha) {
-    // Extract RGBA components
-    int r = (color >> 16) & 0xFF;
-    int g = (color >> 8) & 0xFF;
-    int b = color & 0xFF;
-    int originalAlpha = (color >> 24) & 0xFF;
+    // Extract RGBA components using ImGui's standard bit shifts
+    int r = (color >> IM_COL32_R_SHIFT) & 0xFF;
+    int g = (color >> IM_COL32_G_SHIFT) & 0xFF;
+    int b = (color >> IM_COL32_B_SHIFT) & 0xFF;
+    int originalAlpha = (color >> IM_COL32_A_SHIFT) & 0xFF;
     
     // Apply alpha multiplier while preserving original alpha intentions
     int newAlpha = static_cast<int>(originalAlpha * alpha);
