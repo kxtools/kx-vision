@@ -69,14 +69,7 @@ namespace kx {
         // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
         Hooking::D3DRenderHook::SetLifecycleManager(this);
 
-        // Initialize core services early for GW2AL mode (needed for ESP rendering)
-        AddressManager::Initialize();
-        LOG_INFO("AppLifecycleManager: AddressManager initialized for GW2AL mode");
-        
-        ESPRenderer::Initialize(m_camera);
-        LOG_INFO("AppLifecycleManager: ESPRenderer initialized for GW2AL mode");
-
-        // Transition to WaitingForGame - we'll check in OnPresent if we should initialize
+        // Transition to WaitingForGame - services will be initialized when player enters game
         m_currentState = State::WaitingForGame;
     }
 
@@ -290,12 +283,11 @@ namespace kx {
     bool AppLifecycleManager::InitializeGameServices() {
         LOG_INFO("AppLifecycleManager: Initializing game services");
 
-        // Initialize AddressManager (if not already initialized in GW2AL mode)
+        // Initialize AddressManager (both DLL and GW2AL modes)
         AddressManager::Initialize();
         LOG_INFO("AppLifecycleManager: AddressManager initialized");
 
-        // Initialize ESPRenderer with Camera reference (if not already initialized)
-        // In GW2AL mode, this may have been initialized earlier in OnRendererInitialized()
+        // Initialize ESPRenderer with Camera reference (both DLL and GW2AL modes)
         ESPRenderer::Initialize(m_camera);
         LOG_INFO("AppLifecycleManager: ESPRenderer initialized");
 
