@@ -165,40 +165,40 @@ namespace kx {
             L"• Keep it 100% free and ad-free forever\r\n\r\n"
             L"Click Yes to visit my GitHub Sponsors page.";
         
-        int result = MessageBoxW(NULL, message, title, MB_ICONINFORMATION | MB_YESNO | MB_TOPMOST | MB_SETFOREGROUND);
-        
-        if (result == IDYES) {
-            ShellExecuteW(NULL, L"open", L"https://github.com/sponsors/Krixx1337", NULL, NULL, SW_SHOWNORMAL);
-            Sleep(500);
+            int result = MessageBoxW(NULL, message, title, MB_ICONINFORMATION | MB_YESNO | MB_TOPMOST | MB_SETFOREGROUND);
+            
+            if (result == IDYES) {
+                ShellExecuteW(NULL, L"open", L"https://github.com/sponsors/Krixx1337", NULL, NULL, SW_SHOWNORMAL);
+                Sleep(500);
+            }
+        } else {
+            // Still set the flag even if we don't show, so we don't check again
+            AppState::Get().SetDonationPromptShown(true);
         }
-    } else {
-        // Still set the flag even if we don't show, so we don't check again
-        AppState::Get().SetDonationPromptShown(true);
     }
-}
 
-void AppLifecycleManager::Shutdown() {
-    LOG_INFO("AppLifecycleManager: Full shutdown requested");
-    
-    // Perform the save FIRST. This function handles the atomic flag.
-    SaveSettingsOnExit(); 
-    
-    m_currentState = State::ShuttingDown;
-    
-    // Give hooks a moment to recognize the flag before cleanup starts
-    // This helps prevent calls into ImGui after it's destroyed
-    Sleep(Timing::SHUTDOWN_GRACE_MS);
-    
-    CleanupServices();
-    
-    LOG_INFO("AppLifecycleManager: Shutdown complete");
-}
+    void AppLifecycleManager::Shutdown() {
+        LOG_INFO("AppLifecycleManager: Full shutdown requested");
+        
+        // Perform the save FIRST. This function handles the atomic flag.
+        SaveSettingsOnExit(); 
+        
+        m_currentState = State::ShuttingDown;
+        
+        // Give hooks a moment to recognize the flag before cleanup starts
+        // This helps prevent calls into ImGui after it's destroyed
+        Sleep(Timing::SHUTDOWN_GRACE_MS);
+        
+        CleanupServices();
+        
+        LOG_INFO("AppLifecycleManager: Shutdown complete");
+    }
 
-bool AppLifecycleManager::IsShutdownRequested() const {
-    // Only DELETE key triggers shutdown (not the window close button)
-    // Closing the window (X button) just hides it - user can press INSERT to show again
-    return (GetAsyncKeyState(Hotkeys::EXIT_APPLICATION) & 0x8000);
-}
+    bool AppLifecycleManager::IsShutdownRequested() const {
+        // Only DELETE key triggers shutdown (not the window close button)
+        // Closing the window (X button) just hides it - user can press INSERT to show again
+        return (GetAsyncKeyState(Hotkeys::EXIT_APPLICATION) & 0x8000);
+    }
 
     const char* AppLifecycleManager::GetCurrentStateName() const {
         switch (m_currentState) {
@@ -260,8 +260,11 @@ bool AppLifecycleManager::IsShutdownRequested() const {
             break;
 
         case State::Running:
-            // In GW2AL mode, we don't need to do anything special in Running state
-            // The render thread handles everything
+            // Show donation prompt once after entering Running state (game fully loaded)
+            if (!m_donationPromptShownOnStartup) {
+                m_donationPromptShownOnStartup = true;
+                ShowDonationPromptIfNeeded();
+            }
             break;
 
         default:
