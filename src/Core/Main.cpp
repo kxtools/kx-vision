@@ -90,6 +90,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 
     case DLL_PROCESS_DETACH:
     {
+        // Show donation prompt if applicable (flag prevents double-calling)
+        kx::g_App.ShowDonationPromptIfNeeded();
+        
         // The guaranteed fallback save
         kx::g_App.SaveSettingsOnExit();
 

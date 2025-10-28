@@ -128,6 +128,11 @@ public:
     void RenderTick(HWND windowHandle, float displayWidth, float displayHeight, 
                     ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView);
 
+    /**
+     * @brief Show donation prompt with 30% random chance (if not already shown this session)
+     */
+    void ShowDonationPromptIfNeeded();
+
 private:
     /**
      * @brief Application lifecycle states

@@ -50,6 +50,10 @@ namespace kx {
         // --- Shutdown Synchronization ---
         bool IsShuttingDown() const { return m_isShuttingDown.load(std::memory_order_acquire); }
         void SetShuttingDown(bool shutting_down) { m_isShuttingDown.store(shutting_down, std::memory_order_release); }
+        
+        // --- Donation Prompt State ---
+        bool IsDonationPromptShown() const { return m_donationPromptShown; }
+        void SetDonationPromptShown(bool shown) { m_donationPromptShown = shown; }
 
         // --- Debug Logging Helper ---
         bool IsDebugLoggingEnabled() const { return m_settings.enableDebugLogging; }
@@ -74,6 +78,7 @@ namespace kx {
         bool m_isVisionWindowOpen = false;  // Release: Hide GUI by default (press INSERT to toggle)
         #endif
         std::atomic<bool> m_isShuttingDown = false;
+        bool m_donationPromptShown = false; // Session-only flag (not persisted)
 
         // Adaptive far plane calculator
         AdaptiveFarPlaneCalculator m_adaptiveFarPlaneCalculator;

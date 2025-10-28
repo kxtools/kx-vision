@@ -235,7 +235,7 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
  */
 extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting) {
     LOG_INFO("KXVision unloading in GW2AL mode...");
-
+    
     // Unsubscribe from events to prevent callbacks to an unloaded module
     if (g_al_api) {
         g_al_api->unwatch_event(
@@ -250,10 +250,10 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting)
 
     // Perform cleanup via the lifecycle manager
     kx::g_App.Shutdown();
-
+    
     LOG_INFO("KXVision shut down successfully in GW2AL mode");
     kx::Bootstrap::Cleanup();
-
+    
     return GW2AL_OK;
 }
 
@@ -269,10 +269,15 @@ BOOL APIENTRY DllMain(HMODULE hModule,
         break;
 
     case DLL_PROCESS_DETACH:
-        // This is our fallback for when the game closes without calling gw2addon_unload.
-        // We call our minimal, safer save function. The atomic flag inside
-        // SaveSettingsOnExit() will prevent it from running if the clean Shutdown()
-        // path has already been taken.
+        // Exit flow explanation for GW2AL mode:
+        // 1. When game closes normally -> gw2addon_unload() is called -> Shutdown() -> done
+        // 2. If unload fails or game crashes -> Windows calls DllMain(..., DLL_PROCESS_DETACH)
+        // This is the fallback path that ensures donation prompt and settings save happen even
+        // if the clean gw2addon_unload path isn't taken.
+        //
+        // The atomic flag in SaveSettingsOnExit() prevents duplicate saves if Shutdown()
+        // was already called.
+        kx::g_App.ShowDonationPromptIfNeeded();
         kx::g_App.SaveSettingsOnExit();
         break;
     }
