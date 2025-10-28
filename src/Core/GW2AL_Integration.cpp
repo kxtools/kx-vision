@@ -272,12 +272,11 @@ BOOL APIENTRY DllMain(HMODULE hModule,
         // Exit flow explanation for GW2AL mode:
         // 1. When game closes normally -> gw2addon_unload() is called -> Shutdown() -> done
         // 2. If unload fails or game crashes -> Windows calls DllMain(..., DLL_PROCESS_DETACH)
-        // This is the fallback path that ensures donation prompt and settings save happen even
+        // This is the fallback path that ensures settings save happens even
         // if the clean gw2addon_unload path isn't taken.
         //
         // The atomic flag in SaveSettingsOnExit() prevents duplicate saves if Shutdown()
         // was already called.
-        kx::g_App.ShowDonationPromptIfNeeded();
         kx::g_App.SaveSettingsOnExit();
         break;
     }

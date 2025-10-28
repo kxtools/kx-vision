@@ -149,6 +149,7 @@ private:
 
     State m_currentState = State::PreInit;
     bool m_servicesInitialized = false;
+    bool m_donationPromptShownOnStartup = false;
 
     // Core game state (owned by lifecycle manager)
     Camera m_camera;

@@ -156,13 +156,13 @@ namespace kx {
                 SetForegroundWindow(hwnd);
             }
             
-            const wchar_t* title = L"Thank You for Using KX Vision!";
-            const wchar_t* message = 
-                L"Thank you for using KX Vision!\r\n\r\n"
-                L"This is free, open-source software, but it still costs money to write, support, and distribute it.\r\n\r\n"
-                L"If you enjoy using it, please consider a donation to help:\r\n"
-                L"• Build new features and fix bugs\r\n"
-                L"• Keep it 100% free and ad-free forever\r\n\r\n"
+        const wchar_t* title = L"Thank You for Using KX Vision!";
+        const wchar_t* message = 
+            L"Thank you for using KX Vision!\r\n\r\n"
+            L"This is free, open-source software, but it still costs money to write, support, and distribute it.\r\n\r\n"
+            L"If you enjoy using it, please consider a donation to help:\r\n"
+            L"• Build new features and fix bugs\r\n"
+            L"• Keep it 100% free and ad-free forever\r\n\r\n"
             L"Click Yes to visit my GitHub Sponsors page.";
         
         int result = MessageBoxW(NULL, message, title, MB_ICONINFORMATION | MB_YESNO | MB_TOPMOST | MB_SETFOREGROUND);
@@ -179,8 +179,6 @@ namespace kx {
 
 void AppLifecycleManager::Shutdown() {
     LOG_INFO("AppLifecycleManager: Full shutdown requested");
-    
-    ShowDonationPromptIfNeeded();
     
     // Perform the save FIRST. This function handles the atomic flag.
     SaveSettingsOnExit(); 
@@ -301,6 +299,12 @@ bool AppLifecycleManager::IsShutdownRequested() const {
     }
 
     void AppLifecycleManager::HandleRunningState() {
+        // Show donation prompt once after entering Running state (game fully loaded)
+        if (!m_donationPromptShownOnStartup) {
+            m_donationPromptShownOnStartup = true;
+            ShowDonationPromptIfNeeded();
+        }
+        
         // Normal operation - just sleep to avoid busy-waiting
         // Note: Camera and MumbleLink are updated per-frame in D3DRenderHook::RenderFrame
         Sleep(Timing::RUNNING_POLL_INTERVAL_MS);
