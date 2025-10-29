@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <vector>
 
 // --- HELPER FUNCTIONS ---
 
@@ -17,6 +18,60 @@ struct OffsetDiagnostic {
     
     OffsetDiagnostic() : is_valid(true), failed_at(""), failed_offset(0), failed_address(nullptr) {}
 };
+
+std::string DiagnoseOffset(
+    void* basePtr,
+    const std::string& structName,
+    const std::string& offsetName,
+    uintptr_t offsetValue,
+    size_t valueSize = sizeof(uint32_t)
+) {
+    if (!basePtr) {
+        return structName + " base pointer is NULL";
+    }
+    
+    uintptr_t baseAddr = reinterpret_cast<uintptr_t>(basePtr);
+    uintptr_t targetAddr = baseAddr + offsetValue;
+    
+    std::stringstream ss;
+    ss << "\n   → Sample " << structName << " @0x" << std::hex << baseAddr;
+    ss << ", " << offsetName << "(0x" << std::hex << offsetValue << ") → addr:0x" << std::hex << targetAddr;
+    
+    // Read value at offset
+    if (valueSize == sizeof(uint32_t)) {
+        uint32_t value = 0;
+        kx::Debug::SafeRead(basePtr, offsetValue, value);
+        ss << " = 0x" << std::hex << value;
+    } else if (valueSize == sizeof(uint64_t)) {
+        uint64_t value = 0;
+        kx::Debug::SafeRead(basePtr, offsetValue, value);
+        ss << " = 0x" << std::hex << value;
+    } else if (valueSize == sizeof(uint16_t)) {
+        uint16_t value = 0;
+        kx::Debug::SafeRead(basePtr, offsetValue, value);
+        ss << " = 0x" << std::hex << value;
+    } else if (valueSize == sizeof(uint8_t)) {
+        uint8_t value = 0;
+        kx::Debug::SafeRead(basePtr, offsetValue, value);
+        ss << " = 0x" << std::hex << static_cast<uint32_t>(value);
+    }
+    
+    // Generate nearby offset suggestions (±8, ±16 byte increments)
+    ss << "\n   → Inspect in Cheat Engine, try nearby offsets: ";
+    std::vector<uintptr_t> suggestions;
+    for (int delta : {-16, -8, 8, 16, 24}) {
+        if (static_cast<int>(offsetValue) + delta >= 0) {
+            suggestions.push_back(offsetValue + delta);
+        }
+    }
+    
+    for (size_t i = 0; i < suggestions.size(); ++i) {
+        if (i > 0) ss << ", ";
+        ss << "0x" << std::hex << suggestions[i];
+    }
+    
+    return ss.str();
+}
 
 std::string DiagnoseGadgetAccess(const kx::ReClass::GdCliGadget& gadget) {
     if (!gadget.data()) {
@@ -86,9 +141,14 @@ std::string FindCharacterWithDiagnostics(kx::ReClass::ChCliContext& context, Pre
     kx::SafeAccess::CharacterList characterList(context);
     size_t totalCount = 0;
     std::map<int, int> typeCounts;
+    kx::ReClass::ChCliCharacter firstCharacter(nullptr);
     
     for (const auto& character : characterList) {
         totalCount++;
+        if (totalCount == 1) {
+            firstCharacter = character;
+        }
+        
         if (p(character)) {
             diagnosticInfo = DiagnoseCharacterAccess(character);
             return "Found";
@@ -103,6 +163,12 @@ std::string FindCharacterWithDiagnostics(kx::ReClass::ChCliContext& context, Pre
     for (auto& pair : typeCounts) {
         ss << pair.first << "(" << pair.second << ") ";
     }
+    
+    // If suspiciously few attitude types, show memory address details
+    if (totalCount > 5 && typeCounts.size() <= 2 && firstCharacter.data()) {
+        ss << DiagnoseOffset(firstCharacter.data(), "ChCliCharacter", "ATTITUDE", 0x00C0);
+    }
+    
     diagnosticInfo = ss.str();
     return "NotFound";
 }
@@ -113,9 +179,14 @@ std::string FindGadgetWithDiagnostics(kx::ReClass::GdCliContext& context, Predic
     kx::SafeAccess::GadgetList gadgetList(context);
     size_t totalCount = 0;
     std::map<int, int> typeCounts;
+    kx::ReClass::GdCliGadget firstGadget(nullptr);
     
     for (const auto& gadget : gadgetList) {
         totalCount++;
+        if (totalCount == 1) {
+            firstGadget = gadget;
+        }
+        
         auto type = gadget.GetGadgetType();
         typeCounts[static_cast<int>(type)]++;
         
@@ -131,6 +202,12 @@ std::string FindGadgetWithDiagnostics(kx::ReClass::GdCliContext& context, Predic
     for (auto& pair : typeCounts) {
         ss << pair.first << "(" << pair.second << ") ";
     }
+    
+    // If all gadgets have type 0, show memory address details for Cheat Engine inspection
+    if (totalCount > 0 && typeCounts.size() == 1 && typeCounts.count(0) > 0 && firstGadget.data()) {
+        ss << DiagnoseOffset(firstGadget.data(), "GdCliGadget", "TYPE", 0x0200);
+    }
+    
     diagnosticInfo = ss.str();
     return "NotFound";
 }
