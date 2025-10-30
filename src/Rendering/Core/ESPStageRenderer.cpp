@@ -10,6 +10,7 @@
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
+#include "../Renderers/ESPTrailRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <sstream>
@@ -85,6 +86,11 @@ void ESPStageRenderer::RenderFrameData(const FrameContext& context, const Pooled
             
             // Render using the fresh visual properties.
             RenderEntityComponents(context, entityContext, *liveVisualsOpt);
+            
+            // Render movement trail for players
+            if (entityContext.entityType == ESPEntityType::Player) {
+                ESPTrailRenderer::RenderPlayerTrail(context, entityContext, *liveVisualsOpt);
+            }
         }
     }
 }

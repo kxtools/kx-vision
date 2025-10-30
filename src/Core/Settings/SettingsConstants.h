@@ -22,4 +22,12 @@ namespace kx {
         Special = 1     // Mount or other special energy
     };
 
+    /**
+     * @brief Display mode for movement trails
+     */
+    enum class TrailDisplayMode {
+        Hostile = 0,  // Show only enemy trails (PvP/WvW)
+        All = 1       // Show all player trails
+    };
+
 } // namespace kx

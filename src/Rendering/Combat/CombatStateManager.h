@@ -67,5 +67,6 @@ namespace kx
         void UpdateBarrierState(RenderableEntity* entity, EntityCombatState& state, uint64_t now);
         void ProcessHealthChanges(RenderableEntity* entity, EntityCombatState& state, uint64_t now);
         void TriggerDamageFlushIfNeeded(EntityCombatState& state, uint64_t now);
+        void UpdatePositionHistory(EntityCombatState& state, const RenderableEntity* entity, uint64_t now);
 	};
 } // namespace kx

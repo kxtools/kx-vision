@@ -15,6 +15,17 @@ namespace kx {
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AttitudeSettings, showFriendly, showHostile, showNeutral, showIndifferent);
 
+    struct TrailSettings {
+        bool enabled = false;
+        int maxPoints = 30;
+        float maxDuration = 1.0f;
+        TrailDisplayMode displayMode = TrailDisplayMode::Hostile;
+        float thickness = 2.0f;
+        float teleportThreshold = 25.0f;
+    };
+
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TrailSettings, enabled, maxPoints, maxDuration, displayMode, thickness, teleportThreshold);
+
     struct PlayerEspSettings : AttitudeSettings {
         bool enabled = true;
         bool renderBox = false;
@@ -40,6 +51,7 @@ namespace kx {
         bool showDetailRank = true;
         bool showDetailProfession = true;
         bool showDetailRace = true;
+        TrailSettings trails;
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerEspSettings, enabled, renderBox, renderDistance, renderDot, renderDetails,
@@ -48,7 +60,7 @@ namespace kx {
                                        gearDisplayMode, energyDisplayType, showDetailLevel, showDetailHp,
                                        showDetailAttitude, showDetailEnergy, showDetailPosition, showDetailRank,
                                        showDetailProfession, showDetailRace, showFriendly, showHostile, showNeutral,
-                                       showIndifferent);
+                                       showIndifferent, trails);
 
     struct NpcEspSettings : AttitudeSettings {
         bool enabled = true;
