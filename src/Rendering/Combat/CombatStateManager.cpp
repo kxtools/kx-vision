@@ -1,9 +1,14 @@
 #include "CombatStateManager.h"
 #include "../Utils/ESPConstants.h"
+#include "../../Core/AppState.h"
 #include <algorithm>
+#include <glm/geometric.hpp>
 
 namespace kx
 {
+	namespace {
+		constexpr float MIN_POSITION_CHANGE = 0.1f;
+	}
 
 	EntityCombatState& CombatStateManager::AcquireState(const RenderableEntity* entity)
 	{
@@ -149,6 +154,7 @@ namespace kx
 		ProcessHealthChanges(entity, state, now);
 
 		TriggerDamageFlushIfNeeded(state, now);
+		UpdatePositionHistory(state, entity, now);
 		
 		// --- Final State Update for Next Frame ---
 		state.lastKnownHealth = currentHealth;
@@ -232,6 +238,41 @@ namespace kx
 	{
 		auto it = m_entityStates.find(entityId);
 		return (it != m_entityStates.end()) ? &it->second : nullptr;
+	}
+
+	void CombatStateManager::UpdatePositionHistory(EntityCombatState& state, const RenderableEntity* entity, uint64_t now)
+	{
+		const auto& settings = AppState::Get().GetSettings();
+		const size_t MAX_HISTORY_POINTS = static_cast<size_t>(settings.playerESP.trails.maxPoints);
+		const uint64_t maxDurationMs = static_cast<uint64_t>(settings.playerESP.trails.maxDuration * 1000.0f);
+		
+		// Prune old points based on time
+		while (!state.positionHistory.empty()) {
+			const auto& oldestPoint = state.positionHistory.front();
+			if (now - oldestPoint.timestamp > maxDurationMs) {
+				state.positionHistory.pop_front();
+			} else {
+				break;
+			}
+		}
+		
+		bool shouldRecordPosition = state.positionHistory.empty();
+		if (!shouldRecordPosition) {
+			const glm::vec3& lastPos = state.positionHistory.back().position;
+			float distanceMoved = glm::distance(entity->position, lastPos);
+			shouldRecordPosition = (distanceMoved >= MIN_POSITION_CHANGE);
+		}
+		
+		if (shouldRecordPosition) {
+			PositionHistoryPoint newPoint;
+			newPoint.position = entity->position;
+			newPoint.timestamp = now;
+			state.positionHistory.push_back(newPoint);
+			
+			if (state.positionHistory.size() > MAX_HISTORY_POINTS) {
+				state.positionHistory.pop_front();
+			}
+		}
 	}
 
 	void CombatStateManager::Prune(const std::unordered_set<const void*>& activeEntities)

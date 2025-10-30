@@ -65,6 +65,52 @@ namespace kx {
                             ImGui::Unindent();
                         }
                     }
+
+                    if (ImGui::CollapsingHeader("Movement Trails")) {
+                        ImGui::Checkbox("Enable Trails", &settings.playerESP.trails.enabled);
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Show smooth movement trails behind players for tactical awareness.");
+                        }
+
+                        if (settings.playerESP.trails.enabled) {
+                            ImGui::Indent();
+
+                            const char* displayModes[] = { "Hostile Only", "All Players" };
+                            int displayModeInt = static_cast<int>(settings.playerESP.trails.displayMode);
+                            ImGui::PushItemWidth(250.0f);
+                            if (ImGui::Combo("Display Mode", &displayModeInt, displayModes, IM_ARRAYSIZE(displayModes))) {
+                                settings.playerESP.trails.displayMode = static_cast<TrailDisplayMode>(displayModeInt);
+                            }
+                            ImGui::PopItemWidth();
+
+                            ImGui::PushItemWidth(250.0f);
+                            ImGui::SliderInt("Max Trail Points", &settings.playerESP.trails.maxPoints, 15, 60);
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("Maximum number of position history points to store per player.");
+                            }
+                            ImGui::PopItemWidth();
+
+                            ImGui::PushItemWidth(250.0f);
+                            ImGui::SliderFloat("Max Duration (s)", &settings.playerESP.trails.maxDuration, 0.5f, 3.0f, "%.1f");
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("Maximum time (in seconds) to keep trail history. 1.0s recommended for fast PvP.");
+                            }
+                            ImGui::PopItemWidth();
+
+                            ImGui::PushItemWidth(250.0f);
+                            ImGui::SliderFloat("Line Thickness", &settings.playerESP.trails.thickness, 1.0f, 5.0f, "%.1f");
+                            ImGui::PopItemWidth();
+
+                            ImGui::PushItemWidth(250.0f);
+                            ImGui::SliderFloat("Teleport Threshold (m)", &settings.playerESP.trails.teleportThreshold, 10.0f, 40.0f, "%.1f");
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("Distance threshold to detect teleports/blinks and avoid drawing connecting lines.");
+                            }
+                            ImGui::PopItemWidth();
+
+                            ImGui::Unindent();
+                        }
+                    }
                 }
                 ImGui::EndTabItem();
             }

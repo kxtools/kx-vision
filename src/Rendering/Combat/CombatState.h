@@ -1,8 +1,15 @@
 #pragma once
 #include <cstdint>
+#include <deque>
+#include <glm/vec3.hpp>
 
 namespace kx
 {
+	struct PositionHistoryPoint {
+		glm::vec3 position;
+		uint64_t timestamp;
+	};
+
 	// Holds the dynamic combat information for a single entity
 	struct EntityCombatState
 	{
@@ -35,6 +42,9 @@ namespace kx
 
         // Max health tracking for state change detection
         float lastKnownMaxHealth = 0.0f;
+
+		// Movement trail history
+		std::deque<PositionHistoryPoint> positionHistory;
 
 		// Utility helpers (optional future use)
 		bool IsDead() const { return deathTimestamp != 0; }
