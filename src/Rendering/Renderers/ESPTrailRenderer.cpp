@@ -50,7 +50,8 @@ void ESPTrailRenderer::RenderPlayerTrail(
         return;
     }
     
-    ProjectAndRenderTrail(context, smoothedWorldPoints, trailSettings.thickness, entityContext.color);
+    ProjectAndRenderTrail(context, smoothedWorldPoints, trailSettings.thickness, 
+                         props.fadedEntityColor, props.finalAlpha, settings.appearance.globalOpacity);
 }
 
 std::vector<glm::vec3> ESPTrailRenderer::CollectTrailPoints(
@@ -143,7 +144,9 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
     const FrameContext& context,
     const std::vector<glm::vec3>& smoothedWorldPoints,
     float thickness,
-    ImU32 baseColor)
+    ImU32 baseColor,
+    float finalAlpha,
+    float globalOpacity)
 {
     std::vector<ImVec2> screenPoints;
     screenPoints.reserve(smoothedWorldPoints.size());
@@ -160,8 +163,9 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
     }
 
     for (size_t i = 0; i < screenPoints.size() - 1; ++i) {
-        float alphaMultiplier = static_cast<float>(i) / static_cast<float>(screenPoints.size() - 1);
-        ImU32 fadedColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, alphaMultiplier);
+        float trailFade = static_cast<float>(i) / static_cast<float>(screenPoints.size() - 1);
+        float combinedAlpha = trailFade * finalAlpha * globalOpacity;
+        ImU32 fadedColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, combinedAlpha);
         
         context.drawList->AddLine(screenPoints[i], screenPoints[i + 1], fadedColor, thickness);
     }

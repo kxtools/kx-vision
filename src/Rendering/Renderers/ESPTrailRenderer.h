@@ -31,7 +31,9 @@ private:
         const FrameContext& context,
         const std::vector<glm::vec3>& smoothedWorldPoints,
         float thickness,
-        ImU32 baseColor);
+        ImU32 baseColor,
+        float finalAlpha,
+        float globalOpacity);
 };
 
 } // namespace kx
