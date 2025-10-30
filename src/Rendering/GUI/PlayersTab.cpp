@@ -22,6 +22,22 @@ namespace kx {
                         ImGui::Checkbox("Show Indifferent", &settings.playerESP.showIndifferent);
                     }
 
+                    if (ImGui::CollapsingHeader("Combat Emphasis"))
+                    {
+                        ImGui::PushItemWidth(250.0f);
+                        ImGui::SliderFloat("Hostile Player Boost", &settings.playerESP.hostileBoostMultiplier, 1.0f, 3.0f, "%.1fx");
+                        ImGui::PopItemWidth();
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip(
+                                "Size multiplier for hostile player text and health bars.\n\n"
+                                "1.0x: No boost (uniform with other players)\n"
+                                "2.0x: Default (double size for combat awareness)\n"
+                                "3.0x: Maximum emphasis (triple size)\n\n"
+                                "Tip: Set to 1.0x for cleaner visuals, or increase for better combat clarity."
+                            );
+                        }
+                    }
+
                     if (ImGui::CollapsingHeader("Player Filter Options", ImGuiTreeNodeFlags_DefaultOpen)) {
                         ImGui::Checkbox("Show Local Player", &settings.playerESP.showLocalPlayer);
                         if (ImGui::IsItemHovered()) {

@@ -51,6 +51,7 @@ namespace kx {
         bool showDetailRank = true;
         bool showDetailProfession = true;
         bool showDetailRace = true;
+        float hostileBoostMultiplier = 2.0f;
         TrailSettings trails;
     };
 
@@ -59,7 +60,7 @@ namespace kx {
                                        showDamageNumbers, showOnlyDamaged, showHealthPercentage, showLocalPlayer,
                                        gearDisplayMode, energyDisplayType, showDetailLevel, showDetailHp,
                                        showDetailAttitude, showDetailEnergy, showDetailPosition, showDetailRank,
-                                       showDetailProfession, showDetailRace, showFriendly, showHostile, showNeutral,
+                                       showDetailProfession, showDetailRace, hostileBoostMultiplier, showFriendly, showHostile, showNeutral,
                                        showIndifferent, trails);
 
     struct NpcEspSettings : AttitudeSettings {

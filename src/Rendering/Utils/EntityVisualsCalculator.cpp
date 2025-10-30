@@ -448,8 +448,9 @@ EntityMultipliers EntityVisualsCalculator::CalculateEntityMultipliers(const Rend
     // Calculate hostile multiplier
     if (entity.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(&entity);
+        const auto& settings = AppState::Get().GetSettings();
         if (player->attitude == Game::Attitude::Hostile) {
-            multipliers.hostile = RenderingEffects::HOSTILE_PLAYER_VISUAL_MULTIPLIER;
+            multipliers.hostile = settings.playerESP.hostileBoostMultiplier;
         }
     }
     
