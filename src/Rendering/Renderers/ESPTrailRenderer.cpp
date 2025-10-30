@@ -37,7 +37,7 @@ void ESPTrailRenderer::RenderPlayerTrail(
         }
     }
     
-    const uint64_t now = GetTickCount64();
+    const uint64_t now = context.now;
     std::vector<glm::vec3> worldPoints = CollectTrailPoints(context, entityContext, now);
     
     if (worldPoints.size() < 2) {
