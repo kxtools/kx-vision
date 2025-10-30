@@ -30,4 +30,12 @@ namespace kx {
         All = 1       // Show all player trails
     };
 
+    /**
+     * @brief Behavior for trail rendering at teleport points
+     */
+    enum class TrailTeleportMode {
+        Tactical = 0,  // Break trail on teleport (default - clean visualization)
+        Analysis = 1   // Connect with dotted line (cheat detection, portal tracking)
+    };
+
 } // namespace kx

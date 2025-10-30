@@ -17,6 +17,7 @@ namespace kx {
 
 namespace {
     constexpr int SPLINE_SEGMENTS_PER_CURVE = 4;
+    constexpr float TELEPORT_THRESHOLD_METERS = 32.0f;
 }
 
 void ESPTrailRenderer::RenderPlayerTrail(
@@ -44,14 +45,17 @@ void ESPTrailRenderer::RenderPlayerTrail(
         return;
     }
     
-    std::vector<glm::vec3> smoothedWorldPoints = GenerateSmoothTrail(worldPoints, trailSettings.teleportThreshold);
+    TrailSegmentData segmentData = GenerateSmoothTrail(worldPoints, TELEPORT_THRESHOLD_METERS);
     
-    if (smoothedWorldPoints.size() < 2) {
+    if (segmentData.segments.empty()) {
         return;
     }
     
-    ProjectAndRenderTrail(context, smoothedWorldPoints, trailSettings.thickness, 
-                         props.fadedEntityColor, props.finalAlpha, settings.appearance.globalOpacity);
+    bool renderTeleportConnections = (trailSettings.teleportMode == TrailTeleportMode::Analysis);
+    
+    ProjectAndRenderTrail(context, segmentData, trailSettings.thickness, 
+                         props.fadedEntityColor, props.finalAlpha, settings.appearance.globalOpacity,
+                         renderTeleportConnections);
 }
 
 std::vector<glm::vec3> ESPTrailRenderer::CollectTrailPoints(
@@ -100,74 +104,138 @@ std::vector<glm::vec3> ESPTrailRenderer::CollectTrailPoints(
     return worldPoints;
 }
 
-std::vector<glm::vec3> ESPTrailRenderer::GenerateSmoothTrail(
+TrailSegmentData ESPTrailRenderer::GenerateSmoothTrail(
     const std::vector<glm::vec3>& worldPoints,
     float teleportThreshold)
 {
-    if (worldPoints.size() < 4) {
-        return worldPoints;
+    TrailSegmentData result;
+    
+    if (worldPoints.size() < 2) {
+        return result;
     }
 
-    std::vector<glm::vec3> smoothedWorldPoints;
-    
-    for (size_t i = 0; i < worldPoints.size() - 3; ++i) {
-        float maxDist = 0.0f;
-        for (size_t j = i; j < i + 3; ++j) {
-            float dist = glm::distance(worldPoints[j], worldPoints[j + 1]);
-            maxDist = (std::max)(maxDist, dist);
-        }
+    std::vector<glm::vec3> currentSegment;
+    currentSegment.push_back(worldPoints[0]);
+
+    for (size_t i = 1; i < worldPoints.size(); ++i) {
+        float dist = glm::distance(worldPoints[i - 1], worldPoints[i]);
         
-        if (maxDist > teleportThreshold) {
-            smoothedWorldPoints.push_back(worldPoints[i + 1]);
+        if (dist > teleportThreshold) {
+            if (currentSegment.size() >= 2) {
+                result.segments.push_back(currentSegment);
+            }
+            result.teleportConnections.push_back({worldPoints[i - 1], worldPoints[i]});
+            currentSegment.clear();
+            currentSegment.push_back(worldPoints[i]);
+        } else {
+            currentSegment.push_back(worldPoints[i]);
+        }
+    }
+
+    if (currentSegment.size() >= 2) {
+        result.segments.push_back(currentSegment);
+    }
+
+    std::vector<std::vector<glm::vec3>> smoothedSegments;
+    
+    for (const auto& segment : result.segments) {
+        if (segment.size() < 4) {
+            smoothedSegments.push_back(segment);
             continue;
         }
-        
-        const glm::vec3& p0 = worldPoints[i];
-        const glm::vec3& p1 = worldPoints[i + 1];
-        const glm::vec3& p2 = worldPoints[i + 2];
-        const glm::vec3& p3 = worldPoints[i + 3];
-        
-        for (int j = 0; j < SPLINE_SEGMENTS_PER_CURVE; ++j) {
-            float t = static_cast<float>(j) / static_cast<float>(SPLINE_SEGMENTS_PER_CURVE);
-            glm::vec3 smoothedPoint = glm::catmullRom(p0, p1, p2, p3, t);
-            smoothedWorldPoints.push_back(smoothedPoint);
-        }
-    }
-    
-    smoothedWorldPoints.push_back(worldPoints[worldPoints.size() - 2]);
-    smoothedWorldPoints.push_back(worldPoints[worldPoints.size() - 1]);
 
-    return smoothedWorldPoints;
+        std::vector<glm::vec3> smoothedSegment;
+        
+        for (size_t i = 0; i < segment.size() - 3; ++i) {
+            const glm::vec3& p0 = segment[i];
+            const glm::vec3& p1 = segment[i + 1];
+            const glm::vec3& p2 = segment[i + 2];
+            const glm::vec3& p3 = segment[i + 3];
+            
+            for (int j = 0; j < SPLINE_SEGMENTS_PER_CURVE; ++j) {
+                float t = static_cast<float>(j) / static_cast<float>(SPLINE_SEGMENTS_PER_CURVE);
+                glm::vec3 smoothedPoint = glm::catmullRom(p0, p1, p2, p3, t);
+                smoothedSegment.push_back(smoothedPoint);
+            }
+        }
+        
+        smoothedSegment.push_back(segment[segment.size() - 2]);
+        smoothedSegment.push_back(segment[segment.size() - 1]);
+
+        smoothedSegments.push_back(smoothedSegment);
+    }
+
+    result.segments = smoothedSegments;
+    return result;
 }
 
 void ESPTrailRenderer::ProjectAndRenderTrail(
     const FrameContext& context,
-    const std::vector<glm::vec3>& smoothedWorldPoints,
+    const TrailSegmentData& segmentData,
     float thickness,
     ImU32 baseColor,
     float finalAlpha,
-    float globalOpacity)
+    float globalOpacity,
+    bool renderTeleportConnections)
 {
-    std::vector<ImVec2> screenPoints;
-    screenPoints.reserve(smoothedWorldPoints.size());
-    
-    for (const auto& worldPoint : smoothedWorldPoints) {
-        glm::vec2 screenPos;
-        if (ESPMath::WorldToScreen(worldPoint, context.camera, context.screenWidth, context.screenHeight, screenPos)) {
-            screenPoints.push_back(ImVec2(screenPos.x, screenPos.y));
+    for (const auto& segment : segmentData.segments) {
+        if (segment.size() < 2) {
+            continue;
+        }
+
+        std::vector<ImVec2> screenPoints;
+        screenPoints.reserve(segment.size());
+        
+        for (const auto& worldPoint : segment) {
+            glm::vec2 screenPos;
+            if (ESPMath::WorldToScreen(worldPoint, context.camera, context.screenWidth, context.screenHeight, screenPos)) {
+                screenPoints.push_back(ImVec2(screenPos.x, screenPos.y));
+            }
+        }
+
+        if (screenPoints.size() < 2) {
+            continue;
+        }
+
+        for (size_t i = 0; i < screenPoints.size() - 1; ++i) {
+            float trailFade = static_cast<float>(i) / static_cast<float>(screenPoints.size() - 1);
+            float combinedAlpha = trailFade * finalAlpha * globalOpacity;
+            ImU32 fadedColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, combinedAlpha);
+            
+            context.drawList->AddLine(screenPoints[i], screenPoints[i + 1], fadedColor, thickness);
         }
     }
 
-    if (screenPoints.size() < 2) {
-        return;
-    }
-
-    for (size_t i = 0; i < screenPoints.size() - 1; ++i) {
-        float trailFade = static_cast<float>(i) / static_cast<float>(screenPoints.size() - 1);
-        float combinedAlpha = trailFade * finalAlpha * globalOpacity;
-        ImU32 fadedColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, combinedAlpha);
+    if (renderTeleportConnections) {
+        constexpr float DASH_LENGTH = 10.0f;
+        constexpr float GAP_LENGTH = 5.0f;
+        constexpr float TELEPORT_ALPHA = 0.8f;
         
-        context.drawList->AddLine(screenPoints[i], screenPoints[i + 1], fadedColor, thickness);
+        ImU32 teleportColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, TELEPORT_ALPHA * finalAlpha * globalOpacity);
+        
+        for (const auto& [startWorld, endWorld] : segmentData.teleportConnections) {
+            glm::vec2 startScreen, endScreen;
+            if (ESPMath::WorldToScreen(startWorld, context.camera, context.screenWidth, context.screenHeight, startScreen) &&
+                ESPMath::WorldToScreen(endWorld, context.camera, context.screenWidth, context.screenHeight, endScreen)) {
+                
+                ImVec2 start(startScreen.x, startScreen.y);
+                ImVec2 end(endScreen.x, endScreen.y);
+                
+                ImVec2 delta = ImVec2(end.x - start.x, end.y - start.y);
+                float lineLength = sqrtf(delta.x * delta.x + delta.y * delta.y);
+                
+                if (lineLength < 0.01f) continue;
+                
+                ImVec2 direction = ImVec2(delta.x / lineLength, delta.y / lineLength);
+                
+                for (float i = 0; i < lineLength; i += DASH_LENGTH + GAP_LENGTH) {
+                    ImVec2 p1 = ImVec2(start.x + direction.x * i, start.y + direction.y * i);
+                    float dashEnd = (std::min)(i + DASH_LENGTH, lineLength);
+                    ImVec2 p2 = ImVec2(start.x + direction.x * dashEnd, start.y + direction.y * dashEnd);
+                    context.drawList->AddLine(p1, p2, teleportColor, 2.0f);
+                }
+            }
+        }
     }
 }
 

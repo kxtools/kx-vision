@@ -99,6 +99,17 @@ namespace kx {
                             }
                             ImGui::PopItemWidth();
 
+                            const char* teleportModes[] = { "Tactical (Break on Teleport)", "Analysis (Connect with Dotted Line)" };
+                            int teleportModeInt = static_cast<int>(settings.playerESP.trails.teleportMode);
+                            ImGui::PushItemWidth(250.0f);
+                            if (ImGui::Combo("Teleport Behavior", &teleportModeInt, teleportModes, IM_ARRAYSIZE(teleportModes))) {
+                                settings.playerESP.trails.teleportMode = static_cast<TrailTeleportMode>(teleportModeInt);
+                            }
+                            ImGui::PopItemWidth();
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("Tactical: breaks trails for clean visualization.\nAnalysis: draws dotted lines for cheat detection and portal tracking.");
+                            }
+
                             ImGui::PushItemWidth(250.0f);
                             ImGui::SliderInt("Max Trail Points", &settings.playerESP.trails.maxPoints, 15, 60);
                             if (ImGui::IsItemHovered()) {
@@ -115,13 +126,6 @@ namespace kx {
 
                             ImGui::PushItemWidth(250.0f);
                             ImGui::SliderFloat("Line Thickness", &settings.playerESP.trails.thickness, 1.0f, 5.0f, "%.1f");
-                            ImGui::PopItemWidth();
-
-                            ImGui::PushItemWidth(250.0f);
-                            ImGui::SliderFloat("Teleport Threshold (m)", &settings.playerESP.trails.teleportThreshold, 10.0f, 40.0f, "%.1f");
-                            if (ImGui::IsItemHovered()) {
-                                ImGui::SetTooltip("Distance threshold to detect teleports/blinks and avoid drawing connecting lines.");
-                            }
                             ImGui::PopItemWidth();
 
                             ImGui::Unindent();

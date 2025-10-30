@@ -20,11 +20,11 @@ namespace kx {
         int maxPoints = 30;
         float maxDuration = 1.0f;
         TrailDisplayMode displayMode = TrailDisplayMode::Hostile;
+        TrailTeleportMode teleportMode = TrailTeleportMode::Tactical;
         float thickness = 2.0f;
-        float teleportThreshold = 25.0f;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TrailSettings, enabled, maxPoints, maxDuration, displayMode, thickness, teleportThreshold);
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TrailSettings, enabled, maxPoints, maxDuration, displayMode, teleportMode, thickness);
 
     struct PlayerEspSettings : AttitudeSettings {
         bool enabled = true;

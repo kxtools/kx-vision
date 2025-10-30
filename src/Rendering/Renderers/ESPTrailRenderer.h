@@ -10,6 +10,11 @@ struct FrameContext;
 struct EntityRenderContext;
 struct VisualProperties;
 
+struct TrailSegmentData {
+    std::vector<std::vector<glm::vec3>> segments;
+    std::vector<std::pair<glm::vec3, glm::vec3>> teleportConnections;
+};
+
 class ESPTrailRenderer {
 public:
     static void RenderPlayerTrail(
@@ -23,17 +28,18 @@ private:
         const EntityRenderContext& entityContext,
         uint64_t now);
 
-    static std::vector<glm::vec3> GenerateSmoothTrail(
+    static TrailSegmentData GenerateSmoothTrail(
         const std::vector<glm::vec3>& worldPoints,
         float teleportThreshold);
 
     static void ProjectAndRenderTrail(
         const FrameContext& context,
-        const std::vector<glm::vec3>& smoothedWorldPoints,
+        const TrailSegmentData& segmentData,
         float thickness,
         ImU32 baseColor,
         float finalAlpha,
-        float globalOpacity);
+        float globalOpacity,
+        bool renderTeleportConnections);
 };
 
 } // namespace kx
