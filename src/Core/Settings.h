@@ -51,6 +51,6 @@ namespace kx {
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings::GuiSettings, uiScale, menuOpacity);
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Settings, settingsVersion, playerESP, npcESP, objectESP, distance, scaling,
                                        sizes, appearance, espUpdateRate, hideDepletedNodes, autoSaveOnExit, enableDebugLogging,
-                                       logLevel, showDebugAddresses, gui);
+                                       logLevel, gui);
 
 } // namespace kx
