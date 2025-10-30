@@ -208,7 +208,7 @@ namespace Offsets {
     struct GdCliGadget {
         static constexpr uintptr_t AG_KEYFRAMED = 0x0038;         // AgKeyframed* agent wrapper
         static constexpr uintptr_t TYPE = 0x0208;                 // uint32_t gadget type
-        static constexpr uintptr_t HEALTH = 0x0218;               // ChCliHealth* health subsystem
+        static constexpr uintptr_t HEALTH = 0x0220;               // ChCliHealth* health subsystem
         static constexpr uintptr_t RESOURCE_NODE_TYPE = 0x04E4;   // uint32_t resource node type
         static constexpr uintptr_t FLAGS = 0x04E8;                // uint32_t gadget flags
         
