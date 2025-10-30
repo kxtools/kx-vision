@@ -17,7 +17,7 @@ namespace kx {
 
 namespace {
     constexpr int SPLINE_SEGMENTS_PER_CURVE = 4;
-    constexpr float TELEPORT_THRESHOLD_METERS = 32.0f;
+    constexpr float TELEPORT_THRESHOLD_METERS = 10.0f;
 }
 
 void ESPTrailRenderer::RenderPlayerTrail(
