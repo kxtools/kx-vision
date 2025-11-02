@@ -3,6 +3,7 @@
 #include <vector>
 #include <glm/vec3.hpp>
 #include "../../../libs/ImGui/imgui.h"
+#include "../Combat/CombatState.h"
 
 namespace kx {
 
@@ -11,8 +12,8 @@ struct EntityRenderContext;
 struct VisualProperties;
 
 struct TrailSegmentData {
-    std::vector<std::vector<glm::vec3>> segments;
-    std::vector<std::pair<glm::vec3, glm::vec3>> teleportConnections;
+    std::vector<std::vector<PositionHistoryPoint>> segments;
+    std::vector<std::pair<PositionHistoryPoint, PositionHistoryPoint>> teleportConnections;
 };
 
 class ESPTrailRenderer {
@@ -23,13 +24,13 @@ public:
         const VisualProperties& props);
 
 private:
-    static std::vector<glm::vec3> CollectTrailPoints(
+    static std::vector<PositionHistoryPoint> CollectTrailPoints(
         const FrameContext& context,
         const EntityRenderContext& entityContext,
         uint64_t now);
 
     static TrailSegmentData GenerateSmoothTrail(
-        const std::vector<glm::vec3>& worldPoints,
+        const std::vector<PositionHistoryPoint>& worldPoints,
         float teleportThreshold);
 
     static void ProjectAndRenderTrail(

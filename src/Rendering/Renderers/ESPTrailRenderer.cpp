@@ -39,7 +39,7 @@ void ESPTrailRenderer::RenderPlayerTrail(
     }
     
     const uint64_t now = context.now;
-    std::vector<glm::vec3> worldPoints = CollectTrailPoints(context, entityContext, now);
+    std::vector<PositionHistoryPoint> worldPoints = CollectTrailPoints(context, entityContext, now);
     
     if (worldPoints.size() < 2) {
         return;
@@ -58,7 +58,7 @@ void ESPTrailRenderer::RenderPlayerTrail(
                          renderTeleportConnections);
 }
 
-std::vector<glm::vec3> ESPTrailRenderer::CollectTrailPoints(
+std::vector<PositionHistoryPoint> ESPTrailRenderer::CollectTrailPoints(
     const FrameContext& context,
     const EntityRenderContext& entityContext,
     uint64_t now)
@@ -67,24 +67,22 @@ std::vector<glm::vec3> ESPTrailRenderer::CollectTrailPoints(
     if (!state || state->positionHistory.empty()) {
         return {};
     }
-
-    const auto& settings = AppState::Get().GetSettings();
-    const uint64_t cutoffTime = now - static_cast<uint64_t>(settings.playerESP.trails.maxDuration * 1000.0f);
     
-    std::vector<glm::vec3> worldPoints;
+    std::vector<PositionHistoryPoint> worldPoints;
     worldPoints.reserve(state->positionHistory.size() + 1);
 
     for (const auto& historyPoint : state->positionHistory) {
-        if (historyPoint.timestamp >= cutoffTime) {
-            worldPoints.push_back(historyPoint.position);
-        }
+        worldPoints.push_back(historyPoint);
     }
 
     if (worldPoints.empty()) {
         return {};
     }
 
-    glm::vec3 interpolatedHeadPos = entityContext.entity->position;
+    PositionHistoryPoint interpolatedHeadPoint;
+    interpolatedHeadPoint.position = entityContext.entity->position;
+    interpolatedHeadPoint.timestamp = now;
+    
     if (state->positionHistory.size() >= 2) {
         const auto& P0 = state->positionHistory.back();
         const auto& P1 = state->positionHistory[state->positionHistory.size() - 2];
@@ -95,17 +93,17 @@ std::vector<glm::vec3> ESPTrailRenderer::CollectTrailPoints(
                 uint64_t timeSinceP0 = now - P0.timestamp;
                 float t = static_cast<float>(timeSinceP0) / static_cast<float>(timeDiff);
                 t = glm::clamp(t, 0.0f, 1.0f);
-                interpolatedHeadPos = glm::mix(P0.position, entityContext.entity->position, t);
+                interpolatedHeadPoint.position = glm::mix(P0.position, entityContext.entity->position, t);
             }
         }
     }
-    worldPoints.push_back(interpolatedHeadPos);
+    worldPoints.push_back(interpolatedHeadPoint);
 
     return worldPoints;
 }
 
 TrailSegmentData ESPTrailRenderer::GenerateSmoothTrail(
-    const std::vector<glm::vec3>& worldPoints,
+    const std::vector<PositionHistoryPoint>& worldPoints,
     float teleportThreshold)
 {
     TrailSegmentData result;
@@ -114,11 +112,11 @@ TrailSegmentData ESPTrailRenderer::GenerateSmoothTrail(
         return result;
     }
 
-    std::vector<glm::vec3> currentSegment;
+    std::vector<PositionHistoryPoint> currentSegment;
     currentSegment.push_back(worldPoints[0]);
 
     for (size_t i = 1; i < worldPoints.size(); ++i) {
-        float dist = glm::distance(worldPoints[i - 1], worldPoints[i]);
+        float dist = glm::distance(worldPoints[i - 1].position, worldPoints[i].position);
         
         if (dist > teleportThreshold) {
             if (currentSegment.size() >= 2) {
@@ -136,7 +134,7 @@ TrailSegmentData ESPTrailRenderer::GenerateSmoothTrail(
         result.segments.push_back(currentSegment);
     }
 
-    std::vector<std::vector<glm::vec3>> smoothedSegments;
+    std::vector<std::vector<PositionHistoryPoint>> smoothedSegments;
     
     for (const auto& segment : result.segments) {
         if (segment.size() < 4) {
@@ -144,17 +142,23 @@ TrailSegmentData ESPTrailRenderer::GenerateSmoothTrail(
             continue;
         }
 
-        std::vector<glm::vec3> smoothedSegment;
+        std::vector<PositionHistoryPoint> smoothedSegment;
         
         for (size_t i = 0; i < segment.size() - 3; ++i) {
-            const glm::vec3& p0 = segment[i];
-            const glm::vec3& p1 = segment[i + 1];
-            const glm::vec3& p2 = segment[i + 2];
-            const glm::vec3& p3 = segment[i + 3];
+            const PositionHistoryPoint& p0 = segment[i];
+            const PositionHistoryPoint& p1 = segment[i + 1];
+            const PositionHistoryPoint& p2 = segment[i + 2];
+            const PositionHistoryPoint& p3 = segment[i + 3];
             
             for (int j = 0; j < SPLINE_SEGMENTS_PER_CURVE; ++j) {
                 float t = static_cast<float>(j) / static_cast<float>(SPLINE_SEGMENTS_PER_CURVE);
-                glm::vec3 smoothedPoint = glm::catmullRom(p0, p1, p2, p3, t);
+                glm::vec3 smoothedPosition = glm::catmullRom(p0.position, p1.position, p2.position, p3.position, t);
+                
+                PositionHistoryPoint smoothedPoint;
+                smoothedPoint.position = smoothedPosition;
+                uint64_t timeDiff = p3.timestamp - p0.timestamp;
+                smoothedPoint.timestamp = p0.timestamp + static_cast<uint64_t>(static_cast<float>(timeDiff) * t);
+                
                 smoothedSegment.push_back(smoothedPoint);
             }
         }
@@ -178,18 +182,26 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
     float globalOpacity,
     bool renderTeleportConnections)
 {
+    const auto& settings = AppState::Get().GetSettings();
+    const float maxDuration = settings.playerESP.trails.maxDuration;
+    const uint64_t now = context.now;
+
     for (const auto& segment : segmentData.segments) {
         if (segment.size() < 2) {
             continue;
         }
 
-        std::vector<ImVec2> screenPoints;
+        struct ScreenPoint {
+            ImVec2 position;
+            uint64_t timestamp;
+        };
+        std::vector<ScreenPoint> screenPoints;
         screenPoints.reserve(segment.size());
         
         for (const auto& worldPoint : segment) {
             glm::vec2 screenPos;
-            if (ESPMath::WorldToScreen(worldPoint, context.camera, context.screenWidth, context.screenHeight, screenPos)) {
-                screenPoints.push_back(ImVec2(screenPos.x, screenPos.y));
+            if (ESPMath::WorldToScreen(worldPoint.position, context.camera, context.screenWidth, context.screenHeight, screenPos)) {
+                screenPoints.push_back({ImVec2(screenPos.x, screenPos.y), worldPoint.timestamp});
             }
         }
 
@@ -198,11 +210,13 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
         }
 
         for (size_t i = 0; i < screenPoints.size() - 1; ++i) {
-            float trailFade = static_cast<float>(i) / static_cast<float>(screenPoints.size() - 1);
-            float combinedAlpha = trailFade * finalAlpha * globalOpacity;
+            float age = static_cast<float>(now - screenPoints[i].timestamp) / 1000.0f;
+            float timeBasedFade = 1.0f - glm::clamp(age / maxDuration, 0.0f, 1.0f);
+            timeBasedFade *= timeBasedFade;
+            float combinedAlpha = timeBasedFade * finalAlpha * globalOpacity;
             ImU32 fadedColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, combinedAlpha);
             
-            context.drawList->AddLine(screenPoints[i], screenPoints[i + 1], fadedColor, thickness);
+            context.drawList->AddLine(screenPoints[i].position, screenPoints[i + 1].position, fadedColor, thickness);
         }
     }
 
@@ -211,12 +225,16 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
         constexpr float GAP_LENGTH = 5.0f;
         constexpr float TELEPORT_ALPHA = 0.8f;
         
-        ImU32 teleportColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, TELEPORT_ALPHA * finalAlpha * globalOpacity);
-        
         for (const auto& [startWorld, endWorld] : segmentData.teleportConnections) {
+            float age = static_cast<float>(now - startWorld.timestamp) / 1000.0f;
+            float timeBasedFade = 1.0f - glm::clamp(age / maxDuration, 0.0f, 1.0f);
+            timeBasedFade *= timeBasedFade;
+            
+            ImU32 teleportColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, timeBasedFade * TELEPORT_ALPHA * finalAlpha * globalOpacity);
+            
             glm::vec2 startScreen, endScreen;
-            if (ESPMath::WorldToScreen(startWorld, context.camera, context.screenWidth, context.screenHeight, startScreen) &&
-                ESPMath::WorldToScreen(endWorld, context.camera, context.screenWidth, context.screenHeight, endScreen)) {
+            if (ESPMath::WorldToScreen(startWorld.position, context.camera, context.screenWidth, context.screenHeight, startScreen) &&
+                ESPMath::WorldToScreen(endWorld.position, context.camera, context.screenWidth, context.screenHeight, endScreen)) {
                 
                 ImVec2 start(startScreen.x, startScreen.y);
                 ImVec2 end(endScreen.x, endScreen.y);
@@ -232,7 +250,7 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
                     ImVec2 p1 = ImVec2(start.x + direction.x * i, start.y + direction.y * i);
                     float dashEnd = (std::min)(i + DASH_LENGTH, lineLength);
                     ImVec2 p2 = ImVec2(start.x + direction.x * dashEnd, start.y + direction.y * dashEnd);
-                    context.drawList->AddLine(p1, p2, teleportColor, 2.0f);
+                    context.drawList->AddLine(p1, p2, teleportColor, thickness);
                 }
             }
         }
