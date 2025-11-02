@@ -244,17 +244,6 @@ namespace kx
 	{
 		const auto& settings = AppState::Get().GetSettings();
 		const size_t MAX_HISTORY_POINTS = static_cast<size_t>(settings.playerESP.trails.maxPoints);
-		const uint64_t maxDurationMs = static_cast<uint64_t>(settings.playerESP.trails.maxDuration * 1000.0f);
-		
-		// Prune old points based on time
-		while (!state.positionHistory.empty()) {
-			const auto& oldestPoint = state.positionHistory.front();
-			if (now - oldestPoint.timestamp > maxDurationMs) {
-				state.positionHistory.pop_front();
-			} else {
-				break;
-			}
-		}
 		
 		bool shouldRecordPosition = state.positionHistory.empty();
 		if (!shouldRecordPosition) {

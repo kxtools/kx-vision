@@ -79,25 +79,31 @@ std::vector<PositionHistoryPoint> ESPTrailRenderer::CollectTrailPoints(
         return {};
     }
 
-    PositionHistoryPoint interpolatedHeadPoint;
-    interpolatedHeadPoint.position = entityContext.entity->position;
-    interpolatedHeadPoint.timestamp = now;
-    
-    if (state->positionHistory.size() >= 2) {
-        const auto& P0 = state->positionHistory.back();
-        const auto& P1 = state->positionHistory[state->positionHistory.size() - 2];
+    const auto& P0 = state->positionHistory.back();
+    if ((now - P0.timestamp) < 150) {
+        PositionHistoryPoint interpolatedHeadPoint;
+        interpolatedHeadPoint.position = entityContext.entity->position;
+        interpolatedHeadPoint.timestamp = now;
         
-        if (now >= P0.timestamp && P0.timestamp > P1.timestamp) {
-            uint64_t timeDiff = P0.timestamp - P1.timestamp;
-            if (timeDiff > 0) {
-                uint64_t timeSinceP0 = now - P0.timestamp;
-                float t = static_cast<float>(timeSinceP0) / static_cast<float>(timeDiff);
-                t = glm::clamp(t, 0.0f, 1.0f);
-                interpolatedHeadPoint.position = glm::mix(P0.position, entityContext.entity->position, t);
+        if (state->positionHistory.size() >= 2) {
+            const auto& P1 = state->positionHistory[state->positionHistory.size() - 2];
+            
+            if (now >= P0.timestamp && P0.timestamp > P1.timestamp) {
+                uint64_t timeDiff = P0.timestamp - P1.timestamp;
+                if (timeDiff > 0) {
+                    uint64_t timeSinceP0 = now - P0.timestamp;
+                    float t = static_cast<float>(timeSinceP0) / static_cast<float>(timeDiff);
+                    t = glm::clamp(t, 0.0f, 1.0f);
+                    
+                    interpolatedHeadPoint.position = glm::mix(P0.position, entityContext.entity->position, t);
+                    
+                    uint64_t headTimeRange = now - P0.timestamp;
+                    interpolatedHeadPoint.timestamp = P0.timestamp + static_cast<uint64_t>(static_cast<float>(headTimeRange) * t);
+                }
             }
         }
+        worldPoints.push_back(interpolatedHeadPoint);
     }
-    worldPoints.push_back(interpolatedHeadPoint);
 
     return worldPoints;
 }
