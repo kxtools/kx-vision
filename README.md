@@ -26,7 +26,7 @@ For detailed, step-by-step instructions, please read our complete:
 
 ## Overview
 
-KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real-time information overlays. Track players, enemies, and objects around you with customizable ESP displays. Inspect player gear at a glance, monitor combat performance, and never miss a resource node or vista again. Built using GW2's official MumbleLink API.
+KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real-time information overlays. **Compatible with the latest Visions of Eternity expansion.** Track players, enemies, and objects around you with customizable ESP displays. Inspect player gear at a glance, monitor combat performance, and never miss a resource node or vista again. Built using GW2's official MumbleLink API.
 
 ## Features
 
@@ -50,6 +50,7 @@ KX-Vision is a powerful Guild Wars 2 addon that enhances your gameplay with real
 
 ### Compatibility
 
+- Fully compatible with Visions of Eternity expansion.
 - Works alongside popular GW2 addons (e.g., ArcDPS, GW2Radial) via GW2AL.
 - Compatible with Raidcore Nexus via chainloading — see [INSTALL.md](INSTALL.md) for setup.
 
