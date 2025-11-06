@@ -33,6 +33,7 @@ namespace Offsets {
     struct CoChar {
         static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary - TESTED: Good, smooth updates)
         static constexpr uintptr_t UNKNOWN_OBJECT = 0x88;   // Unknown* - contains additional position data
+        static constexpr uintptr_t PHYSICS_PHANTOM = 0x100; // HkpSimpleShapePhantom* direct physics phantom pointer
     };
 
     /**
@@ -80,7 +81,8 @@ namespace Offsets {
      */
     struct AgChar {
         static constexpr uintptr_t CO_CHAR = 0x50;  // CoChar* coordinate system
-        static constexpr uintptr_t TYPE = 0x08;     // uint32_t type identifier
+        static constexpr uintptr_t TYPE = 0x08;     // int32_t agent type identifier
+        static constexpr uintptr_t ID = 0x0C;       // int32_t agent ID
         static constexpr uintptr_t GROUNDED_POSITION32 = 0x120;  // glm::vec3 last grounded/navmesh position (scaled by 32)
     };
 
@@ -88,6 +90,9 @@ namespace Offsets {
      * @brief AgKeyframed - Agent wrapper for keyframed objects (gadgets)
      */
     struct AgKeyframed {
+        static constexpr uintptr_t TYPE = 0x08;            // int32_t agent type identifier
+        static constexpr uintptr_t ID = 0x0C;              // int32_t agent ID
+        static constexpr uintptr_t GADGET_TYPE = 0x40;     // uint32_t gadget type
         static constexpr uintptr_t CO_KEYFRAMED = 0x0050;  // CoKeyframed* coordinate system
     };
 
@@ -149,6 +154,7 @@ namespace Offsets {
     struct ItemDef {
         static constexpr uintptr_t ID = 0x28;      // uint32_t item ID
         static constexpr uintptr_t RARITY = 0x60;  // uint32_t rarity level
+        static constexpr uintptr_t TEXT_NAME_ID = 0x80;       // uint32_t text ID for the item name
     };
 
     /**
@@ -222,22 +228,33 @@ namespace Offsets {
 
     /**
      * @brief ChCliContext - Character context managing all characters and players
+     * 
+     * Note on capacity/count values:
+     * - CHARACTER_LIST: capacity/count are in bytes - divide by 8 to get element count
+     *   Example: capacity=4352 bytes → 4352/8 = 544 slots, count=4110 bytes → 4110/8 = 513 elements
+     * - PLAYER_LIST: capacity/count are actual element counts (no conversion needed)
+     *   Example: capacity=182 means 182 player slots, count=177 means 177 actual players
+     * - CAPACITY is always >= COUNT (pre-allocated space to avoid frequent reallocations)
      */
     struct ChCliContext {
         static constexpr uintptr_t CHARACTER_LIST = 0x60;          // ChCliCharacter** array
-        static constexpr uintptr_t CHARACTER_LIST_CAPACITY = 0x68; // uint32_t capacity
+        static constexpr uintptr_t CHARACTER_LIST_CAPACITY = 0x68; // uint32_t allocated capacity in bytes (divide by 8 for element count)
+        static constexpr uintptr_t CHARACTER_LIST_COUNT = 0x6C;    // uint32_t current count in bytes (divide by 8 for element count)
         static constexpr uintptr_t PLAYER_LIST = 0x80;             // ChCliPlayer** array
-        static constexpr uintptr_t PLAYER_LIST_SIZE = 0x88;        // uint32_t count
+        static constexpr uintptr_t PLAYER_LIST_CAPACITY = 0x88;    // uint32_t allocated capacity (actual element count, no conversion needed)
+        static constexpr uintptr_t PLAYER_LIST_COUNT = 0x8C;       // uint32_t current count (actual element count, no conversion needed)
         static constexpr uintptr_t LOCAL_PLAYER = 0x98;            // ChCliCharacter* local player
     };
 
     /**
      * @brief GdCliContext - Gadget context managing all gadgets/objects
+     * 
+     * Note: CAPACITY/COUNT values are in bytes. Divide by 8 to get actual element count.
      */
     struct GdCliContext {
         static constexpr uintptr_t GADGET_LIST = 0x0030;          // GdCliGadget** array
-        static constexpr uintptr_t GADGET_LIST_CAPACITY = 0x0038; // uint32_t capacity
-        static constexpr uintptr_t GADGET_LIST_COUNT = 0x003C;    // uint32_t count
+        static constexpr uintptr_t GADGET_LIST_CAPACITY = 0x0038; // uint32_t allocated capacity in bytes (divide by 8 for element count)
+        static constexpr uintptr_t GADGET_LIST_COUNT = 0x003C;    // uint32_t current count in bytes (divide by 8 for element count)
     };
 
     /**

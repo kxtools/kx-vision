@@ -44,9 +44,9 @@ namespace kx {
             }
 
             uint32_t GetPlayerListSize() const {
-                LOG_MEMORY("ChCliContext", "GetPlayerListSize", data(), Offsets::ChCliContext::PLAYER_LIST_SIZE);
+                LOG_MEMORY("ChCliContext", "GetPlayerListSize", data(), Offsets::ChCliContext::PLAYER_LIST_CAPACITY);
                 
-                uint32_t size = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_SIZE, 0);
+                uint32_t size = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_CAPACITY, 0);
                 
                 LOG_DEBUG("ChCliContext::GetPlayerListSize - Size: %u", size);
                 return size;
