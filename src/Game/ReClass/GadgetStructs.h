@@ -42,6 +42,24 @@ namespace kx {
                 LOG_PTR("CoKeyFramed", result.data());
                 return result;
             }
+
+            Game::AgentType GetType() const {
+                LOG_MEMORY("AgKeyFramed", "GetType", data(), Offsets::AgKeyframed::TYPE);
+                
+                uint32_t type = ReadMember<uint32_t>(Offsets::AgKeyframed::TYPE, 0);
+                
+                LOG_DEBUG("AgKeyFramed::GetType - Type: %u", type);
+                return static_cast<Game::AgentType>(type);
+            }
+
+            int32_t GetId() const {
+                LOG_MEMORY("AgKeyFramed", "GetId", data(), Offsets::AgKeyframed::ID);
+                
+                int32_t id = ReadMember<int32_t>(Offsets::AgKeyframed::ID, 0);
+                
+                LOG_DEBUG("AgKeyFramed::GetId - ID: %d", id);
+                return id;
+            }
         };
 
         /**

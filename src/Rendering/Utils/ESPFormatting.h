@@ -79,6 +79,17 @@ namespace ESPFormatting {
         }
     }
 
+    inline std::string GetAgentTypeName(Game::AgentType type) {
+        switch (type) {
+            case Game::AgentType::Character: return "Character";
+            case Game::AgentType::Gadget: return "Gadget";
+            case Game::AgentType::GadgetAttackTarget: return "Gadget Attack Target";
+            case Game::AgentType::Item: return "Item";
+            case Game::AgentType::Error: return "Error";
+            default: return std::to_string(static_cast<int>(type));
+        }
+    }
+
     inline bool IsWeaponSlot(Game::EquipmentSlot slot) {
         return slot == Game::EquipmentSlot::MainhandWeapon1 ||
                slot == Game::EquipmentSlot::OffhandWeapon1 ||

@@ -68,6 +68,9 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         char addrStr[32];
         snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
         details.push_back({ std::string(addrStr), ESPColors::DEFAULT_TEXT });
+
+        details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(player->agentType), ESPColors::DEFAULT_TEXT });
+        details.push_back({ "AgentID: " + std::to_string(player->agentId), ESPColors::DEFAULT_TEXT });
     }
 
     return details;

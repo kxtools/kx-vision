@@ -26,6 +26,13 @@ namespace kx {
             outPlayer.playerName = StringHelpers::WCharToUTF8String(playerName);
         }
 
+        // --- Agent Info ---
+        ReClass::AgChar agent = inCharacter.GetAgent();
+        if (agent) {
+            outPlayer.agentType = agent.GetType();
+            outPlayer.agentId = agent.GetId();
+        }
+
         // --- Health & Energy ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
         ExtractHealthData(outPlayer, health);
@@ -75,6 +82,13 @@ namespace kx {
         outNpc.entityType = ESPEntityType::NPC;
         outNpc.address = inCharacter.data();
 
+        // --- Agent Info ---
+        ReClass::AgChar agent = inCharacter.GetAgent();
+        if (agent) {
+            outNpc.agentType = agent.GetType();
+            outNpc.agentId = agent.GetId();
+        }
+
         // --- Health ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
         ExtractHealthData(outNpc, health);
@@ -103,6 +117,13 @@ namespace kx {
         outGadget.address = inGadget.data();
         outGadget.type = inGadget.GetGadgetType();
         outGadget.isGatherable = inGadget.IsGatherable();
+
+        // --- Agent Info ---
+        ReClass::AgKeyFramed agent = inGadget.GetAgKeyFramed();
+        if (agent) {
+            outGadget.agentType = agent.GetType();
+            outGadget.agentId = agent.GetId();
+        }
 
         // --- Health ---
         ReClass::ChCliHealth health = inGadget.GetHealth();

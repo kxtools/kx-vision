@@ -3,6 +3,7 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Utils/SafeForeignClass.h"
 #include "../offsets.h"
+#include "../GameEnums.h"
 #include <glm.hpp>
 
 namespace kx {
@@ -105,13 +106,22 @@ namespace kx {
                 return result;
             }
 
-            uint32_t GetType() const {
+            Game::AgentType GetType() const {
                 LOG_MEMORY("AgChar", "GetType", data(), Offsets::AgChar::TYPE);
                 
                 uint32_t type = ReadMember<uint32_t>(Offsets::AgChar::TYPE, 0);
                 
                 LOG_DEBUG("AgChar::GetType - Type: %u", type);
-                return type;
+                return static_cast<Game::AgentType>(type);
+            }
+
+            int32_t GetId() const {
+                LOG_MEMORY("AgChar", "GetId", data(), Offsets::AgChar::ID);
+                
+                int32_t id = ReadMember<int32_t>(Offsets::AgChar::ID, 0);
+                
+                LOG_DEBUG("AgChar::GetId - ID: %d", id);
+                return id;
             }
 
             /**

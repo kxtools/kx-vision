@@ -34,10 +34,12 @@ struct RenderableEntity {
     float maxHealth;
     float currentBarrier = 0.0f; // Barrier overlay for health bars
     ESPEntityType entityType;
+    Game::AgentType agentType;       // Agent type identifier
+    int32_t agentId;                 // Agent ID
 
     RenderableEntity() : position(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),
-                         entityType(ESPEntityType::Gadget) // Default, will be overwritten
+                         entityType(ESPEntityType::Gadget), agentType(Game::AgentType::Error), agentId(0) // Default, will be overwritten
     {
     }
 };

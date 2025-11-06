@@ -53,6 +53,9 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
         char addrStr[32];
         snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", npc->address);
         details.push_back({ std::string(addrStr), ESPColors::DEFAULT_TEXT });
+
+        details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(npc->agentType), ESPColors::DEFAULT_TEXT });
+        details.push_back({ "AgentID: " + std::to_string(npc->agentId), ESPColors::DEFAULT_TEXT });
     }
 
     return details;
@@ -97,6 +100,9 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
         char addrStr[32];
         snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", gadget->address);
         details.push_back({ std::string(addrStr), ESPColors::DEFAULT_TEXT });
+
+        details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(gadget->agentType), ESPColors::DEFAULT_TEXT });
+        details.push_back({ "AgentID: " + std::to_string(gadget->agentId), ESPColors::DEFAULT_TEXT });
     }
 
     return details;
