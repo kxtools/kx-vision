@@ -88,6 +88,10 @@ namespace Offsets {
 
     /**
      * @brief AgKeyframed - Agent wrapper for keyframed objects (gadgets)
+     * 
+     * TYPE values:
+     * - 10: Regular gadget (AgentType::Gadget)
+     * - 11: Attack target (AgentType::GadgetAttackTarget) - walls, destructible objects
      */
     struct AgKeyframed {
         static constexpr uintptr_t TYPE = 0x08;            // int32_t agent type identifier
@@ -252,6 +256,13 @@ namespace Offsets {
         static constexpr uintptr_t GADGET_LIST = 0x0030;          // GdCliGadget** array
         static constexpr uintptr_t GADGET_LIST_CAPACITY = 0x0038; // uint32_t capacity (element count)
         static constexpr uintptr_t GADGET_LIST_COUNT = 0x003C;    // uint32_t count (element count)
+        
+        // Attack target list (walls, destructible objects, etc.)
+        // Internal class: Gw2::Engine::Agent::AgentInl
+        // Entries point to AgKeyframed with TYPE=11 (GadgetAttackTarget)
+        static constexpr uintptr_t ATTACK_TARGET_LIST = 0x0010;          // Entry** array (Entry->0x18 = AgKeyframed*)
+        static constexpr uintptr_t ATTACK_TARGET_LIST_CAPACITY = 0x0018; // uint32_t capacity (element count)
+        static constexpr uintptr_t ATTACK_TARGET_LIST_COUNT = 0x001C;    // uint32_t count (element count)
     };
 
     /**
