@@ -229,8 +229,8 @@ namespace Offsets {
     /**
      * @brief ChCliContext - Character context managing all characters and players
      * 
-     * Note: CAPACITY/COUNT are element counts (not bytes). Arrays are sparse - use CAPACITY for
-     *       full iteration and always validate pointers. CAPACITY >= COUNT always.
+     * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
+     *       Arrays are sparse - use CAPACITY for iteration, validate pointers.
      */
     struct ChCliContext {
         static constexpr uintptr_t CHARACTER_LIST = 0x60;          // ChCliCharacter** array
@@ -245,7 +245,8 @@ namespace Offsets {
     /**
      * @brief GdCliContext - Gadget context managing all gadgets/objects
      * 
-     * Note: CAPACITY/COUNT are element counts (not bytes). Arrays are sparse - always validate pointers.
+     * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
+     *       Arrays are sparse - use CAPACITY for iteration, validate pointers.
      */
     struct GdCliContext {
         static constexpr uintptr_t GADGET_LIST = 0x0030;          // GdCliGadget** array
