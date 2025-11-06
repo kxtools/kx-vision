@@ -228,19 +228,21 @@ namespace kx {
                             // Character List
                             ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
                             uint32_t characterCapacity = charContext.GetCharacterListCapacity();
+                            uint32_t characterCount = charContext.GetCharacterListCount();
                             char charListAddrStr[32];
                             snprintf(charListAddrStr, sizeof(charListAddrStr), "0x%p", (void*)characterList);
-                            ImGui::Text("CharacterList (Capacity: %u):", characterCapacity);
+                            ImGui::Text("CharacterList (Count: %u / Capacity: %u):", characterCount, characterCapacity);
                             ImGui::PushItemWidth(-1.0f);
                             ImGui::InputText("##CharListAddr", charListAddrStr, sizeof(charListAddrStr), ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();
 
                             // Player List
                             ReClass::ChCliPlayer** playerList = charContext.GetPlayerList();
-                            uint32_t playerListSize = charContext.GetPlayerListSize();
+                            uint32_t playerCapacity = charContext.GetPlayerListCapacity();
+                            uint32_t playerCount = charContext.GetPlayerListCount();
                             char playerListAddrStr[32];
                             snprintf(playerListAddrStr, sizeof(playerListAddrStr), "0x%p", (void*)playerList);
-                            ImGui::Text("PlayerList (Size: %u):", playerListSize);
+                            ImGui::Text("PlayerList (Count: %u / Capacity: %u):", playerCount, playerCapacity);
                             ImGui::PushItemWidth(-1.0f);
                             ImGui::InputText("##PlayerListAddr", playerListAddrStr, sizeof(playerListAddrStr), ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();

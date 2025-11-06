@@ -34,6 +34,15 @@ namespace kx {
                 return capacity;
             }
 
+            uint32_t GetCharacterListCount() const {
+                LOG_MEMORY("ChCliContext", "GetCharacterListCount", data(), Offsets::ChCliContext::CHARACTER_LIST_COUNT);
+                
+                uint32_t count = ReadMember<uint32_t>(Offsets::ChCliContext::CHARACTER_LIST_COUNT, 0);
+                
+                LOG_DEBUG("ChCliContext::GetCharacterListCount - Count: %u", count);
+                return count;
+            }
+
             ChCliPlayer** GetPlayerList() const {
                 LOG_MEMORY("ChCliContext", "GetPlayerList", data(), Offsets::ChCliContext::PLAYER_LIST);
                 
@@ -43,13 +52,22 @@ namespace kx {
                 return playerList;
             }
 
-            uint32_t GetPlayerListSize() const {
-                LOG_MEMORY("ChCliContext", "GetPlayerListSize", data(), Offsets::ChCliContext::PLAYER_LIST_CAPACITY);
+            uint32_t GetPlayerListCapacity() const {
+                LOG_MEMORY("ChCliContext", "GetPlayerListCapacity", data(), Offsets::ChCliContext::PLAYER_LIST_CAPACITY);
                 
-                uint32_t size = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_CAPACITY, 0);
+                uint32_t capacity = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_CAPACITY, 0);
                 
-                LOG_DEBUG("ChCliContext::GetPlayerListSize - Size: %u", size);
-                return size;
+                LOG_DEBUG("ChCliContext::GetPlayerListCapacity - Capacity: %u", capacity);
+                return capacity;
+            }
+
+            uint32_t GetPlayerListCount() const {
+                LOG_MEMORY("ChCliContext", "GetPlayerListCount", data(), Offsets::ChCliContext::PLAYER_LIST_COUNT);
+                
+                uint32_t count = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_COUNT, 0);
+                
+                LOG_DEBUG("ChCliContext::GetPlayerListCount - Count: %u", count);
+                return count;
             }
 
             ChCliCharacter* GetLocalPlayer() const {

@@ -262,6 +262,9 @@ namespace SafeAccess {
 
     /**
      * @brief Range wrapper for character lists to enable range-based for loops
+     * 
+     * Iterates over the full CAPACITY to ensure no valid entries are missed.
+     * The iterator automatically skips null and invalid entries.
      */
     class CharacterList {
     private:
@@ -300,7 +303,7 @@ namespace SafeAccess {
         PlayerList(ReClass::ChCliContext& context) {
             if (context) {
                 m_array = context.GetPlayerList();
-                m_capacity = context.GetPlayerListSize();
+                m_capacity = context.GetPlayerListCapacity();
             } else {
                 m_array = nullptr;
                 m_capacity = 0;

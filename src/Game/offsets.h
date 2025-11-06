@@ -229,32 +229,28 @@ namespace Offsets {
     /**
      * @brief ChCliContext - Character context managing all characters and players
      * 
-     * Note on capacity/count values:
-     * - CHARACTER_LIST: capacity/count are in bytes - divide by 8 to get element count
-     *   Example: capacity=4352 bytes → 4352/8 = 544 slots, count=4110 bytes → 4110/8 = 513 elements
-     * - PLAYER_LIST: capacity/count are actual element counts (no conversion needed)
-     *   Example: capacity=182 means 182 player slots, count=177 means 177 actual players
-     * - CAPACITY is always >= COUNT (pre-allocated space to avoid frequent reallocations)
+     * Note: CAPACITY/COUNT are element counts (not bytes). Arrays are sparse - use CAPACITY for
+     *       full iteration and always validate pointers. CAPACITY >= COUNT always.
      */
     struct ChCliContext {
         static constexpr uintptr_t CHARACTER_LIST = 0x60;          // ChCliCharacter** array
-        static constexpr uintptr_t CHARACTER_LIST_CAPACITY = 0x68; // uint32_t allocated capacity in bytes (divide by 8 for element count)
-        static constexpr uintptr_t CHARACTER_LIST_COUNT = 0x6C;    // uint32_t current count in bytes (divide by 8 for element count)
+        static constexpr uintptr_t CHARACTER_LIST_CAPACITY = 0x68; // uint32_t capacity (element count)
+        static constexpr uintptr_t CHARACTER_LIST_COUNT = 0x6C;    // uint32_t count (element count)
         static constexpr uintptr_t PLAYER_LIST = 0x80;             // ChCliPlayer** array
-        static constexpr uintptr_t PLAYER_LIST_CAPACITY = 0x88;    // uint32_t allocated capacity (actual element count, no conversion needed)
-        static constexpr uintptr_t PLAYER_LIST_COUNT = 0x8C;       // uint32_t current count (actual element count, no conversion needed)
+        static constexpr uintptr_t PLAYER_LIST_CAPACITY = 0x88;    // uint32_t capacity (element count)
+        static constexpr uintptr_t PLAYER_LIST_COUNT = 0x8C;       // uint32_t count (element count)
         static constexpr uintptr_t LOCAL_PLAYER = 0x98;            // ChCliCharacter* local player
     };
 
     /**
      * @brief GdCliContext - Gadget context managing all gadgets/objects
      * 
-     * Note: CAPACITY/COUNT values are in bytes. Divide by 8 to get actual element count.
+     * Note: CAPACITY/COUNT are element counts (not bytes). Arrays are sparse - always validate pointers.
      */
     struct GdCliContext {
         static constexpr uintptr_t GADGET_LIST = 0x0030;          // GdCliGadget** array
-        static constexpr uintptr_t GADGET_LIST_CAPACITY = 0x0038; // uint32_t allocated capacity in bytes (divide by 8 for element count)
-        static constexpr uintptr_t GADGET_LIST_COUNT = 0x003C;    // uint32_t current count in bytes (divide by 8 for element count)
+        static constexpr uintptr_t GADGET_LIST_CAPACITY = 0x0038; // uint32_t capacity (element count)
+        static constexpr uintptr_t GADGET_LIST_COUNT = 0x003C;    // uint32_t count (element count)
     };
 
     /**
