@@ -293,6 +293,9 @@ namespace SafeAccess {
 
     /**
      * @brief Range wrapper for player lists to enable range-based for loops
+     * 
+     * Iterates over the full CAPACITY to ensure no valid entries are missed.
+     * The iterator automatically skips null and invalid entries.
      */
     class PlayerList {
     private:
@@ -321,6 +324,9 @@ namespace SafeAccess {
 
     /**
      * @brief Range wrapper for gadget lists to enable range-based for loops
+     * 
+     * Iterates over the full CAPACITY to ensure no valid entries are missed.
+     * The iterator automatically skips null and invalid entries.
      */
     class GadgetList {
     private:
