@@ -1,6 +1,7 @@
 #include "SettingsTab.h"
 #include <string>
 #include <algorithm>
+#include <format>
 #include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
 #include "../../Core/SettingsManager.h"
@@ -205,11 +206,10 @@ namespace kx {
                 if (ImGui::CollapsingHeader("Debug Info")) {
                     // Context Collection
                     void* pContextCollection = AddressManager::GetContextCollectionPtr();
-                    char ctxCollectionAddrStr[32];
-                    snprintf(ctxCollectionAddrStr, sizeof(ctxCollectionAddrStr), "0x%p", pContextCollection);
+                    std::string ctxCollectionAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(pContextCollection));
                     ImGui::Text("ContextCollection:");
                     ImGui::PushItemWidth(-1.0f);
-                    ImGui::InputText("##ContextCollectionAddr", ctxCollectionAddrStr, sizeof(ctxCollectionAddrStr), ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputText("##ContextCollectionAddr", ctxCollectionAddrStr.data(), ctxCollectionAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                     ImGui::PopItemWidth();
 
                     if (pContextCollection) {
@@ -217,11 +217,10 @@ namespace kx {
 
                         // Character Context
                         ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
-                        char charCtxAddrStr[32];
-                        snprintf(charCtxAddrStr, sizeof(charCtxAddrStr), "0x%p", charContext.data());
+                        std::string charCtxAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(charContext.data()));
                         ImGui::Text("ChCliContext:");
                         ImGui::PushItemWidth(-1.0f);
-                        ImGui::InputText("##CharContextAddr", charCtxAddrStr, sizeof(charCtxAddrStr), ImGuiInputTextFlags_ReadOnly);
+                        ImGui::InputText("##CharContextAddr", charCtxAddrStr.data(), charCtxAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                         ImGui::PopItemWidth();
 
                         if (charContext) {
@@ -229,22 +228,20 @@ namespace kx {
                             ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
                             uint32_t characterCapacity = charContext.GetCharacterListCapacity();
                             uint32_t characterCount = charContext.GetCharacterListCount();
-                            char charListAddrStr[32];
-                            snprintf(charListAddrStr, sizeof(charListAddrStr), "0x%p", (void*)characterList);
+                            std::string charListAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(characterList));
                             ImGui::Text("CharacterList (Count: %u / Capacity: %u):", characterCount, characterCapacity);
                             ImGui::PushItemWidth(-1.0f);
-                            ImGui::InputText("##CharListAddr", charListAddrStr, sizeof(charListAddrStr), ImGuiInputTextFlags_ReadOnly);
+                            ImGui::InputText("##CharListAddr", charListAddrStr.data(), charListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();
 
                             // Player List
                             ReClass::ChCliPlayer** playerList = charContext.GetPlayerList();
                             uint32_t playerCapacity = charContext.GetPlayerListCapacity();
                             uint32_t playerCount = charContext.GetPlayerListCount();
-                            char playerListAddrStr[32];
-                            snprintf(playerListAddrStr, sizeof(playerListAddrStr), "0x%p", (void*)playerList);
+                            std::string playerListAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(playerList));
                             ImGui::Text("PlayerList (Count: %u / Capacity: %u):", playerCount, playerCapacity);
                             ImGui::PushItemWidth(-1.0f);
-                            ImGui::InputText("##PlayerListAddr", playerListAddrStr, sizeof(playerListAddrStr), ImGuiInputTextFlags_ReadOnly);
+                            ImGui::InputText("##PlayerListAddr", playerListAddrStr.data(), playerListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();
                         }
 
@@ -252,11 +249,10 @@ namespace kx {
 
                         // Gadget Context
                         ReClass::GdCliContext gadgetCtx = ctxCollection.GetGdCliContext();
-                        char gadgetCtxAddrStr[32];
-                        snprintf(gadgetCtxAddrStr, sizeof(gadgetCtxAddrStr), "0x%p", gadgetCtx.data());
+                        std::string gadgetCtxAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(gadgetCtx.data()));
                         ImGui::Text("GdCliContext:");
                         ImGui::PushItemWidth(-1.0f);
-                        ImGui::InputText("##GadgetContextAddr", gadgetCtxAddrStr, sizeof(gadgetCtxAddrStr), ImGuiInputTextFlags_ReadOnly);
+                        ImGui::InputText("##GadgetContextAddr", gadgetCtxAddrStr.data(), gadgetCtxAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                         ImGui::PopItemWidth();
 
                         if (gadgetCtx) {
@@ -264,11 +260,10 @@ namespace kx {
                             ReClass::GdCliGadget** gadgetList = gadgetCtx.GetGadgetList();
                             uint32_t gadgetCapacity = gadgetCtx.GetGadgetListCapacity();
                             uint32_t gadgetCount = gadgetCtx.GetGadgetListCount();
-                            char gadgetListAddrStr[32];
-                            snprintf(gadgetListAddrStr, sizeof(gadgetListAddrStr), "0x%p", (void*)gadgetList);
+                            std::string gadgetListAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(gadgetList));
                             ImGui::Text("GadgetList (Count: %u / Capacity: %u):", gadgetCount, gadgetCapacity);
                             ImGui::PushItemWidth(-1.0f);
-                            ImGui::InputText("##GadgetListAddr", gadgetListAddrStr, sizeof(gadgetListAddrStr), ImGuiInputTextFlags_ReadOnly);
+                            ImGui::InputText("##GadgetListAddr", gadgetListAddrStr.data(), gadgetListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();
                         }
                     } else {

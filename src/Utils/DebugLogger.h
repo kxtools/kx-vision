@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <format>
 #include <memory>
 #include <atomic>
 #include <Windows.h>
@@ -90,7 +91,8 @@ public:
     // Main logging function - thread-safe and exception-safe
     static void Log(Level level, const std::string& message) noexcept;
     
-    // Helper function to format printf-style strings
+    // Helper function to format printf-style strings (legacy compatibility)
+    // NOTE: For new code in C++23, prefer using std::format directly instead of printf-style formatting
     template<typename... Args>
     static std::string FormatPrintf(const char* format, Args&&... args) noexcept {
         try {
@@ -103,6 +105,17 @@ public:
                 // Fallback for formatting errors
                 return std::string("LOG FORMAT ERROR: ") + format;
             }
+        }
+        catch (...) {
+            return std::string("LOG FORMAT ERROR");
+        }
+    }
+    
+    // Modern C++23 formatting (preferred for new code)
+    template<typename... Args>
+    static std::string Format(std::format_string<Args...> fmt, Args&&... args) noexcept {
+        try {
+            return std::format(fmt, std::forward<Args>(args)...);
         }
         catch (...) {
             return std::string("LOG FORMAT ERROR");
