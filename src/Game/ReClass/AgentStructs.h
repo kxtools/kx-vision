@@ -23,13 +23,6 @@ namespace kx {
         public:
             HkpBoxShape(void* ptr) : SafeForeignClass(ptr) {}
 
-            float GetHeight() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(Offsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
-            }
-
             float GetHeightHalf() const {
                 if (!data()) {
                     return 0.0f;
