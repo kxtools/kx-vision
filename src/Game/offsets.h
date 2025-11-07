@@ -32,8 +32,8 @@ namespace Offsets {
      */
     struct CoChar {
         static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary - TESTED: Good, smooth updates)
-        static constexpr uintptr_t UNKNOWN_OBJECT = 0x88;   // Unknown* - contains additional position data
-        static constexpr uintptr_t PHYSICS_PHANTOM = 0x100; // HkpSimpleShapePhantom* direct physics phantom pointer
+        static constexpr uintptr_t SIMPLE_CLI_WRAPPER = 0x88;   // CoCharSimpleCliWrapper* - contains additional position data and physics info
+        static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x100; // HkpSimpleShapePhantom* direct physics phantom pointer (PLAYER ONLY - NPCs are nullptr)
     };
 
     /**
@@ -43,16 +43,18 @@ namespace Offsets {
      * TEST RESULTS:
      * - POSITION_ALT1 (0xB8): Updates similarly to Primary - smooth and accurate
      * - POSITION_ALT2 (0x118): LAGS BEHIND - visual delay, not recommended
-     * - PHYSICS_PHANTOM->POSITION (0x78->0x120): Updates similarly to Primary - smooth and accurate
+     * - PHYSICS_PHANTOM_PLAYER->POSITION (0x78->0x120): Updates similarly to Primary - smooth and accurate (PLAYER ONLY)
      * 
      * RECOMMENDATION: Use Primary (CoChar::VISUAL_POSITION) or Alt1 for best results
      * Primary, Alt1, and Physics all update at similar rates with good smoothness
+     * 
+     * NOTE: BOX_SHAPE works for both players and NPCs. PHYSICS_PHANTOM_PLAYER is player-only (nullptr for NPCs).
      */
     struct CoCharSimpleCliWrapper {
         static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1 (TESTED: Good, similar to Primary)
         static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (TESTED: Lags behind, not recommended)
-        static constexpr uintptr_t PHYSICS_PHANTOM = 0x78;  // hkpSimpleShapePhantom* physics object (TESTED: Good, similar to Primary)
-        static constexpr uintptr_t BOX_SHAPE = 0xE8;        // hkpBoxShape* physics box shape
+        static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x78;  // hkpSimpleShapePhantom* physics object (PLAYER ONLY - NPCs are nullptr)
+        static constexpr uintptr_t BOX_SHAPE = 0xE8;        // hkpBoxShape* physics box shape (works for players AND NPCs)
     };
 
     /**

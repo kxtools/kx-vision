@@ -112,7 +112,7 @@ namespace kx {
             }
 
             HkpSimpleShapePhantom GetPhysicsPhantom() const {
-                return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharSimpleCliWrapper::PHYSICS_PHANTOM);
+                return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharSimpleCliWrapper::PHYSICS_PHANTOM_PLAYER);
             }
 
             HkpBoxShape GetBoxShape() const {
@@ -140,7 +140,7 @@ namespace kx {
             }
 
             CoCharSimpleCliWrapper GetSimpleCliWrapper() const {
-                return ReadPointer<CoCharSimpleCliWrapper>(Offsets::CoChar::UNKNOWN_OBJECT);
+                return ReadPointer<CoCharSimpleCliWrapper>(Offsets::CoChar::SIMPLE_CLI_WRAPPER);
             }
         };
 
