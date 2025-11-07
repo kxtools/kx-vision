@@ -201,6 +201,19 @@ void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& box
     // Apply global opacity to bounding boxes
     const auto& settings = AppState::Get().GetSettings();
     unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    
+    // Dark outer stroke for better visibility (consistent with health bar rendering)
+    const float outset = 1.0f; // 1px outside, feels "harder" and more separated
+    float mainAlpha = ((finalColor >> 24) & 0xFF) / 255.0f;
+    unsigned int strokeAlpha = static_cast<unsigned int>(180 * mainAlpha); // 70% opacity
+    unsigned int strokeColor = IM_COL32(0, 0, 0, strokeAlpha);
+    
+    // Outer stroke (matches health bar pattern: 1px offset, 1px thickness)
+    ImVec2 strokeMin(boxMin.x - outset, boxMin.y - outset);
+    ImVec2 strokeMax(boxMax.x + outset, boxMax.y + outset);
+    drawList->AddRect(strokeMin, strokeMax, strokeColor, 0.0f, 0, 1.0f);
+    
+    // Main colored box
     drawList->AddRect(boxMin, boxMax, finalColor, 0.0f, 0, thickness);
 }
 

@@ -249,8 +249,6 @@ namespace kx {
             RenderDeadState(drawList, context, barMin, barMax, barWidth, fadeAlpha);
         }
 
-
-
 		// Outer stroke settings
         const float outset = 1.0f; // 1 px outside, feels "harder" and more separated
         unsigned int outerA = static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BORDER_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f);
