@@ -36,6 +36,14 @@ struct RenderableEntity {
     ESPEntityType entityType;
     Game::AgentType agentType;       // Agent type identifier
     int32_t agentId;                 // Agent ID
+    
+    // Physics-based bounding box dimensions (in Mumble Link meters)
+    // HEIGHT: Extracted from HkpBoxShape, varies per entity (bosses taller, small NPCs shorter)
+    // WIDTH/DEPTH: Derived from height at 35% ratio (HkpBoxShape stores capsule radii, not visual dimensions)
+    float physicsWidth = 0.0f;       // Full width (X-axis) - derived from height
+    float physicsDepth = 0.0f;       // Full depth (Y-axis) - derived from height  
+    float physicsHeight = 0.0f;      // Full height (Z-axis) - accurate from physics
+    bool hasPhysicsDimensions = false; // True if physics dimensions are available
 
     RenderableEntity() : position(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),

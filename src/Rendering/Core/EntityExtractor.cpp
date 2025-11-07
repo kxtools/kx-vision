@@ -66,6 +66,9 @@ namespace kx {
         if (inventory) {
             ExtractGear(outPlayer, inventory);
         }
+        
+        // --- Physics Box Shape Dimensions ---
+        ExtractBoxShapeDimensions(outPlayer, inCharacter);
 
         return true;
     }
@@ -100,6 +103,9 @@ namespace kx {
         }
         outNpc.attitude = inCharacter.GetAttitude();
         outNpc.rank = inCharacter.GetRank();
+        
+        // --- Physics Box Shape Dimensions ---
+        ExtractBoxShapeDimensions(outNpc, inCharacter);
 
         return true;
     }
@@ -213,6 +219,46 @@ void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass:
         entity.maxHealth = health.GetMax();
         entity.currentBarrier = health.GetBarrier();
     }
+}
+
+void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
+    // Navigate: ChCliCharacter -> AgChar -> CoChar -> CoCharSimpleCliWrapper -> HkpBoxShape
+    ReClass::AgChar agent = character.GetAgent();
+    if (!agent) return;
+    
+    ReClass::CoChar coChar = agent.GetCoChar();
+    if (!coChar) return;
+    
+    ReClass::CoCharSimpleCliWrapper wrapper = coChar.GetSimpleCliWrapper();
+    if (!wrapper) return;
+    
+    ReClass::HkpBoxShape boxShape = wrapper.GetBoxShape();
+    if (!boxShape) return;
+    
+    // Read half-extents from Havok physics box shape
+    float heightHalf = boxShape.GetHeightHalf();
+    
+    // Only proceed if we got valid height (most reliable dimension)
+    if (heightHalf <= 0.0f) return;
+    
+    // === HEIGHT: Accurate per-entity dimension from physics ===
+    // HkpBoxShape stores dimensions in game coordinate space (Havok Physics System)
+    // Evidence: heightHalf ~0.75 game units → 1.5 full → ÷1.23 → ~1.22m (typical character)
+    // Conversion follows unit-systems.md: Game coordinates require ÷GAME_TO_MUMBLE_SCALE_FACTOR
+    entity.physicsHeight = (heightHalf * 2.0f) / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
+    
+    // === WIDTH/DEPTH: Derived from height for ESP visualization ===
+    // Note: HkpBoxShape width/depth are extremely small (~0.035 game units / ~0.028m after conversion)
+    // because GW2 uses capsule-based collision for character movement (thin cylinder with rounded caps),
+    // not actual box collision. These values represent the capsule's cylindrical radius, not visual width.
+    // 
+    // For ESP bounding boxes, we need human-proportioned rectangles, not physics capsules.
+    // Evidence-based approach: Use typical humanoid proportions (~40% width-to-height ratio)
+    // This provides visually accurate bounding boxes while maintaining per-entity height accuracy.
+    entity.physicsWidth = entity.physicsHeight * 0.35f;
+    entity.physicsDepth = entity.physicsHeight * 0.35f;
+    
+    entity.hasPhysicsDimensions = true;
 }
 
 } // namespace kx

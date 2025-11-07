@@ -279,9 +279,18 @@ void EntityVisualsCalculator::CalculatePlayerNPCDimensions(
     VisualProperties& props,
     float scale)
 {
-    // Get world-space dimensions for entity type
+    // Get world-space dimensions - prefer physics dimensions if available
     float worldWidth, worldDepth, worldHeight;
-    GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
+    
+    if (entity.hasPhysicsDimensions) {
+        // Use actual physics box shape dimensions from game memory
+        worldWidth = entity.physicsWidth;
+        worldDepth = entity.physicsDepth;
+        worldHeight = entity.physicsHeight;
+    } else {
+        // Fallback to hardcoded constants if physics dimensions unavailable
+        GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
+    }
     
     // Try 3D bounding box projection
     bool boxValid = false;

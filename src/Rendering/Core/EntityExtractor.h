@@ -55,6 +55,13 @@ namespace kx {
         static bool ValidateAndExtractGamePosition(const ReClass::GdCliGadget& gadget, glm::vec3& outGamePos);
         static glm::vec3 TransformGamePositionToMumble(const glm::vec3& gamePos);
         static void ExtractHealthData(RenderableEntity& entity, const ReClass::ChCliHealth& health);
+        
+        /**
+         * @brief Extract physics box shape dimensions from character
+         * @param entity The entity to populate with dimensions
+         * @param character The character to extract dimensions from
+         */
+        static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
     };
 
 } // namespace kx
