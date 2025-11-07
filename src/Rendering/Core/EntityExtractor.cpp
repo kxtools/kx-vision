@@ -11,11 +11,11 @@ namespace kx {
 namespace PhysicsValidation {
     // Height validation range in meters (applies to both characters and gadgets after conversion)
     constexpr float MIN_HEIGHT_METERS = 0.1f;   // 10cm - minimum reasonable entity height
-    constexpr float MAX_HEIGHT_METERS = 10.0f;  // 10m - maximum height (allows large bosses)
+    constexpr float MAX_HEIGHT_METERS = 30.0f;  // 30m - maximum height (allows large bosses)
     
     // Gadget height validation in centimeters (before conversion)
     constexpr int32_t MIN_HEIGHT_CM = 10;       // 10cm minimum
-    constexpr int32_t MAX_HEIGHT_CM = 1000;     // 10m maximum
+    constexpr int32_t MAX_HEIGHT_CM = 3000;     // 30m maximum
     
     // Width-to-height ratio for ESP bounding boxes (proportional approach)
     constexpr float WIDTH_TO_HEIGHT_RATIO = 0.35f;  // 35% - typical humanoid/object proportions
