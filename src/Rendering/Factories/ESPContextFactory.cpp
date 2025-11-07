@@ -185,7 +185,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         .color = ESPStyling::GetEntityColor(*gadget),
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = false, // Gadgets use circles/spheres, not boxes (see ESPStageRenderer::RenderStaticElements)
+        .renderBox = context.settings.objectESP.renderBox,
         .renderDistance = context.settings.objectESP.renderDistance,
         .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,

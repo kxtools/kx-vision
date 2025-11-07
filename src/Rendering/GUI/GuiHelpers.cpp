@@ -48,8 +48,9 @@ namespace kx {
 
         void RenderObjectStyleSettings(ObjectEspSettings& settings) {
             ImGui::SeparatorText("Core Visuals");
+            ImGui::Checkbox("Show Box##Object", &settings.renderBox); ImGui::SameLine();
             ImGui::Checkbox("2D Circle##Object", &settings.renderCircle); ImGui::SameLine();
-            ImGui::Checkbox("3D Sphere##Object", &settings.renderSphere); ImGui::SameLine();
+            ImGui::Checkbox("3D Sphere##Object", &settings.renderSphere);
             ImGui::Checkbox("Show Dot##Object", &settings.renderDot); ImGui::SameLine();
             ImGui::Checkbox("Show Distance##Object", &settings.renderDistance);
 

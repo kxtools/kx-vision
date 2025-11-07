@@ -57,16 +57,20 @@ std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const Fin
     liveVisuals.screenPos = freshScreenPos;
     
     // 4. Recalculate derived screen-space coordinates using the cached dimensions.
+    // Calculate box dimensions from cached screen-space box
+    float boxWidth = liveVisuals.boxMax.x - liveVisuals.boxMin.x;
+    float boxHeight = liveVisuals.boxMax.y - liveVisuals.boxMin.y;
+    
+    // Reposition box centered on new screen position
+    liveVisuals.boxMin = ImVec2(liveVisuals.screenPos.x - boxWidth / 2.0f, liveVisuals.screenPos.y - boxHeight);
+    liveVisuals.boxMax = ImVec2(liveVisuals.screenPos.x + boxWidth / 2.0f, liveVisuals.screenPos.y);
+    
+    // Calculate center based on entity type
     if (item.entity->entityType == ESPEntityType::Gadget) {
+        // Gadgets: Circle center is always at screen position
         liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y);
-        liveVisuals.boxMin = ImVec2(liveVisuals.center.x - liveVisuals.circleRadius, liveVisuals.center.y - liveVisuals.circleRadius);
-        liveVisuals.boxMax = ImVec2(liveVisuals.center.x + liveVisuals.circleRadius, liveVisuals.center.y + liveVisuals.circleRadius);
     } else {
-        float boxWidth = liveVisuals.boxMax.x - liveVisuals.boxMin.x;
-        float boxHeight = liveVisuals.boxMax.y - liveVisuals.boxMin.y;
-        
-        liveVisuals.boxMin = ImVec2(liveVisuals.screenPos.x - boxWidth / 2.0f, liveVisuals.screenPos.y - boxHeight);
-        liveVisuals.boxMax = ImVec2(liveVisuals.screenPos.x + boxWidth / 2.0f, liveVisuals.screenPos.y);
+        // Players/NPCs: Box center is midpoint of bounding box
         liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y - boxHeight / 2.0f);
     }
     
@@ -235,7 +239,7 @@ void ESPStageRenderer::RenderStaticElements(
     const VisualProperties& props)
 {
     // Bounding Box
-    if (entityContext.entityType != ESPEntityType::Gadget && entityContext.renderBox) {
+    if (entityContext.renderBox) {
         ESPShapeRenderer::RenderBoundingBox(context.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
     }
 

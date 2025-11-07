@@ -62,6 +62,13 @@ namespace kx {
          * @param character The character to extract dimensions from
          */
         static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
+        
+        /**
+         * @brief Extract physics cylinder shape dimensions from gadget
+         * @param entity The entity to populate with dimensions
+         * @param gadget The gadget to extract dimensions from
+         */
+        static void ExtractCylinderShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget);
     };
 
 } // namespace kx

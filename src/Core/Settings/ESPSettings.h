@@ -100,6 +100,7 @@ namespace kx {
 
     struct ObjectEspSettings {
         bool enabled = true;
+        bool renderBox = false;         // Render 3D bounding box
         bool renderCircle = false;      // Render a 2D circle for the object
         bool renderSphere = false;      // Render a 3D sphere for the object
         bool renderDistance = false;
@@ -141,7 +142,7 @@ namespace kx {
         bool showDetailGatherableStatus = true;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObjectEspSettings, enabled, renderCircle, renderSphere, renderDistance,
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObjectEspSettings, enabled, renderBox, renderCircle, renderSphere, renderDistance,
                                        renderDot, renderDetails, renderHealthBar, showBurstDps, showDamageNumbers,
                                        showOnlyDamaged, showHealthPercentage, showDeadGadgets, showResourceNodes,
                                        showWaypoints, showVistas, showCraftingStations, showAttackTargets,

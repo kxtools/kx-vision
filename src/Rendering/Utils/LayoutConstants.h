@@ -43,6 +43,12 @@ namespace EntityWorldBounds {
     constexpr float NPC_WORLD_WIDTH = 0.6f;      // 0.6m - smaller cube for less screen clutter
     constexpr float NPC_WORLD_DEPTH = 0.6f;      // 0.6m - matches width
     constexpr float NPC_WORLD_HEIGHT = 0.6f;     // 0.6m - matches width (1:1:1 cube)
+    
+    // Gadget bounding box in world space (meters) - fallback when physics data unavailable
+    // Small square/cube like MinimumSizes (3×3px) - physics data provides accurate dimensions when available
+    constexpr float GADGET_WORLD_WIDTH = 0.5f;   // 0.5m - small, compact cube
+    constexpr float GADGET_WORLD_DEPTH = 0.5f;   // 0.5m - matches width (square footprint)
+    constexpr float GADGET_WORLD_HEIGHT = 0.5f;  // 0.5m - matches width (1:1:1 cube for generic objects)
 }
 
 /**

@@ -143,6 +143,9 @@ private:
      */
     static void CalculateGadgetDimensions(
         const RenderableEntity& entity,
+        Camera& camera,
+        float screenWidth,
+        float screenHeight,
         VisualProperties& props,
         float scale);
 

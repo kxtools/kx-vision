@@ -7,6 +7,20 @@
 
 namespace kx {
 
+// Physics dimension extraction validation constants
+namespace PhysicsValidation {
+    // Height validation range in meters (applies to both characters and gadgets after conversion)
+    constexpr float MIN_HEIGHT_METERS = 0.1f;   // 10cm - minimum reasonable entity height
+    constexpr float MAX_HEIGHT_METERS = 10.0f;  // 10m - maximum height (allows large bosses)
+    
+    // Gadget height validation in centimeters (before conversion)
+    constexpr int32_t MIN_HEIGHT_CM = 10;       // 10cm minimum
+    constexpr int32_t MAX_HEIGHT_CM = 1000;     // 10m maximum
+    
+    // Width-to-height ratio for ESP bounding boxes (proportional approach)
+    constexpr float WIDTH_TO_HEIGHT_RATIO = 0.35f;  // 35% - typical humanoid/object proportions
+}
+
     bool EntityExtractor::ExtractPlayer(RenderablePlayer& outPlayer,
         const ReClass::ChCliCharacter& inCharacter,
         const wchar_t* playerName,
@@ -138,6 +152,9 @@ namespace kx {
         if (outGadget.type == Game::GadgetType::ResourceNode) {
             outGadget.resourceType = inGadget.GetResourceNodeType();
         }
+        
+        // --- Physics Cylinder Shape Dimensions ---
+        ExtractCylinderShapeDimensions(outGadget, inGadget);
 
         return true;
     }
@@ -235,28 +252,72 @@ void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const 
     ReClass::HkpBoxShape boxShape = wrapper.GetBoxShape();
     if (!boxShape) return;
     
-    // Read half-extents from Havok physics box shape
+    // Read half-extents from Havok physics box shape (in game coordinate space)
     float heightHalf = boxShape.GetHeightHalf();
     
-    // Only proceed if we got valid height (most reliable dimension)
-    if (heightHalf <= 0.0f) return;
+    // Reject obviously invalid values before conversion
+    if (!std::isfinite(heightHalf) || heightHalf <= 0.0f) {
+        return; // NaN, infinity, negative, or zero - use fallback dimensions
+    }
     
     // === HEIGHT: Accurate per-entity dimension from physics ===
     // HkpBoxShape stores dimensions in game coordinate space (Havok Physics System)
     // Evidence: heightHalf ~0.75 game units → 1.5 full → ÷1.23 → ~1.22m (typical character)
     // Conversion follows unit-systems.md: Game coordinates require ÷GAME_TO_MUMBLE_SCALE_FACTOR
-    entity.physicsHeight = (heightHalf * 2.0f) / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
+    float fullHeightMeters = (heightHalf * 2.0f) / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
+    
+    // Validate converted height in meters
+    // This rejects corrupted data while allowing normal characters (~1.2m) and large bosses (~8m)
+    if (fullHeightMeters < PhysicsValidation::MIN_HEIGHT_METERS || 
+        fullHeightMeters > PhysicsValidation::MAX_HEIGHT_METERS) {
+        return; // Out of reasonable range - use fallback dimensions
+    }
+    
+    entity.physicsHeight = fullHeightMeters;
     
     // === WIDTH/DEPTH: Derived from height for ESP visualization ===
-    // Note: HkpBoxShape width/depth are extremely small (~0.035 game units / ~0.028m after conversion)
-    // because GW2 uses capsule-based collision for character movement (thin cylinder with rounded caps),
-    // not actual box collision. These values represent the capsule's cylindrical radius, not visual width.
-    // 
-    // For ESP bounding boxes, we need human-proportioned rectangles, not physics capsules.
-    // Evidence-based approach: Use typical humanoid proportions (~40% width-to-height ratio)
-    // This provides visually accurate bounding boxes while maintaining per-entity height accuracy.
-    entity.physicsWidth = entity.physicsHeight * 0.35f;
-    entity.physicsDepth = entity.physicsHeight * 0.35f;
+    // Note: HkpBoxShape width/depth values represent capsule collision radii (~0.035 game units),
+    // not visual dimensions. For ESP boxes, we derive proportional dimensions (35% width-to-height).
+    entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    
+    entity.hasPhysicsDimensions = true;
+}
+
+void EntityExtractor::ExtractCylinderShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget) {
+    // Navigate: GdCliGadget -> AgKeyFramed -> CoKeyFramed -> HkpRigidBody -> HkpCylinderShape
+    ReClass::AgKeyFramed agent = gadget.GetAgKeyFramed();
+    if (!agent) return;
+    
+    ReClass::CoKeyFramed coKeyframed = agent.GetCoKeyFramed();
+    if (!coKeyframed) return;
+    
+    ReClass::HkpRigidBody rigidBody = coKeyframed.GetRigidBody();
+    if (!rigidBody) return;
+    
+    ReClass::HkpCylinderShape cylinderShape = rigidBody.GetCylinderShape();
+    if (!cylinderShape) return;
+    
+    // Read height from integer offset at 0x38 (centimeters)
+    // This is the most reliable offset - stores height in centimeters as int32_t
+    // Evidence: 229 = 2.29m (catapult), 500 = 5m (control point)
+    int32_t heightCm = cylinderShape.GetHeightCentimeters();
+    
+    // Validate integer height range in centimeters
+    if (heightCm < PhysicsValidation::MIN_HEIGHT_CM || 
+        heightCm > PhysicsValidation::MAX_HEIGHT_CM) {
+        return; // Invalid or out of range - use fallback dimensions
+    }
+    
+    // === HEIGHT: Accurate per-entity dimension from physics ===
+    // Convert from centimeters to meters
+    entity.physicsHeight = heightCm / 100.0f;
+    
+    // === WIDTH/DEPTH: Derived from height for ESP visualization ===
+    // Note: HkpCylinderShape radius values are too small for ESP visualization (~0.05 game units).
+    // For ESP boxes, we derive proportional dimensions (35% width-to-height).
+    entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
     
     entity.hasPhysicsDimensions = true;
 }

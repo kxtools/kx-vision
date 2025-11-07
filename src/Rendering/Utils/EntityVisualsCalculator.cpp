@@ -46,7 +46,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
 
     // 5. Calculate rendering dimensions (box or circle)
     if (entity.entityType == ESPEntityType::Gadget) {
-        CalculateGadgetDimensions(entity, props, props.scale);
+        CalculateGadgetDimensions(entity, camera, screenWidth, screenHeight, props, props.scale);
     } else {
         CalculatePlayerNPCDimensions(entity, camera, screenWidth, screenHeight, props, props.scale);
     }
@@ -229,14 +229,25 @@ void EntityVisualsCalculator::GetWorldBoundsForEntity(
     float& outDepth,
     float& outHeight)
 {
-    if (entityType == ESPEntityType::Player) {
-        outWidth = EntityWorldBounds::PLAYER_WORLD_WIDTH;
-        outDepth = EntityWorldBounds::PLAYER_WORLD_DEPTH;
-        outHeight = EntityWorldBounds::PLAYER_WORLD_HEIGHT;
-    } else {
-        outWidth = EntityWorldBounds::NPC_WORLD_WIDTH;
-        outDepth = EntityWorldBounds::NPC_WORLD_DEPTH;
-        outHeight = EntityWorldBounds::NPC_WORLD_HEIGHT;
+    switch (entityType) {
+        case ESPEntityType::Player:
+            outWidth = EntityWorldBounds::PLAYER_WORLD_WIDTH;
+            outDepth = EntityWorldBounds::PLAYER_WORLD_DEPTH;
+            outHeight = EntityWorldBounds::PLAYER_WORLD_HEIGHT;
+            break;
+        
+        case ESPEntityType::Gadget:
+            outWidth = EntityWorldBounds::GADGET_WORLD_WIDTH;
+            outDepth = EntityWorldBounds::GADGET_WORLD_DEPTH;
+            outHeight = EntityWorldBounds::GADGET_WORLD_HEIGHT;
+            break;
+        
+        case ESPEntityType::NPC:
+        default:
+            outWidth = EntityWorldBounds::NPC_WORLD_WIDTH;
+            outDepth = EntityWorldBounds::NPC_WORLD_DEPTH;
+            outHeight = EntityWorldBounds::NPC_WORLD_HEIGHT;
+            break;
     }
 }
 
@@ -254,6 +265,9 @@ void EntityVisualsCalculator::ApplyFallback2DBox(
 
 void EntityVisualsCalculator::CalculateGadgetDimensions(
     const RenderableEntity& entity,
+    Camera& camera,
+    float screenWidth,
+    float screenHeight,
     VisualProperties& props,
     float scale)
 {
@@ -263,12 +277,43 @@ void EntityVisualsCalculator::CalculateGadgetDimensions(
     float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
     props.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * scale);
 
-    // For gadgets, screenPos IS the center (no box needed)
+    // Initial center for gadgets (circle center at screen position)
+    // Note: This will be recalculated in CalculateLiveVisuals if using box rendering
     props.center = ImVec2(props.screenPos.x, props.screenPos.y);
     
-    // Set dummy box values for text positioning (will be overridden for circles)
-    props.boxMin = ImVec2(props.screenPos.x - props.circleRadius, props.screenPos.y - props.circleRadius);
-    props.boxMax = ImVec2(props.screenPos.x + props.circleRadius, props.screenPos.y + props.circleRadius);
+    // Calculate bounding box - prefer physics dimensions, fallback to reasonable defaults
+    float worldWidth, worldDepth, worldHeight;
+    
+    if (entity.hasPhysicsDimensions) {
+        // Use physics-based dimensions from cylinder shape
+        worldWidth = entity.physicsWidth;
+        worldDepth = entity.physicsDepth;
+        worldHeight = entity.physicsHeight;
+    } else {
+        // Fallback to reasonable default dimensions for gadgets
+        GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
+    }
+    
+    // Project 3D bounding box to screen space
+    bool boxValid = false;
+    Calculate3DBoundingBox(
+        entity.position,
+        worldWidth,
+        worldDepth,
+        worldHeight,
+        camera,
+        screenWidth,
+        screenHeight,
+        props.boxMin,
+        props.boxMax,
+        boxValid
+    );
+    
+    if (!boxValid) {
+        // Fallback to circle-based box if 3D projection fails
+        props.boxMin = ImVec2(props.screenPos.x - props.circleRadius, props.screenPos.y - props.circleRadius);
+        props.boxMax = ImVec2(props.screenPos.x + props.circleRadius, props.screenPos.y + props.circleRadius);
+    }
 }
 
 void EntityVisualsCalculator::CalculatePlayerNPCDimensions(
