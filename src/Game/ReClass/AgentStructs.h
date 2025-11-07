@@ -12,8 +12,65 @@ namespace kx {
         // Forward declarations
         class AgChar;
         class CoChar;
-        class CoCharUnknown;
+        class CoCharSimpleCliWrapper;
         class HkpSimpleShapePhantom;
+        class HkpBoxShape;
+
+        /**
+         * @brief Havok physics box shape object - contains collision box dimensions
+         */
+        class HkpBoxShape : public SafeForeignClass {
+        public:
+            HkpBoxShape(void* ptr) : SafeForeignClass(ptr) {}
+
+            float GetHeight() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMember<float>(Offsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
+            }
+
+            float GetHeightHalf() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMember<float>(Offsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
+            }
+
+            float GetWidthHalf() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMember<float>(Offsets::HkpBoxShape::WIDTH_HALF, 0.0f);
+            }
+
+            float GetDepthHalf() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMember<float>(Offsets::HkpBoxShape::DEPTH_HALF, 0.0f);
+            }
+
+            float GetCollisionRadius() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMember<float>(Offsets::HkpBoxShape::COLLISION_RADIUS, 0.0f);
+            }
+
+            glm::vec3 GetHalfExtents() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f, 0.0f };
+                }
+                return ReadMember<glm::vec3>(Offsets::HkpBoxShape::HALF_EXTENTS, { 0.0f, 0.0f, 0.0f });
+            }
+
+            // Get full dimensions (half-extents * 2)
+            glm::vec3 GetFullDimensions() const {
+                glm::vec3 halfExtents = GetHalfExtents();
+                return halfExtents * 2.0f;
+            }
+        };
 
         /**
          * @brief Havok physics phantom object - contains physics-simulated position
@@ -33,23 +90,23 @@ namespace kx {
         };
 
         /**
-         * @brief Unknown object accessed via CoChar->0x88 containing alternative positions
+         * @brief CoCharSimpleCliWrapper object accessed via CoChar->0x88 containing alternative positions
          * 
          * TEST RESULTS:
          * - GetPositionAlt1(): Updates similarly to Primary - smooth and accurate
          * - GetPositionAlt2(): LAGS BEHIND visual position - not recommended for real-time rendering
          * - GetPhysicsPhantom()->GetPhysicsPosition(): Updates similarly to Primary - smooth and accurate
          */
-        class CoCharUnknown : public SafeForeignClass {
+        class CoCharSimpleCliWrapper : public SafeForeignClass {
         public:
-            CoCharUnknown(void* ptr) : SafeForeignClass(ptr) {}
+            CoCharSimpleCliWrapper(void* ptr) : SafeForeignClass(ptr) {}
 
             glm::vec3 GetPositionAlt1() const {
                 // TESTED: Updates similarly to Primary position - smooth and accurate
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(Offsets::CoCharUnknown::POSITION_ALT1, { 0.0f, 0.0f, 0.0f });
+                return ReadMember<glm::vec3>(Offsets::CoCharSimpleCliWrapper::POSITION_ALT1, { 0.0f, 0.0f, 0.0f });
             }
 
             glm::vec3 GetPositionAlt2() const {
@@ -58,11 +115,15 @@ namespace kx {
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(Offsets::CoCharUnknown::POSITION_ALT2, { 0.0f, 0.0f, 0.0f });
+                return ReadMember<glm::vec3>(Offsets::CoCharSimpleCliWrapper::POSITION_ALT2, { 0.0f, 0.0f, 0.0f });
             }
 
             HkpSimpleShapePhantom GetPhysicsPhantom() const {
-                return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharUnknown::PHYSICS_PHANTOM);
+                return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharSimpleCliWrapper::PHYSICS_PHANTOM);
+            }
+
+            HkpBoxShape GetBoxShape() const {
+                return ReadPointer<HkpBoxShape>(Offsets::CoCharSimpleCliWrapper::BOX_SHAPE);
             }
         };
 
@@ -85,8 +146,8 @@ namespace kx {
                 return result;
             }
 
-            CoCharUnknown GetUnknownObject() const {
-                return ReadPointer<CoCharUnknown>(Offsets::CoChar::UNKNOWN_OBJECT);
+            CoCharSimpleCliWrapper GetSimpleCliWrapper() const {
+                return ReadPointer<CoCharSimpleCliWrapper>(Offsets::CoChar::UNKNOWN_OBJECT);
             }
         };
 

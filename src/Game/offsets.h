@@ -37,7 +37,7 @@ namespace Offsets {
     };
 
     /**
-     * @brief Unknown intermediate object accessed via CoChar->0x88
+     * @brief CoCharSimpleCliWrapper intermediate object accessed via CoChar->0x88
      * Contains alternative position sources that may update at different rates
      * 
      * TEST RESULTS:
@@ -48,10 +48,11 @@ namespace Offsets {
      * RECOMMENDATION: Use Primary (CoChar::VISUAL_POSITION) or Alt1 for best results
      * Primary, Alt1, and Physics all update at similar rates with good smoothness
      */
-    struct CoCharUnknown {
+    struct CoCharSimpleCliWrapper {
         static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1 (TESTED: Good, similar to Primary)
         static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (TESTED: Lags behind, not recommended)
         static constexpr uintptr_t PHYSICS_PHANTOM = 0x78;  // hkpSimpleShapePhantom* physics object (TESTED: Good, similar to Primary)
+        static constexpr uintptr_t BOX_SHAPE = 0xE8;        // hkpBoxShape* physics box shape
     };
 
     /**
@@ -63,6 +64,18 @@ namespace Offsets {
      */
     struct HkpSimpleShapePhantom {
         static constexpr uintptr_t PHYSICS_POSITION = 0x120;  // glm::vec3 physics position (TESTED: Good, similar to Primary)
+    };
+
+    /**
+     * @brief hkpBoxShape - Havok physics box shape object
+     * Contains character collision box dimensions
+     */
+    struct HkpBoxShape {
+        static constexpr uintptr_t COLLISION_RADIUS = 0x20;  // float base collision radius (consistent 0.05 across entities)
+        static constexpr uintptr_t HALF_EXTENTS = 0x30;      // hkVector4: half-extents (width/2, depth/2, height/2, padding)
+        static constexpr uintptr_t WIDTH_HALF = 0x30;        // float X half-extent (~0.0354)
+        static constexpr uintptr_t DEPTH_HALF = 0x34;        // float Y half-extent (~0.0354)
+        static constexpr uintptr_t HEIGHT_HALF = 0x38;       // float Z half-extent (varies)
     };
 
     /**
