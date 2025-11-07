@@ -10,6 +10,40 @@
 namespace kx {
     namespace ReClass {
 
+        // Forward declarations
+        class CoKeyFramed;
+        class AgKeyFramed;
+        class GdCliGadget;
+        class HkpRigidBody;
+        class HkpCylinderShape;
+
+        /**
+         * @brief Havok physics cylinder collision shape - contains gadget dimensions
+         */
+        class HkpCylinderShape : public SafeForeignClass {
+        public:
+            HkpCylinderShape(void* ptr) : SafeForeignClass(ptr) {}
+
+            int32_t GetHeightCentimeters() const {
+                if (!data()) {
+                    return 0;
+                }
+                return ReadMember<int32_t>(Offsets::HkpCylinderShape::HEIGHT_CM, 0);
+            }
+        };
+
+        /**
+         * @brief Havok physics rigid body - contains physics shape reference
+         */
+        class HkpRigidBody : public SafeForeignClass {
+        public:
+            HkpRigidBody(void* ptr) : SafeForeignClass(ptr) {}
+
+            HkpCylinderShape GetCylinderShape() const {
+                return ReadPointer<HkpCylinderShape>(Offsets::HkpRigidBody::SHAPE);
+            }
+        };
+
         /**
          * @brief Coordinate/Object wrapper for keyframed entities (gadgets)
          */
@@ -24,6 +58,10 @@ namespace kx {
                 
                 LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", position.x, position.y, position.z);
                 return position;
+            }
+
+            HkpRigidBody GetRigidBody() const {
+                return ReadPointer<HkpRigidBody>(Offsets::CoKeyframed::RIGID_BODY);
             }
         };
 
