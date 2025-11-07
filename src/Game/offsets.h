@@ -5,17 +5,7 @@
  * @file offsets.h
  * @brief Memory offsets for Guild Wars 2 game structures
  * 
- * This file organizes memory offsets into nested structs that mirror the game's
- * class hierarchy. This structure provides better maintainability and makes the
- * relationship between game classes and their members more explicit.
- * 
- * Usage Examples:
- *   Offsets::ChCliCharacter::AGENT        // Character's agent pointer
- *   Offsets::ChCliHealth::CURRENT         // Health current value
- *   Offsets::ContextCollection::CH_CLI_CONTEXT  // Character context in collection
- * 
- * @note All offsets are organized by game class for clarity and maintainability.
- *       The structured approach makes relationships between classes explicit.
+ * Organized into nested structs that mirror the game's class hierarchy.
  */
 
 namespace Offsets {
@@ -26,46 +16,31 @@ namespace Offsets {
 
     /**
      * @brief CoChar - Character coordinate system for visual positioning
-     * 
-     * VISUAL_POSITION (0x30) is the primary position source and works well.
-     * Testing shows it updates smoothly and accurately for real-time rendering.
+     * VISUAL_POSITION is the primary position source for real-time rendering.
      */
     struct CoChar {
-        static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary - TESTED: Good, smooth updates)
+        static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary)
         static constexpr uintptr_t SIMPLE_CLI_WRAPPER = 0x88;   // CoCharSimpleCliWrapper* - contains additional position data and physics info
         static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x100; // HkpSimpleShapePhantom* direct physics phantom pointer (PLAYER ONLY - NPCs are nullptr)
     };
 
     /**
      * @brief CoCharSimpleCliWrapper intermediate object accessed via CoChar->0x88
-     * Contains alternative position sources that may update at different rates
-     * 
-     * TEST RESULTS:
-     * - POSITION_ALT1 (0xB8): Updates similarly to Primary - smooth and accurate
-     * - POSITION_ALT2 (0x118): LAGS BEHIND - visual delay, not recommended
-     * - PHYSICS_PHANTOM_PLAYER->POSITION (0x78->0x120): Updates similarly to Primary - smooth and accurate (PLAYER ONLY)
-     * 
-     * RECOMMENDATION: Use Primary (CoChar::VISUAL_POSITION) or Alt1 for best results
-     * Primary, Alt1, and Physics all update at similar rates with good smoothness
-     * 
-     * NOTE: BOX_SHAPE works for both players and NPCs. PHYSICS_PHANTOM_PLAYER is player-only (nullptr for NPCs).
+     * Note: PHYSICS_PHANTOM_PLAYER is player-only (nullptr for NPCs). BOX_SHAPE works for all entities.
      */
     struct CoCharSimpleCliWrapper {
-        static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1 (TESTED: Good, similar to Primary)
-        static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (TESTED: Lags behind, not recommended)
-        static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x78;  // hkpSimpleShapePhantom* physics object (PLAYER ONLY - NPCs are nullptr)
+        static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1
+        static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (may lag)
+        static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x78;  // hkpSimpleShapePhantom* physics object (PLAYER ONLY)
         static constexpr uintptr_t BOX_SHAPE = 0xE8;        // hkpBoxShape* physics box shape (works for players AND NPCs)
     };
 
     /**
      * @brief hkpSimpleShapePhantom - Havok physics phantom object
-     * Contains physics-driven position that updates similarly to Primary position.
-     * 
-     * TESTED: Physics position (0x120) updates smoothly and accurately, similar to Primary.
-     * Can be used as alternative to Primary position if needed.
+     * Contains physics-driven position data.
      */
     struct HkpSimpleShapePhantom {
-        static constexpr uintptr_t PHYSICS_POSITION = 0x120;  // glm::vec3 physics position (TESTED: Good, similar to Primary)
+        static constexpr uintptr_t PHYSICS_POSITION = 0x120;  // glm::vec3 physics position
     };
 
     /**
@@ -73,11 +48,11 @@ namespace Offsets {
      * Contains character collision box dimensions
      */
     struct HkpBoxShape {
-        static constexpr uintptr_t COLLISION_RADIUS = 0x20;  // float base collision radius (consistent 0.05 across entities)
+        static constexpr uintptr_t COLLISION_RADIUS = 0x20;  // float base collision radius
         static constexpr uintptr_t HALF_EXTENTS = 0x30;      // hkVector4: half-extents (width/2, depth/2, height/2, padding)
-        static constexpr uintptr_t WIDTH_HALF = 0x30;        // float X half-extent (~0.0354)
-        static constexpr uintptr_t DEPTH_HALF = 0x34;        // float Y half-extent (~0.0354)
-        static constexpr uintptr_t HEIGHT_HALF = 0x38;       // float Z half-extent (varies)
+        static constexpr uintptr_t WIDTH_HALF = 0x30;        // float X half-extent
+        static constexpr uintptr_t DEPTH_HALF = 0x34;        // float Y half-extent
+        static constexpr uintptr_t HEIGHT_HALF = 0x38;       // float Z half-extent
     };
 
     /**
