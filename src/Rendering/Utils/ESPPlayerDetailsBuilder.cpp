@@ -5,6 +5,7 @@
 #include "../../Game/Generated/StatData.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
+#include <format>
 #include <sstream>
 #include <iomanip>
 
@@ -65,9 +66,8 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
     }
 
     if (showDebugAddresses) {
-        char addrStr[32];
-        snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", player->address);
-        details.push_back({ std::string(addrStr), ESPColors::DEFAULT_TEXT });
+        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(player->address));
+        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
         /*details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(player->agentType), ESPColors::DEFAULT_TEXT });
         details.push_back({ "AgentID: " + std::to_string(player->agentId), ESPColors::DEFAULT_TEXT });*/

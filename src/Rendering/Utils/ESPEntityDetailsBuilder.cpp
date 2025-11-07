@@ -2,6 +2,7 @@
 #include "ESPFormatting.h"
 #include "ESPConstants.h"
 #include "../../Game/GameEnums.h"
+#include <format>
 #include <sstream>
 #include <iomanip>
 
@@ -50,9 +51,8 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
     }
 
     if (showDebugAddresses) {
-        char addrStr[32];
-        snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", npc->address);
-        details.push_back({ std::string(addrStr), ESPColors::DEFAULT_TEXT });
+        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(npc->address));
+        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
         /*details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(npc->agentType), ESPColors::DEFAULT_TEXT });
         details.push_back({ "AgentID: " + std::to_string(npc->agentId), ESPColors::DEFAULT_TEXT });*/
@@ -97,9 +97,8 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
     }
 
     if (showDebugAddresses) {
-        char addrStr[32];
-        snprintf(addrStr, sizeof(addrStr), "Addr: 0x%p", gadget->address);
-        details.push_back({ std::string(addrStr), ESPColors::DEFAULT_TEXT });
+        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(gadget->address));
+        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
         /*details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(gadget->agentType), ESPColors::DEFAULT_TEXT });
         details.push_back({ "AgentID: " + std::to_string(gadget->agentId), ESPColors::DEFAULT_TEXT });*/
