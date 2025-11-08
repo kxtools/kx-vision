@@ -87,7 +87,7 @@ void LayoutCalculator::GatherStatusBarElements(
 
     // Health Bar
     bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
-    bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
+    bool isGadget = (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget);
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
     if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
         ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};

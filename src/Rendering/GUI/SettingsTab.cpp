@@ -265,6 +265,16 @@ namespace kx {
                             ImGui::PushItemWidth(-1.0f);
                             ImGui::InputText("##GadgetListAddr", gadgetListAddrStr.data(), gadgetListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();
+
+                            // Attack Target List
+                            ReClass::AttackTargetListEntry** attackTargetList = gadgetCtx.GetAttackTargetList();
+                            uint32_t attackTargetCapacity = gadgetCtx.GetAttackTargetListCapacity();
+                            uint32_t attackTargetCount = gadgetCtx.GetAttackTargetListCount();
+                            std::string attackTargetListAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(attackTargetList));
+                            ImGui::Text("AttackTargetList (Count: %u / Capacity: %u):", attackTargetCount, attackTargetCapacity);
+                            ImGui::PushItemWidth(-1.0f);
+                            ImGui::InputText("##AttackTargetListAddr", attackTargetListAddrStr.data(), attackTargetListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
+                            ImGui::PopItemWidth();
                         }
                     } else {
                         ImGui::Text("ContextCollection not available.");

@@ -10,7 +10,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
                                   PooledFrameRenderData& outData) {
     outData.finalizedEntities.clear();
     outData.finalizedEntities.reserve(
-        filteredData.players.size() + filteredData.npcs.size() + filteredData.gadgets.size()
+        filteredData.players.size() + filteredData.npcs.size() + filteredData.gadgets.size() + filteredData.attackTargets.size()
     );
 
     // Process players
@@ -39,6 +39,18 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
 
     // Process gadgets
     for (const auto* entity : filteredData.gadgets) {
+        if (!entity) continue;
+
+        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context.camera, context.screenWidth, context.screenHeight);
+        
+        if (visualPropsOpt) {
+            EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
+            outData.finalizedEntities.emplace_back(FinalizedRenderable{entity, *visualPropsOpt, renderContext});
+        }
+    }
+
+    // Process attack targets
+    for (const auto* entity : filteredData.attackTargets) {
         if (!entity) continue;
 
         auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context.camera, context.screenWidth, context.screenHeight);

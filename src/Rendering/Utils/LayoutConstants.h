@@ -91,6 +91,7 @@ namespace ExtractionCapacity {
     constexpr size_t PLAYERS_RESERVE = 64;     // ~12 typical + buffer for busy instances
     constexpr size_t NPCS_RESERVE = 128;       // ~29 typical + buffer for NPC-heavy areas  
     constexpr size_t GADGETS_RESERVE = 1024;   // ~457 typical + buffer for resource-rich zones
+    constexpr size_t ATTACK_TARGETS_RESERVE = 512; // Typical + buffer for attack targets
 }
 
 /**

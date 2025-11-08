@@ -45,7 +45,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     props.scale = CalculateEntityScale(entity.visualDistance, entity.entityType);
 
     // 5. Calculate rendering dimensions (box or circle)
-    if (entity.entityType == ESPEntityType::Gadget) {
+    if (entity.entityType == ESPEntityType::Gadget || entity.entityType == ESPEntityType::AttackTarget) {
         CalculateGadgetDimensions(entity, camera, screenWidth, screenHeight, props, props.scale);
     } else {
         CalculatePlayerNPCDimensions(entity, camera, screenWidth, screenHeight, props, props.scale);
@@ -103,8 +103,8 @@ float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEnt
         scalingExponent = settings.scaling.limitScalingExponent;
     } else {
         // --- NO LIMIT MODE ---
-        if (entityType == ESPEntityType::Gadget) {
-            // GADGETS: Use fully adaptive system (these can be 1000m+ away)
+        if (entityType == ESPEntityType::Gadget || entityType == ESPEntityType::AttackTarget) {
+            // GADGETS/ATTACK TARGETS: Use fully adaptive system (these can be 1000m+ away)
             // The Distance Factor is calculated dynamically based on the adaptive far plane.
             // We set the 50% scale point to be halfway to the furthest visible group of objects.
             float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
@@ -154,7 +154,8 @@ void EntityVisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityT
         break;
         
     case ESPEntityType::Gadget:
-        // Gadgets always use circle rendering (see CalculateGadgetDimensions)
+    case ESPEntityType::AttackTarget:
+        // Gadgets/Attack Targets always use circle rendering (see CalculateGadgetDimensions)
         // This case should never be reached - fallback to base box dimensions
         outBoxHeight = settings.sizes.baseBoxHeight * scale;
         outBoxWidth = settings.sizes.baseBoxWidth * scale;
@@ -236,6 +237,14 @@ void EntityVisualsCalculator::GetWorldBoundsForEntity(
             outHeight = EntityWorldBounds::PLAYER_WORLD_HEIGHT;
             break;
         
+        case ESPEntityType::AttackTarget:
+            // Attack targets always use square boxes (width = depth = height)
+            // Use height as the base dimension for all three axes
+            outHeight = EntityWorldBounds::GADGET_WORLD_HEIGHT;
+            outWidth = outHeight;
+            outDepth = outHeight;
+            break;
+        
         case ESPEntityType::Gadget:
             outWidth = EntityWorldBounds::GADGET_WORLD_WIDTH;
             outDepth = EntityWorldBounds::GADGET_WORLD_DEPTH;
@@ -285,12 +294,20 @@ void EntityVisualsCalculator::CalculateGadgetDimensions(
     float worldWidth, worldDepth, worldHeight;
     
     if (entity.hasPhysicsDimensions) {
-        // Use physics-based dimensions from cylinder shape
-        worldWidth = entity.physicsWidth;
-        worldDepth = entity.physicsDepth;
-        worldHeight = entity.physicsHeight;
+        if (entity.entityType == ESPEntityType::AttackTarget) {
+            // Attack targets always use square boxes (width = depth = height)
+            // Use height as the base dimension for all three axes
+            worldHeight = entity.physicsHeight;
+            worldWidth = worldHeight;
+            worldDepth = worldHeight;
+        } else {
+            // Gadgets use physics-based dimensions from cylinder shape
+            worldWidth = entity.physicsWidth;
+            worldDepth = entity.physicsDepth;
+            worldHeight = entity.physicsHeight;
+        }
     } else {
-        // Fallback to reasonable default dimensions for gadgets
+        // Fallback to reasonable default dimensions
         GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
     }
     
@@ -380,8 +397,8 @@ float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, fl
 
     // --- "NO LIMIT" MODE LOGIC (THREE-TIERED SYSTEM) ---
     
-    if (entityType == ESPEntityType::Gadget) {
-        // --- TIER 2: GADGETS (Fully Adaptive Fade) ---
+    if (entityType == ESPEntityType::Gadget || entityType == ESPEntityType::AttackTarget) {
+        // --- TIER 2: GADGETS/ATTACK TARGETS (Fully Adaptive Fade) ---
         // Goal: Maximum Information Clarity - handle extreme distances (1000m+)
         float finalAlpha = 1.0f; // Default to fully visible
         
@@ -515,7 +532,7 @@ EntityMultipliers EntityVisualsCalculator::CalculateEntityMultipliers(const Rend
     }
     
     // Calculate gadget health multiplier
-    if (entity.entityType == ESPEntityType::Gadget) {
+    if (entity.entityType == ESPEntityType::Gadget || entity.entityType == ESPEntityType::AttackTarget) {
         multipliers.gadgetHealth = GetGadgetHealthMultiplier(entity.maxHealth);
     }
     

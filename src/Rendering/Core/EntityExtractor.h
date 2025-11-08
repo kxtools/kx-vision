@@ -42,6 +42,15 @@ namespace kx {
         static bool ExtractGadget(RenderableGadget& outGadget,
             const ReClass::GdCliGadget& inGadget);
 
+        /**
+         * @brief Populates a RenderableAttackTarget object from an AgKeyFramed game structure.
+         * @param outAttackTarget The RenderableAttackTarget object to populate (from an object pool).
+         * @param inAgKeyframed The source AgKeyFramed structure from the attack target list.
+         * @return True if extraction was successful and the entity is valid, false otherwise.
+         */
+        static bool ExtractAttackTarget(RenderableAttackTarget& outAttackTarget,
+            const ReClass::AgKeyFramed& inAgKeyframed);
+
     private:
         /**
          * @brief Helper to encapsulate the detailed gear extraction logic for a player.
@@ -53,6 +62,7 @@ namespace kx {
         // Common extraction pattern helpers
         static bool ValidateAndExtractGamePosition(const ReClass::ChCliCharacter& character, glm::vec3& outGamePos);
         static bool ValidateAndExtractGamePosition(const ReClass::GdCliGadget& gadget, glm::vec3& outGamePos);
+        static bool ValidateAndExtractGamePosition(const ReClass::AgKeyFramed& agKeyframed, glm::vec3& outGamePos);
         static glm::vec3 TransformGamePositionToMumble(const glm::vec3& gamePos);
         static void ExtractHealthData(RenderableEntity& entity, const ReClass::ChCliHealth& health);
         
@@ -69,6 +79,35 @@ namespace kx {
          * @param gadget The gadget to extract dimensions from
          */
         static void ExtractCylinderShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget);
+        
+        /**
+         * @brief Extract physics box shape dimensions from AgKeyFramed (for attack targets)
+         * @param entity The entity to populate with dimensions
+         * @param agKeyframed The AgKeyFramed to extract dimensions from
+         */
+        static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::AgKeyFramed& agKeyframed);
+        
+    private:
+        /**
+         * @brief Internal helper to extract cylinder shape dimensions from CoKeyFramed
+         * @param entity The entity to populate with dimensions
+         * @param coKeyframed The CoKeyFramed to extract dimensions from
+         */
+        static void ExtractCylinderShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
+        
+        /**
+         * @brief Internal helper to extract box shape dimensions from CoKeyFramed
+         * @param entity The entity to populate with dimensions
+         * @param coKeyframed The CoKeyFramed to extract dimensions from
+         */
+        static void ExtractBoxShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
+        
+        /**
+         * @brief Internal helper to extract dimensions from HkpBoxShape
+         * @param entity The entity to populate with dimensions
+         * @param boxShape The HkpBoxShape to extract dimensions from
+         */
+        static void ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity& entity, const ReClass::HkpBoxShape& boxShape);
     };
 
 } // namespace kx

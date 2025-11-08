@@ -66,8 +66,8 @@ std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const Fin
     liveVisuals.boxMax = ImVec2(liveVisuals.screenPos.x + boxWidth / 2.0f, liveVisuals.screenPos.y);
     
     // Calculate center based on entity type
-    if (item.entity->entityType == ESPEntityType::Gadget) {
-        // Gadgets: Circle center is always at screen position
+    if (item.entity->entityType == ESPEntityType::Gadget || item.entity->entityType == ESPEntityType::AttackTarget) {
+        // Gadgets/Attack Targets: Circle center is always at screen position
         liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y);
     } else {
         // Players/NPCs: Box center is midpoint of bounding box
@@ -143,7 +143,7 @@ void ESPStageRenderer::RenderStatusBars(
 {
     // Health Bar
     bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
-    bool isGadget = (entityContext.entityType == ESPEntityType::Gadget);
+    bool isGadget = (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget);
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
     if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar && layout.HasElement(LayoutElementKey::HealthBar)) {
         glm::vec2 position = layout.GetElementPosition(LayoutElementKey::HealthBar);
@@ -244,7 +244,7 @@ void ESPStageRenderer::RenderStaticElements(
     }
 
     // Gadget Visuals (Sphere/Circle)
-    if (entityContext.entityType == ESPEntityType::Gadget) {
+    if (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget) {
         if (entityContext.renderGadgetSphere) {
             ESPShapeRenderer::RenderGadgetSphere(context.drawList, entityContext, context.camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale, context.screenWidth, context.screenHeight);
         }
@@ -255,7 +255,7 @@ void ESPStageRenderer::RenderStaticElements(
 
     // Center Dot
     if (entityContext.renderDot) {
-        if (entityContext.entityType == ESPEntityType::Gadget) {
+        if (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget) {
             ESPShapeRenderer::RenderNaturalWhiteDot(context.drawList, props.screenPos, props.finalAlpha, props.finalDotRadius);
         } else {
             ESPShapeRenderer::RenderColoredDot(context.drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius);

@@ -128,6 +128,28 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             filteredData.gadgets.push_back(gadget);
         }
     }
+    
+    // Filter attack targets
+    if (settings.objectESP.enabled && settings.objectESP.showAttackTargetList) {
+        filteredData.attackTargets.reserve(extractedData.attackTargets.size());
+        for (RenderableAttackTarget* attackTarget : extractedData.attackTargets) {
+            // Call the common helper function first
+            if (!PassesCommonFilters(attackTarget, cameraPos, playerPos, settings.distance)) {
+                continue;
+            }
+
+            // Filter boxes for oversized attack targets (walls, large structures)
+            // This prevents screen clutter from massive 20-30m tall entities
+            if (settings.objectESP.renderBox && attackTarget->hasPhysicsDimensions) {
+                if (attackTarget->physicsHeight > settings.objectESP.maxBoxHeight) {
+                    // Attack target is too tall - don't render it (will be filtered out)
+                    continue;
+                }
+            }
+            
+            filteredData.attackTargets.push_back(attackTarget);
+        }
+    }
 }
 
 } // namespace kx

@@ -208,6 +208,51 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     };
 }
 
+EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const RenderableAttackTarget* attackTarget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+    static const std::string emptyPlayerName = "";
+
+    const EntityCombatState* state = context.stateManager.GetState(attackTarget->address);
+    bool renderHealthBar = false; // Attack targets typically don't have health data
+
+    // --- Animation State --- 
+    HealthBarAnimationState animState;
+    // Attack targets don't typically have health, so no animation state needed
+
+    float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.objectESP.showBurstDps);
+
+    bool hideCombatUI = false; // Can be customized if needed
+
+    unsigned int color = ESPStyling::GetEntityColor(*attackTarget);
+
+    return EntityRenderContext {
+        .position = attackTarget->position,
+        .gameplayDistance = attackTarget->gameplayDistance,
+        .color = color,
+        .details = std::move(details),
+        .burstDPS = burstDpsValue,
+        .renderBox = context.settings.objectESP.renderBox,
+        .renderDistance = context.settings.objectESP.renderDistance,
+        .renderDot = context.settings.objectESP.renderDot,
+        .renderDetails = context.settings.objectESP.renderDetails,
+        .renderHealthBar = renderHealthBar,
+        .renderHealthPercentage = context.settings.objectESP.showHealthPercentage,
+        .renderEnergyBar = false,
+        .renderPlayerName = false,
+        .entityType = ESPEntityType::AttackTarget,
+        .attitude = Game::Attitude::Neutral,
+        .entity = attackTarget,
+        .playerName = emptyPlayerName,
+        .healthBarAnim = animState,
+        .renderGadgetSphere = context.settings.objectESP.renderSphere,
+        .renderGadgetCircle = context.settings.objectESP.renderCircle,
+        .playerGearDisplayMode = GearDisplayMode::Off,
+        .playerEnergyDisplayType = EnergyDisplayType::Special,
+        .showCombatUI = !hideCombatUI,
+        .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
+        .showBurstDps = context.settings.objectESP.showBurstDps
+    };
+}
+
 EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(const RenderableEntity* entity, const FrameContext& context) {
     std::vector<ColoredDetail> details;
     // Use a switch on entity->entityType to call the correct details builder
@@ -239,6 +284,12 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
             details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
             break;
         }
+        case ESPEntityType::AttackTarget:
+        {
+            const auto* attackTarget = static_cast<const RenderableAttackTarget*>(entity);
+            details = ESPEntityDetailsBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
+            break;
+        }
     }
 
     // Now, create the context using the ESPContextFactory, just like before.
@@ -250,6 +301,8 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
             return CreateContextForNpc(static_cast<const RenderableNpc*>(entity), details, context);
         case ESPEntityType::Gadget:
             return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
+        case ESPEntityType::AttackTarget:
+            return CreateContextForAttackTarget(static_cast<const RenderableAttackTarget*>(entity), details, context);
     }
     // This should not be reached, but we need to return something.
     // Returning a gadget context as a fallback.

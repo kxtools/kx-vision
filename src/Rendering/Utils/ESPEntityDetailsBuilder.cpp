@@ -107,4 +107,38 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
     return details;
 }
 
+std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses) {
+    std::vector<ColoredDetail> details;
+    
+    if (!settings.renderDetails) {
+        return details;
+    }
+
+    details.reserve(8);
+
+    details.push_back({ "Type: Attack Target", ESPColors::DEFAULT_TEXT });
+
+    if (settings.showDetailHealth && attackTarget->maxHealth > 0) {
+        details.push_back({ "HP: " + std::to_string(static_cast<int>(attackTarget->currentHealth)) + "/" + std::to_string(static_cast<int>(attackTarget->maxHealth)), ESPColors::DEFAULT_TEXT });
+    }
+
+    if (settings.showDetailPosition) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(1)
+            << "Pos: (" << attackTarget->position.x
+            << ", " << attackTarget->position.y
+            << ", " << attackTarget->position.z << ")";
+        details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+    }
+
+    details.push_back({ "AgentID: " + std::to_string(attackTarget->agentId), ESPColors::DEFAULT_TEXT });
+
+    if (showDebugAddresses) {
+        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(attackTarget->address));
+        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
+    }
+
+    return details;
+}
+
 } // namespace kx

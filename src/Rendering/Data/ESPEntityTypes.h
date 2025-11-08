@@ -6,7 +6,8 @@ namespace kx {
 enum class ESPEntityType {
     Player,
     NPC,
-    Gadget
+    Gadget,
+    AttackTarget
 };
 
 } // namespace kx
