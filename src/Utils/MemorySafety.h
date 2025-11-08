@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <unordered_set>
+#include <robin_hood/robin_hood.h>
 #include <chrono>
 #include "../Game/AddressManager.h"
 
@@ -22,8 +22,8 @@ namespace SafeAccess {
 
     // --- Pointer Cache for Performance ---
     // Thread-safe cache accessors using function-local statics
-    inline std::unordered_set<uintptr_t>& GetValidPointersCache() {
-        thread_local std::unordered_set<uintptr_t> cache;
+    inline robin_hood::unordered_set<uintptr_t>& GetValidPointersCache() {
+        thread_local robin_hood::unordered_set<uintptr_t> cache;
         return cache;
     }
     
