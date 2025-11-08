@@ -179,13 +179,21 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     // Check if combat UI should be hidden for this gadget type
     bool hideCombatUI = ESPStyling::ShouldHideCombatUIForGadget(gadget->type);
 
+    // Disable box rendering for oversized gadgets (world bosses, huge structures)
+    // This prevents screen clutter from massive 20-30m tall entities while still allowing
+    // other visualizations (circles, dots, details, etc.) to render
+    bool renderBox = context.settings.objectESP.renderBox;
+    if (renderBox && gadget->hasPhysicsDimensions && gadget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
+        renderBox = false;
+    }
+
     return EntityRenderContext{
         .position = gadget->position,
         .gameplayDistance = gadget->gameplayDistance,
         .color = ESPStyling::GetEntityColor(*gadget),
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = context.settings.objectESP.renderBox,
+        .renderBox = renderBox,
         .renderDistance = context.settings.objectESP.renderDistance,
         .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,
@@ -224,13 +232,21 @@ EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const Render
 
     unsigned int color = ESPStyling::GetEntityColor(*attackTarget);
 
+    // Disable box rendering for oversized attack targets (walls, large structures)
+    // This prevents screen clutter from massive 20-30m tall entities while still allowing
+    // other visualizations (circles, dots, details, etc.) to render
+    bool renderBox = context.settings.objectESP.renderBox;
+    if (renderBox && attackTarget->hasPhysicsDimensions && attackTarget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
+        renderBox = false;
+    }
+
     return EntityRenderContext {
         .position = attackTarget->position,
         .gameplayDistance = attackTarget->gameplayDistance,
         .color = color,
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = context.settings.objectESP.renderBox,
+        .renderBox = renderBox,
         .renderDistance = context.settings.objectESP.renderDistance,
         .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,
