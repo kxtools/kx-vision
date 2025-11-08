@@ -114,10 +114,10 @@ namespace kx {
                 return count;
             }
 
-            AttackTargetListEntry** GetAttackTargetList() const {
+            AgentInl** GetAttackTargetList() const {
                 LOG_MEMORY("GdCliContext", "GetAttackTargetList", data(), Offsets::GdCliContext::ATTACK_TARGET_LIST);
                 
-                AttackTargetListEntry** attackTargetList = ReadArrayPointer<AttackTargetListEntry*>(Offsets::GdCliContext::ATTACK_TARGET_LIST);
+                AgentInl** attackTargetList = ReadArrayPointer<AgentInl*>(Offsets::GdCliContext::ATTACK_TARGET_LIST);
                 
                 LOG_PTR("AttackTargetList", attackTargetList);
                 return attackTargetList;

@@ -18,7 +18,7 @@ namespace kx {
         class HkpRigidBody;
         class HkpCylinderShape;
         class HkpBoxShape;
-        class AttackTargetListEntry;
+        class AgentInl;
 
         /**
          * @brief Havok physics cylinder collision shape - contains gadget dimensions
@@ -160,22 +160,57 @@ namespace kx {
         };
 
         /**
-         * @brief Attack Target List Entry wrapper
+         * @brief AgentInl - Internal agent structure wrapper for attack targets
          * 
-         * Wraps the entry structure from the attack target list.
-         * Each entry contains a pointer to AgKeyframed at offset 0x18.
+         * Internal class: Gw2::Engine::Agent::AgentInl
+         * Used in the attack target list (walls, destructible objects, etc.)
+         * Contains position, health, combat state, and defeat status information.
          */
-        class AttackTargetListEntry : public SafeForeignClass {
+        class AgentInl : public SafeForeignClass {
         public:
-            AttackTargetListEntry(void* ptr) : SafeForeignClass(ptr) {}
+            AgentInl(void* ptr) : SafeForeignClass(ptr) {}
 
             AgKeyFramed GetAgKeyFramed() const {
-                LOG_MEMORY("AttackTargetListEntry", "GetAgKeyFramed", data(), 0x18);
+                LOG_MEMORY("AgentInl", "GetAgKeyFramed", data(), Offsets::AgentInl::AG_KEYFRAMED);
                 
-                AgKeyFramed result = ReadPointer<AgKeyFramed>(0x18);
+                AgKeyFramed result = ReadPointer<AgKeyFramed>(Offsets::AgentInl::AG_KEYFRAMED);
                 
                 LOG_PTR("AgKeyFramed", result.data());
                 return result;
+            }
+
+            int32_t GetCombatState() const {
+                LOG_MEMORY("AgentInl", "GetCombatState", data(), Offsets::AgentInl::COMBAT_STATE);
+                
+                int32_t state = ReadMember<int32_t>(Offsets::AgentInl::COMBAT_STATE, 0);
+                
+                LOG_DEBUG("AgentInl::GetCombatState - State: %d", state);
+                return state;
+            }
+
+            bool IsDefeated() const {
+                LOG_MEMORY("AgentInl", "IsDefeated", data(), Offsets::AgentInl::IS_DEFEATED_PTR_1);
+                
+                // Primary check: IS_DEFEATED_PTR_1 (0x02B0) is confirmed and most reliable
+                void* ptr1 = ReadMember<void*>(Offsets::AgentInl::IS_DEFEATED_PTR_1, nullptr);
+                
+                // Secondary check: IS_DEFEATED_PTR_2 (0x02B8) is not confirmed (inconsistent across bosses)
+                // Still checked as additional validation, but ptr1 is the primary indicator
+                void* ptr2 = ReadMember<void*>(Offsets::AgentInl::IS_DEFEATED_PTR_2, nullptr);
+                
+                // Check if pointers are invalid or point to debug pattern (DDDDDDDD)
+                // In Windows heap manager, DDDDDDDD indicates freed memory
+                uintptr_t ptr1Val = reinterpret_cast<uintptr_t>(ptr1);
+                uintptr_t ptr2Val = reinterpret_cast<uintptr_t>(ptr2);
+                
+                // Primary check on ptr1 (confirmed reliable), secondary check on ptr2 (for additional validation)
+                bool defeated = (ptr1 == nullptr || 
+                                ptr1Val == 0xDDDDDDDDDDDDDDDDULL ||
+                                ptr2 == nullptr || 
+                                ptr2Val == 0xDDDDDDDDDDDDDDDDULL);
+                
+                LOG_DEBUG("AgentInl::IsDefeated - Ptr1: %p, Ptr2: %p, Defeated: %s", ptr1, ptr2, defeated ? "true" : "false");
+                return defeated;
             }
         };
 

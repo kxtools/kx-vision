@@ -267,7 +267,7 @@ namespace kx {
                             ImGui::PopItemWidth();
 
                             // Attack Target List
-                            ReClass::AttackTargetListEntry** attackTargetList = gadgetCtx.GetAttackTargetList();
+                            ReClass::AgentInl** attackTargetList = gadgetCtx.GetAttackTargetList();
                             uint32_t attackTargetCapacity = gadgetCtx.GetAttackTargetListCapacity();
                             uint32_t attackTargetCount = gadgetCtx.GetAttackTargetListCount();
                             std::string attackTargetListAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(attackTargetList));

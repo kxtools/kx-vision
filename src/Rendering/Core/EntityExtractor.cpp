@@ -160,25 +160,34 @@ namespace PhysicsValidation {
     }
 
     bool EntityExtractor::ExtractAttackTarget(RenderableAttackTarget& outAttackTarget,
-        const ReClass::AgKeyFramed& inAgKeyframed) {
+        const ReClass::AgentInl& inAgentInl) {
 
-        // --- Validation and Position ---
+        if (!inAgentInl) return false;
+
+        // --- Get AgKeyFramed for agent type/ID, position, and physics dimensions ---
+        ReClass::AgKeyFramed agKeyframed = inAgentInl.GetAgKeyFramed();
+        if (!agKeyframed) return false;
+
+        // --- Position ---
+        // Use position from AgKeyFramed->CoKeyFramed (AgentInl position appears to be in wrong coordinate system)
         glm::vec3 gamePos;
-        if (!ValidateAndExtractGamePosition(inAgKeyframed, gamePos)) return false;
+        if (!ValidateAndExtractGamePosition(agKeyframed, gamePos)) return false;
 
         // --- Populate Core Data ---
         outAttackTarget.position = TransformGamePositionToMumble(gamePos);
         outAttackTarget.isValid = true;
         outAttackTarget.entityType = ESPEntityType::AttackTarget;
-        outAttackTarget.address = inAgKeyframed.data();
-        outAttackTarget.agentType = inAgKeyframed.GetType();
-        outAttackTarget.agentId = inAgKeyframed.GetId();
+        outAttackTarget.address = inAgentInl.data();
+        outAttackTarget.agentType = agKeyframed.GetType();
+        outAttackTarget.agentId = agKeyframed.GetId();
 
-        // Note: Attack targets may not have health data - verify during testing
-        // For now, we'll leave health at default values (0.0f)
+        // Health data not available - AgentInl health pointer not confirmed/working
+        outAttackTarget.currentHealth = 0.0f;
+        outAttackTarget.maxHealth = 0.0f;
+        outAttackTarget.currentBarrier = 0.0f;
 
         // --- Physics Box Shape Dimensions ---
-        ExtractBoxShapeDimensions(outAttackTarget, inAgKeyframed);
+        ExtractBoxShapeDimensions(outAttackTarget, agKeyframed);
 
         return true;
     }

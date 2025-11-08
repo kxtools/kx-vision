@@ -263,26 +263,25 @@ namespace SafeAccess {
     /**
      * @brief Safe iterator for attack target list arrays from the game
      * 
-     * This iterator wraps raw AttackTargetListEntry** arrays and provides safe iteration
-     * with automatic validation and AgKeyframed extraction.
+     * This iterator wraps raw AgentInl** arrays and provides safe iteration
+     * with automatic validation.
      */
     class AttackTargetListIterator {
     private:
-        ReClass::AttackTargetListEntry** m_array;
+        ReClass::AgentInl** m_array;
         uint32_t m_index;
         uint32_t m_capacity;
-        mutable ReClass::AttackTargetListEntry m_currentEntry;
-        mutable ReClass::AgKeyFramed m_currentAgKeyframed;
+        mutable ReClass::AgentInl m_current;
         mutable bool m_currentValid;
 
         void AdvanceToValid() {
             m_currentValid = false;
             while (m_index < m_capacity) {
                 if (IsMemorySafe(m_array[m_index])) {
-                    m_currentEntry = ReClass::AttackTargetListEntry(m_array[m_index]);
-                    if (m_currentEntry) {
-                        m_currentAgKeyframed = m_currentEntry.GetAgKeyFramed();
-                        if (m_currentAgKeyframed && IsVTablePointerValid(m_currentAgKeyframed.data())) {
+                    m_current = ReClass::AgentInl(m_array[m_index]);
+                    if (m_current) {
+                        ReClass::AgKeyFramed agKeyframed = m_current.GetAgKeyFramed();
+                        if (agKeyframed && IsVTablePointerValid(agKeyframed.data())) {
                             m_currentValid = true;
                             return;
                         }
@@ -294,14 +293,14 @@ namespace SafeAccess {
 
     public:
         using iterator_category = std::forward_iterator_tag;
-        using value_type = ReClass::AgKeyFramed;
+        using value_type = ReClass::AgentInl;
         using difference_type = std::ptrdiff_t;
-        using pointer = const ReClass::AgKeyFramed*;
-        using reference = const ReClass::AgKeyFramed&;
+        using pointer = const ReClass::AgentInl*;
+        using reference = const ReClass::AgentInl&;
 
-        AttackTargetListIterator(ReClass::AttackTargetListEntry** array, uint32_t index, uint32_t capacity)
+        AttackTargetListIterator(ReClass::AgentInl** array, uint32_t index, uint32_t capacity)
             : m_array(array), m_index(index), m_capacity(capacity), 
-              m_currentEntry(nullptr), m_currentAgKeyframed(nullptr), m_currentValid(false) {
+              m_current(nullptr), m_currentValid(false) {
             if (m_array && m_capacity < MAX_REASONABLE_ATTACK_TARGET_COUNT) {
                 AdvanceToValid();
             } else {
@@ -323,12 +322,12 @@ namespace SafeAccess {
             return tmp;
         }
 
-        const ReClass::AgKeyFramed& operator*() const {
-            return m_currentAgKeyframed;
+        const ReClass::AgentInl& operator*() const {
+            return m_current;
         }
 
-        const ReClass::AgKeyFramed* operator->() const {
-            return &m_currentAgKeyframed;
+        const ReClass::AgentInl* operator->() const {
+            return &m_current;
         }
 
         bool operator==(const AttackTargetListIterator& other) const {
@@ -445,7 +444,7 @@ namespace SafeAccess {
      */
     class AttackTargetList {
     private:
-        ReClass::AttackTargetListEntry** m_array;
+        ReClass::AgentInl** m_array;
         uint32_t m_capacity;
 
     public:

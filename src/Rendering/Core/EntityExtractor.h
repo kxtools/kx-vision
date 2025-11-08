@@ -43,13 +43,13 @@ namespace kx {
             const ReClass::GdCliGadget& inGadget);
 
         /**
-         * @brief Populates a RenderableAttackTarget object from an AgKeyFramed game structure.
+         * @brief Populates a RenderableAttackTarget object from an AgentInl game structure.
          * @param outAttackTarget The RenderableAttackTarget object to populate (from an object pool).
-         * @param inAgKeyframed The source AgKeyFramed structure from the attack target list.
+         * @param inAgentInl The source AgentInl structure from the attack target list.
          * @return True if extraction was successful and the entity is valid, false otherwise.
          */
         static bool ExtractAttackTarget(RenderableAttackTarget& outAttackTarget,
-            const ReClass::AgKeyFramed& inAgKeyframed);
+            const ReClass::AgentInl& inAgentInl);
 
     private:
         /**

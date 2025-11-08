@@ -126,12 +126,12 @@ namespace kx {
         if (!gadgetContext.data()) return;
 
         SafeAccess::AttackTargetList attackTargetList(gadgetContext);
-        for (const auto& agKeyframed : attackTargetList) {
+        for (const auto& agentInl : attackTargetList) {
             RenderableAttackTarget* renderableAttackTarget = attackTargetPool.Get();
             if (!renderableAttackTarget) break; // Pool exhausted
 
             // Delegate all extraction logic to the helper class
-            if (EntityExtractor::ExtractAttackTarget(*renderableAttackTarget, agKeyframed)) {
+            if (EntityExtractor::ExtractAttackTarget(*renderableAttackTarget, agentInl)) {
                 attackTargets.push_back(renderableAttackTarget);
             }
         }
