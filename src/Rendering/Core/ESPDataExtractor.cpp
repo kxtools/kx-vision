@@ -11,6 +11,7 @@ namespace kx {
     void ESPDataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
         ObjectPool<RenderableNpc>& npcPool,
         ObjectPool<RenderableGadget>& gadgetPool,
+        ObjectPool<RenderableAttackTarget>& attackTargetPool,
         PooledFrameRenderData& pooledData) {
         pooledData.Reset();
 
@@ -37,6 +38,7 @@ namespace kx {
         // Single pass extraction for both players and NPCs
         ExtractCharacterData(playerPool, npcPool, pooledData.players, pooledData.npcs, characterToPlayerNameMap);
         ExtractGadgetData(gadgetPool, pooledData.gadgets);
+        ExtractAttackTargetData(attackTargetPool, pooledData.attackTargets);
     }
 
     void ESPDataExtractor::ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
@@ -107,6 +109,30 @@ namespace kx {
             // Delegate all extraction logic to the helper class
             if (EntityExtractor::ExtractGadget(*renderableGadget, gadget)) {
                 gadgets.push_back(renderableGadget);
+            }
+        }
+    }
+
+    void ESPDataExtractor::ExtractAttackTargetData(ObjectPool<RenderableAttackTarget>& attackTargetPool,
+        std::vector<RenderableAttackTarget*>& attackTargets) {
+        attackTargets.clear();
+        attackTargets.reserve(ExtractionCapacity::ATTACK_TARGETS_RESERVE);
+
+        void* pContextCollection = AddressManager::GetContextCollectionPtr();
+        if (!pContextCollection) return;
+
+        ReClass::ContextCollection ctxCollection(pContextCollection);
+        ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
+        if (!gadgetContext.data()) return;
+
+        SafeAccess::AttackTargetList attackTargetList(gadgetContext);
+        for (const auto& agKeyframed : attackTargetList) {
+            RenderableAttackTarget* renderableAttackTarget = attackTargetPool.Get();
+            if (!renderableAttackTarget) break; // Pool exhausted
+
+            // Delegate all extraction logic to the helper class
+            if (EntityExtractor::ExtractAttackTarget(*renderableAttackTarget, agKeyframed)) {
+                attackTargets.push_back(renderableAttackTarget);
             }
         }
     }

@@ -103,4 +103,10 @@ struct RenderableGadget : public RenderableEntity {
     }
 };
 
+struct RenderableAttackTarget : public RenderableEntity {
+    RenderableAttackTarget() : RenderableEntity()
+    {
+    }
+};
+
 } // namespace kx

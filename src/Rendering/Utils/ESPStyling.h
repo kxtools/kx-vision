@@ -101,6 +101,8 @@ namespace ESPStyling {
             }
             case ESPEntityType::Gadget:
                 return ESPColors::GADGET;
+            case ESPEntityType::AttackTarget:
+                return ESPColors::GADGET; // Use same color as gadgets
         }
         return ESPColors::NPC_UNKNOWN; // Fallback
     }

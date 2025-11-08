@@ -113,6 +113,33 @@ namespace kx {
                 LOG_DEBUG("GdCliContext::GetGadgetListCount - Count: %u", count);
                 return count;
             }
+
+            AttackTargetListEntry** GetAttackTargetList() const {
+                LOG_MEMORY("GdCliContext", "GetAttackTargetList", data(), Offsets::GdCliContext::ATTACK_TARGET_LIST);
+                
+                AttackTargetListEntry** attackTargetList = ReadArrayPointer<AttackTargetListEntry*>(Offsets::GdCliContext::ATTACK_TARGET_LIST);
+                
+                LOG_PTR("AttackTargetList", attackTargetList);
+                return attackTargetList;
+            }
+
+            uint32_t GetAttackTargetListCapacity() const {
+                LOG_MEMORY("GdCliContext", "GetAttackTargetListCapacity", data(), Offsets::GdCliContext::ATTACK_TARGET_LIST_CAPACITY);
+                
+                uint32_t capacity = ReadMember<uint32_t>(Offsets::GdCliContext::ATTACK_TARGET_LIST_CAPACITY, 0);
+                
+                LOG_DEBUG("GdCliContext::GetAttackTargetListCapacity - Capacity: %u", capacity);
+                return capacity;
+            }
+
+            uint32_t GetAttackTargetListCount() const {
+                LOG_MEMORY("GdCliContext", "GetAttackTargetListCount", data(), Offsets::GdCliContext::ATTACK_TARGET_LIST_COUNT);
+                
+                uint32_t count = ReadMember<uint32_t>(Offsets::GdCliContext::ATTACK_TARGET_LIST_COUNT, 0);
+                
+                LOG_DEBUG("GdCliContext::GetAttackTargetListCount - Count: %u", count);
+                return count;
+            }
         };
 
         /**

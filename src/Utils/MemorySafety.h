@@ -18,6 +18,7 @@ namespace SafeAccess {
     constexpr uint32_t MAX_REASONABLE_PLAYER_COUNT = 1000;       // Observed ~134, set generous upper bound
     constexpr uint32_t MAX_REASONABLE_CHARACTER_COUNT = 15000;   // Observed ~9728, allow for larger instances  
     constexpr uint32_t MAX_REASONABLE_GADGET_COUNT = 15000;      // Observed ~9216, allow for resource-rich areas
+    constexpr uint32_t MAX_REASONABLE_ATTACK_TARGET_COUNT = 5000; // Reasonable limit for attack targets
 
     // --- Pointer Cache for Performance ---
     // Thread-safe cache accessors using function-local statics

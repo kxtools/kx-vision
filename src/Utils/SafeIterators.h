@@ -261,6 +261,90 @@ namespace SafeAccess {
     };
 
     /**
+     * @brief Safe iterator for attack target list arrays from the game
+     * 
+     * This iterator wraps raw AttackTargetListEntry** arrays and provides safe iteration
+     * with automatic validation and AgKeyframed extraction.
+     */
+    class AttackTargetListIterator {
+    private:
+        ReClass::AttackTargetListEntry** m_array;
+        uint32_t m_index;
+        uint32_t m_capacity;
+        mutable ReClass::AttackTargetListEntry m_currentEntry;
+        mutable ReClass::AgKeyFramed m_currentAgKeyframed;
+        mutable bool m_currentValid;
+
+        void AdvanceToValid() {
+            m_currentValid = false;
+            while (m_index < m_capacity) {
+                if (IsMemorySafe(m_array[m_index])) {
+                    m_currentEntry = ReClass::AttackTargetListEntry(m_array[m_index]);
+                    if (m_currentEntry) {
+                        m_currentAgKeyframed = m_currentEntry.GetAgKeyFramed();
+                        if (m_currentAgKeyframed && IsVTablePointerValid(m_currentAgKeyframed.data())) {
+                            m_currentValid = true;
+                            return;
+                        }
+                    }
+                }
+                ++m_index;
+            }
+        }
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = ReClass::AgKeyFramed;
+        using difference_type = std::ptrdiff_t;
+        using pointer = const ReClass::AgKeyFramed*;
+        using reference = const ReClass::AgKeyFramed&;
+
+        AttackTargetListIterator(ReClass::AttackTargetListEntry** array, uint32_t index, uint32_t capacity)
+            : m_array(array), m_index(index), m_capacity(capacity), 
+              m_currentEntry(nullptr), m_currentAgKeyframed(nullptr), m_currentValid(false) {
+            if (m_array && m_capacity < MAX_REASONABLE_ATTACK_TARGET_COUNT) {
+                AdvanceToValid();
+            } else {
+                m_index = m_capacity;
+            }
+        }
+
+        AttackTargetListIterator& operator++() {
+            if (m_index < m_capacity) {
+                ++m_index;
+                AdvanceToValid();
+            }
+            return *this;
+        }
+
+        AttackTargetListIterator operator++(int) {
+            AttackTargetListIterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        const ReClass::AgKeyFramed& operator*() const {
+            return m_currentAgKeyframed;
+        }
+
+        const ReClass::AgKeyFramed* operator->() const {
+            return &m_currentAgKeyframed;
+        }
+
+        bool operator==(const AttackTargetListIterator& other) const {
+            return m_array == other.m_array && m_index == other.m_index;
+        }
+
+        bool operator!=(const AttackTargetListIterator& other) const {
+            return !(*this == other);
+        }
+
+        bool IsValid() const {
+            return m_currentValid;
+        }
+    };
+
+    /**
      * @brief Range wrapper for character lists to enable range-based for loops
      * 
      * Iterates over the full CAPACITY to ensure no valid entries are missed.
@@ -350,6 +434,37 @@ namespace SafeAccess {
 
         GadgetListIterator end() const {
             return GadgetListIterator(m_array, m_capacity, m_capacity);
+        }
+    };
+
+    /**
+     * @brief Range wrapper for attack target lists to enable range-based for loops
+     * 
+     * Iterates over the full CAPACITY to ensure no valid entries are missed.
+     * The iterator automatically skips null and invalid entries.
+     */
+    class AttackTargetList {
+    private:
+        ReClass::AttackTargetListEntry** m_array;
+        uint32_t m_capacity;
+
+    public:
+        AttackTargetList(ReClass::GdCliContext& context) {
+            if (context) {
+                m_array = context.GetAttackTargetList();
+                m_capacity = context.GetAttackTargetListCapacity();
+            } else {
+                m_array = nullptr;
+                m_capacity = 0;
+            }
+        }
+
+        AttackTargetListIterator begin() const {
+            return AttackTargetListIterator(m_array, 0, m_capacity);
+        }
+
+        AttackTargetListIterator end() const {
+            return AttackTargetListIterator(m_array, m_capacity, m_capacity);
         }
     };
 

@@ -179,13 +179,21 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     // Check if combat UI should be hidden for this gadget type
     bool hideCombatUI = ESPStyling::ShouldHideCombatUIForGadget(gadget->type);
 
+    // Disable box rendering for oversized gadgets (world bosses, huge structures)
+    // This prevents screen clutter from massive 20-30m tall entities while still allowing
+    // other visualizations (circles, dots, details, etc.) to render
+    bool renderBox = context.settings.objectESP.renderBox;
+    if (renderBox && gadget->hasPhysicsDimensions && gadget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
+        renderBox = false;
+    }
+
     return EntityRenderContext{
         .position = gadget->position,
         .gameplayDistance = gadget->gameplayDistance,
         .color = ESPStyling::GetEntityColor(*gadget),
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = context.settings.objectESP.renderBox,
+        .renderBox = renderBox,
         .renderDistance = context.settings.objectESP.renderDistance,
         .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,
@@ -196,6 +204,59 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         .entityType = ESPEntityType::Gadget,
         .attitude = Game::Attitude::Neutral,
         .entity = gadget,
+        .playerName = emptyPlayerName,
+        .healthBarAnim = animState,
+        .renderGadgetSphere = context.settings.objectESP.renderSphere,
+        .renderGadgetCircle = context.settings.objectESP.renderCircle,
+        .playerGearDisplayMode = GearDisplayMode::Off,
+        .playerEnergyDisplayType = EnergyDisplayType::Special,
+        .showCombatUI = !hideCombatUI,
+        .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
+        .showBurstDps = context.settings.objectESP.showBurstDps
+    };
+}
+
+EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const RenderableAttackTarget* attackTarget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+    static const std::string emptyPlayerName = "";
+
+    const EntityCombatState* state = context.stateManager.GetState(attackTarget->address);
+    bool renderHealthBar = false; // Attack targets typically don't have health data
+
+    // --- Animation State --- 
+    HealthBarAnimationState animState;
+    // Attack targets don't typically have health, so no animation state needed
+
+    float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.objectESP.showBurstDps);
+
+    bool hideCombatUI = false; // Can be customized if needed
+
+    unsigned int color = ESPStyling::GetEntityColor(*attackTarget);
+
+    // Disable box rendering for oversized attack targets (walls, large structures)
+    // This prevents screen clutter from massive 20-30m tall entities while still allowing
+    // other visualizations (circles, dots, details, etc.) to render
+    bool renderBox = context.settings.objectESP.renderBox;
+    if (renderBox && attackTarget->hasPhysicsDimensions && attackTarget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
+        renderBox = false;
+    }
+
+    return EntityRenderContext {
+        .position = attackTarget->position,
+        .gameplayDistance = attackTarget->gameplayDistance,
+        .color = color,
+        .details = std::move(details),
+        .burstDPS = burstDpsValue,
+        .renderBox = renderBox,
+        .renderDistance = context.settings.objectESP.renderDistance,
+        .renderDot = context.settings.objectESP.renderDot,
+        .renderDetails = context.settings.objectESP.renderDetails,
+        .renderHealthBar = renderHealthBar,
+        .renderHealthPercentage = context.settings.objectESP.showHealthPercentage,
+        .renderEnergyBar = false,
+        .renderPlayerName = false,
+        .entityType = ESPEntityType::AttackTarget,
+        .attitude = Game::Attitude::Neutral,
+        .entity = attackTarget,
         .playerName = emptyPlayerName,
         .healthBarAnim = animState,
         .renderGadgetSphere = context.settings.objectESP.renderSphere,
@@ -239,6 +300,12 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
             details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
             break;
         }
+        case ESPEntityType::AttackTarget:
+        {
+            const auto* attackTarget = static_cast<const RenderableAttackTarget*>(entity);
+            details = ESPEntityDetailsBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
+            break;
+        }
     }
 
     // Now, create the context using the ESPContextFactory, just like before.
@@ -250,6 +317,8 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
             return CreateContextForNpc(static_cast<const RenderableNpc*>(entity), details, context);
         case ESPEntityType::Gadget:
             return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
+        case ESPEntityType::AttackTarget:
+            return CreateContextForAttackTarget(static_cast<const RenderableAttackTarget*>(entity), details, context);
     }
     // This should not be reached, but we need to return something.
     // Returning a gadget context as a fallback.

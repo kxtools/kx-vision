@@ -5,6 +5,7 @@
 #include "../GameEnums.h"
 #include "../offsets.h"
 #include "CharacterStructs.h"
+#include "AgentStructs.h"
 #include <glm.hpp>
 
 namespace kx {
@@ -16,6 +17,8 @@ namespace kx {
         class GdCliGadget;
         class HkpRigidBody;
         class HkpCylinderShape;
+        class HkpBoxShape;
+        class AttackTargetListEntry;
 
         /**
          * @brief Havok physics cylinder collision shape - contains gadget dimensions
@@ -41,6 +44,10 @@ namespace kx {
 
             HkpCylinderShape GetCylinderShape() const {
                 return ReadPointer<HkpCylinderShape>(Offsets::HkpRigidBody::SHAPE);
+            }
+
+            HkpBoxShape GetBoxShape() const {
+                return ReadPointer<HkpBoxShape>(Offsets::HkpRigidBody::SHAPE);
             }
         };
 
@@ -146,6 +153,26 @@ namespace kx {
                 LOG_MEMORY("GdCliGadget", "GetAgKeyFramed", data(), Offsets::GdCliGadget::AG_KEYFRAMED);
                 
                 AgKeyFramed result = ReadPointer<AgKeyFramed>(Offsets::GdCliGadget::AG_KEYFRAMED);
+                
+                LOG_PTR("AgKeyFramed", result.data());
+                return result;
+            }
+        };
+
+        /**
+         * @brief Attack Target List Entry wrapper
+         * 
+         * Wraps the entry structure from the attack target list.
+         * Each entry contains a pointer to AgKeyframed at offset 0x18.
+         */
+        class AttackTargetListEntry : public SafeForeignClass {
+        public:
+            AttackTargetListEntry(void* ptr) : SafeForeignClass(ptr) {}
+
+            AgKeyFramed GetAgKeyFramed() const {
+                LOG_MEMORY("AttackTargetListEntry", "GetAgKeyFramed", data(), 0x18);
+                
+                AgKeyFramed result = ReadPointer<AgKeyFramed>(0x18);
                 
                 LOG_PTR("AgKeyFramed", result.data());
                 return result;

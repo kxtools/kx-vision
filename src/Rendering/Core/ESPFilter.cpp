@@ -114,18 +114,26 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
             
             if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, settings.objectESP)) continue;
             
-            // Filter boxes for oversized gadgets (world bosses, huge structures)
-            // This prevents screen clutter from massive 20-30m tall entities
-            if (settings.objectESP.renderBox && gadget->hasPhysicsDimensions) {
-                if (gadget->physicsHeight > settings.objectESP.maxBoxHeight) {
-                    // Gadget is too tall - don't render it (will be filtered out)
-                    // Note: We could alternatively just disable the box, but filtering
-                    // the entire gadget is cleaner since giant bosses are usually obvious
-                    continue;
-                }
-            }
+            // Note: Max height check is handled in context factory to disable box rendering only
+            // Entity is still rendered with other visualizations (circles, dots, details, etc.)
             
             filteredData.gadgets.push_back(gadget);
+        }
+    }
+    
+    // Filter attack targets
+    if (settings.objectESP.enabled && settings.objectESP.showAttackTargetList) {
+        filteredData.attackTargets.reserve(extractedData.attackTargets.size());
+        for (RenderableAttackTarget* attackTarget : extractedData.attackTargets) {
+            // Call the common helper function first
+            if (!PassesCommonFilters(attackTarget, cameraPos, playerPos, settings.distance)) {
+                continue;
+            }
+
+            // Note: Max height check is handled in context factory to disable box rendering only
+            // Entity is still rendered with other visualizations (circles, dots, details, etc.)
+            
+            filteredData.attackTargets.push_back(attackTarget);
         }
     }
 }

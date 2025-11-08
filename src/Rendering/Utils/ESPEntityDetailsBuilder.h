@@ -32,6 +32,15 @@ public:
      * @return Vector of colored text details
      */
     static std::vector<ColoredDetail> BuildGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses);
+
+    /**
+     * @brief Build Attack Target information details (position, agent ID, type)
+     * @param attackTarget The attack target entity to build details for
+     * @param settings Object ESP settings for filtering what to display
+     * @param showDebugAddresses Whether to include memory addresses for debugging
+     * @return Vector of colored text details
+     */
+    static std::vector<ColoredDetail> BuildAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses);
 };
 
 } // namespace kx

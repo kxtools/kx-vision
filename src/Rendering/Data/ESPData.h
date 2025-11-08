@@ -16,6 +16,7 @@ namespace kx {
     struct RenderablePlayer;
     struct RenderableNpc;
     struct RenderableGadget;
+    struct RenderableAttackTarget;
 }
 
 namespace kx {
@@ -81,6 +82,7 @@ struct PooledFrameRenderData {
     std::vector<RenderablePlayer*> players;
     std::vector<RenderableNpc*> npcs;
     std::vector<RenderableGadget*> gadgets;
+    std::vector<RenderableAttackTarget*> attackTargets;
 
     // NEW: A single vector to hold all entities after visuals have been calculated.
     std::vector<FinalizedRenderable> finalizedEntities;
@@ -89,6 +91,7 @@ struct PooledFrameRenderData {
         players.clear();
         npcs.clear();
         gadgets.clear();
+        attackTargets.clear();
         finalizedEntities.clear();
     }
 };
