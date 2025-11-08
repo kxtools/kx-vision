@@ -179,38 +179,13 @@ namespace kx {
                 return result;
             }
 
-            int32_t GetCombatState() const {
+            Game::AttackTargetCombatState GetCombatState() const {
                 LOG_MEMORY("AgentInl", "GetCombatState", data(), Offsets::AgentInl::COMBAT_STATE);
                 
                 int32_t state = ReadMember<int32_t>(Offsets::AgentInl::COMBAT_STATE, 0);
                 
                 LOG_DEBUG("AgentInl::GetCombatState - State: %d", state);
-                return state;
-            }
-
-            bool IsDefeated() const {
-                LOG_MEMORY("AgentInl", "IsDefeated", data(), Offsets::AgentInl::IS_DEFEATED_PTR_1);
-                
-                // Primary check: IS_DEFEATED_PTR_1 (0x02B0) is confirmed and most reliable
-                void* ptr1 = ReadMember<void*>(Offsets::AgentInl::IS_DEFEATED_PTR_1, nullptr);
-                
-                // Secondary check: IS_DEFEATED_PTR_2 (0x02B8) is not confirmed (inconsistent across bosses)
-                // Still checked as additional validation, but ptr1 is the primary indicator
-                void* ptr2 = ReadMember<void*>(Offsets::AgentInl::IS_DEFEATED_PTR_2, nullptr);
-                
-                // Check if pointers are invalid or point to debug pattern (DDDDDDDD)
-                // In Windows heap manager, DDDDDDDD indicates freed memory
-                uintptr_t ptr1Val = reinterpret_cast<uintptr_t>(ptr1);
-                uintptr_t ptr2Val = reinterpret_cast<uintptr_t>(ptr2);
-                
-                // Primary check on ptr1 (confirmed reliable), secondary check on ptr2 (for additional validation)
-                bool defeated = (ptr1 == nullptr || 
-                                ptr1Val == 0xDDDDDDDDDDDDDDDDULL ||
-                                ptr2 == nullptr || 
-                                ptr2Val == 0xDDDDDDDDDDDDDDDDULL);
-                
-                LOG_DEBUG("AgentInl::IsDefeated - Ptr1: %p, Ptr2: %p, Defeated: %s", ptr1, ptr2, defeated ? "true" : "false");
-                return defeated;
+                return static_cast<Game::AttackTargetCombatState>(state);
             }
         };
 

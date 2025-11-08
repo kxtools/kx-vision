@@ -181,6 +181,9 @@ namespace PhysicsValidation {
         outAttackTarget.agentType = agKeyframed.GetType();
         outAttackTarget.agentId = agKeyframed.GetId();
 
+        // --- Combat State ---
+        outAttackTarget.combatState = inAgentInl.GetCombatState();
+
         // Health data not available - AgentInl health pointer not confirmed/working
         outAttackTarget.currentHealth = 0.0f;
         outAttackTarget.maxHealth = 0.0f;

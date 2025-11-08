@@ -118,13 +118,15 @@ namespace Offsets {
      */
     struct AgentInl {
         static constexpr uintptr_t AG_KEYFRAMED = 0x18;    // AgKeyframed* agent wrapper
-        static constexpr uintptr_t POSITION = 0x0028;      // glm::vec3 position (X, Y, Z at 0x0028, 0x002C, 0x0030) [CONFIRMED - NOTE: Not standard position, likely requires coordinate conversion. Use AgKeyFramed->CoKeyFramed position instead for ESP]
         static constexpr uintptr_t COMBAT_STATE = 0x0034;  // int32_t combat state flag (2=Idle, 3=In Combat) [CONFIRMED]
-        static constexpr uintptr_t STATE_FLAG_1 = 0x00D4;  // int32_t state flag (10=initial/non-aggroed, 0=active) [CONFIRMED]
-        static constexpr uintptr_t STATE_FLAG_2 = 0x021C;  // int32_t state flag (cleared once combat begins) [INCONCLUSIVE - likely correct]
-        static constexpr uintptr_t HEALTH = 0x0220;        // ChCliHealth* health subsystem pointer [NOT CONFIRMED - pointer dereferencing not verified, doesn't seem to work currently]
-        static constexpr uintptr_t IS_DEFEATED_PTR_1 = 0x02B0; // void* pointer (invalid/debug pattern when defeated) [CONFIRMED - most reliable]
-        static constexpr uintptr_t IS_DEFEATED_PTR_2 = 0x02B8; // void* pointer (invalid/debug pattern when defeated) [NOT CONFIRMED - inconsistent behavior across bosses]
+        
+        // Unreliable offsets - commented out for reference
+        // static constexpr uintptr_t POSITION = 0x0028;      // glm::vec3 position (X, Y, Z at 0x0028, 0x002C, 0x0030) [UNRELIABLE - not standard position, requires conversion]
+        // static constexpr uintptr_t STATE_FLAG_1 = 0x00D4;  // int32_t state flag [UNRELIABLE]
+        // static constexpr uintptr_t STATE_FLAG_2 = 0x021C;  // int32_t state flag [UNRELIABLE]
+        // static constexpr uintptr_t HEALTH = 0x0220;        // ChCliHealth* health subsystem pointer [UNRELIABLE - doesn't work]
+        // static constexpr uintptr_t IS_DEFEATED_PTR_1 = 0x02B0; // void* pointer [UNRELIABLE]
+        // static constexpr uintptr_t IS_DEFEATED_PTR_2 = 0x02B8; // void* pointer [UNRELIABLE]
     };
 
     // ============================================================================

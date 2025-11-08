@@ -104,6 +104,8 @@ struct RenderableGadget : public RenderableEntity {
 };
 
 struct RenderableAttackTarget : public RenderableEntity {
+    Game::AttackTargetCombatState combatState = Game::AttackTargetCombatState::Idle;
+    
     RenderableAttackTarget() : RenderableEntity()
     {
     }

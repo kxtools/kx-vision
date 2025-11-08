@@ -135,6 +135,7 @@ namespace kx {
         bool showGeneric2 = false;
         bool showUnknown = true;          // For any type not explicitly handled
         bool showAttackTargetList = true; // Attack Target List (AgentType::GadgetAttackTarget, separate from GadgetType::AttackTarget)
+        bool showAttackTargetListOnlyInCombat = true; // Only show attack targets that are in combat state
 
         // Detail-field filters
         bool showDetailGadgetType = true;
@@ -151,7 +152,7 @@ namespace kx {
                                        showPlayerCreated, showInteractables, showDoors, showPortals, showDestructible,
                                        showPoints, showPlayerSpecific, showProps, showBuildSites, showBountyBoards,
                                        showRifts, showGeneric, showGeneric2, showUnknown, showAttackTargetList,
-                                       showDetailGadgetType, showDetailHealth, showDetailPosition, showDetailResourceInfo,
+                                       showAttackTargetListOnlyInCombat, showDetailGadgetType, showDetailHealth, showDetailPosition, showDetailResourceInfo,
                                        showDetailGatherableStatus);
 
 } // namespace kx

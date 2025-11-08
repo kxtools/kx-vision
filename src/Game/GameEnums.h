@@ -102,6 +102,12 @@ enum class ResourceNodeType : int {
     None = 4
 };
 
+// Attack Target Combat States
+enum class AttackTargetCombatState : int32_t {
+    Idle = 2,      // Idle/Inactive state
+    InCombat = 3   // Active combat state
+};
+
 // Item Information
 enum class ItemRarity : int {
     None = -1,

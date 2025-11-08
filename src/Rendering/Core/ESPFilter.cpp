@@ -130,6 +130,13 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
                 continue;
             }
 
+            // Filter by combat state if enabled
+            if (settings.objectESP.showAttackTargetListOnlyInCombat) {
+                if (attackTarget->combatState != Game::AttackTargetCombatState::InCombat) {
+                    continue;
+                }
+            }
+
             // Note: Max height check is handled in context factory to disable box rendering only
             // Entity is still rendered with other visualizations (circles, dots, details, etc.)
             
