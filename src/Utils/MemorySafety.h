@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <robin_hood/robin_hood.h>
+#include <ankerl/unordered_dense.h>
 #include <chrono>
 #include "../Game/AddressManager.h"
 
@@ -22,8 +22,8 @@ namespace SafeAccess {
 
     // --- Pointer Cache for Performance ---
     // Thread-safe cache accessors using function-local statics
-    inline robin_hood::unordered_set<uintptr_t>& GetValidPointersCache() {
-        thread_local robin_hood::unordered_set<uintptr_t> cache;
+    inline ankerl::unordered_dense::segmented_set<uintptr_t>& GetValidPointersCache() {
+        thread_local ankerl::unordered_dense::segmented_set<uintptr_t> cache;
         return cache;
     }
     
