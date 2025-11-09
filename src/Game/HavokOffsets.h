@@ -22,6 +22,7 @@ namespace HavokOffsets {
     struct HkpRigidBody {
         static constexpr uintptr_t SHAPE = 0x0020;  // hkpShape* pointer to collision shape (e.g., hkpCylinderShape)
         static constexpr uintptr_t SHAPE_TYPE_WRAPPER = 0x4C;  // uint8_t hkcdShapeType - wrapper type (6=Terrain, 11=Transform)
+        static constexpr uintptr_t WORLD_POINTER = 0x10;  // hkpWorld* pointer to the physics world this rigid body belongs to
     };
 
     /**
@@ -59,7 +60,6 @@ namespace HavokOffsets {
      * Identified by SHAPE_TYPE_PRIMITIVE == 0x01.
      */
     struct HkpCylinderShape {
-        static constexpr uintptr_t COLLISION_RADIUS = 0x20;      // float: Base collision radius (often 0.05)
         static constexpr uintptr_t RADIUS = 0x28;               // float: The cylinder's radius
         static constexpr uintptr_t HEIGHT_HALF_FLOAT = 0x3C;    // float: Half-height in meters. For primitive cylinders (ID 0x01)
     };
@@ -94,6 +94,35 @@ namespace HavokOffsets {
      */
     struct HkpSimpleShapePhantom {
         static constexpr uintptr_t PHYSICS_POSITION = 0x120;  // glm::vec3: Physics position
+    };
+
+    // ============================================================================
+    // HAVOK PHYSICS WORLD AND BROADPHASE
+    // ============================================================================
+
+    /**
+     * @brief hkpWorld - The main physics world object
+     * Contains the broadphase border that manages world boundary phantoms
+     */
+    struct HkpWorld {
+        static constexpr uintptr_t BROAD_PHASE_BORDER = 0x188;  // hkpBroadPhaseBorder* pointer to the object managing world boundary phantoms
+    };
+
+    /**
+     * @brief hkpBroadPhaseBorder - Manages the 6 "wall" phantoms that define world boundaries
+     * Contains an array of 6 hkpAabbPhantom pointers representing the world walls
+     */
+    struct HkpBroadPhaseBorder {
+        static constexpr uintptr_t PHANTOM_ARRAY = 0x0;  // hkpPhantom*[6]: Array of 6 phantom pointers (world boundary walls)
+    };
+
+    /**
+     * @brief hkpAabbPhantom - A phantom shape defined by a floating-point AABB
+     * Used for world boundary walls and other non-colliding phantom objects
+     */
+    struct HkpAabbPhantom {
+        static constexpr uintptr_t AABB_MIN = 0xF0;   // hkVector4: The minimum corner of the AABB
+        static constexpr uintptr_t AABB_MAX = 0x100;  // hkVector4: The maximum corner of the AABB
     };
 
 } // namespace HavokOffsets
