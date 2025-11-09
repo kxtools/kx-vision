@@ -61,7 +61,7 @@ namespace HavokOffsets {
      */
     struct HkpCylinderShape {
         static constexpr uintptr_t RADIUS = 0x28;               // float: The cylinder's radius
-        static constexpr uintptr_t HEIGHT_HALF_FLOAT = 0x3C;    // float: Half-height in meters. For primitive cylinders (ID 0x01)
+        static constexpr uintptr_t HEIGHT_HALF_FLOAT = 0x2C;    // float: Half-height in meters. For primitive cylinders (ID 0x01)
     };
 
     /**

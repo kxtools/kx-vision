@@ -239,19 +239,12 @@ namespace kx {
                 return fullExtents;
             }
 
-            // Helper: Read cylinder radius and half-height, return full dimensions
-            glm::vec3 ReadCylinderDimensions(void* shapePtr, uintptr_t radiusOffset, uintptr_t heightOffset) const {
-                float radius = 0.0f;
-                if (!kx::Debug::SafeRead<float>(shapePtr, radiusOffset, radius)) {
-                    return glm::vec3(0.0f);
-                }
-                
+            // Helper: Read cylinder half-height, return height only (width/depth should be derived using WIDTH_TO_HEIGHT_RATIO)
+            // Note: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
+            // This means only height information is available from the shape, and width/depth must be derived proportionally.
+            glm::vec3 ReadCylinderDimensions(void* shapePtr, uintptr_t heightOffset) const {
                 float halfHeight = 0.0f;
                 if (!kx::Debug::SafeRead<float>(shapePtr, heightOffset, halfHeight)) {
-                    return glm::vec3(0.0f);
-                }
-                
-                if (!std::isfinite(radius) || radius <= 0.0f || radius > 100.0f) {
                     return glm::vec3(0.0f);
                 }
                 
@@ -259,14 +252,14 @@ namespace kx {
                     return glm::vec3(0.0f);
                 }
                 
-                float diameter = radius * 2.0f;
                 float fullHeight = halfHeight * 2.0f;
                 
-                if (diameter < 0.1f || diameter > 200.0f || fullHeight < 0.1f || fullHeight > 200.0f) {
+                if (fullHeight < 0.1f || fullHeight > 200.0f) {
                     return glm::vec3(0.0f);
                 }
                 
-                return glm::vec3(diameter, fullHeight, diameter);
+                // Return height only - width and depth should be derived using WIDTH_TO_HEIGHT_RATIO in the extractor
+                return glm::vec3(0.0f, fullHeight, 0.0f);
             }
 
             // Helper: Read MOPP shape dimensions by extracting AABB from child shape
@@ -321,6 +314,10 @@ namespace kx {
              * @return Full dimensions as glm::vec3 (width, height, depth) in meters, or glm::vec3(0.0f) if shape type is unsupported or invalid
              * 
              * Supports CYLINDER, BOX, and MOPP shapes.
+             * - CYLINDER: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
+             *   Only height information is available from the shape; width/depth are derived using WIDTH_TO_HEIGHT_RATIO.
+             * - BOX: Extracts dimensions directly from the box shape's half-extents.
+             * - MOPP: Extracts dimensions from the child shape's cached AABB.
              * All other shape types return glm::vec3(0.0f) to indicate unsupported.
              */
             glm::vec3 TryGetDimensions() const {
@@ -349,7 +346,6 @@ namespace kx {
                 switch (shapeType) {
                     case Havok::HkcdShapeType::CYLINDER:
                         return ReadCylinderDimensions(shapePtr, 
-                            HavokOffsets::HkpCylinderShape::RADIUS,
                             HavokOffsets::HkpCylinderShape::HEIGHT_HALF_FLOAT);
                     
                     case Havok::HkcdShapeType::BOX:

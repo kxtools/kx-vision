@@ -338,9 +338,19 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
     
     // === DIMENSIONS: Accurate per-entity dimensions from physics ===
     // Extract width (X), height (Y), and depth (Z) directly from shape dimensions
-    entity.physicsWidth = dimensions.x;
     entity.physicsHeight = dimensions.y;
-    entity.physicsDepth = dimensions.z;
+    
+    // For cylinders, derive width and depth using WIDTH_TO_HEIGHT_RATIO (same as boxes)
+    // Note: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
+    // Cylinders only provide height information, so we use proportional dimensions for ESP visualization.
+    if (entity.shapeType == Havok::HkcdShapeType::CYLINDER) {
+        entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+        entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    } else {
+        // For other shapes (BOX, MOPP), use dimensions directly from shape
+        entity.physicsWidth = dimensions.x;
+        entity.physicsDepth = dimensions.z;
+    }
     
     entity.hasPhysicsDimensions = true;
 }
