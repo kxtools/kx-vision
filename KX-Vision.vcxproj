@@ -182,6 +182,8 @@
     <ClInclude Include="src\Game\Generated\APIData.h" />
     <ClInclude Include="src\Game\Generated\EnumsAndStructs.h" />
     <ClInclude Include="src\Game\Generated\StatData.h" />
+    <ClInclude Include="src\Game\HavokEnums.h" />
+    <ClInclude Include="src\Game\HavokOffsets.h" />
     <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
     <ClInclude Include="src\Game\ReClassStructs.h" />
@@ -190,6 +192,7 @@
     <ClInclude Include="src\Game\ReClass\ContextStructs.h" />
     <ClInclude Include="src\Game\ReClass\EquipmentStructs.h" />
     <ClInclude Include="src\Game\ReClass\GadgetStructs.h" />
+    <ClInclude Include="src\Game\ReClass\HavokStructs.h" />
     <ClInclude Include="src\Game\ReClass\ItemStructs.h" />
     <ClInclude Include="src\Game\ReClass\StatStructs.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />

@@ -2,6 +2,7 @@
 #include "ESPFormatting.h"
 #include "ESPConstants.h"
 #include "../../Game/GameEnums.h"
+#include "../../Game/HavokEnums.h"
 #include <format>
 #include <sstream>
 #include <iomanip>
@@ -54,6 +55,11 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
         std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(npc->address));
         details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
+        /*if (npc->shapeType != Havok::HkcdShapeType::INVALID) {
+            std::string shapeStr = "Shape: " + ESPFormatting::GetShapeTypeName(npc->shapeType);
+            details.push_back({ shapeStr, ESPColors::DEFAULT_TEXT });
+        }*/
+
         /*details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(npc->agentType), ESPColors::DEFAULT_TEXT });
         details.push_back({ "AgentID: " + std::to_string(npc->agentId), ESPColors::DEFAULT_TEXT });*/
     }
@@ -100,6 +106,11 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
         std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(gadget->address));
         details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
+        /*if (gadget->shapeType != Havok::HkcdShapeType::INVALID) {
+            std::string shapeStr = "Shape: " + ESPFormatting::GetShapeTypeName(gadget->shapeType);
+            details.push_back({ shapeStr, ESPColors::DEFAULT_TEXT });
+        }*/
+
         /*details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(gadget->agentType), ESPColors::DEFAULT_TEXT });
         details.push_back({ "AgentID: " + std::to_string(gadget->agentId), ESPColors::DEFAULT_TEXT });*/
     }
@@ -136,6 +147,11 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildAttackTargetDetails(con
     if (showDebugAddresses) {
         std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(attackTarget->address));
         details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
+
+        /*if (attackTarget->shapeType != Havok::HkcdShapeType::INVALID) {
+            std::string shapeStr = "Shape: " + ESPFormatting::GetShapeTypeName(attackTarget->shapeType);
+            details.push_back({ shapeStr, ESPColors::DEFAULT_TEXT });
+        }*/
     }
 
     return details;

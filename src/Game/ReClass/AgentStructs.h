@@ -3,7 +3,10 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Utils/SafeForeignClass.h"
 #include "../offsets.h"
+#include "../HavokOffsets.h"
+#include "../HavokEnums.h"
 #include "../GameEnums.h"
+#include "HavokStructs.h"
 #include <glm.hpp>
 
 namespace kx {
@@ -15,72 +18,6 @@ namespace kx {
         class CoCharSimpleCliWrapper;
         class HkpSimpleShapePhantom;
         class HkpBoxShape;
-
-        /**
-         * @brief Havok physics box shape object - contains collision box dimensions
-         */
-        class HkpBoxShape : public SafeForeignClass {
-        public:
-            HkpBoxShape(void* ptr) : SafeForeignClass(ptr) {}
-
-            float GetHeightHalf() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(Offsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
-            }
-
-            float GetWidthHalf() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(Offsets::HkpBoxShape::WIDTH_HALF, 0.0f);
-            }
-
-            float GetDepthHalf() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(Offsets::HkpBoxShape::DEPTH_HALF, 0.0f);
-            }
-
-            float GetCollisionRadius() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(Offsets::HkpBoxShape::COLLISION_RADIUS, 0.0f);
-            }
-
-            glm::vec3 GetHalfExtents() const {
-                if (!data()) {
-                    return { 0.0f, 0.0f, 0.0f };
-                }
-                return ReadMember<glm::vec3>(Offsets::HkpBoxShape::HALF_EXTENTS, { 0.0f, 0.0f, 0.0f });
-            }
-
-            // Get full dimensions (half-extents * 2)
-            glm::vec3 GetFullDimensions() const {
-                glm::vec3 halfExtents = GetHalfExtents();
-                return halfExtents * 2.0f;
-            }
-        };
-
-        /**
-         * @brief Havok physics phantom object - contains physics-simulated position
-         * TESTED: Physics position updates similarly to Primary - smooth and accurate
-         */
-        class HkpSimpleShapePhantom : public SafeForeignClass {
-        public:
-            HkpSimpleShapePhantom(void* ptr) : SafeForeignClass(ptr) {}
-
-            glm::vec3 GetPhysicsPosition() const {
-                // TESTED: Updates similarly to Primary position - smooth and accurate
-                if (!data()) {
-                    return { 0.0f, 0.0f, 0.0f };
-                }
-                return ReadMember<glm::vec3>(Offsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
-            }
-        };
 
         /**
          * @brief CoCharSimpleCliWrapper object accessed via CoChar->0x88 containing alternative positions
@@ -115,8 +52,8 @@ namespace kx {
                 return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharSimpleCliWrapper::PHYSICS_PHANTOM_PLAYER);
             }
 
-            HkpBoxShape GetBoxShape() const {
-                return ReadPointer<HkpBoxShape>(Offsets::CoCharSimpleCliWrapper::BOX_SHAPE);
+            HkpBoxShape GetBoxShapeNpc() const {
+                return ReadPointer<HkpBoxShape>(Offsets::CoCharSimpleCliWrapper::BOX_SHAPE_NPC);
             }
         };
 
@@ -137,6 +74,10 @@ namespace kx {
                 glm::vec3 result = ReadMember<glm::vec3>(Offsets::CoChar::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
                 
                 return result;
+            }
+
+            HkpRigidBody GetRigidBodyPlayer() const {
+                return ReadPointer<HkpRigidBody>(Offsets::CoChar::RIGID_BODY_PLAYER);
             }
 
             CoCharSimpleCliWrapper GetSimpleCliWrapper() const {

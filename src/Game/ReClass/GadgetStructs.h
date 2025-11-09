@@ -6,6 +6,7 @@
 #include "../offsets.h"
 #include "CharacterStructs.h"
 #include "AgentStructs.h"
+#include "HavokStructs.h"
 #include <glm.hpp>
 
 namespace kx {
@@ -15,41 +16,7 @@ namespace kx {
         class CoKeyFramed;
         class AgKeyFramed;
         class GdCliGadget;
-        class HkpRigidBody;
-        class HkpCylinderShape;
-        class HkpBoxShape;
         class AgentInl;
-
-        /**
-         * @brief Havok physics cylinder collision shape - contains gadget dimensions
-         */
-        class HkpCylinderShape : public SafeForeignClass {
-        public:
-            HkpCylinderShape(void* ptr) : SafeForeignClass(ptr) {}
-
-            int32_t GetHeightCentimeters() const {
-                if (!data()) {
-                    return 0;
-                }
-                return ReadMember<int32_t>(Offsets::HkpCylinderShape::HEIGHT_CM, 0);
-            }
-        };
-
-        /**
-         * @brief Havok physics rigid body - contains physics shape reference
-         */
-        class HkpRigidBody : public SafeForeignClass {
-        public:
-            HkpRigidBody(void* ptr) : SafeForeignClass(ptr) {}
-
-            HkpCylinderShape GetCylinderShape() const {
-                return ReadPointer<HkpCylinderShape>(Offsets::HkpRigidBody::SHAPE);
-            }
-
-            HkpBoxShape GetBoxShape() const {
-                return ReadPointer<HkpBoxShape>(Offsets::HkpRigidBody::SHAPE);
-            }
-        };
 
         /**
          * @brief Coordinate/Object wrapper for keyframed entities (gadgets)
