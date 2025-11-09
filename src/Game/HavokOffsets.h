@@ -46,13 +46,18 @@ namespace HavokOffsets {
     /**
      * @brief hkpBoxShape - Havok physics box shape object
      * Identified by SHAPE_TYPE_PRIMITIVE == 0x03.
+     * 
+     * NOTE: Testing shows that for Players, the values at 0x30, 0x34, and 0x3C appear to be identical.
+     * For Players, all dimensions (width, depth, height) provide accurate visual bounding box data.
+     * For NPCs, only HEIGHT_HALF (0x38) is accurate; width/depth are capsule collision radii (~0.035 game units).
      */
     struct HkpBoxShape {
         static constexpr uintptr_t COLLISION_RADIUS = 0x20;  // float: Base collision radius or padding
         static constexpr uintptr_t HALF_EXTENTS = 0x30;      // hkVector4: half-extents (width/2, depth/2, height/2, padding)
-        static constexpr uintptr_t WIDTH_HALF = 0x30;        // float: X half-extent
-        static constexpr uintptr_t DEPTH_HALF = 0x34;        // float: Y half-extent
-        static constexpr uintptr_t HEIGHT_HALF = 0x38;       // float: Z half-extent
+        static constexpr uintptr_t WIDTH_HALF = 0x30;        // float: X half-extent (accurate for Players, capsule radius for NPCs)
+        static constexpr uintptr_t DEPTH_HALF = 0x34;        // float: Y half-extent (accurate for Players, capsule radius for NPCs)
+        static constexpr uintptr_t HEIGHT_HALF = 0x38;       // float: Z half-extent (accurate for both Players and NPCs)
+        static constexpr uintptr_t PADDING_OR_W = 0x3C;      // float: W component of hkVector4 (testing shows same as 0x30/0x34 for Players)
     };
 
     /**
