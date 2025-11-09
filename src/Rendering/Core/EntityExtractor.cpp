@@ -325,6 +325,10 @@ void EntityExtractor::ExtractPlayerShapeDimensions(RenderableEntity& entity, con
 void EntityExtractor::ExtractNpcShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
     // Navigate: ChCliCharacter -> AgChar -> CoChar -> CoCharSimpleCliWrapper -> HkpBoxShape (NPC ONLY)
     // NPCs use HkpBoxShape path at CoCharSimpleCliWrapper+0xE8 (only BOX shapes supported)
+    // 
+    // IMPORTANT: NPC HkpBoxShapes only provide accurate HEIGHT values.
+    // Width/depth values (GetWidthHalf/GetDepthHalf) are capsule collision radii (~0.035 game units),
+    // which are too small for ESP visualization. We extract height and derive proportional width/depth.
     ReClass::AgChar agent = character.GetAgent();
     if (!agent) return;
     
@@ -448,8 +452,9 @@ void EntityExtractor::ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity&
     entity.physicsHeight = fullHeightMeters;
     
     // === WIDTH/DEPTH: Derived from height for ESP visualization ===
-    // Note: HkpBoxShape width/depth values represent capsule collision radii (~0.035 game units),
-    // not visual dimensions. For ESP boxes, we derive proportional dimensions (35% width-to-height).
+    // IMPORTANT: GetWidthHalf() and GetDepthHalf() return capsule collision radii (~0.035 game units),
+    // which are too small for visual bounding boxes. Only GetHeightHalf() provides accurate dimensions.
+    // Therefore, we derive width/depth proportionally using WIDTH_TO_HEIGHT_RATIO (35%).
     entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
     entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
     
