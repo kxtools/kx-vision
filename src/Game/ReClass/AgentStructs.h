@@ -6,6 +6,7 @@
 #include "../HavokOffsets.h"
 #include "../HavokEnums.h"
 #include "../GameEnums.h"
+#include "HavokStructs.h"
 #include <glm.hpp>
 
 namespace kx {
@@ -17,91 +18,6 @@ namespace kx {
         class CoCharSimpleCliWrapper;
         class HkpSimpleShapePhantom;
         class HkpBoxShape;
-
-        /**
-         * @brief Havok physics box shape object - contains collision box dimensions
-         */
-        class HkpBoxShape : public SafeForeignClass {
-        public:
-            HkpBoxShape(void* ptr) : SafeForeignClass(ptr) {}
-
-            float GetHeightHalf() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
-            }
-
-            float GetWidthHalf() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::WIDTH_HALF, 0.0f);
-            }
-
-            float GetDepthHalf() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::DEPTH_HALF, 0.0f);
-            }
-
-            float GetCollisionRadius() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::COLLISION_RADIUS, 0.0f);
-            }
-
-            glm::vec3 GetHalfExtents() const {
-                if (!data()) {
-                    return { 0.0f, 0.0f, 0.0f };
-                }
-                return ReadMember<glm::vec3>(HavokOffsets::HkpBoxShape::HALF_EXTENTS, { 0.0f, 0.0f, 0.0f });
-            }
-
-            // Get full dimensions (half-extents * 2)
-            glm::vec3 GetFullDimensions() const {
-                glm::vec3 halfExtents = GetHalfExtents();
-                return halfExtents * 2.0f;
-            }
-
-            /**
-             * @brief Get the primitive shape type identifier from the shape object
-             * @return Primitive shape type enum value, or INVALID if read fails
-             * @note This reads the single byte at shape + 0x10, which is the actual primitive type
-             */
-            Havok::HkcdShapeType GetShapeType() const {
-                if (!data()) {
-                    return Havok::HkcdShapeType::INVALID;
-                }
-
-                // Read primitive shape type from shape + 0x10 (single byte)
-                uint8_t typeValue = 0xFF;
-                if (!kx::Debug::SafeRead<uint8_t>(data(), HavokOffsets::HkpShapeBase::SHAPE_TYPE_PRIMITIVE, typeValue)) {
-                    return Havok::HkcdShapeType::INVALID;
-                }
-
-                return static_cast<Havok::HkcdShapeType>(typeValue);
-            }
-        };
-
-        /**
-         * @brief Havok physics phantom object - contains physics-simulated position
-         * TESTED: Physics position updates similarly to Primary - smooth and accurate
-         */
-        class HkpSimpleShapePhantom : public SafeForeignClass {
-        public:
-            HkpSimpleShapePhantom(void* ptr) : SafeForeignClass(ptr) {}
-
-            glm::vec3 GetPhysicsPosition() const {
-                // TESTED: Updates similarly to Primary position - smooth and accurate
-                if (!data()) {
-                    return { 0.0f, 0.0f, 0.0f };
-                }
-                return ReadMember<glm::vec3>(HavokOffsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
-            }
-        };
 
         /**
          * @brief CoCharSimpleCliWrapper object accessed via CoChar->0x88 containing alternative positions
