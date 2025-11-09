@@ -1,0 +1,399 @@
+#pragma once
+
+#include "../../Utils/DebugLogger.h"
+#include "../../Utils/SafeForeignClass.h"
+#include "../HavokEnums.h"
+#include "../HavokOffsets.h"
+#include <glm.hpp>
+#include <cmath>
+
+namespace kx {
+    namespace ReClass {
+
+        // Forward declarations
+        class HkpBoxShape;
+        class HkpMoppBvTreeShape;
+        class HkpExtendedMeshShape;
+
+        /**
+         * @brief Havok physics cylinder collision shape - contains gadget dimensions
+         */
+        class HkpCylinderShape : public SafeForeignClass {
+        public:
+            HkpCylinderShape(void* ptr) : SafeForeignClass(ptr) {}
+
+            // Deprecated: Use HkpRigidBody::TryGetDimensions() for type-safe dimension extraction
+            [[deprecated("Use HkpRigidBody::TryGetDimensions() for type-safe dimension extraction")]]
+            float GetHeightHalfMeters() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMember<float>(HavokOffsets::HkpCylinderShape::HEIGHT_HALF_FLOAT, 0.0f);
+            }
+        };
+
+        /**
+         * @brief ReClass wrapper for an hkpMoppBvTreeShape
+         * MOPP shapes are acceleration structures that wrap a child shape (typically hkpExtendedMeshShape)
+         */
+        class HkpMoppBvTreeShape : public SafeForeignClass {
+        public:
+            HkpMoppBvTreeShape(void* ptr) : SafeForeignClass(ptr) {}
+
+            /**
+             * @brief Gets a pointer to the child shape that this MOPP tree wraps
+             * @return A void pointer to the child shape (e.g., an hkpExtendedMeshShape), or nullptr if invalid
+             */
+            void* GetChildShape() const {
+                if (!data()) {
+                    return nullptr;
+                }
+                return ReadMember<void*>(HavokOffsets::HkpMoppBvTreeShape::CHILD_SHAPE_POINTER, nullptr);
+            }
+        };
+
+        /**
+         * @brief ReClass wrapper for an hkpExtendedMeshShape
+         * These complex mesh shapes cache their own AABB for performance
+         */
+        class HkpExtendedMeshShape : public SafeForeignClass {
+        public:
+            HkpExtendedMeshShape(void* ptr) : SafeForeignClass(ptr) {}
+
+            /**
+             * @brief Reads the cached AABB half-extents from the shape
+             * @return A vec3 containing the half-dimensions in game coordinates (width/2, depth/2, height/2), or glm::vec3(0.0f) if invalid
+             * 
+             * Reads individual components from the AABB structure:
+             * - 0xC0: Width (X component)
+             * - 0xC4: Depth (Y component in Havok, maps to Y/depth in game)
+             * - 0xC8: Height (Z component in Havok, confirmed by user as height)
+             * 
+             * Returns in game coordinate system: (width, depth, height) = (X, Y, Z)
+             */
+            glm::vec3 GetAabbHalfExtents() const {
+                if (!data()) {
+                    return glm::vec3(0.0f);
+                }
+                
+                // Read individual components from AABB structure
+                float widthHalf = ReadMember<float>(HavokOffsets::HkpExtendedMeshShape::AABB_WIDTH_HALF, 0.0f);
+                float depthHalf = ReadMember<float>(HavokOffsets::HkpExtendedMeshShape::AABB_DEPTH_HALF, 0.0f);
+                float heightHalf = ReadMember<float>(HavokOffsets::HkpExtendedMeshShape::AABB_HEIGHT_HALF, 0.0f);
+                
+                // Return in game coordinate system: (width, depth, height) = (X, Y, Z)
+                return glm::vec3(widthHalf, depthHalf, heightHalf);
+            }
+        };
+
+        /**
+         * @brief Havok physics rigid body - contains physics shape reference
+         * 
+         * Type-safe shape dimension extraction using primitive shape type byte at shape+0x10.
+         * This prevents unsafe casts and reading incorrect fields from wrong shape types.
+         */
+        class HkpRigidBody : public SafeForeignClass {
+        public:
+            HkpRigidBody(void* ptr) : SafeForeignClass(ptr) {}
+
+            /**
+             * @brief Get the wrapper shape type from the rigid body (for future filtering/early-out)
+             * @return Wrapper type enum value, or INVALID if read fails
+             * @note This reads from HkpRigidBody + 0x4C and can be used for early filtering
+             */
+            Havok::HkcdShapeType GetShapeTypeWrapper() const {
+                if (!data()) {
+                    return Havok::HkcdShapeType::INVALID;
+                }
+                uint8_t typeValue = ReadMember<uint8_t>(HavokOffsets::HkpRigidBody::SHAPE_TYPE_WRAPPER, 0xFF);
+                return static_cast<Havok::HkcdShapeType>(typeValue);
+            }
+
+            /**
+             * @brief Get the primitive shape type identifier from the shape object
+             * @return Primitive shape type enum value, or INVALID if read fails
+             * @note This reads the single byte at shape + 0x10, which is the actual primitive type
+             */
+            Havok::HkcdShapeType GetShapeType() const {
+                if (!data()) {
+                    return Havok::HkcdShapeType::INVALID;
+                }
+
+                // Read shape pointer at +0x20
+                void* shapePtr = nullptr;
+                if (!kx::Debug::SafeRead<void*>(data(), HavokOffsets::HkpRigidBody::SHAPE, shapePtr)) {
+                    return Havok::HkcdShapeType::INVALID;
+                }
+
+                // Validate shape pointer (null check only - SafeRead handles memory safety)
+                if (!shapePtr) {
+                    return Havok::HkcdShapeType::INVALID;
+                }
+
+                // Read primitive shape type from shape + 0x10 (single byte)
+                uint8_t typeValue = 0xFF;
+                if (!kx::Debug::SafeRead<uint8_t>(shapePtr, HavokOffsets::HkpShapeBase::SHAPE_TYPE_PRIMITIVE, typeValue)) {
+                    return Havok::HkcdShapeType::INVALID;
+                }
+
+                return static_cast<Havok::HkcdShapeType>(typeValue);
+            }
+
+        private:
+            // Helper: Read int32 height in centimeters, convert to meters
+            float ReadInt32HeightCm(void* shapePtr, uintptr_t offset, int32_t minCm, int32_t maxCm) const {
+                int32_t heightCm = 0;
+                if (!kx::Debug::SafeRead<int32_t>(shapePtr, offset, heightCm)) {
+                    return -1.0f;
+                }
+                
+                if (heightCm < minCm || heightCm > maxCm) {
+                    return -1.0f;
+                }
+                
+                return heightCm / 100.0f;
+            }
+
+            // Helper: Read float half-extent in game coordinates, convert to full height in meters
+            float ReadFloatHeightHalfExtent(void* shapePtr, uintptr_t offset) const {
+                float heightHalf = 0.0f;
+                if (!kx::Debug::SafeRead<float>(shapePtr, offset, heightHalf)) {
+                    return -1.0f;
+                }
+                
+                if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > 10000.0f) {
+                    return -1.0f;
+                }
+                
+                float fullHeightMeters = (heightHalf * 2.0f) / 1.23f;
+                
+                if (fullHeightMeters < 0.1f || fullHeightMeters > 100.0f) {
+                    return -1.0f;
+                }
+                
+                return fullHeightMeters;
+            }
+
+            // Helper: Read float half-height in meters, convert to full height (no coordinate conversion)
+            float ReadFloatHeightHalfMeters(void* shapePtr, uintptr_t offset) const {
+                float heightHalf = 0.0f;
+                if (!kx::Debug::SafeRead<float>(shapePtr, offset, heightHalf)) {
+                    return -1.0f;
+                }
+                
+                if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > 100.0f) {
+                    return -1.0f;
+                }
+                
+                float fullHeightMeters = heightHalf * 2.0f;
+                
+                if (fullHeightMeters < 0.1f || fullHeightMeters > 200.0f) {
+                    return -1.0f;
+                }
+                
+                return fullHeightMeters;
+            }
+
+            // Helper: Read int32 height directly (no conversion)
+            float ReadInt32HeightDirect(void* shapePtr, uintptr_t offset, int32_t min, int32_t max) const {
+                int32_t height = 0;
+                if (!kx::Debug::SafeRead<int32_t>(shapePtr, offset, height)) {
+                    return -1.0f;
+                }
+                
+                if (height < min || height > max) {
+                    return -1.0f;
+                }
+                
+                return static_cast<float>(height);
+            }
+
+            // Helper: Read vec3 half-extents, validate, and return full extents
+            glm::vec3 ReadBoxHalfExtents(void* shapePtr, uintptr_t offset) const {
+                glm::vec3 halfExtents(0.0f);
+                if (!kx::Debug::SafeRead<glm::vec3>(shapePtr, offset, halfExtents)) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (!std::isfinite(halfExtents.x) || !std::isfinite(halfExtents.y) || !std::isfinite(halfExtents.z)) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (halfExtents.x <= 0.0f || halfExtents.y <= 0.0f || halfExtents.z <= 0.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (halfExtents.x > 10000.0f || halfExtents.y > 10000.0f || halfExtents.z > 10000.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                glm::vec3 fullExtents = halfExtents * 2.0f;
+                fullExtents = fullExtents / 1.23f;
+                
+                if (fullExtents.x < 0.1f || fullExtents.x > 100.0f ||
+                    fullExtents.y < 0.1f || fullExtents.y > 100.0f ||
+                    fullExtents.z < 0.1f || fullExtents.z > 100.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                return fullExtents;
+            }
+
+            // Helper: Read cylinder radius and half-height, return full dimensions
+            glm::vec3 ReadCylinderDimensions(void* shapePtr, uintptr_t radiusOffset, uintptr_t heightOffset) const {
+                float radius = 0.0f;
+                if (!kx::Debug::SafeRead<float>(shapePtr, radiusOffset, radius)) {
+                    return glm::vec3(0.0f);
+                }
+                
+                float halfHeight = 0.0f;
+                if (!kx::Debug::SafeRead<float>(shapePtr, heightOffset, halfHeight)) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (!std::isfinite(radius) || radius <= 0.0f || radius > 100.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (!std::isfinite(halfHeight) || halfHeight <= 0.0f || halfHeight > 100.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                float diameter = radius * 2.0f;
+                float fullHeight = halfHeight * 2.0f;
+                
+                if (diameter < 0.1f || diameter > 200.0f || fullHeight < 0.1f || fullHeight > 200.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                return glm::vec3(diameter, fullHeight, diameter);
+            }
+
+            // Helper: Read MOPP shape dimensions by extracting AABB from child shape
+            glm::vec3 ReadMoppDimensions(void* moppShapePtr) const {
+                // Get the child shape from the MOPP
+                HkpMoppBvTreeShape moppShape(moppShapePtr);
+                void* childShapePtr = moppShape.GetChildShape();
+                if (!childShapePtr) {
+                    return glm::vec3(0.0f);
+                }
+                
+                // Read AABB half-extents from the child shape (typically hkpExtendedMeshShape)
+                // GetAabbHalfExtents() returns (width, depth, height) in game coordinates
+                HkpExtendedMeshShape childShape(childShapePtr);
+                glm::vec3 halfExtents = childShape.GetAabbHalfExtents();
+                
+                // Validate half-extents
+                if (halfExtents.x == 0.0f && halfExtents.y == 0.0f && halfExtents.z == 0.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (!std::isfinite(halfExtents.x) || !std::isfinite(halfExtents.y) || !std::isfinite(halfExtents.z)) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (halfExtents.x <= 0.0f || halfExtents.y <= 0.0f || halfExtents.z <= 0.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (halfExtents.x > 100.0f || halfExtents.y > 100.0f || halfExtents.z > 100.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                // Convert half-extents to full extents
+                glm::vec3 fullExtents = halfExtents * 2.0f;
+                
+                if (fullExtents.x < 0.1f || fullExtents.x > 200.0f ||
+                    fullExtents.y < 0.1f || fullExtents.y > 200.0f ||
+                    fullExtents.z < 0.1f || fullExtents.z > 200.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                // Map from (width, depth, height) to (width, height, depth) for TryGetDimensions() API
+                // halfExtents is (width, depth, height), so fullExtents is also (width, depth, height)
+                // Return (width, height, depth) by swapping Y and Z components
+                return glm::vec3(fullExtents.x, fullExtents.z, fullExtents.y);
+            }
+
+        public:
+            /**
+             * @brief Type-safe dimension extraction from rigid body shape
+             * @return Full dimensions as glm::vec3 (width, height, depth) in meters, or glm::vec3(0.0f) if shape type is unsupported or invalid
+             * 
+             * Supports CYLINDER, BOX, and MOPP shapes.
+             * All other shape types return glm::vec3(0.0f) to indicate unsupported.
+             */
+            glm::vec3 TryGetDimensions() const {
+                if (!data()) {
+                    return glm::vec3(0.0f);
+                }
+
+                // Read shape pointer at +0x20
+                void* shapePtr = nullptr;
+                if (!kx::Debug::SafeRead<void*>(data(), HavokOffsets::HkpRigidBody::SHAPE, shapePtr)) {
+                    return glm::vec3(0.0f);
+                }
+
+                // Validate shape pointer (null check only - SafeRead handles memory safety)
+                if (!shapePtr) {
+                    return glm::vec3(0.0f);
+                }
+
+                // Read primitive shape type from shape + 0x10 (single byte)
+                Havok::HkcdShapeType shapeType = GetShapeType();
+                if (shapeType == Havok::HkcdShapeType::INVALID) {
+                    return glm::vec3(0.0f);
+                }
+
+                // Switch on primitive shape type and extract dimensions from appropriate fields
+                switch (shapeType) {
+                    case Havok::HkcdShapeType::CYLINDER:
+                        return ReadCylinderDimensions(shapePtr, 
+                            HavokOffsets::HkpCylinderShape::RADIUS,
+                            HavokOffsets::HkpCylinderShape::HEIGHT_HALF_FLOAT);
+                    
+                    case Havok::HkcdShapeType::BOX:
+                        return ReadBoxHalfExtents(shapePtr, HavokOffsets::HkpBoxShape::HALF_EXTENTS);
+                    
+                    case Havok::HkcdShapeType::MOPP:
+                        return ReadMoppDimensions(shapePtr);
+                    
+                    default:
+                        return glm::vec3(0.0f);
+                }
+            }
+
+            /**
+             * @brief Type-safe height extraction from rigid body shape
+             * @return Height in meters, or -1.0f if shape type is unsupported or invalid
+             * 
+             * @deprecated Use TryGetDimensions() for full dimension extraction. This method is kept for backward compatibility.
+             * 
+             * Supports CYLINDER, BOX, and MOPP shapes.
+             * All other shape types return -1.0f to indicate unsupported.
+             */
+            [[deprecated("Use TryGetDimensions() for full dimension extraction")]]
+            float TryGetHeightMeters() const {
+                glm::vec3 dimensions = TryGetDimensions();
+                if (dimensions.x == 0.0f && dimensions.y == 0.0f && dimensions.z == 0.0f) {
+                    return -1.0f;
+                }
+                return dimensions.y;
+            }
+
+            // Deprecated: Unsafe shape casting methods - use TryGetDimensions() instead
+            // These methods assume the shape is the expected type without verification
+            [[deprecated("Use TryGetDimensions() for type-safe dimension extraction")]]
+            HkpCylinderShape GetCylinderShape() const {
+                return ReadPointer<HkpCylinderShape>(HavokOffsets::HkpRigidBody::SHAPE);
+            }
+
+            [[deprecated("Use TryGetDimensions() for type-safe dimension extraction")]]
+            HkpBoxShape GetBoxShape() const {
+                return ReadPointer<HkpBoxShape>(HavokOffsets::HkpRigidBody::SHAPE);
+            }
+        };
+
+    } // namespace ReClass
+} // namespace kx
+

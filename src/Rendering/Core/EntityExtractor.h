@@ -77,7 +77,7 @@ namespace kx {
          * @brief Extract physics shape dimensions from gadget
          * @param entity The entity to populate with dimensions
          * @param gadget The gadget to extract dimensions from
-         * @note Uses unified type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
+         * @note Uses unified type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
          */
         static void ExtractShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget);
         
@@ -85,7 +85,7 @@ namespace kx {
          * @brief Extract physics shape dimensions from AgKeyFramed (for attack targets)
          * @param entity The entity to populate with dimensions
          * @param agKeyframed The AgKeyFramed to extract dimensions from
-         * @note Uses unified type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
+         * @note Uses unified type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
          */
         static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::AgKeyFramed& agKeyframed);
         
@@ -94,7 +94,7 @@ namespace kx {
          * @brief Internal helper to extract shape dimensions from CoKeyFramed
          * @param entity The entity to populate with dimensions
          * @param coKeyframed The CoKeyFramed to extract dimensions from
-         * @note Uses unified type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
+         * @note Uses unified type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
          */
         static void ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
         

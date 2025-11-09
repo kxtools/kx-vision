@@ -11,11 +11,11 @@ namespace kx {
 namespace PhysicsValidation {
     // Height validation range in meters (applies to both characters and gadgets after conversion)
     constexpr float MIN_HEIGHT_METERS = 0.1f;   // 10cm - minimum reasonable entity height
-    constexpr float MAX_HEIGHT_METERS = 30.0f;  // 30m - maximum height (allows large bosses)
+    constexpr float MAX_HEIGHT_METERS = 100.0f;  // maximum height (allows large bosses)
     
     // Gadget height validation in centimeters (before conversion)
     constexpr int32_t MIN_HEIGHT_CM = 10;       // 10cm minimum
-    constexpr int32_t MAX_HEIGHT_CM = 3000;     // 30m maximum
+    constexpr int32_t MAX_HEIGHT_CM = 10000;     // maximum
     
     // Width-to-height ratio for ESP bounding boxes (proportional approach)
     constexpr float WIDTH_TO_HEIGHT_RATIO = 0.35f;  // 35% - typical humanoid/object proportions
@@ -330,20 +330,17 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
     // Extract shape type for debug display
     entity.shapeType = rigidBody.GetShapeType();
     
-    // Use type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
-    float heightMeters = rigidBody.TryGetHeightMeters();
-    if (heightMeters < 0.0f) {
+    // Use type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
+    glm::vec3 dimensions = rigidBody.TryGetDimensions();
+    if (dimensions.x == 0.0f && dimensions.y == 0.0f && dimensions.z == 0.0f) {
         return; // Unsupported shape type or invalid data - use fallback dimensions
     }
     
-    // === HEIGHT: Accurate per-entity dimension from physics ===
-    entity.physicsHeight = heightMeters;
-    
-    // === WIDTH/DEPTH: Derived from height for ESP visualization ===
-    // Note: Shape-specific radius/width values are too small for ESP visualization.
-    // For ESP boxes, we derive proportional dimensions (35% width-to-height).
-    entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
-    entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    // === DIMENSIONS: Accurate per-entity dimensions from physics ===
+    // Extract width (X), height (Y), and depth (Z) directly from shape dimensions
+    entity.physicsWidth = dimensions.x;
+    entity.physicsHeight = dimensions.y;
+    entity.physicsDepth = dimensions.z;
     
     entity.hasPhysicsDimensions = true;
 }

@@ -51,7 +51,7 @@ namespace kx {
             ImGui::Checkbox("Show Box##Object", &settings.renderBox);
             if (settings.renderBox) {
                 ImGui::Indent();
-                ImGui::SliderFloat("Max Height##ObjectBox", &settings.maxBoxHeight, 1.0f, 30.0f, "%.1f m");
+                ImGui::SliderFloat("Max Height##ObjectBox", &settings.maxBoxHeight, 1.0f, 100.0f, "%.1f m");
                 ImGui::TextDisabled("Hide boxes for gadgets taller than this");
                 ImGui::Unindent();
             }

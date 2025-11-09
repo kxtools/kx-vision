@@ -65,14 +65,27 @@ namespace HavokOffsets {
     };
 
     /**
-     * @brief hkpCapsuleShape - Havok physics capsule collision shape
-     * Identified by SHAPE_TYPE_PRIMITIVE == 0x04.
-     * Note: A capsule's height is derived from its two endpoint vertices.
-     * Further research is needed to find the vertex offsets.
-     * The previously noted HEIGHT at 0x3C might be an engine-specific property.
+     * @brief hkpMoppBvTreeShape - Havok MOPP shape (BvTree)
+     * Identified by SHAPE_TYPE_PRIMITIVE == 0x09.
+     * This is an acceleration structure that wraps a child shape (e.g., a mesh).
+     * To get its dimensions, you must get the child shape and find its AABB.
      */
-    struct HkpCapsuleShape {
-        static constexpr uintptr_t HEIGHT = 0x003C;   // int32_t: Height property (observed values: 4, 5, etc.) - exact meaning/units TBD
+    struct HkpMoppBvTreeShape {
+        static constexpr uintptr_t CODE = 0x28;                    // hkpMoppCode*: Pointer to the compressed tree data
+        static constexpr uintptr_t CHILD_SHAPE_POINTER = 0x58;    // hkpShape*: Pointer to the child shape (typically hkpExtendedMeshShape)
+    };
+
+    /**
+     * @brief hkpExtendedMeshShape - A complex mesh shape, often the child of a MOPP
+     * Identified by SHAPE_TYPE_PRIMITIVE == 0x0D.
+     * These shapes cache their own Axis-Aligned Bounding Box (AABB) for performance.
+     * The AABB is stored as an hkVector4 starting at 0xC0.
+     */
+    struct HkpExtendedMeshShape {
+        static constexpr uintptr_t AABB_HALF_EXTENTS = 0xC0;  // hkVector4: Cached AABB half-extents (width/2, height/2, depth/2, padding)
+        static constexpr uintptr_t AABB_WIDTH_HALF = 0xC0;    // float: X component (width/2)
+        static constexpr uintptr_t AABB_DEPTH_HALF = 0xC4;   // float: Y component (depth/2 in Havok system)
+        static constexpr uintptr_t AABB_HEIGHT_HALF = 0xC8;   // float: Z component (height/2 - confirmed this is height)
     };
 
     /**

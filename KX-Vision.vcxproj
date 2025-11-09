@@ -192,6 +192,7 @@
     <ClInclude Include="src\Game\ReClass\ContextStructs.h" />
     <ClInclude Include="src\Game\ReClass\EquipmentStructs.h" />
     <ClInclude Include="src\Game\ReClass\GadgetStructs.h" />
+    <ClInclude Include="src\Game\ReClass\HavokStructs.h" />
     <ClInclude Include="src\Game\ReClass\ItemStructs.h" />
     <ClInclude Include="src\Game\ReClass\StatStructs.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
