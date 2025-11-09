@@ -314,13 +314,10 @@ void EntityExtractor::ExtractPlayerShapeDimensions(RenderableEntity& entity, con
         return; // Unsupported shape type or invalid data - use fallback dimensions
     }
     
-    // Extract height (Z) from physics shape
-    entity.physicsHeight = dimensions.z;
-    
-    // For players, use humanoid proportions (WIDTH_TO_HEIGHT_RATIO) for width and depth
-    // This provides better visual representation than the collision capsule dimensions
-    entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
-    entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    // BOX shape: (X, Y, Z) = (width, depth, height) - no coordinate swap
+    entity.physicsHeight = dimensions.z;  // Z is height
+    entity.physicsWidth = dimensions.x;   // X is width
+    entity.physicsDepth = dimensions.y;   // Y is depth
     
     entity.hasPhysicsDimensions = true;
 }
