@@ -148,10 +148,10 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildAttackTargetDetails(con
         std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(attackTarget->address));
         details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
-        if (attackTarget->shapeType != Havok::HkcdShapeType::INVALID) {
+        /*if (attackTarget->shapeType != Havok::HkcdShapeType::INVALID) {
             std::string shapeStr = "Shape: " + ESPFormatting::GetShapeTypeName(attackTarget->shapeType);
             details.push_back({ shapeStr, ESPColors::DEFAULT_TEXT });
-        }
+        }*/
     }
 
     return details;
