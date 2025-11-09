@@ -367,7 +367,7 @@ namespace kx {
         public:
             /**
              * @brief Type-safe dimension extraction from rigid body shape
-             * @return Full dimensions as glm::vec3 (width, height, depth) in meters, or glm::vec3(0.0f) if shape type is unsupported or invalid
+             * @return Full dimensions as glm::vec3 (width, height, depth) in meters, or glm::vec3(0.0f) if data is invalid
              * 
              * Supports CYLINDER, BOX, MOPP, and LIST shapes.
              * - CYLINDER: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
@@ -375,7 +375,10 @@ namespace kx {
              * - BOX: Extracts dimensions directly from the box shape's half-extents.
              * - MOPP: Extracts dimensions from the child shape's cached AABB.
              * - LIST: Extracts dimensions from the list shape's cached bounding box half-extents. Uses backup height at 0x68 if primary height at 0x58 is invalid.
-             * All other shape types return glm::vec3(0.0f) to indicate unsupported.
+             * - Unknown/unsupported shape types: Returns a small default box (0.5m × 0.5m × 0.5m) to ensure visibility.
+             * 
+             * Returns glm::vec3(0.0f) only when data is invalid (null pointers, read failures, or validation failures).
+             * Unknown shape types return a small default box instead of zero to ensure they remain visible.
              */
             glm::vec3 TryGetDimensions() const {
                 if (!data()) {
@@ -415,7 +418,14 @@ namespace kx {
                         return ReadListShapeDimensions(shapePtr);
                     
                     default:
-                        return glm::vec3(0.0f);
+                        // Unknown/unsupported shape types: return a small default box (0.5m cube)
+                        // This ensures unknown shapes are still visible with a reasonable bounding box
+                        // Matches the gadget fallback size for visual consistency
+                        return glm::vec3(
+                            EntityWorldBounds::GADGET_WORLD_WIDTH,
+                            EntityWorldBounds::GADGET_WORLD_HEIGHT,
+                            EntityWorldBounds::GADGET_WORLD_DEPTH
+                        );
                 }
             }
 
