@@ -1,7 +1,9 @@
 #pragma once
 
 #include <string>
+#include <cstdio>
 #include "../../Game/GameEnums.h"
+#include "../../Game/HavokEnums.h"
 
 namespace kx {
 namespace ESPFormatting {
@@ -127,6 +129,48 @@ namespace ESPFormatting {
         case Game::EquipmentSlot::MainhandWeapon2: return "Weapon2 A";
         case Game::EquipmentSlot::OffhandWeapon2: return "Weapon2 B";
         default: return "Unknown Slot";
+        }
+    }
+
+    inline std::string GetShapeTypeName(Havok::HkcdShapeType type) {
+        switch (type) {
+            case Havok::HkcdShapeType::SPHERE: return "SPHERE";
+            case Havok::HkcdShapeType::CYLINDER: return "CYLINDER";
+            case Havok::HkcdShapeType::TRIANGLE: return "TRIANGLE";
+            case Havok::HkcdShapeType::BOX: return "BOX";
+            case Havok::HkcdShapeType::CAPSULE: return "CAPSULE";
+            case Havok::HkcdShapeType::CONVEX_VERTICES: return "CONVEX_VERTICES";
+            case Havok::HkcdShapeType::TRI_SAMPLED_HEIGHT_FIELD_COLLECTION: return "TRI_SAMPLED_HEIGHT_FIELD_COLLECTION";
+            case Havok::HkcdShapeType::TRI_SAMPLED_HEIGHT_FIELD_BV_TREE: return "TRI_SAMPLED_HEIGHT_FIELD_BV_TREE";
+            case Havok::HkcdShapeType::LIST: return "LIST";
+            case Havok::HkcdShapeType::MOPP: return "MOPP";
+            case Havok::HkcdShapeType::CONVEX_TRANSLATE: return "CONVEX_TRANSLATE";
+            case Havok::HkcdShapeType::CONVEX_TRANSFORM: return "CONVEX_TRANSFORM";
+            case Havok::HkcdShapeType::SAMPLED_HEIGHT_FIELD: return "SAMPLED_HEIGHT_FIELD";
+            case Havok::HkcdShapeType::EXTENDED_MESH: return "EXTENDED_MESH";
+            case Havok::HkcdShapeType::TRANSFORM: return "TRANSFORM";
+            case Havok::HkcdShapeType::COMPRESSED_MESH: return "COMPRESSED_MESH";
+            case Havok::HkcdShapeType::STATIC_COMPOUND: return "STATIC_COMPOUND";
+            case Havok::HkcdShapeType::BV_COMPRESSED_MESH: return "BV_COMPRESSED_MESH";
+            case Havok::HkcdShapeType::COLLECTION: return "COLLECTION";
+            case Havok::HkcdShapeType::BV_TREE: return "BV_TREE";
+            case Havok::HkcdShapeType::CONVEX: return "CONVEX";
+            case Havok::HkcdShapeType::CONVEX_PIECE: return "CONVEX_PIECE";
+            case Havok::HkcdShapeType::MULTI_SPHERE: return "MULTI_SPHERE";
+            case Havok::HkcdShapeType::CONVEX_LIST: return "CONVEX_LIST";
+            case Havok::HkcdShapeType::TRIANGLE_COLLECTION: return "TRIANGLE_COLLECTION";
+            case Havok::HkcdShapeType::HEIGHT_FIELD: return "HEIGHT_FIELD";
+            case Havok::HkcdShapeType::SPHERE_REP: return "SPHERE_REP";
+            case Havok::HkcdShapeType::BV: return "BV";
+            case Havok::HkcdShapeType::PLANE: return "PLANE";
+            case Havok::HkcdShapeType::PHANTOM_CALLBACK: return "PHANTOM_CALLBACK";
+            case Havok::HkcdShapeType::MULTI_RAY: return "MULTI_RAY";
+            case Havok::HkcdShapeType::INVALID: return "INVALID";
+            default: {
+                char buffer[32];
+                std::snprintf(buffer, sizeof(buffer), "Unknown (0x%02X)", static_cast<uint8_t>(type));
+                return std::string(buffer);
+            }
         }
     }
 

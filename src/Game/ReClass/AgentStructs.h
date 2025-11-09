@@ -3,6 +3,7 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Utils/SafeForeignClass.h"
 #include "../offsets.h"
+#include "../HavokOffsets.h"
 #include "../GameEnums.h"
 #include <glm.hpp>
 
@@ -27,35 +28,35 @@ namespace kx {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(Offsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
+                return ReadMember<float>(HavokOffsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
             }
 
             float GetWidthHalf() const {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(Offsets::HkpBoxShape::WIDTH_HALF, 0.0f);
+                return ReadMember<float>(HavokOffsets::HkpBoxShape::WIDTH_HALF, 0.0f);
             }
 
             float GetDepthHalf() const {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(Offsets::HkpBoxShape::DEPTH_HALF, 0.0f);
+                return ReadMember<float>(HavokOffsets::HkpBoxShape::DEPTH_HALF, 0.0f);
             }
 
             float GetCollisionRadius() const {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(Offsets::HkpBoxShape::COLLISION_RADIUS, 0.0f);
+                return ReadMember<float>(HavokOffsets::HkpBoxShape::COLLISION_RADIUS, 0.0f);
             }
 
             glm::vec3 GetHalfExtents() const {
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(Offsets::HkpBoxShape::HALF_EXTENTS, { 0.0f, 0.0f, 0.0f });
+                return ReadMember<glm::vec3>(HavokOffsets::HkpBoxShape::HALF_EXTENTS, { 0.0f, 0.0f, 0.0f });
             }
 
             // Get full dimensions (half-extents * 2)
@@ -78,7 +79,7 @@ namespace kx {
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(Offsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
+                return ReadMember<glm::vec3>(HavokOffsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
             }
         };
 

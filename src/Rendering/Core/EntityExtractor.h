@@ -74,33 +74,29 @@ namespace kx {
         static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
         
         /**
-         * @brief Extract physics cylinder shape dimensions from gadget
+         * @brief Extract physics shape dimensions from gadget
          * @param entity The entity to populate with dimensions
          * @param gadget The gadget to extract dimensions from
+         * @note Uses unified type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
          */
-        static void ExtractCylinderShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget);
+        static void ExtractShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget);
         
         /**
-         * @brief Extract physics box shape dimensions from AgKeyFramed (for attack targets)
+         * @brief Extract physics shape dimensions from AgKeyFramed (for attack targets)
          * @param entity The entity to populate with dimensions
          * @param agKeyframed The AgKeyFramed to extract dimensions from
+         * @note Uses unified type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
          */
         static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::AgKeyFramed& agKeyframed);
         
     private:
         /**
-         * @brief Internal helper to extract cylinder shape dimensions from CoKeyFramed
+         * @brief Internal helper to extract shape dimensions from CoKeyFramed
          * @param entity The entity to populate with dimensions
          * @param coKeyframed The CoKeyFramed to extract dimensions from
+         * @note Uses unified type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
          */
-        static void ExtractCylinderShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
-        
-        /**
-         * @brief Internal helper to extract box shape dimensions from CoKeyFramed
-         * @param entity The entity to populate with dimensions
-         * @param coKeyframed The CoKeyFramed to extract dimensions from
-         */
-        static void ExtractBoxShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
+        static void ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
         
         /**
          * @brief Internal helper to extract dimensions from HkpBoxShape

@@ -5,6 +5,7 @@
 #include <vec3.hpp>
 #include <vec2.hpp>
 #include "../../Game/GameEnums.h"
+#include "../../Game/HavokEnums.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "PlayerRenderData.h"
 #include "ESPEntityTypes.h"
@@ -44,10 +45,12 @@ struct RenderableEntity {
     float physicsDepth = 0.0f;       // Full depth (Y-axis) - derived from height  
     float physicsHeight = 0.0f;      // Full height (Z-axis) - accurate from physics
     bool hasPhysicsDimensions = false; // True if physics dimensions are available
+    Havok::HkcdShapeType shapeType = Havok::HkcdShapeType::INVALID; // Physics shape type (for debug display)
 
     RenderableEntity() : position(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),
-                         entityType(ESPEntityType::Gadget), agentType(Game::AgentType::Error), agentId(0) // Default, will be overwritten
+                         entityType(ESPEntityType::Gadget), agentType(Game::AgentType::Error), agentId(0), // Default, will be overwritten
+                         shapeType(Havok::HkcdShapeType::INVALID)
     {
     }
 };

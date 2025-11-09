@@ -27,32 +27,13 @@ namespace Offsets {
     /**
      * @brief CoCharSimpleCliWrapper intermediate object accessed via CoChar->0x88
      * Note: PHYSICS_PHANTOM_PLAYER is player-only (nullptr for NPCs). BOX_SHAPE works for all entities.
+     * Havok physics offsets are in HavokOffsets.h
      */
     struct CoCharSimpleCliWrapper {
         static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1
         static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (may lag)
-        static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x78;  // hkpSimpleShapePhantom* physics object (PLAYER ONLY)
-        static constexpr uintptr_t BOX_SHAPE = 0xE8;        // hkpBoxShape* physics box shape (works for players AND NPCs)
-    };
-
-    /**
-     * @brief hkpSimpleShapePhantom - Havok physics phantom object
-     * Contains physics-driven position data.
-     */
-    struct HkpSimpleShapePhantom {
-        static constexpr uintptr_t PHYSICS_POSITION = 0x120;  // glm::vec3 physics position
-    };
-
-    /**
-     * @brief hkpBoxShape - Havok physics box shape object
-     * Contains character collision box dimensions
-     */
-    struct HkpBoxShape {
-        static constexpr uintptr_t COLLISION_RADIUS = 0x20;  // float base collision radius
-        static constexpr uintptr_t HALF_EXTENTS = 0x30;      // hkVector4: half-extents (width/2, depth/2, height/2, padding)
-        static constexpr uintptr_t WIDTH_HALF = 0x30;        // float X half-extent
-        static constexpr uintptr_t DEPTH_HALF = 0x34;        // float Y half-extent
-        static constexpr uintptr_t HEIGHT_HALF = 0x38;       // float Z half-extent
+        static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x78;  // hkpSimpleShapePhantom* physics object (PLAYER ONLY) - see HavokOffsets.h
+        static constexpr uintptr_t BOX_SHAPE = 0xE8;        // hkpBoxShape* physics box shape (works for players AND NPCs) - see HavokOffsets.h
     };
 
     /**
@@ -60,25 +41,7 @@ namespace Offsets {
      */
     struct CoKeyframed {
         static constexpr uintptr_t POSITION = 0x0030;  // glm::vec3 position
-        static constexpr uintptr_t RIGID_BODY = 0x0060; // hkpRigidBody* physics rigid body (gadgets only)
-    };
-
-    /**
-     * @brief hkpRigidBody - Havok physics rigid body object
-     * Contains physics simulation data and shape reference for dynamic objects (gadgets)
-     */
-    struct HkpRigidBody {
-        static constexpr uintptr_t SHAPE = 0x0020;  // hkpShape* pointer to collision shape (e.g., hkpCylinderShape)
-    };
-
-    /**
-     * @brief hkpCylinderShape - Havok physics cylinder collision shape
-     * NOTE: Not all gadgets use cylinder shapes - some use mesh shapes or have no physics shape.
-     * The radius values are physics-capsule radii (~0.05 game units), NOT visual dimensions.
-     * Height data is accurate but requires conversion from game units to Mumble meters (÷1.23).
-     */
-    struct HkpCylinderShape {
-        static constexpr uintptr_t HEIGHT_CM = 0x0038;   // int32_t height in centimeters (evidence: 229=2.29m, 500=5m)
+        static constexpr uintptr_t RIGID_BODY = 0x0060; // hkpRigidBody* physics rigid body (gadgets only) - see HavokOffsets.h
     };
 
     // ============================================================================

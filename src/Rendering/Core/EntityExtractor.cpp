@@ -81,7 +81,7 @@ namespace PhysicsValidation {
             ExtractGear(outPlayer, inventory);
         }
         
-        // --- Physics Box Shape Dimensions ---
+        // --- Physics Shape Dimensions ---
         ExtractBoxShapeDimensions(outPlayer, inCharacter);
 
         return true;
@@ -118,7 +118,7 @@ namespace PhysicsValidation {
         outNpc.attitude = inCharacter.GetAttitude();
         outNpc.rank = inCharacter.GetRank();
         
-        // --- Physics Box Shape Dimensions ---
+        // --- Physics Shape Dimensions ---
         ExtractBoxShapeDimensions(outNpc, inCharacter);
 
         return true;
@@ -153,8 +153,8 @@ namespace PhysicsValidation {
             outGadget.resourceType = inGadget.GetResourceNodeType();
         }
         
-        // --- Physics Cylinder Shape Dimensions ---
-        ExtractCylinderShapeDimensions(outGadget, inGadget);
+        // --- Physics Shape Dimensions ---
+        ExtractShapeDimensions(outGadget, inGadget);
 
         return true;
     }
@@ -189,7 +189,7 @@ namespace PhysicsValidation {
         outAttackTarget.maxHealth = 0.0f;
         outAttackTarget.currentBarrier = 0.0f;
 
-        // --- Physics Box Shape Dimensions ---
+        // --- Physics Shape Dimensions ---
         ExtractBoxShapeDimensions(outAttackTarget, agKeyframed);
 
         return true;
@@ -303,7 +303,7 @@ void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const 
     ExtractBoxShapeDimensionsFromHkpBoxShape(entity, boxShape);
 }
 
-void EntityExtractor::ExtractCylinderShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget) {
+void EntityExtractor::ExtractShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget) {
     // Navigate: GdCliGadget -> AgKeyFramed -> CoKeyFramed
     ReClass::AgKeyFramed agent = gadget.GetAgKeyFramed();
     if (!agent) return;
@@ -311,7 +311,7 @@ void EntityExtractor::ExtractCylinderShapeDimensions(RenderableEntity& entity, c
     ReClass::CoKeyFramed coKeyframed = agent.GetCoKeyFramed();
     if (!coKeyframed) return;
     
-    ExtractCylinderShapeDimensionsFromCoKeyframed(entity, coKeyframed);
+    ExtractShapeDimensionsFromCoKeyframed(entity, coKeyframed);
 }
 
 void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::AgKeyFramed& agKeyframed) {
@@ -319,50 +319,33 @@ void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const 
     ReClass::CoKeyFramed coKeyframed = agKeyframed.GetCoKeyFramed();
     if (!coKeyframed) return;
     
-    ExtractBoxShapeDimensionsFromCoKeyframed(entity, coKeyframed);
+    ExtractShapeDimensionsFromCoKeyframed(entity, coKeyframed);
 }
 
-void EntityExtractor::ExtractCylinderShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed) {
-    // Navigate: CoKeyFramed -> HkpRigidBody -> HkpCylinderShape
+void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed) {
+    // Navigate: CoKeyFramed -> HkpRigidBody
     ReClass::HkpRigidBody rigidBody = coKeyframed.GetRigidBody();
     if (!rigidBody) return;
     
-    ReClass::HkpCylinderShape cylinderShape = rigidBody.GetCylinderShape();
-    if (!cylinderShape) return;
+    // Extract shape type for debug display
+    entity.shapeType = rigidBody.GetShapeType();
     
-    // Read height from integer offset at 0x38 (centimeters)
-    // This is the most reliable offset - stores height in centimeters as int32_t
-    // Evidence: 229 = 2.29m (catapult), 500 = 5m (control point)
-    int32_t heightCm = cylinderShape.GetHeightCentimeters();
-    
-    // Validate integer height range in centimeters
-    if (heightCm < PhysicsValidation::MIN_HEIGHT_CM || 
-        heightCm > PhysicsValidation::MAX_HEIGHT_CM) {
-        return; // Invalid or out of range - use fallback dimensions
+    // Use type-safe height extraction (supports CYLINDER, BOX, and CAPSULE shapes)
+    float heightMeters = rigidBody.TryGetHeightMeters();
+    if (heightMeters < 0.0f) {
+        return; // Unsupported shape type or invalid data - use fallback dimensions
     }
     
     // === HEIGHT: Accurate per-entity dimension from physics ===
-    // Convert from centimeters to meters
-    entity.physicsHeight = heightCm / 100.0f;
+    entity.physicsHeight = heightMeters;
     
     // === WIDTH/DEPTH: Derived from height for ESP visualization ===
-    // Note: HkpCylinderShape radius values are too small for ESP visualization (~0.05 game units).
+    // Note: Shape-specific radius/width values are too small for ESP visualization.
     // For ESP boxes, we derive proportional dimensions (35% width-to-height).
     entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
     entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
     
     entity.hasPhysicsDimensions = true;
-}
-
-void EntityExtractor::ExtractBoxShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed) {
-    // Navigate: CoKeyFramed -> HkpRigidBody -> HkpBoxShape
-    ReClass::HkpRigidBody rigidBody = coKeyframed.GetRigidBody();
-    if (!rigidBody) return;
-    
-    ReClass::HkpBoxShape boxShape = rigidBody.GetBoxShape();
-    if (!boxShape) return;
-    
-    ExtractBoxShapeDimensionsFromHkpBoxShape(entity, boxShape);
 }
 
 void EntityExtractor::ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity& entity, const ReClass::HkpBoxShape& boxShape) {
