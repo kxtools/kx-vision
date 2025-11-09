@@ -55,6 +55,11 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildNpcDetails(const Render
         std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(npc->address));
         details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
+        /*if (npc->shapeType != Havok::HkcdShapeType::INVALID) {
+            std::string shapeStr = "Shape: " + ESPFormatting::GetShapeTypeName(npc->shapeType);
+            details.push_back({ shapeStr, ESPColors::DEFAULT_TEXT });
+        }*/
+
         /*details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(npc->agentType), ESPColors::DEFAULT_TEXT });
         details.push_back({ "AgentID: " + std::to_string(npc->agentId), ESPColors::DEFAULT_TEXT });*/
     }
@@ -101,10 +106,10 @@ std::vector<ColoredDetail> ESPEntityDetailsBuilder::BuildGadgetDetails(const Ren
         std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(gadget->address));
         details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
 
-        if (gadget->shapeType != Havok::HkcdShapeType::INVALID) {
+        /*if (gadget->shapeType != Havok::HkcdShapeType::INVALID) {
             std::string shapeStr = "Shape: " + ESPFormatting::GetShapeTypeName(gadget->shapeType);
             details.push_back({ shapeStr, ESPColors::DEFAULT_TEXT });
-        }
+        }*/
 
         /*details.push_back({ "AgentType: " + ESPFormatting::GetAgentTypeName(gadget->agentType), ESPColors::DEFAULT_TEXT });
         details.push_back({ "AgentID: " + std::to_string(gadget->agentId), ESPColors::DEFAULT_TEXT });*/

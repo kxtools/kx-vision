@@ -371,11 +371,13 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
 void EntityExtractor::ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity& entity, const ReClass::HkpBoxShape& boxShape) {
     // Validate shape type: characters should only have BOX shapes
     Havok::HkcdShapeType shapeType = boxShape.GetShapeType();
+    
+    // Set shape type first for debugging (so we can see what shape was rejected)
+    entity.shapeType = shapeType;
+    
     if (shapeType != Havok::HkcdShapeType::BOX) {
         return; // Not a BOX shape or invalid - use fallback dimensions
     }
-    
-    entity.shapeType = shapeType;
     
     // Read half-extents from Havok physics box shape (in game coordinate space)
     float heightHalf = boxShape.GetHeightHalf();
