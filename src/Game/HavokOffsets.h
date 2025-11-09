@@ -89,6 +89,19 @@ namespace HavokOffsets {
     };
 
     /**
+     * @brief hkpListShape - A container for a list of other Havok shapes
+     * Identified by SHAPE_TYPE_PRIMITIVE == 0x08.
+     * Its dimensions are derived from an AABB that encloses all child shapes.
+     */
+    struct HkpListShape {
+        static constexpr uintptr_t BOUNDING_BOX_HALF_EXTENTS = 0x50;  // hkVector4: half-extents (width/2, depth/2, height/2, padding)
+        static constexpr uintptr_t WIDTH_HALF = 0x50;                 // float: X component (width/2)
+        static constexpr uintptr_t DEPTH_HALF = 0x54;                 // float: Y component (depth/2)
+        static constexpr uintptr_t HEIGHT_HALF = 0x58;                // float: Z component (height/2 - primary height)
+        static constexpr uintptr_t HEIGHT_HALF_BACKUP = 0x68;         // float: Backup height value if 0x58 fails
+    };
+
+    /**
      * @brief hkpSimpleShapePhantom - Havok physics phantom object
      * Contains physics-driven position data. Not a collision shape.
      */

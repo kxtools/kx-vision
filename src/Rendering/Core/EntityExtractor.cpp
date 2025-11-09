@@ -288,6 +288,8 @@ void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass:
 
 void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
     // Navigate: ChCliCharacter -> AgChar -> CoChar -> CoCharSimpleCliWrapper -> HkpBoxShape
+    // Note: Characters only support BOX shapes. They use a different navigation path than gadgets/attack targets
+    // and don't have access to HkpRigidBody, so they can only extract dimensions from HkpBoxShape directly.
     ReClass::AgChar agent = character.GetAgent();
     if (!agent) return;
     
@@ -324,6 +326,8 @@ void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const 
 
 void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed) {
     // Navigate: CoKeyFramed -> HkpRigidBody
+    // This path is used for gadgets and attack targets, which support CYLINDER, BOX, and MOPP shapes.
+    // Characters use a different path (ExtractBoxShapeDimensions) and only support BOX shapes.
     ReClass::HkpRigidBody rigidBody = coKeyframed.GetRigidBody();
     if (!rigidBody) return;
     
@@ -331,6 +335,10 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
     entity.shapeType = rigidBody.GetShapeType();
     
     // Use type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
+    // All dimensions are returned in meters:
+    // - BOX: Converts from game coordinates to meters (÷1.23)
+    // - CYLINDER: Already in meters (no conversion needed)
+    // - MOPP: Converts from game coordinates to meters (÷1.23)
     glm::vec3 dimensions = rigidBody.TryGetDimensions();
     if (dimensions.x == 0.0f && dimensions.y == 0.0f && dimensions.z == 0.0f) {
         return; // Unsupported shape type or invalid data - use fallback dimensions

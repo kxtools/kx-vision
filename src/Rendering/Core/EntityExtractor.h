@@ -70,6 +70,9 @@ namespace kx {
          * @brief Extract physics box shape dimensions from character
          * @param entity The entity to populate with dimensions
          * @param character The character to extract dimensions from
+         * @note Characters only support BOX shapes. They use a different navigation path (CoCharSimpleCliWrapper)
+         *       and don't have access to HkpRigidBody, so they can only extract dimensions from HkpBoxShape directly.
+         *       Gadgets and attack targets support CYLINDER, BOX, and MOPP shapes via HkpRigidBody.
          */
         static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
         
@@ -95,6 +98,8 @@ namespace kx {
          * @param entity The entity to populate with dimensions
          * @param coKeyframed The CoKeyFramed to extract dimensions from
          * @note Uses unified type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
+         *       This path is used for gadgets and attack targets. Characters use ExtractBoxShapeDimensions instead.
+         *       All dimensions are returned in meters with proper coordinate conversion applied.
          */
         static void ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
         

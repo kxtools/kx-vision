@@ -2,6 +2,7 @@
 
 #include "../../Utils/DebugLogger.h"
 #include "../../Utils/SafeForeignClass.h"
+#include "../../Rendering/Utils/LayoutConstants.h"
 #include "../HavokEnums.h"
 #include "../HavokOffsets.h"
 #include <glm.hpp>
@@ -165,7 +166,7 @@ namespace kx {
                     return -1.0f;
                 }
                 
-                float fullHeightMeters = (heightHalf * 2.0f) / 1.23f;
+                float fullHeightMeters = (heightHalf * 2.0f) / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
                 
                 if (fullHeightMeters < 0.1f || fullHeightMeters > 100.0f) {
                     return -1.0f;
@@ -228,7 +229,7 @@ namespace kx {
                 }
                 
                 glm::vec3 fullExtents = halfExtents * 2.0f;
-                fullExtents = fullExtents / 1.23f;
+                fullExtents = fullExtents / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
                 
                 if (fullExtents.x < 0.1f || fullExtents.x > 100.0f ||
                     fullExtents.y < 0.1f || fullExtents.y > 100.0f ||
@@ -296,6 +297,9 @@ namespace kx {
                 // Convert half-extents to full extents
                 glm::vec3 fullExtents = halfExtents * 2.0f;
                 
+                // Convert from game coordinates to meters (same as ReadBoxHalfExtents)
+                fullExtents = fullExtents / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
+                
                 if (fullExtents.x < 0.1f || fullExtents.x > 200.0f ||
                     fullExtents.y < 0.1f || fullExtents.y > 200.0f ||
                     fullExtents.z < 0.1f || fullExtents.z > 200.0f) {
@@ -308,16 +312,69 @@ namespace kx {
                 return glm::vec3(fullExtents.x, fullExtents.z, fullExtents.y);
             }
 
+            // Helper: Read list shape dimensions from its cached bounding box half-extents
+            glm::vec3 ReadListShapeDimensions(void* shapePtr) const {
+                // Read width and depth from vec3 at 0x50
+                float widthHalf = 0.0f;
+                float depthHalf = 0.0f;
+                if (!kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::WIDTH_HALF, widthHalf) ||
+                    !kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::DEPTH_HALF, depthHalf)) {
+                    return glm::vec3(0.0f);
+                }
+                
+                // Read primary height from 0x58
+                float heightHalf = 0.0f;
+                bool heightValid = kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::HEIGHT_HALF, heightHalf);
+                //bool heightValid = false;
+                
+                // If primary height is invalid, try backup height from 0x68
+                if (!heightValid || !std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > 10000.0f) {
+                    if (!kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::HEIGHT_HALF_BACKUP, heightHalf)) {
+                        return glm::vec3(0.0f);
+                    }
+                }
+                
+                // Validate all components
+                if (!std::isfinite(widthHalf) || !std::isfinite(depthHalf) || !std::isfinite(heightHalf)) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (widthHalf <= 0.0f || depthHalf <= 0.0f || heightHalf <= 0.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                if (widthHalf > 10000.0f || depthHalf > 10000.0f || heightHalf > 10000.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                glm::vec3 halfExtents(widthHalf, depthHalf, heightHalf);
+                
+                // Convert to full dimensions and scale to meters
+                glm::vec3 fullExtents = halfExtents * 2.0f;
+                fullExtents = fullExtents / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
+                
+                // Final validation on scaled values
+                if (fullExtents.x < 0.1f || fullExtents.x > 100.0f ||
+                    fullExtents.y < 0.1f || fullExtents.y > 100.0f ||
+                    fullExtents.z < 0.1f || fullExtents.z > 100.0f) {
+                    return glm::vec3(0.0f);
+                }
+                
+                // Map from Havok (width, depth, height) to API (width, height, depth) by swapping Y and Z
+                return glm::vec3(fullExtents.x, fullExtents.z, fullExtents.y);
+            }
+
         public:
             /**
              * @brief Type-safe dimension extraction from rigid body shape
              * @return Full dimensions as glm::vec3 (width, height, depth) in meters, or glm::vec3(0.0f) if shape type is unsupported or invalid
              * 
-             * Supports CYLINDER, BOX, and MOPP shapes.
+             * Supports CYLINDER, BOX, MOPP, and LIST shapes.
              * - CYLINDER: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
              *   Only height information is available from the shape; width/depth are derived using WIDTH_TO_HEIGHT_RATIO.
              * - BOX: Extracts dimensions directly from the box shape's half-extents.
              * - MOPP: Extracts dimensions from the child shape's cached AABB.
+             * - LIST: Extracts dimensions from the list shape's cached bounding box half-extents. Uses backup height at 0x68 if primary height at 0x58 is invalid.
              * All other shape types return glm::vec3(0.0f) to indicate unsupported.
              */
             glm::vec3 TryGetDimensions() const {
@@ -354,40 +411,14 @@ namespace kx {
                     case Havok::HkcdShapeType::MOPP:
                         return ReadMoppDimensions(shapePtr);
                     
+                    case Havok::HkcdShapeType::LIST:
+                        return ReadListShapeDimensions(shapePtr);
+                    
                     default:
                         return glm::vec3(0.0f);
                 }
             }
 
-            /**
-             * @brief Type-safe height extraction from rigid body shape
-             * @return Height in meters, or -1.0f if shape type is unsupported or invalid
-             * 
-             * @deprecated Use TryGetDimensions() for full dimension extraction. This method is kept for backward compatibility.
-             * 
-             * Supports CYLINDER, BOX, and MOPP shapes.
-             * All other shape types return -1.0f to indicate unsupported.
-             */
-            [[deprecated("Use TryGetDimensions() for full dimension extraction")]]
-            float TryGetHeightMeters() const {
-                glm::vec3 dimensions = TryGetDimensions();
-                if (dimensions.x == 0.0f && dimensions.y == 0.0f && dimensions.z == 0.0f) {
-                    return -1.0f;
-                }
-                return dimensions.y;
-            }
-
-            // Deprecated: Unsafe shape casting methods - use TryGetDimensions() instead
-            // These methods assume the shape is the expected type without verification
-            [[deprecated("Use TryGetDimensions() for type-safe dimension extraction")]]
-            HkpCylinderShape GetCylinderShape() const {
-                return ReadPointer<HkpCylinderShape>(HavokOffsets::HkpRigidBody::SHAPE);
-            }
-
-            [[deprecated("Use TryGetDimensions() for type-safe dimension extraction")]]
-            HkpBoxShape GetBoxShape() const {
-                return ReadPointer<HkpBoxShape>(HavokOffsets::HkpRigidBody::SHAPE);
-            }
         };
 
     } // namespace ReClass
