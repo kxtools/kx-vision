@@ -87,7 +87,7 @@ namespace HavokOffsets {
      * The AABB is stored as an hkVector4 starting at 0xC0.
      */
     struct HkpExtendedMeshShape {
-        static constexpr uintptr_t AABB_HALF_EXTENTS = 0xC0;  // hkVector4: Cached AABB half-extents (width/2, height/2, depth/2, padding)
+        static constexpr uintptr_t AABB_HALF_EXTENTS = 0xC0;  // hkVector4: Cached AABB half-extents (width/2, depth/2, height/2, padding)
         static constexpr uintptr_t AABB_WIDTH_HALF = 0xC0;    // float: X component (width/2)
         static constexpr uintptr_t AABB_DEPTH_HALF = 0xC4;   // float: Y component (depth/2 in Havok system)
         static constexpr uintptr_t AABB_HEIGHT_HALF = 0xC8;   // float: Z component (height/2 - confirmed this is height)
@@ -99,7 +99,7 @@ namespace HavokOffsets {
      * Its dimensions are derived from an AABB that encloses all child shapes.
      */
     struct HkpListShape {
-        static constexpr uintptr_t BOUNDING_BOX_HALF_EXTENTS = 0x50;  // hkVector4: half-extents (width/2, depth/2, height/2, padding)
+        static constexpr uintptr_t BOUNDING_BOX_HALF_EXTENTS = 0x50;  // hkVector4: Bounding box half-extents (X=width/2, Y=depth/2, Z=height/2, W=padding)
         static constexpr uintptr_t WIDTH_HALF = 0x50;                 // float: X component (width/2)
         static constexpr uintptr_t DEPTH_HALF = 0x54;                 // float: Y component (depth/2)
         static constexpr uintptr_t HEIGHT_HALF = 0x58;                // float: Z component (height/2 - primary height)

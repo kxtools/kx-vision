@@ -15,6 +15,17 @@ namespace kx {
         class HkpMoppBvTreeShape;
         class HkpExtendedMeshShape;
 
+        // Havok physics dimension validation constants
+        namespace HavokValidation {
+            // Raw half-extent validation (before conversion to meters)
+            constexpr float MIN_HALF_EXTENT_GAME_UNITS = 0.01f;     // Minimum half-extent in game units
+            constexpr float MAX_HALF_EXTENT_GAME_UNITS = 10000.0f;  // Maximum half-extent in game units
+            
+            // Final dimension validation (after conversion to meters)
+            constexpr float MIN_DIMENSION_METERS = 0.1f;   // 10cm - minimum reasonable dimension
+            constexpr float MAX_DIMENSION_METERS = 100.0f; // 100m - maximum dimension (large bosses/structures)
+        }
+
         /**
          * @brief Havok physics box shape object - contains collision box dimensions
          */
@@ -106,15 +117,6 @@ namespace kx {
         class HkpCylinderShape : public SafeForeignClass {
         public:
             HkpCylinderShape(void* ptr) : SafeForeignClass(ptr) {}
-
-            // Deprecated: Use HkpRigidBody::TryGetDimensions() for type-safe dimension extraction
-            [[deprecated("Use HkpRigidBody::TryGetDimensions() for type-safe dimension extraction")]]
-            float GetHeightHalfMeters() const {
-                if (!data()) {
-                    return 0.0f;
-                }
-                return ReadMember<float>(HavokOffsets::HkpCylinderShape::HEIGHT_HALF_FLOAT, 0.0f);
-            }
         };
 
         /**
@@ -246,13 +248,13 @@ namespace kx {
                     return -1.0f;
                 }
                 
-                if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > 10000.0f) {
+                if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS) {
                     return -1.0f;
                 }
                 
                 float fullHeightMeters = (heightHalf * 2.0f) / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
                 
-                if (fullHeightMeters < 0.1f || fullHeightMeters > 100.0f) {
+                if (fullHeightMeters < HavokValidation::MIN_DIMENSION_METERS || fullHeightMeters > HavokValidation::MAX_DIMENSION_METERS) {
                     return -1.0f;
                 }
                 
@@ -266,13 +268,13 @@ namespace kx {
                     return -1.0f;
                 }
                 
-                if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > 100.0f) {
+                if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > HavokValidation::MAX_DIMENSION_METERS / 2.0f) {
                     return -1.0f;
                 }
                 
                 float fullHeightMeters = heightHalf * 2.0f;
                 
-                if (fullHeightMeters < 0.1f || fullHeightMeters > 200.0f) {
+                if (fullHeightMeters < HavokValidation::MIN_DIMENSION_METERS || fullHeightMeters > HavokValidation::MAX_DIMENSION_METERS) {
                     return -1.0f;
                 }
                 
@@ -308,16 +310,18 @@ namespace kx {
                     return glm::vec3(0.0f);
                 }
                 
-                if (halfExtents.x > 10000.0f || halfExtents.y > 10000.0f || halfExtents.z > 10000.0f) {
+                if (halfExtents.x > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS || 
+                    halfExtents.y > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS || 
+                    halfExtents.z > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS) {
                     return glm::vec3(0.0f);
                 }
                 
                 glm::vec3 fullExtents = halfExtents * 2.0f;
                 fullExtents = fullExtents / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
                 
-                if (fullExtents.x < 0.1f || fullExtents.x > 100.0f ||
-                    fullExtents.y < 0.1f || fullExtents.y > 100.0f ||
-                    fullExtents.z < 0.1f || fullExtents.z > 100.0f) {
+                if (fullExtents.x < HavokValidation::MIN_DIMENSION_METERS || fullExtents.x > HavokValidation::MAX_DIMENSION_METERS ||
+                    fullExtents.y < HavokValidation::MIN_DIMENSION_METERS || fullExtents.y > HavokValidation::MAX_DIMENSION_METERS ||
+                    fullExtents.z < HavokValidation::MIN_DIMENSION_METERS || fullExtents.z > HavokValidation::MAX_DIMENSION_METERS) {
                     return glm::vec3(0.0f);
                 }
                 
@@ -333,13 +337,13 @@ namespace kx {
                     return glm::vec3(0.0f);
                 }
                 
-                if (!std::isfinite(halfHeight) || halfHeight <= 0.0f || halfHeight > 100.0f) {
+                if (!std::isfinite(halfHeight) || halfHeight <= 0.0f || halfHeight > HavokValidation::MAX_DIMENSION_METERS / 2.0f) {
                     return glm::vec3(0.0f);
                 }
                 
                 float fullHeight = halfHeight * 2.0f;
                 
-                if (fullHeight < 0.1f || fullHeight > 200.0f) {
+                if (fullHeight < HavokValidation::MIN_DIMENSION_METERS || fullHeight > HavokValidation::MAX_DIMENSION_METERS) {
                     return glm::vec3(0.0f);
                 }
                 
@@ -374,7 +378,9 @@ namespace kx {
                     return glm::vec3(0.0f);
                 }
                 
-                if (halfExtents.x > 100.0f || halfExtents.y > 100.0f || halfExtents.z > 100.0f) {
+                if (halfExtents.x > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS || 
+                    halfExtents.y > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS || 
+                    halfExtents.z > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS) {
                     return glm::vec3(0.0f);
                 }
                 
@@ -384,9 +390,9 @@ namespace kx {
                 // Convert from game coordinates to meters (same as ReadBoxHalfExtents)
                 fullExtents = fullExtents / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
                 
-                if (fullExtents.x < 0.1f || fullExtents.x > 200.0f ||
-                    fullExtents.y < 0.1f || fullExtents.y > 200.0f ||
-                    fullExtents.z < 0.1f || fullExtents.z > 200.0f) {
+                if (fullExtents.x < HavokValidation::MIN_DIMENSION_METERS || fullExtents.x > HavokValidation::MAX_DIMENSION_METERS ||
+                    fullExtents.y < HavokValidation::MIN_DIMENSION_METERS || fullExtents.y > HavokValidation::MAX_DIMENSION_METERS ||
+                    fullExtents.z < HavokValidation::MIN_DIMENSION_METERS || fullExtents.z > HavokValidation::MAX_DIMENSION_METERS) {
                     return glm::vec3(0.0f);
                 }
                 
@@ -426,7 +432,9 @@ namespace kx {
                     return glm::vec3(0.0f);
                 }
                 
-                if (widthHalf > 10000.0f || depthHalf > 10000.0f || heightHalf > 10000.0f) {
+                if (widthHalf > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS || 
+                    depthHalf > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS || 
+                    heightHalf > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS) {
                     return glm::vec3(0.0f);
                 }
                 
@@ -437,9 +445,9 @@ namespace kx {
                 fullExtents = fullExtents / CoordinateTransform::GAME_TO_MUMBLE_SCALE_FACTOR;
                 
                 // Final validation on scaled values
-                if (fullExtents.x < 0.1f || fullExtents.x > 100.0f ||
-                    fullExtents.y < 0.1f || fullExtents.y > 100.0f ||
-                    fullExtents.z < 0.1f || fullExtents.z > 100.0f) {
+                if (fullExtents.x < HavokValidation::MIN_DIMENSION_METERS || fullExtents.x > HavokValidation::MAX_DIMENSION_METERS ||
+                    fullExtents.y < HavokValidation::MIN_DIMENSION_METERS || fullExtents.y > HavokValidation::MAX_DIMENSION_METERS ||
+                    fullExtents.z < HavokValidation::MIN_DIMENSION_METERS || fullExtents.z > HavokValidation::MAX_DIMENSION_METERS) {
                     return glm::vec3(0.0f);
                 }
                 

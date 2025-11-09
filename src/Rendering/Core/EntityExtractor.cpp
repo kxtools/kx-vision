@@ -2,6 +2,7 @@
 #include "../Utils/ESPConstants.h"
 #include "../Utils/ESPFormatting.h"
 #include "../../Game/GameEnums.h"
+#include "../../Game/ReClass/HavokStructs.h"
 #include "../../Utils/StringHelpers.h"
 #include <vector>
 
@@ -9,9 +10,8 @@ namespace kx {
 
 // Physics dimension extraction validation constants
 namespace PhysicsValidation {
-    // Height validation range in meters (applies to both characters and gadgets after conversion)
-    constexpr float MIN_HEIGHT_METERS = 0.1f;   // 10cm - minimum reasonable entity height
-    constexpr float MAX_HEIGHT_METERS = 100.0f;  // maximum height (allows large bosses)
+    // Use HavokValidation constants from HavokStructs.h for consistency
+    using namespace ReClass::HavokValidation;
     
     // Gadget height validation in centimeters (before conversion)
     constexpr int32_t MIN_HEIGHT_CM = 10;       // 10cm minimum
@@ -366,8 +366,8 @@ void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const 
 
 void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed) {
     // Navigate: CoKeyFramed -> HkpRigidBody
-    // This path is used for gadgets and attack targets, which support CYLINDER, BOX, and MOPP shapes.
-    // Characters use a different path (ExtractBoxShapeDimensions) and only support BOX shapes.
+    // This path is used for gadgets and attack targets (AgKeyFramed), which support CYLINDER, BOX, and MOPP shapes.
+    // Characters use different extraction functions (ExtractPlayerShapeDimensions or ExtractNpcShapeDimensions).
     ReClass::HkpRigidBody rigidBody = coKeyframed.GetRigidBody();
     if (!rigidBody) return;
     
@@ -444,8 +444,8 @@ void EntityExtractor::ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity&
     
     // Validate converted height in meters
     // This rejects corrupted data while allowing normal entities (~1.2m) and large structures (~8m+)
-    if (fullHeightMeters < PhysicsValidation::MIN_HEIGHT_METERS || 
-        fullHeightMeters > PhysicsValidation::MAX_HEIGHT_METERS) {
+    if (fullHeightMeters < PhysicsValidation::MIN_DIMENSION_METERS || 
+        fullHeightMeters > PhysicsValidation::MAX_DIMENSION_METERS) {
         return; // Out of reasonable range - use fallback dimensions
     }
     
