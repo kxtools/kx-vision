@@ -82,7 +82,7 @@ namespace PhysicsValidation {
         }
         
         // --- Physics Shape Dimensions ---
-        ExtractBoxShapeDimensions(outPlayer, inCharacter);
+        ExtractPlayerShapeDimensions(outPlayer, inCharacter);
 
         return true;
     }
@@ -119,7 +119,7 @@ namespace PhysicsValidation {
         outNpc.rank = inCharacter.GetRank();
         
         // --- Physics Shape Dimensions ---
-        ExtractBoxShapeDimensions(outNpc, inCharacter);
+        ExtractNpcShapeDimensions(outNpc, inCharacter);
 
         return true;
     }
@@ -286,10 +286,48 @@ void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass:
     }
 }
 
-void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
-    // Navigate: ChCliCharacter -> AgChar -> CoChar -> CoCharSimpleCliWrapper -> HkpBoxShape
-    // Note: Characters only support BOX shapes. They use a different navigation path than gadgets/attack targets
-    // and don't have access to HkpRigidBody, so they can only extract dimensions from HkpBoxShape directly.
+void EntityExtractor::ExtractPlayerShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
+    // Navigate: ChCliCharacter -> AgChar -> CoChar -> HkpRigidBody (PLAYER ONLY)
+    // Players use HkpRigidBody path at CoChar+0x60 which provides full shape type detection
+    // The RigidBody contains an HkpBoxShape at +0x20 (always BOX type for players)
+    ReClass::AgChar agent = character.GetAgent();
+    if (!agent) return;
+    
+    ReClass::CoChar coChar = agent.GetCoChar();
+    if (!coChar) return;
+    
+    // Player-specific: HkpRigidBody at CoChar+0x60
+    ReClass::HkpRigidBody rigidBody = coChar.GetRigidBodyPlayer();
+    if (!rigidBody) return;
+    
+    // Extract shape type for debug display and validation
+    entity.shapeType = rigidBody.GetShapeType();
+    
+    // Validate shape type: reject INVALID shapes before attempting dimension extraction
+    if (entity.shapeType == Havok::HkcdShapeType::INVALID) {
+        return; // Invalid shape type - use fallback dimensions
+    }
+    
+    // Use type-safe dimension extraction (same path as gadgets)
+    glm::vec3 dimensions = rigidBody.TryGetDimensions();
+    if (dimensions.x == 0.0f && dimensions.y == 0.0f && dimensions.z == 0.0f) {
+        return; // Unsupported shape type or invalid data - use fallback dimensions
+    }
+    
+    // Extract height (Z) from physics shape
+    entity.physicsHeight = dimensions.z;
+    
+    // For players, use humanoid proportions (WIDTH_TO_HEIGHT_RATIO) for width and depth
+    // This provides better visual representation than the collision capsule dimensions
+    entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
+    
+    entity.hasPhysicsDimensions = true;
+}
+
+void EntityExtractor::ExtractNpcShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
+    // Navigate: ChCliCharacter -> AgChar -> CoChar -> CoCharSimpleCliWrapper -> HkpBoxShape (NPC ONLY)
+    // NPCs use HkpBoxShape path at CoCharSimpleCliWrapper+0xE8 (only BOX shapes supported)
     ReClass::AgChar agent = character.GetAgent();
     if (!agent) return;
     
@@ -299,7 +337,8 @@ void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const 
     ReClass::CoCharSimpleCliWrapper wrapper = coChar.GetSimpleCliWrapper();
     if (!wrapper) return;
     
-    ReClass::HkpBoxShape boxShape = wrapper.GetBoxShape();
+    // NPC-specific: HkpBoxShape at CoCharSimpleCliWrapper+0xE8
+    ReClass::HkpBoxShape boxShape = wrapper.GetBoxShapeNpc();
     if (!boxShape) return;
     
     ExtractBoxShapeDimensionsFromHkpBoxShape(entity, boxShape);
@@ -350,17 +389,26 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
     }
     
     // === DIMENSIONS: Accurate per-entity dimensions from physics ===
-    // Extract width (X), height (Y), and depth (Z) directly from shape dimensions
-    entity.physicsHeight = dimensions.y;
+    // Coordinate mapping varies by shape type:
+    // - BOX: Returns raw (width, depth, height) - Z is height
+    // - CYLINDER: Returns (0, height, 0) - Y is height
+    // - MOPP/LIST: Returns swapped (width, height, depth) - Y is height
     
-    // For cylinders, derive width and depth using WIDTH_TO_HEIGHT_RATIO (same as boxes)
-    // Note: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
-    // Cylinders only provide height information, so we use proportional dimensions for ESP visualization.
-    if (entity.shapeType == Havok::HkcdShapeType::CYLINDER) {
+    if (entity.shapeType == Havok::HkcdShapeType::BOX) {
+        // BOX shape: (X, Y, Z) = (width, depth, height) - no coordinate swap
+        entity.physicsHeight = dimensions.z;  // Z is height for BOX
+        entity.physicsWidth = dimensions.x;
+        entity.physicsDepth = dimensions.y;
+    } else if (entity.shapeType == Havok::HkcdShapeType::CYLINDER) {
+        // CYLINDER shape: (0, height, 0) - Y is height
+        entity.physicsHeight = dimensions.y;
+        // Derive width and depth using WIDTH_TO_HEIGHT_RATIO
+        // Note: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
         entity.physicsWidth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
         entity.physicsDepth = entity.physicsHeight * PhysicsValidation::WIDTH_TO_HEIGHT_RATIO;
     } else {
-        // For other shapes (BOX, MOPP), use dimensions directly from shape
+        // MOPP/LIST shapes: (X, Y, Z) = (width, height, depth) - already swapped
+        entity.physicsHeight = dimensions.y;  // Y is height for MOPP/LIST
         entity.physicsWidth = dimensions.x;
         entity.physicsDepth = dimensions.z;
     }

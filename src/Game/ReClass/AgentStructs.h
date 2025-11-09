@@ -52,8 +52,8 @@ namespace kx {
                 return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharSimpleCliWrapper::PHYSICS_PHANTOM_PLAYER);
             }
 
-            HkpBoxShape GetBoxShape() const {
-                return ReadPointer<HkpBoxShape>(Offsets::CoCharSimpleCliWrapper::BOX_SHAPE);
+            HkpBoxShape GetBoxShapeNpc() const {
+                return ReadPointer<HkpBoxShape>(Offsets::CoCharSimpleCliWrapper::BOX_SHAPE_NPC);
             }
         };
 
@@ -74,6 +74,10 @@ namespace kx {
                 glm::vec3 result = ReadMember<glm::vec3>(Offsets::CoChar::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
                 
                 return result;
+            }
+
+            HkpRigidBody GetRigidBodyPlayer() const {
+                return ReadPointer<HkpRigidBody>(Offsets::CoChar::RIGID_BODY_PLAYER);
             }
 
             CoCharSimpleCliWrapper GetSimpleCliWrapper() const {

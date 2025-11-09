@@ -67,14 +67,20 @@ namespace kx {
         static void ExtractHealthData(RenderableEntity& entity, const ReClass::ChCliHealth& health);
         
         /**
-         * @brief Extract physics box shape dimensions from character
+         * @brief Extract physics shape dimensions from player character
          * @param entity The entity to populate with dimensions
          * @param character The character to extract dimensions from
-         * @note Characters only support BOX shapes. They use a different navigation path (CoCharSimpleCliWrapper)
-         *       and don't have access to HkpRigidBody, so they can only extract dimensions from HkpBoxShape directly.
-         *       Gadgets and attack targets support CYLINDER, BOX, and MOPP shapes via HkpRigidBody.
+         * @note Players use HkpRigidBody path (CoChar+0x60) which provides full shape type detection
          */
-        static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
+        static void ExtractPlayerShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
+        
+        /**
+         * @brief Extract physics box shape dimensions from NPC character
+         * @param entity The entity to populate with dimensions
+         * @param character The character to extract dimensions from
+         * @note NPCs use HkpBoxShape path (CoCharSimpleCliWrapper+0xE8) which only supports BOX shapes
+         */
+        static void ExtractNpcShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
         
         /**
          * @brief Extract physics shape dimensions from gadget

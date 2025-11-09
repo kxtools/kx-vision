@@ -20,20 +20,21 @@ namespace Offsets {
      */
     struct CoChar {
         static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary)
+        static constexpr uintptr_t RIGID_BODY_PLAYER = 0x60;       // hkpRigidBody* physics rigid body (PLAYER ONLY - NPCs are nullptr) - see HavokOffsets.h
         static constexpr uintptr_t SIMPLE_CLI_WRAPPER = 0x88;   // CoCharSimpleCliWrapper* - contains additional position data and physics info
         static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x100; // HkpSimpleShapePhantom* direct physics phantom pointer (PLAYER ONLY - NPCs are nullptr)
     };
 
     /**
      * @brief CoCharSimpleCliWrapper intermediate object accessed via CoChar->0x88
-     * Note: PHYSICS_PHANTOM_PLAYER is player-only (nullptr for NPCs). BOX_SHAPE works for all entities.
+     * Note: PHYSICS_PHANTOM_PLAYER and BOX_SHAPE_NPC are entity-type specific.
      * Havok physics offsets are in HavokOffsets.h
      */
     struct CoCharSimpleCliWrapper {
         static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1
         static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (may lag)
         static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x78;  // hkpSimpleShapePhantom* physics object (PLAYER ONLY) - see HavokOffsets.h
-        static constexpr uintptr_t BOX_SHAPE = 0xE8;        // hkpBoxShape* physics box shape (works for players AND NPCs) - see HavokOffsets.h
+        static constexpr uintptr_t BOX_SHAPE_NPC = 0xE8;        // hkpBoxShape* physics box shape (NPC ONLY - Players are nullptr) - see HavokOffsets.h
     };
 
     /**
