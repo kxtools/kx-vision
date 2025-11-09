@@ -4,6 +4,7 @@
 #include "../../Utils/SafeForeignClass.h"
 #include "../offsets.h"
 #include "../HavokOffsets.h"
+#include "../HavokEnums.h"
 #include "../GameEnums.h"
 #include <glm.hpp>
 
@@ -63,6 +64,25 @@ namespace kx {
             glm::vec3 GetFullDimensions() const {
                 glm::vec3 halfExtents = GetHalfExtents();
                 return halfExtents * 2.0f;
+            }
+
+            /**
+             * @brief Get the primitive shape type identifier from the shape object
+             * @return Primitive shape type enum value, or INVALID if read fails
+             * @note This reads the single byte at shape + 0x10, which is the actual primitive type
+             */
+            Havok::HkcdShapeType GetShapeType() const {
+                if (!data()) {
+                    return Havok::HkcdShapeType::INVALID;
+                }
+
+                // Read primitive shape type from shape + 0x10 (single byte)
+                uint8_t typeValue = 0xFF;
+                if (!kx::Debug::SafeRead<uint8_t>(data(), HavokOffsets::HkpShapeBase::SHAPE_TYPE_PRIMITIVE, typeValue)) {
+                    return Havok::HkcdShapeType::INVALID;
+                }
+
+                return static_cast<Havok::HkcdShapeType>(typeValue);
             }
         };
 

@@ -331,10 +331,15 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
     ReClass::HkpRigidBody rigidBody = coKeyframed.GetRigidBody();
     if (!rigidBody) return;
     
-    // Extract shape type for debug display
+    // Extract shape type for debug display and validation
     entity.shapeType = rigidBody.GetShapeType();
     
-    // Use type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
+    // Validate shape type: reject INVALID shapes before attempting dimension extraction
+    if (entity.shapeType == Havok::HkcdShapeType::INVALID) {
+        return; // Invalid shape type - use fallback dimensions
+    }
+    
+    // Use type-safe dimension extraction (supports CYLINDER, BOX, MOPP, and LIST shapes)
     // All dimensions are returned in meters:
     // - BOX: Converts from game coordinates to meters (÷1.23)
     // - CYLINDER: Already in meters (no conversion needed)
@@ -364,6 +369,14 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
 }
 
 void EntityExtractor::ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity& entity, const ReClass::HkpBoxShape& boxShape) {
+    // Validate shape type: characters should only have BOX shapes
+    Havok::HkcdShapeType shapeType = boxShape.GetShapeType();
+    if (shapeType != Havok::HkcdShapeType::BOX) {
+        return; // Not a BOX shape or invalid - use fallback dimensions
+    }
+    
+    entity.shapeType = shapeType;
+    
     // Read half-extents from Havok physics box shape (in game coordinate space)
     float heightHalf = boxShape.GetHeightHalf();
     
