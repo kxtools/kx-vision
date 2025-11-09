@@ -60,7 +60,7 @@ namespace kx {
             // NOW we're on the game thread with valid TLS context!
             // We can safely use C++ objects outside of the __try block.
             if (pContextCollection && kx::SafeAccess::IsMemorySafe(pContextCollection)) {
-                std::vector<void*> agentPointers;
+                std::unordered_map<void*, uint8_t> agentPointers;
                 agentPointers.reserve(512); // Reserve space for typical agent count
 
                 kx::ReClass::ContextCollection ctxCollection(pContextCollection);
@@ -70,9 +70,8 @@ namespace kx {
                 if (charContext.data()) {
                     kx::SafeAccess::CharacterList charList(charContext);
                     for (const auto& character : charList) {
-                        auto agent = character.GetAgent();
-                        if (agent.data()) {
-                            agentPointers.push_back(agent.data());
+                        if (character.data()) {
+                            agentPointers.emplace((void*)character.data(), 0);
                         }
                     }
                 }
@@ -82,10 +81,8 @@ namespace kx {
                 if (gadgetContext.data()) {
                     kx::SafeAccess::GadgetList gadgetList(gadgetContext);
                     for (const auto& gadget : gadgetList) {
-                        // *** THIS IS THE FIX ***
-                        auto agent = gadget.GetAgKeyFramed(); // Corrected from GetAgKeyframed
-                        if (agent.data()) {
-                            agentPointers.push_back(agent.data());
+                        if (gadget.data()) {
+                            agentPointers.emplace((void*)gadget.data(), 1);
                         }
                     }
                 }

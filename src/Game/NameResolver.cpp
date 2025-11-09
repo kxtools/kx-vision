@@ -60,12 +60,12 @@ namespace kx {
         }
 
         // Helper to get the coded name pointer
-        static void* GetCodedNamePointerSEH(void* agent_ptr) {
+        static void* GetCodedNamePointerSEH(void* agent_ptr, uint8_t type) {
             __try {
                 uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(agent_ptr);
                 if (!SafeAccess::IsMemorySafe(vtable)) return nullptr;
 
-                GetCodedName_t pGetCodedName = reinterpret_cast<GetCodedName_t>(vtable[0]);
+                GetCodedName_t pGetCodedName = reinterpret_cast<GetCodedName_t>(type == 0 ? vtable[57] : vtable[8]);
                 if (!SafeAccess::IsMemorySafe((void*)pGetCodedName)) return nullptr;
 
                 return pGetCodedName(agent_ptr);
@@ -87,7 +87,7 @@ namespace kx {
         }
 
         // This function NO LONGER returns a name. It just starts the decoding process.
-        void RequestNameForAgent(void* agent_ptr) {
+        void RequestNameForAgent(void* agent_ptr, uint8_t type) {
             if (!SafeAccess::IsVTablePointerValid(agent_ptr) || !AddressManager::GetContextCollectionPtr()) {
                 return;
             }
@@ -97,7 +97,7 @@ namespace kx {
                 return;
             }
 
-            void* pCodedName = GetCodedNamePointerSEH(agent_ptr);
+            void* pCodedName = GetCodedNamePointerSEH(agent_ptr, type);
             if (!pCodedName) {
                 return;
             }
@@ -153,12 +153,12 @@ namespace kx {
             }
         }
 
-        void CacheNamesForAgents(const std::vector<void*>& agentPointers) {
+        void CacheNamesForAgents(const std::unordered_map<void*, uint8_t>& agentPointers) {
             // 1. Process any requests that were completed since the last frame
             ProcessCompletedNameRequests();
 
             // 2. Request names for any new agents
-            for (void* agentPtr : agentPointers) {
+            for (auto [agentPtr, type] : agentPointers) {
                 if (!agentPtr) continue;
 
                 // --- FIX: Check both the main cache AND pending requests ---
@@ -187,7 +187,7 @@ namespace kx {
                 }
 
                 if (!alreadyProcessed) {
-                    RequestNameForAgent(agentPtr); // Only request if not cached and not pending
+                    RequestNameForAgent(agentPtr, type); // Only request if not cached and not pending
                 }
             }
         }

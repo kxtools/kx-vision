@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace kx {
     namespace NameResolver {
@@ -26,7 +27,7 @@ namespace kx {
          *
          * @param agentPointers Vector of agent pointers to resolve names for
          */
-        void CacheNamesForAgents(const std::vector<void*>& agentPointers);
+        void CacheNamesForAgents(const std::unordered_map<void*, uint8_t>& agentPointers);
 
         /**
          * @brief Retrieves a cached name for an agent pointer.

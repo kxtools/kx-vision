@@ -90,7 +90,7 @@ namespace kx {
         outNpc.address = inCharacter.data();
         // Extract name using cached name resolution (thread-safe)
         // Names are resolved on the game thread and cached for render thread access
-        outNpc.name = NameResolver::GetCachedName(agent.data());
+        outNpc.name = NameResolver::GetCachedName(const_cast<void *>(inCharacter.data()));
 
         // --- Health ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
@@ -132,7 +132,7 @@ namespace kx {
         outGadget.address = inGadget.data();
         // Extract name using cached name resolution (thread-safe)
         // Names are resolved on the game thread and cached for render thread access
-        outGadget.name = NameResolver::GetCachedName(agKeyFramed.data());
+        outGadget.name = NameResolver::GetCachedName(const_cast<void *>(inGadget.data()));
         outGadget.type = inGadget.GetGadgetType();
         outGadget.isGatherable = inGadget.IsGatherable();
 

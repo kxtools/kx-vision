@@ -83,7 +83,6 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
             break;
     }
     
-    static const std::string emptyPlayerName = "";
     return EntityRenderContext{
         npc->position,
         npc->visualDistance,
@@ -96,12 +95,12 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         settings.npcESP.renderDot,
         settings.npcESP.renderDetails,
         settings.npcESP.renderHealthBar,
-        false,
+        true,
         ESPEntityType::NPC,
         npc->attitude,
         screenWidth,
         screenHeight,
-        emptyPlayerName,
+        npc->name,
         nullptr
     };
 }
@@ -111,7 +110,6 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
                                                              const std::vector<ColoredDetail>& details,
                                                              float screenWidth,
                                                              float screenHeight) {
-    static const std::string emptyPlayerName = "";
     return EntityRenderContext{
         gadget->position,
         gadget->visualDistance,
@@ -123,13 +121,13 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         settings.objectESP.renderDistance,
         settings.objectESP.renderDot,
         settings.objectESP.renderDetails,
-        false,
+        true,
         false,
         ESPEntityType::Gadget,
         Game::Attitude::Neutral,
         screenWidth,
         screenHeight,
-        emptyPlayerName,
+        gadget->name,
         nullptr
     };
 }
