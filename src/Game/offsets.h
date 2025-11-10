@@ -48,6 +48,7 @@ namespace Offsets {
     struct CoKeyframed {
         static constexpr uintptr_t POSITION = 0x0030;  // glm::vec3 position
         static constexpr uintptr_t RIGID_BODY = 0x0060; // hkpRigidBody* physics rigid body (gadgets only) - see HavokOffsets.h
+        static constexpr uintptr_t ROTATION = 0x00F8; // glm::vec2 rotation (gadget rotation)
     };
 
     // ============================================================================
