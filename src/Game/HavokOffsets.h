@@ -20,9 +20,10 @@ namespace HavokOffsets {
      * Contains physics simulation data and shape reference for dynamic objects (gadgets)
      */
     struct HkpRigidBody {
+        static constexpr uintptr_t WORLD_POINTER = 0x10;  // hkpWorld* pointer to the physics world this rigid body belongs to
         static constexpr uintptr_t SHAPE = 0x0020;  // hkpShape* pointer to collision shape (e.g., hkpCylinderShape)
         static constexpr uintptr_t SHAPE_TYPE_WRAPPER = 0x4C;  // uint8_t hkcdShapeType - wrapper type (6=Terrain, 11=Transform)
-        static constexpr uintptr_t WORLD_POINTER = 0x10;  // hkpWorld* pointer to the physics world this rigid body belongs to
+        static constexpr uintptr_t MOTION = 0x150;  // hkpMotion* pointer to motion object (velocity, angular velocity, etc.)
     };
 
     /**

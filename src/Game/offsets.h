@@ -23,6 +23,11 @@ namespace Offsets {
         static constexpr uintptr_t RIGID_BODY_PLAYER = 0x60;       // hkpRigidBody* physics rigid body (PLAYER ONLY - NPCs are nullptr) - see HavokOffsets.h
         static constexpr uintptr_t SIMPLE_CLI_WRAPPER = 0x88;   // CoCharSimpleCliWrapper* - contains additional position data and physics info
         static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x100; // HkpSimpleShapePhantom* direct physics phantom pointer (PLAYER ONLY - NPCs are nullptr)
+        static constexpr uintptr_t CURRENT_DIRECTION_NPC = 0x110;  // glm::vec2 current direction (NPC ONLY)
+        static constexpr uintptr_t VELOCITY = 0x150;               // glm::vec3 velocity (0 when stationary, increases with movement speed) - NPC alternative velocity may exist at 0x140
+        static constexpr uintptr_t BOX_SHAPE_NPC = 0x170;          // hkpBoxShape* physics box shape (NPC ONLY - Players are nullptr) - see HavokOffsets.h
+        static constexpr uintptr_t CURRENT_DIRECTION_PLAYER = 0x180; // glm::vec2 current direction (PLAYER ONLY) - alternative may exist at 0x190
+        static constexpr uintptr_t LOOK_ANGLE_VERTICAL_PLAYER = 0x188; // float vertical look angle/pitch (PLAYER ONLY) - 1.0 when looking up, -1.0 when looking down (only updates when moving)
     };
 
     /**
