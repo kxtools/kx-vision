@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <ankerl/unordered_dense.h>
 #include <chrono>
+#include <random>
 #include "../Game/AddressManager.h"
 
 namespace kx {
@@ -21,29 +22,58 @@ namespace SafeAccess {
     constexpr uint32_t MAX_REASONABLE_ATTACK_TARGET_COUNT = 5000; // Reasonable limit for attack targets
 
     // --- Pointer Cache for Performance ---
+    static constexpr uint64_t CACHE_TTL = 5000; // ms
+    static constexpr uint64_t CACHE_TTL_JITTER = 1000; // ms
+    static constexpr uint64_t CACHE_CLEANUP_INTERVAL = 8000; // ms, this should be less than CACHE_TTL + CACHE_TTL_JITTER combined
+
     // Thread-safe cache accessors using function-local statics
-    inline ankerl::unordered_dense::segmented_set<uintptr_t>& GetValidPointersCache() {
-        thread_local ankerl::unordered_dense::segmented_set<uintptr_t> cache;
+    inline ankerl::unordered_dense::segmented_map<uintptr_t, uint64_t>& GetValidPagesCache() {
+        thread_local ankerl::unordered_dense::segmented_map<uintptr_t, uint64_t> cache;
         return cache;
     }
     
-    inline std::chrono::steady_clock::time_point& GetLastCacheClear() {
-        thread_local std::chrono::steady_clock::time_point lastClear = std::chrono::steady_clock::now();
-        return lastClear;
+    inline uint64_t& GetLastCacheCleanup() {
+        thread_local uint64_t lastCleanup = GetTickCount64();
+        return lastCleanup;
     }
-    
-    static constexpr auto CACHE_CLEAR_INTERVAL = std::chrono::seconds(5);
+
+    inline uint64_t GetRandomCacheTTL(uint64_t now) {
+        thread_local std::mt19937 rng{ std::random_device{}() };
+        std::uniform_int_distribution<uint64_t> jitter(0, CACHE_TTL_JITTER);
+        return now + CACHE_TTL + jitter(rng);
+    }
 
     /**
-     * @brief Clears the pointer cache periodically to handle entity despawning
+     * @brief Removes expired addresses from the cache periodically
      */
-    inline void ClearCacheIfNeeded() {
-        auto now = std::chrono::steady_clock::now();
-        auto& lastClear = GetLastCacheClear();
-        if (now - lastClear >= CACHE_CLEAR_INTERVAL) {
-            GetValidPointersCache().clear();
-            lastClear = now;
+    inline void CleanupCacheIfNeeded(uint64_t now) {
+        uint64_t& lastCleanup = GetLastCacheCleanup();
+        if (now - lastCleanup >= CACHE_CLEANUP_INTERVAL) {
+            auto& cache = GetValidPagesCache();
+            for (auto it = cache.begin(); it != cache.end(); ) {
+                if (now > it->second) {
+                    it = cache.erase(it);
+                }
+                else {
+                    ++it;
+                }
+            }
+            lastCleanup = now;
         }
+    }
+
+    inline uint64_t GetPageSize() {
+        static uint64_t pageSize;
+        if (!pageSize) {
+            SYSTEM_INFO info = {};
+            GetSystemInfo(&info);
+            pageSize = info.dwPageSize;
+        }
+        return pageSize;
+    }
+
+    inline uintptr_t GetPageBase(uintptr_t addr) noexcept {
+        return addr & ~(GetPageSize() - 1);
     }
 
     /**
@@ -63,13 +93,18 @@ namespace SafeAccess {
         }
 
         // Clear cache periodically to handle entity despawning
-        ClearCacheIfNeeded();
+        auto now = GetTickCount64();
+        CleanupCacheIfNeeded(now);
         
         // Check cache first - avoid expensive VirtualQuery if already validated
         // Use find() for single lookup instead of count() + insert()
-        auto& validPointers = GetValidPointersCache();
-        auto it = validPointers.find(address);
-        if (it != validPointers.end()) {
+        // Use the page base instead of the address, since memory protections apply to whole pages, meaning we need to cache fewer addresses
+        uintptr_t page = GetPageBase(address);
+        auto& validPages = GetValidPagesCache();
+        auto it = validPages.find(page);
+        bool entryCached = it != validPages.end();
+        // Check if validPages already contains this page AND it has not expired yet
+        if (entryCached && it->second > now) {
             return true;
         }
         
@@ -83,8 +118,14 @@ namespace SafeAccess {
         if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) return false;
         if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) return false;
         
-        // Cache the valid pointer for future use
-        validPointers.emplace(address);
+        // Cache the valid page for future use
+        // If it was already cached, just refresh the expiry, if not, add it to the cache
+        if (entryCached) {
+            it->second = GetRandomCacheTTL(now);
+        }
+        else {
+            validPages.emplace(page, GetRandomCacheTTL(now));
+        }
         
         return true;
     }
