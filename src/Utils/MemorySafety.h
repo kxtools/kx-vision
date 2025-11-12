@@ -24,7 +24,7 @@ namespace SafeAccess {
     // --- Pointer Cache for Performance ---
     static constexpr uint64_t CACHE_TTL = 5000; // ms
     static constexpr uint64_t CACHE_TTL_JITTER = 1000; // ms
-    static constexpr uint64_t CACHE_CLEANUP_INTERVAL = 8000; // ms, this should be less than CACHE_TTL + CACHE_TTL_JITTER combined
+    static constexpr uint64_t CACHE_CLEANUP_INTERVAL = 8000; // ms, this should be greater than CACHE_TTL + CACHE_TTL_JITTER combined
 
     // Thread-safe cache accessors using function-local statics
     inline ankerl::unordered_dense::segmented_map<uintptr_t, uint64_t>& GetValidPagesCache() {
@@ -39,12 +39,12 @@ namespace SafeAccess {
 
     inline uint64_t GetRandomCacheTTL(uint64_t now) {
         thread_local std::mt19937 rng{ std::random_device{}() };
-        std::uniform_int_distribution<uint64_t> jitter(0, CACHE_TTL_JITTER);
+        thread_local std::uniform_int_distribution<uint64_t> jitter(0, CACHE_TTL_JITTER);
         return now + CACHE_TTL + jitter(rng);
     }
 
     /**
-     * @brief Removes expired addresses from the cache periodically
+     * @brief Removes expired pages from the cache periodically
      */
     inline void CleanupCacheIfNeeded(uint64_t now) {
         uint64_t& lastCleanup = GetLastCacheCleanup();
@@ -62,16 +62,27 @@ namespace SafeAccess {
         }
     }
 
+    // Helper to check if a value is a power of two
+    inline bool IsPowerOfTwo(uint64_t x) {
+        return x != 0 && (x & (x - 1)) == 0;
+    }
+    
     inline uint64_t GetPageSize() {
-        static uint64_t pageSize;
+        static uint64_t pageSize = 0;
         if (!pageSize) {
             SYSTEM_INFO info = {};
             GetSystemInfo(&info);
-            pageSize = info.dwPageSize;
+            // Validate page size: must be non-zero and power of two
+            if (info.dwPageSize != 0 && IsPowerOfTwo(info.dwPageSize)) {
+                pageSize = info.dwPageSize;
+            } else {
+                // Fallback: use 4096 (common page size)
+                pageSize = 4096;
+            }
         }
         return pageSize;
     }
-
+    
     inline uintptr_t GetPageBase(uintptr_t addr) noexcept {
         return addr & ~(GetPageSize() - 1);
     }
@@ -92,13 +103,13 @@ namespace SafeAccess {
             return false;
         }
 
-        // Clear cache periodically to handle entity despawning
+        // Clean up expired cache entries periodically to handle entity despawning
         auto now = GetTickCount64();
         CleanupCacheIfNeeded(now);
         
         // Check cache first - avoid expensive VirtualQuery if already validated
         // Use find() for single lookup instead of count() + insert()
-        // Use the page base instead of the address, since memory protections apply to whole pages, meaning we need to cache fewer addresses
+        // Use the page base instead of the address, since memory protections apply to whole pages, reducing the number of cache entries needed
         uintptr_t page = GetPageBase(address);
         auto& validPages = GetValidPagesCache();
         auto it = validPages.find(page);
@@ -120,12 +131,7 @@ namespace SafeAccess {
         
         // Cache the valid page for future use
         // If it was already cached, just refresh the expiry, if not, add it to the cache
-        if (entryCached) {
-            it->second = GetRandomCacheTTL(now);
-        }
-        else {
-            validPages.emplace(page, GetRandomCacheTTL(now));
-        }
+        validPages.insert_or_assign(page, GetRandomCacheTTL(now));
         
         return true;
     }
