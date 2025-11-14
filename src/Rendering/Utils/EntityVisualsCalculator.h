@@ -65,6 +65,7 @@ public:
      * 
      * Projects an 8-corner 3D bounding box from world space to screen space,
      * providing perspective-correct bounding boxes for players/NPCs.
+     * Also populates projectedCorners and cornerValidity arrays for wireframe rendering.
      * 
      * @param entityPos Entity position in world space
      * @param worldWidth Width of bounding box in world space (meters)
@@ -73,8 +74,7 @@ public:
      * @param camera Camera for projection
      * @param screenWidth Screen width in pixels
      * @param screenHeight Screen height in pixels
-     * @param outBoxMin Output minimum screen coordinates
-     * @param outBoxMax Output maximum screen coordinates
+     * @param props VisualProperties struct to populate with corner data and box bounds
      * @param outValid Output whether projection was successful
      */
     static void Calculate3DBoundingBox(
@@ -85,8 +85,7 @@ public:
         Camera& camera,
         float screenWidth,
         float screenHeight,
-        ImVec2& outBoxMin,
-        ImVec2& outBoxMax,
+        VisualProperties& props,
         bool& outValid);
 
     /**

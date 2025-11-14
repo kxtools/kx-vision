@@ -2,6 +2,7 @@
 
 #include "glm.hpp"
 #include <vector>
+#include <array>
 
 #include "../../libs/ImGui/imgui.h" // For ImU32, ImVec2
 #include "EntityRenderContext.h"
@@ -40,6 +41,10 @@ struct VisualProperties {
     ImVec2 center;                 // Center point
     float circleRadius;            // Circle radius for gadgets (0 for players/NPCs)
 
+    // 3D wireframe box corners
+    std::array<glm::vec2, 8> projectedCorners; // 2D positions of all 8 projected corners
+    std::array<bool, 8> cornerValidity;        // Tracks if each corner was successfully projected
+
     // Scaled sizes
     float finalFontSize;
     float finalBoxThickness;
@@ -50,8 +55,11 @@ struct VisualProperties {
     VisualProperties()
         : screenPos(0.0f), scale(0.0f), distanceFadeAlpha(0.0f), finalAlpha(0.0f),
           fadedEntityColor(0), boxMin(), boxMax(), center(), circleRadius(0.0f),
+          projectedCorners(), cornerValidity(),
           finalFontSize(0.0f), finalBoxThickness(0.0f), finalDotRadius(0.0f),
-          finalHealthBarWidth(0.0f), finalHealthBarHeight(0.0f) {}
+          finalHealthBarWidth(0.0f), finalHealthBarHeight(0.0f) {
+        cornerValidity.fill(false);
+    }
 };
 
 

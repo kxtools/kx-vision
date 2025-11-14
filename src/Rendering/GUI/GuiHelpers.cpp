@@ -48,11 +48,12 @@ namespace kx {
 
         void RenderObjectStyleSettings(ObjectEspSettings& settings) {
             ImGui::SeparatorText("Core Visuals");
-            ImGui::Checkbox("Show Box##Object", &settings.renderBox);
-            if (settings.renderBox) {
+            ImGui::Checkbox("Show Box##Object", &settings.renderBox); ImGui::SameLine();
+            ImGui::Checkbox("3D Wireframe##Object", &settings.renderWireframe);
+            if (settings.renderBox || settings.renderWireframe) {
                 ImGui::Indent();
                 ImGui::SliderFloat("Max Height##ObjectBox", &settings.maxBoxHeight, 1.0f, 100.0f, "%.1f m");
-                ImGui::TextDisabled("Hide boxes for gadgets taller than this");
+                ImGui::TextDisabled("Hide boxes and wireframes for gadgets taller than this");
                 ImGui::Unindent();
             }
             ImGui::Checkbox("2D Circle##Object", &settings.renderCircle); ImGui::SameLine();

@@ -187,6 +187,11 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         renderBox = false;
     }
 
+    bool renderWireframe = context.settings.objectESP.renderWireframe;
+    if (renderWireframe && gadget->hasPhysicsDimensions && gadget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
+        renderWireframe = false;
+    }
+
     return EntityRenderContext{
         .position = gadget->position,
         .gameplayDistance = gadget->gameplayDistance,
@@ -194,6 +199,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         .details = std::move(details),
         .burstDPS = burstDpsValue,
         .renderBox = renderBox,
+        .renderWireframe = renderWireframe,
         .renderDistance = context.settings.objectESP.renderDistance,
         .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,
@@ -240,6 +246,11 @@ EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const Render
         renderBox = false;
     }
 
+    bool renderWireframe = context.settings.objectESP.renderWireframe;
+    if (renderWireframe && attackTarget->hasPhysicsDimensions && attackTarget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
+        renderWireframe = false;
+    }
+
     return EntityRenderContext {
         .position = attackTarget->position,
         .gameplayDistance = attackTarget->gameplayDistance,
@@ -247,6 +258,7 @@ EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const Render
         .details = std::move(details),
         .burstDPS = burstDpsValue,
         .renderBox = renderBox,
+        .renderWireframe = renderWireframe,
         .renderDistance = context.settings.objectESP.renderDistance,
         .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,

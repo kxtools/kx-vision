@@ -78,7 +78,7 @@ bool EntityVisualsCalculator::IsEntityOnScreen(const RenderableEntity& entity, C
     }
     
     // Calculate the true 2D bounding box using the full 3D projection
-    ImVec2 boxMin, boxMax;
+    VisualProperties tempProps;
     bool isValidProjection;
     Calculate3DBoundingBox(
         entity.position,
@@ -88,8 +88,7 @@ bool EntityVisualsCalculator::IsEntityOnScreen(const RenderableEntity& entity, C
         camera,
         screenWidth,
         screenHeight,
-        boxMin,
-        boxMax,
+        tempProps,
         isValidProjection
     );
     
@@ -99,16 +98,16 @@ bool EntityVisualsCalculator::IsEntityOnScreen(const RenderableEntity& entity, C
     
     // Perform a 2D Axis-Aligned Bounding Box (AABB) intersection test.
     // The entity is visible if its projected box overlaps with the screen's box.
-    bool overlapsX = boxMin.x < screenWidth && boxMax.x > 0;
-    bool overlapsY = boxMin.y < screenHeight && boxMax.y > 0;
+    bool overlapsX = tempProps.boxMin.x < screenWidth && tempProps.boxMax.x > 0;
+    bool overlapsY = tempProps.boxMin.y < screenHeight && tempProps.boxMax.y > 0;
     
     if (!overlapsX || !overlapsY) {
         return false; // Entity is off-screen
     }
     
     // Calculate screen position from the center of the projected box
-    outScreenPos.x = (boxMin.x + boxMax.x) * 0.5f;
-    outScreenPos.y = (boxMin.y + boxMax.y) * 0.5f;
+    outScreenPos.x = (tempProps.boxMin.x + tempProps.boxMax.x) * 0.5f;
+    outScreenPos.y = (tempProps.boxMin.y + tempProps.boxMax.y) * 0.5f;
     
     return true;
 }
@@ -206,47 +205,52 @@ void EntityVisualsCalculator::Calculate3DBoundingBox(
     Camera& camera,
     float screenWidth,
     float screenHeight,
-    ImVec2& outBoxMin,
-    ImVec2& outBoxMax,
+    VisualProperties& props,
     bool& outValid)
 {
     // Define 8 corners of 3D bounding box in world space
     // Entity position is at feet center
+    // Corner order: Bottom face (0-3), Top face (4-7)
     std::vector<glm::vec3> worldCorners = {
         // Bottom 4 corners (at entity feet level)
-        entityPos + glm::vec3(-worldWidth/2, 0.0f, -worldDepth/2),
-        entityPos + glm::vec3( worldWidth/2, 0.0f, -worldDepth/2),
-        entityPos + glm::vec3(-worldWidth/2, 0.0f,  worldDepth/2),
-        entityPos + glm::vec3( worldWidth/2, 0.0f,  worldDepth/2),
+        entityPos + glm::vec3(-worldWidth/2, 0.0f, -worldDepth/2), // 0: Bottom-Left-Back
+        entityPos + glm::vec3( worldWidth/2, 0.0f, -worldDepth/2), // 1: Bottom-Right-Back
+        entityPos + glm::vec3(-worldWidth/2, 0.0f,  worldDepth/2), // 2: Bottom-Left-Front
+        entityPos + glm::vec3( worldWidth/2, 0.0f,  worldDepth/2), // 3: Bottom-Right-Front
         // Top 4 corners (at entity head level)
-        entityPos + glm::vec3(-worldWidth/2, worldHeight, -worldDepth/2),
-        entityPos + glm::vec3( worldWidth/2, worldHeight, -worldDepth/2),
-        entityPos + glm::vec3(-worldWidth/2, worldHeight,  worldDepth/2),
-        entityPos + glm::vec3( worldWidth/2, worldHeight,  worldDepth/2)
+        entityPos + glm::vec3(-worldWidth/2, worldHeight, -worldDepth/2), // 4: Top-Left-Back
+        entityPos + glm::vec3( worldWidth/2, worldHeight, -worldDepth/2), // 5: Top-Right-Back
+        entityPos + glm::vec3(-worldWidth/2, worldHeight,  worldDepth/2), // 6: Top-Left-Front
+        entityPos + glm::vec3( worldWidth/2, worldHeight,  worldDepth/2)  // 7: Top-Right-Front
     };
     
-    // Project all 8 corners to screen space
+    // Project all 8 corners to screen space and store them
     float minX = FLT_MAX, minY = FLT_MAX;
     float maxX = -FLT_MAX, maxY = -FLT_MAX;
-    int validCorners = 0;
+    int validCornerCount = 0;
     
-    for (const auto& corner : worldCorners) {
-        glm::vec2 screenCorner;
-        if (ESPMath::ProjectToScreen(corner, camera, screenWidth, screenHeight, screenCorner)) {
-            minX = std::min(minX, screenCorner.x);
-            minY = std::min(minY, screenCorner.y);
-            maxX = std::max(maxX, screenCorner.x);
-            maxY = std::max(maxY, screenCorner.y);
-            validCorners++;
+    for (int i = 0; i < 8; ++i) {
+        if (ESPMath::ProjectToScreen(worldCorners[i], camera, screenWidth, screenHeight, props.projectedCorners[i])) {
+            props.cornerValidity[i] = true;
+            validCornerCount++;
+            
+            // Update the 2D bounding box for culling and flat box rendering
+            minX = std::min(minX, props.projectedCorners[i].x);
+            minY = std::min(minY, props.projectedCorners[i].y);
+            maxX = std::max(maxX, props.projectedCorners[i].x);
+            maxY = std::max(maxY, props.projectedCorners[i].y);
+        } else {
+            props.cornerValidity[i] = false;
         }
     }
     
-    // Box is valid if at least 3 corners projected successfully
-    outValid = (validCorners >= 3);
+    // The overall projection is valid if at least one corner is in front of the camera
+    outValid = (validCornerCount > 0);
     
     if (outValid) {
-        outBoxMin = ImVec2(minX, minY);
-        outBoxMax = ImVec2(maxX, maxY);
+        // Still provide the 2D min/max for the flat box and culling logic
+        props.boxMin = ImVec2(minX, minY);
+        props.boxMax = ImVec2(maxX, maxY);
     }
 }
 
@@ -331,8 +335,7 @@ void EntityVisualsCalculator::CalculateGadgetDimensions(
         camera,
         screenWidth,
         screenHeight,
-        props.boxMin,
-        props.boxMax,
+        props,
         boxValid
     );
     
@@ -374,8 +377,7 @@ void EntityVisualsCalculator::CalculatePlayerNPCDimensions(
         camera,
         screenWidth,
         screenHeight,
-        props.boxMin,
-        props.boxMax,
+        props,
         boxValid
     );
     

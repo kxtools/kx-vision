@@ -2,12 +2,14 @@
 #include "ESPShapeRenderer.h"
 
 #include <algorithm>
+#include <array>
 #include <vector>
 
 #include "../Utils/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Utils/ESPMath.h"
 #include "../Data/EntityRenderContext.h"
+#include "../Data/ESPData.h"
 #include "../../Core/AppState.h"
 
 namespace kx {
@@ -194,6 +196,34 @@ void ESPShapeRenderer::RenderGadgetCircle(ImDrawList* drawList, const glm::vec2&
     const auto& settings = AppState::Get().GetSettings();
     unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
     drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), radius, finalColor, 0, thickness);
+}
+
+void ESPShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProperties& props, unsigned int color, float thickness) {
+    // This array defines the 12 edges of a cube by connecting the indices of the corners.
+    // The corner indices match the order defined in Calculate3DBoundingBox.
+    const std::array<std::pair<int, int>, 12> edges = {{
+        // Bottom face
+        {0, 1}, {1, 3}, {3, 2}, {2, 0},
+        // Top face
+        {4, 5}, {5, 7}, {7, 6}, {6, 4},
+        // Vertical connectors
+        {0, 4}, {1, 5}, {2, 6}, {3, 7}
+    }};
+
+    // Apply global opacity from settings
+    const auto& settings = AppState::Get().GetSettings();
+    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+
+    // Render each edge
+    for (const auto& edge : edges) {
+        // Only draw an edge if BOTH of its corners were successfully projected.
+        // This prevents lines from being drawn from off-screen, creating visual artifacts.
+        if (props.cornerValidity[edge.first] && props.cornerValidity[edge.second]) {
+            const auto& p1 = props.projectedCorners[edge.first];
+            const auto& p2 = props.projectedCorners[edge.second];
+            drawList->AddLine(ImVec2(p1.x, p1.y), ImVec2(p2.x, p2.y), finalColor, thickness);
+        }
+    }
 }
 
 void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax,

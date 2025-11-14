@@ -69,8 +69,7 @@ std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const Fin
         context.camera,
         context.screenWidth,
         context.screenHeight,
-        liveVisuals.boxMin,
-        liveVisuals.boxMax,
+        liveVisuals,
         isProjectionValid
     );
 
@@ -279,6 +278,11 @@ void ESPStageRenderer::RenderStaticElements(
     // Bounding Box
     if (entityContext.renderBox) {
         ESPShapeRenderer::RenderBoundingBox(context.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
+    }
+
+    // 3D Wireframe Box for gadgets
+    if ((entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget) && entityContext.renderWireframe) {
+        ESPShapeRenderer::RenderWireframeBox(context.drawList, props, props.fadedEntityColor, props.finalBoxThickness);
     }
 
     // Gadget Visuals (Sphere/Circle)

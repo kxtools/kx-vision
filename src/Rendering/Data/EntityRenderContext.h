@@ -98,6 +98,9 @@ struct EntityRenderContext {
     /** Whether to render bounding box */
     bool renderBox;
     
+    /** Whether to render 3D wireframe box */
+    bool renderWireframe;
+    
     /** Whether to render distance text */
     bool renderDistance;
     

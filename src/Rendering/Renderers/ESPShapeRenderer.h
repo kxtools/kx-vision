@@ -2,6 +2,7 @@
 
 #include "glm.hpp"
 #include "../../../libs/ImGui/imgui.h"
+#include "Data/ESPData.h"
 
 namespace kx {
 
@@ -58,6 +59,15 @@ public:
      */
     static void RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos, 
                                      float fadeAlpha, float radius);
+
+    /**
+     * @brief Render a 3D wireframe box using projected corner coordinates
+     * @param drawList ImGui draw list for rendering
+     * @param props VisualProperties containing projected corners and validity flags
+     * @param color Box color with alpha
+     * @param thickness Line thickness
+     */
+    static void RenderWireframeBox(ImDrawList* drawList, const VisualProperties& props, unsigned int color, float thickness);
 
     /**
      * @brief Apply alpha multiplier to a color while preserving RGB values
