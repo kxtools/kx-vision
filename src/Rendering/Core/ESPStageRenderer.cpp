@@ -53,12 +53,6 @@ std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const Fin
         worldWidth = item.entity->physicsWidth;
         worldDepth = item.entity->physicsDepth;
         worldHeight = item.entity->physicsHeight;
-        
-        // Special case for Attack Targets: always use square boxes (width = depth = height)
-        if (item.entity->entityType == ESPEntityType::AttackTarget) {
-            worldWidth = worldHeight;
-            worldDepth = worldHeight;
-        }
     } else {
         // Fallback to constants for entities without physics data.
         EntityVisualsCalculator::GetWorldBoundsForEntity(item.entity->entityType, worldWidth, worldDepth, worldHeight);

@@ -69,17 +69,9 @@ bool EntityVisualsCalculator::IsEntityOnScreen(const RenderableEntity& entity, C
     float worldWidth, worldDepth, worldHeight;
     
     if (entity.hasPhysicsDimensions) {
-        if (entity.entityType == ESPEntityType::AttackTarget) {
-            // Attack targets always use square boxes (width = depth = height)
-            worldHeight = entity.physicsHeight;
-            worldWidth = worldHeight;
-            worldDepth = worldHeight;
-        } else {
-            // Use actual physics box shape dimensions from game memory
-            worldWidth = entity.physicsWidth;
-            worldDepth = entity.physicsDepth;
-            worldHeight = entity.physicsHeight;
-        }
+        worldWidth = entity.physicsWidth;
+        worldDepth = entity.physicsDepth;
+        worldHeight = entity.physicsHeight;
     } else {
         // Fallback to hardcoded constants if physics dimensions unavailable
         GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
@@ -272,13 +264,6 @@ void EntityVisualsCalculator::GetWorldBoundsForEntity(
             break;
         
         case ESPEntityType::AttackTarget:
-            // Attack targets always use square boxes (width = depth = height)
-            // Use height as the base dimension for all three axes
-            outHeight = EntityWorldBounds::GADGET_WORLD_HEIGHT;
-            outWidth = outHeight;
-            outDepth = outHeight;
-            break;
-        
         case ESPEntityType::Gadget:
             outWidth = EntityWorldBounds::GADGET_WORLD_WIDTH;
             outDepth = EntityWorldBounds::GADGET_WORLD_DEPTH;
@@ -328,18 +313,9 @@ void EntityVisualsCalculator::CalculateGadgetDimensions(
     float worldWidth, worldDepth, worldHeight;
     
     if (entity.hasPhysicsDimensions) {
-        if (entity.entityType == ESPEntityType::AttackTarget) {
-            // Attack targets always use square boxes (width = depth = height)
-            // Use height as the base dimension for all three axes
-            worldHeight = entity.physicsHeight;
-            worldWidth = worldHeight;
-            worldDepth = worldHeight;
-        } else {
-            // Gadgets use physics-based dimensions from cylinder shape
-            worldWidth = entity.physicsWidth;
-            worldDepth = entity.physicsDepth;
-            worldHeight = entity.physicsHeight;
-        }
+        worldWidth = entity.physicsWidth;
+        worldDepth = entity.physicsDepth;
+        worldHeight = entity.physicsHeight;
     } else {
         // Fallback to reasonable default dimensions
         GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
