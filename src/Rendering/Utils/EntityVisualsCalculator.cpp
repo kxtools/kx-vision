@@ -21,7 +21,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     VisualProperties props;
 
     // 1. Check if entity is on screen
-    if (!IsEntityOnScreen(entity.position, camera, screenWidth, screenHeight, props.screenPos)) {
+    if (!IsEntityOnScreen(entity, camera, screenWidth, screenHeight, props.screenPos)) {
         return std::nullopt; // Entity is not visible
     }
 
@@ -44,14 +44,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     // 4. Calculate distance-based scale
     props.scale = CalculateEntityScale(entity.visualDistance, entity.entityType);
 
-    // 5. Calculate rendering dimensions (box or circle)
-    if (entity.entityType == ESPEntityType::Gadget || entity.entityType == ESPEntityType::AttackTarget) {
-        CalculateGadgetDimensions(entity, camera, screenWidth, screenHeight, props, props.scale);
-    } else {
-        CalculatePlayerNPCDimensions(entity, camera, screenWidth, screenHeight, props, props.scale);
-    }
-
-    // 6. Calculate adaptive alpha
+    // 5. Calculate adaptive alpha
     float normalizedDistance = 0.0f;
     props.finalAlpha = CalculateAdaptiveAlpha(entity.gameplayDistance, props.distanceFadeAlpha,
                                              settings.distance.useDistanceLimit, entity.entityType,
@@ -70,19 +63,60 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     return props;
 }
 
-bool EntityVisualsCalculator::IsEntityOnScreen(const glm::vec3& position, Camera& camera,
+bool EntityVisualsCalculator::IsEntityOnScreen(const RenderableEntity& entity, Camera& camera,
                                               float screenWidth, float screenHeight, glm::vec2& outScreenPos) {
-    // Calculate screen position every frame for smooth movement
-    if (!ESPMath::WorldToScreen(position, camera, screenWidth, screenHeight, outScreenPos)) {
+    // Get world-space dimensions for the entity
+    float worldWidth, worldDepth, worldHeight;
+    
+    if (entity.hasPhysicsDimensions) {
+        if (entity.entityType == ESPEntityType::AttackTarget) {
+            // Attack targets always use square boxes (width = depth = height)
+            worldHeight = entity.physicsHeight;
+            worldWidth = worldHeight;
+            worldDepth = worldHeight;
+        } else {
+            // Use actual physics box shape dimensions from game memory
+            worldWidth = entity.physicsWidth;
+            worldDepth = entity.physicsDepth;
+            worldHeight = entity.physicsHeight;
+        }
+    } else {
+        // Fallback to hardcoded constants if physics dimensions unavailable
+        GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
+    }
+    
+    // Calculate the true 2D bounding box using the full 3D projection
+    ImVec2 boxMin, boxMax;
+    bool isValidProjection;
+    Calculate3DBoundingBox(
+        entity.position,
+        worldWidth,
+        worldDepth,
+        worldHeight,
+        camera,
+        screenWidth,
+        screenHeight,
+        boxMin,
+        boxMax,
+        isValidProjection
+    );
+    
+    if (!isValidProjection) {
         return false; // Entity is behind camera or invalid projection
     }
     
-    // Screen bounds culling with small margin for partially visible entities
-    const float margin = ScreenCulling::VISIBILITY_MARGIN;
-    if (outScreenPos.x < -margin || outScreenPos.x > screenWidth + margin ||
-        outScreenPos.y < -margin || outScreenPos.y > screenHeight + margin) {
+    // Perform a 2D Axis-Aligned Bounding Box (AABB) intersection test.
+    // The entity is visible if its projected box overlaps with the screen's box.
+    bool overlapsX = boxMin.x < screenWidth && boxMax.x > 0;
+    bool overlapsY = boxMin.y < screenHeight && boxMax.y > 0;
+    
+    if (!overlapsX || !overlapsY) {
         return false; // Entity is off-screen
     }
+    
+    // Calculate screen position from the center of the projected box
+    outScreenPos.x = (boxMin.x + boxMax.x) * 0.5f;
+    outScreenPos.y = (boxMin.y + boxMax.y) * 0.5f;
     
     return true;
 }
@@ -206,7 +240,7 @@ void EntityVisualsCalculator::Calculate3DBoundingBox(
     
     for (const auto& corner : worldCorners) {
         glm::vec2 screenCorner;
-        if (ESPMath::WorldToScreen(corner, camera, screenWidth, screenHeight, screenCorner)) {
+        if (ESPMath::ProjectToScreen(corner, camera, screenWidth, screenHeight, screenCorner)) {
             minX = std::min(minX, screenCorner.x);
             minY = std::min(minY, screenCorner.y);
             maxX = std::max(maxX, screenCorner.x);

@@ -44,36 +44,80 @@ namespace {
 }
 
 std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context) {
-    // 1. Re-project the entity's world position to get a fresh screen position.
-    glm::vec2 freshScreenPos;
-    if (!ESPMath::WorldToScreen(item.entity->position, context.camera, context.screenWidth, context.screenHeight, freshScreenPos)) {
-        return std::nullopt; // Cull if off-screen this frame.
-    }
-
-    // 2. Make a mutable copy of the cached visual properties.
+    // 1. Start with the pre-calculated, non-geometric properties from the low-frequency update.
     VisualProperties liveVisuals = item.visuals;
 
-    // 3. Overwrite the stale screen-space properties with fresh ones.
-    liveVisuals.screenPos = freshScreenPos;
-    
-    // 4. Recalculate derived screen-space coordinates using the cached dimensions.
-    // Calculate box dimensions from cached screen-space box
-    float boxWidth = liveVisuals.boxMax.x - liveVisuals.boxMin.x;
-    float boxHeight = liveVisuals.boxMax.y - liveVisuals.boxMin.y;
-    
-    // Reposition box centered on new screen position
-    liveVisuals.boxMin = ImVec2(liveVisuals.screenPos.x - boxWidth / 2.0f, liveVisuals.screenPos.y - boxHeight);
-    liveVisuals.boxMax = ImVec2(liveVisuals.screenPos.x + boxWidth / 2.0f, liveVisuals.screenPos.y);
-    
-    // Calculate center based on entity type
-    if (item.entity->entityType == ESPEntityType::Gadget || item.entity->entityType == ESPEntityType::AttackTarget) {
-        // Gadgets/Attack Targets: Circle center is always at screen position
-        liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y);
+    // 2. Determine the entity's 3D world-space dimensions for the bounding box.
+    float worldWidth, worldDepth, worldHeight;
+    if (item.entity->hasPhysicsDimensions) {
+        worldWidth = item.entity->physicsWidth;
+        worldDepth = item.entity->physicsDepth;
+        worldHeight = item.entity->physicsHeight;
+        
+        // Special case for Attack Targets: always use square boxes (width = depth = height)
+        if (item.entity->entityType == ESPEntityType::AttackTarget) {
+            worldWidth = worldHeight;
+            worldDepth = worldHeight;
+        }
     } else {
-        // Players/NPCs: Box center is midpoint of bounding box
-        liveVisuals.center = ImVec2(liveVisuals.screenPos.x, liveVisuals.screenPos.y - boxHeight / 2.0f);
+        // Fallback to constants for entities without physics data.
+        EntityVisualsCalculator::GetWorldBoundsForEntity(item.entity->entityType, worldWidth, worldDepth, worldHeight);
     }
     
+    // 3. Project the 8 corners of the 3D world-space box into 2D screen space.
+    // This is the core logic that ensures perspective correctness.
+    bool isProjectionValid = false;
+    EntityVisualsCalculator::Calculate3DBoundingBox(
+        item.entity->position,
+        worldWidth,
+        worldDepth,
+        worldHeight,
+        context.camera,
+        context.screenWidth,
+        context.screenHeight,
+        liveVisuals.boxMin,
+        liveVisuals.boxMax,
+        isProjectionValid
+    );
+
+    // If no corners could be validly projected (e.g., entity is entirely behind the camera), cull it.
+    if (!isProjectionValid) {
+        return std::nullopt;
+    }
+
+    // 4. Perform the final, high-frequency culling check.
+    // An entity is visible if its TRUE projected 2D box overlaps the screen area.
+    bool overlapsX = liveVisuals.boxMin.x < context.screenWidth && liveVisuals.boxMax.x > 0;
+    bool overlapsY = liveVisuals.boxMin.y < context.screenHeight && liveVisuals.boxMax.y > 0;
+
+    if (!overlapsX || !overlapsY) {
+        return std::nullopt;
+    }
+
+    // 5. Finalize remaining screen-space properties based on the new, correct box.
+    // Project the origin point separately for anchoring UI elements.
+    if (!ESPMath::ProjectToScreen(item.entity->position, context.camera, context.screenWidth, context.screenHeight, liveVisuals.screenPos)) {
+        // If origin point is behind camera, use center of projected box
+        liveVisuals.screenPos.x = (liveVisuals.boxMin.x + liveVisuals.boxMax.x) * 0.5f;
+        liveVisuals.screenPos.y = (liveVisuals.boxMin.y + liveVisuals.boxMax.y) * 0.5f;
+    }
+    
+    // Calculate the visual center of the final projected box.
+    liveVisuals.center = ImVec2(
+        (liveVisuals.boxMin.x + liveVisuals.boxMax.x) * 0.5f,
+        (liveVisuals.boxMin.y + liveVisuals.boxMax.y) * 0.5f
+    );
+    
+    // 6. Calculate gadget circle radius if needed (scale-based, so can be calculated here)
+    if (item.entity->entityType == ESPEntityType::Gadget || item.entity->entityType == ESPEntityType::AttackTarget) {
+        const auto& settings = AppState::Get().GetSettings();
+        float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
+        liveVisuals.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * liveVisuals.scale);
+    } else {
+        liveVisuals.circleRadius = 0.0f; // No circle for players/NPCs
+    }
+    
+    // Return the complete, correct, and visible properties for this frame.
     return liveVisuals;
 }
 

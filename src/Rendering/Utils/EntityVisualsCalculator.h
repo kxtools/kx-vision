@@ -60,37 +60,6 @@ public:
      */
     static float GetDamageNumberFontSizeMultiplier(float damageToDisplay);
 
-private:
-    /**
-     * @brief Check if entity is on screen and calculate screen position
-     * @param position World position
-     * @param camera Camera for projection
-     * @param screenWidth Screen width
-     * @param screenHeight Screen height
-     * @param outScreenPos Output screen position (only valid if returns true)
-     * @return True if entity is visible on screen, false otherwise
-     */
-    static bool IsEntityOnScreen(const glm::vec3& position, Camera& camera,
-                                float screenWidth, float screenHeight, glm::vec2& outScreenPos);
-
-    /**
-     * @brief Calculate distance-based scale factor for entity rendering
-     * @param visualDistance Visual distance from camera
-     * @param entityType Type of entity (affects which scaling curve is used)
-     * @return Clamped scale factor (between espMinScale and espMaxScale)
-     */
-    static float CalculateEntityScale(float visualDistance, ESPEntityType entityType);
-
-    /**
-     * @brief Calculate box dimensions for entity based on type and scale
-     * @param entityType Type of entity (Player, NPC, Gadget)
-     * @param scale Scale factor
-     * @param outBoxWidth Output box width
-     * @param outBoxHeight Output box height
-     */
-    static void CalculateEntityBoxDimensions(ESPEntityType entityType, float scale,
-                                            float& outBoxWidth, float& outBoxHeight);
-
     /**
      * @brief Calculate 3D bounding box projection to screen space
      * 
@@ -128,6 +97,37 @@ private:
         float& outWidth,
         float& outDepth,
         float& outHeight);
+
+private:
+    /**
+     * @brief Check if entity is on screen and calculate screen position
+     * @param entity Entity to check (needed for type and dimensions)
+     * @param camera Camera for projection
+     * @param screenWidth Screen width
+     * @param screenHeight Screen height
+     * @param outScreenPos Output screen position (only valid if returns true)
+     * @return True if entity is visible on screen, false otherwise
+     */
+    static bool IsEntityOnScreen(const RenderableEntity& entity, Camera& camera,
+                                float screenWidth, float screenHeight, glm::vec2& outScreenPos);
+
+    /**
+     * @brief Calculate distance-based scale factor for entity rendering
+     * @param visualDistance Visual distance from camera
+     * @param entityType Type of entity (affects which scaling curve is used)
+     * @return Clamped scale factor (between espMinScale and espMaxScale)
+     */
+    static float CalculateEntityScale(float visualDistance, ESPEntityType entityType);
+
+    /**
+     * @brief Calculate box dimensions for entity based on type and scale
+     * @param entityType Type of entity (Player, NPC, Gadget)
+     * @param scale Scale factor
+     * @param outBoxWidth Output box width
+     * @param outBoxHeight Output box height
+     */
+    static void CalculateEntityBoxDimensions(ESPEntityType entityType, float scale,
+                                            float& outBoxWidth, float& outBoxHeight);
 
     /**
      * @brief Apply fallback 2D box if 3D projection fails

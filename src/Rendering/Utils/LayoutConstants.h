@@ -95,16 +95,6 @@ namespace ExtractionCapacity {
 }
 
 /**
- * @brief Screen space culling constants
- * 
- * Constants used for determining when entities are visible on screen.
- */
-namespace ScreenCulling {
-    // Margin for screen bounds culling - allows partially visible entities to render
-    constexpr float VISIBILITY_MARGIN = 50.0f;
-}
-
-/**
  * @brief ESP layout constants for positioning and sizing visual elements.
  *
  * Optimized values based on base sizes (16px font, 45w×90h boxes, 60w×7h HP bars)
