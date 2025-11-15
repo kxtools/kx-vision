@@ -66,7 +66,7 @@ namespace kx {
                             ImGui::PushItemWidth(250.0f);
                             const char* gearModes[] = { "Compact (Stat Sets)", "Compact (Attributes)", "Detailed" };
                             int gearModeInt = static_cast<int>(settings.playerESP.gearDisplayMode);
-                            if (ImGui::Combo("Display Mode", &gearModeInt, gearModes, IM_ARRAYSIZE(gearModes))) {
+                            if (ImGui::Combo("Display Mode##Gear", &gearModeInt, gearModes, IM_ARRAYSIZE(gearModes))) {
                                 settings.playerESP.gearDisplayMode = static_cast<GearDisplayMode>(gearModeInt);
                             }
                             ImGui::PopItemWidth();
@@ -127,7 +127,7 @@ namespace kx {
                             const char* displayModes[] = { "Hostile Only", "All Players" };
                             int displayModeInt = static_cast<int>(settings.playerESP.trails.displayMode);
                             ImGui::PushItemWidth(250.0f);
-                            if (ImGui::Combo("Display Mode", &displayModeInt, displayModes, IM_ARRAYSIZE(displayModes))) {
+                            if (ImGui::Combo("Display Mode##Trails", &displayModeInt, displayModes, IM_ARRAYSIZE(displayModes))) {
                                 settings.playerESP.trails.displayMode = static_cast<TrailDisplayMode>(displayModeInt);
                             }
                             ImGui::PopItemWidth();
