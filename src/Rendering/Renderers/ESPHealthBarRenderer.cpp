@@ -330,7 +330,7 @@ namespace kx {
         std::string text = std::to_string(percent) + "%";
 
         // 2. Calculate the text height for proper vertical centering
-        float finalFontSize = fontSize * RenderingLayout::HP_PERCENT_FONT_SIZE_MULTIPLIER;
+        float finalFontSize = fontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
         ImVec2 textSize = font->CalcTextSizeA(finalFontSize, FLT_MAX, 0.0f, text.c_str());
 

@@ -350,7 +350,7 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
     glm::vec2 anchorPos;
     if (entityContext.renderHealthBar) {
         // Calculate the DPS text height for proper vertical centering
-        float dpsFontSize = props.finalFontSize * CombatEffects::DPS_FONT_SIZE_MULTIPLIER;
+        float dpsFontSize = props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
         ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, ss.str().c_str());
 
@@ -368,7 +368,7 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
             std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f)) + "%";
 
             // Calculate the size of the HP text using the same font size it will be rendered with.
-            float hpFontSize = props.finalFontSize * RenderingLayout::HP_PERCENT_FONT_SIZE_MULTIPLIER;
+            float hpFontSize = props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
             ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.c_str());
 
             // Add the width of the HP text plus another padding amount to the total offset.
@@ -384,7 +384,7 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
     // --- RENDER LOGIC ---
     TextElement element(ss.str(), anchorPos, TextAnchor::Custom);
     element.SetAlignment(TextAlignment::Left);
-    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * CombatEffects::DPS_FONT_SIZE_MULTIPLIER);
+    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER);
     style.enableBackground = false;
     style.textColor = ESPBarColors::BURST_DPS_TEXT;
     element.SetStyle(style);
