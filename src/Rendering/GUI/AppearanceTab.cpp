@@ -59,7 +59,7 @@ namespace kx {
                         break;
                         
                     case DistanceCullingMode::CombatFocus:
-                        ImGui::SliderFloat("Object Distance Limit", &settings.distance.renderDistanceLimit, 20.0f, 600.0f, "%.0fm");
+                        ImGui::SliderFloat("Object Distance Limit", &settings.distance.renderDistanceLimit, 10.0f, 500.0f, "%.0fm");
                         if (ImGui::IsItemHovered()) {
                             ImGui::SetTooltip("Distance limit for Objects (Gadgets and Attack Targets). Players and NPCs are unlimited.");
                         }
