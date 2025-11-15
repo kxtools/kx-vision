@@ -65,26 +65,20 @@ private:
     /**
      * @brief Gather all visible layout elements and calculate their required size
      * @param request The layout request
-     * @param outAboveElements Elements to be positioned above the entity
-     * @param outBelowElements Elements to be positioned below the entity
+     * @param outLayoutStack Elements to be positioned in the layout stack (stacked downward from anchor)
      */
     static void GatherLayoutElements(
         const LayoutRequest& request,
-        std::vector<std::pair<LayoutElementKey, ImVec2>>& outAboveElements,
-        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outLayoutStack);
 
     // Helper functions for GatherLayoutElements
     static void GatherStatusBarElements(
         const LayoutRequest& request,
-        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
-    
-    static void GatherPlayerIdentityElements(
-        const LayoutRequest& request,
-        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outLayoutStack);
     
     static void GatherDetailElements(
         const LayoutRequest& request,
-        std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements);
+        std::vector<std::pair<LayoutElementKey, ImVec2>>& outLayoutStack);
 
     /**
      * @brief Calculate vertical stacking positions for a list of elements

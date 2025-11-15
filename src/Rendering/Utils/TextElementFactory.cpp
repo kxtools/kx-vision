@@ -3,6 +3,9 @@
 #include "../Data/PlayerRenderData.h"
 #include "../Utils/ESPConstants.h"
 #include "../Utils/ESPStyling.h"
+#include "../Utils/ESPFormatting.h"
+#include "../Utils/ColorConstants.h"
+#include "../Layout/LayoutCalculator.h"
 #include "../../Core/AppState.h"
 #include "../../Utils/UnitConversion.h"
 #include <sstream>
@@ -380,6 +383,48 @@ TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha, float fontSize) {
     style.enableBorder = false;
     
     return style;
+}
+
+TextElement TextElementFactory::CreateIdentityLine(const LayoutRequest& request, bool includeName, bool includeDistance) {
+    if (!includeName && !includeDistance) {
+        return TextElement("", {0,0});
+    }
+
+    const auto& entityContext = request.entityContext;
+    const auto& props = request.visualProps;
+
+    std::vector<TextSegment> segments;
+
+    // Add the Name segment
+    if (includeName) {
+        std::string entityName = "";
+        if (entityContext.entityType == ESPEntityType::Player) {
+            entityName = entityContext.playerName;
+            if (entityName.empty()) {
+                const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+                const char* profName = ESPFormatting::GetProfessionName(player->profession);
+                if (profName) entityName = profName;
+            }
+        }
+        segments.push_back({ entityName, props.fadedEntityColor });
+    }
+
+    // Add the Separator and Distance segments
+    if (includeDistance) {
+        if (includeName) {
+            segments.push_back({ " • ", ESPColors::DEFAULT_TEXT });
+        }
+        std::string formattedDistance = FormatDistance(entityContext.gameplayDistance);
+        segments.push_back({ formattedDistance, ESPColors::DEFAULT_TEXT });
+    }
+    
+    // Create and Style the TextElement
+    TextElement element(segments, {0,0});
+    TextStyle style = GetPlayerNameStyle(props.finalAlpha, props.fadedEntityColor, props.finalFontSize);
+    style.useCustomTextColor = true;
+    element.SetStyle(style);
+
+    return element;
 }
 
 } // namespace kx

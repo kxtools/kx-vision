@@ -41,7 +41,7 @@ private:
         const VisualProperties& props,
         const LayoutResult& layout);
     
-    static void RenderPlayerIdentity(
+    static void RenderPlayerGear(
         const FrameContext& context,
         const EntityRenderContext& entityContext,
         const VisualProperties& props,

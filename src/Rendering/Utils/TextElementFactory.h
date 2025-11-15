@@ -12,6 +12,7 @@ namespace kx {
 struct ColoredDetail;
 struct CompactStatInfo;
 struct DominantStat;
+struct LayoutRequest;
 
 /**
  * @brief Helper factory functions for creating common text elements
@@ -82,6 +83,15 @@ public:
     static TextElement CreateDominantStatsAt(const std::vector<DominantStat>& stats, Game::ItemRarity topRarity, const glm::vec2& position, float fadeAlpha, float fontSize);
     
     static TextElement CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
+
+    /**
+     * @brief Create a merged identity line (name + distance) text element
+     * @param request The layout request containing entity and visual data
+     * @param includeName Whether to include the entity name
+     * @param includeDistance Whether to include the distance
+     * @return Styled text element with merged name and distance
+     */
+    static TextElement CreateIdentityLine(const LayoutRequest& request, bool includeName, bool includeDistance);
 
     /**
      * @brief Get default style for player names

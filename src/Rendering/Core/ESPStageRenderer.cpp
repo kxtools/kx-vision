@@ -155,15 +155,32 @@ void ESPStageRenderer::RenderLayoutElements(
     const VisualProperties& props,
     const LayoutResult& layout)
 {
-    // RENDER ABOVE BOX ELEMENTS
-    if (entityContext.renderDistance && layout.HasElement(LayoutElementKey::Distance)) {
-        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::Distance);
-        ESPTextRenderer::RenderDistanceTextAt(context.drawList, position, entityContext.gameplayDistance, props.finalAlpha, props.finalFontSize);
+    // RENDER MERGED IDENTITY LINE (Name + Distance)
+    if (layout.HasElement(LayoutElementKey::PlayerName)) {
+        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::PlayerName);
+
+        // Determine if we should show the name and distance based on settings
+        bool showName = entityContext.renderPlayerName && entityContext.entityType == ESPEntityType::Player;
+        bool showDistance = entityContext.renderDistance;
+
+        // Create the final, styled TextElement for rendering
+        LayoutRequest tempRequest = { entityContext, props, context };
+        TextElement identityElement = TextElementFactory::CreateIdentityLine(tempRequest, showName, showDistance);
+
+        // Update its position and alignment
+        const auto& lines = identityElement.GetLines();
+        TextElement finalElement(lines, position, TextAnchor::AbsoluteTopLeft);
+        finalElement.SetAlignment(TextAlignment::Center);
+        TextStyle style = TextElementFactory::GetPlayerNameStyle(props.finalAlpha, props.fadedEntityColor, props.finalFontSize);
+        style.useCustomTextColor = true;
+        finalElement.SetStyle(style);
+
+        TextRenderer::Render(context.drawList, finalElement);
     }
 
-    // RENDER BELOW BOX ELEMENTS using helper functions
+    // RENDER REMAINING ELEMENTS using helper functions
     RenderStatusBars(context, entityContext, props, layout);
-    RenderPlayerIdentity(context, entityContext, props, layout);
+    RenderPlayerGear(context, entityContext, props, layout);
     RenderEntityDetails(context, entityContext, props, layout);
 
     // RENDER DEPENDENT ELEMENTS
@@ -202,33 +219,12 @@ void ESPStageRenderer::RenderStatusBars(
     }
 }
 
-void ESPStageRenderer::RenderPlayerIdentity(
+void ESPStageRenderer::RenderPlayerGear(
     const FrameContext& context,
     const EntityRenderContext& entityContext,
     const VisualProperties& props,
     const LayoutResult& layout)
 {
-    // Player Name (fallback to profession if name is empty)
-    if (entityContext.renderPlayerName) {
-        std::string displayName = entityContext.playerName;
-        
-        // Fallback to profession for hostile players without names (WvW)
-        if (displayName.empty() && entityContext.entityType == ESPEntityType::Player) {
-            const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-            if (player != nullptr) {
-                const char* profName = ESPFormatting::GetProfessionName(player->profession);
-                if (profName != nullptr) {
-                    displayName = profName;
-                }
-            }
-        }
-        
-        if (!displayName.empty() && layout.HasElement(LayoutElementKey::PlayerName)) {
-            glm::vec2 position = layout.GetElementPosition(LayoutElementKey::PlayerName);
-            ESPTextRenderer::RenderPlayerNameAt(context.drawList, position, displayName, props.fadedEntityColor, props.finalFontSize);
-        }
-    }
-
     // Player Gear (Players only)
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
@@ -353,8 +349,19 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
     // --- ANCHORING LOGIC ---
     glm::vec2 anchorPos;
     if (entityContext.renderHealthBar) {
-        // Base anchor is vertically centered on the bar.
-        anchorPos = { layout.healthBarAnchor.x + props.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, layout.healthBarAnchor.y + props.finalHealthBarHeight / 2.0f };
+        // Calculate the DPS text height for proper vertical centering
+        float dpsFontSize = props.finalFontSize * CombatEffects::DPS_FONT_SIZE_MULTIPLIER;
+        ImFont* font = ImGui::GetFont();
+        ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, ss.str().c_str());
+
+        // Calculate the bar's center Y position
+        float barCenterY = layout.healthBarAnchor.y + props.finalHealthBarHeight / 2.0f;
+        
+        // Base anchor is horizontally positioned, vertically centered on the bar
+        anchorPos = { 
+            layout.healthBarAnchor.x + props.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, 
+            barCenterY - (dpsTextSize.y / 2.0f) // Adjust for text height to achieve perfect centering
+        };
 
         // If the HP% text is also being rendered, calculate its width and add it to our offset.
         if (entityContext.renderHealthPercentage && healthPercent >= 0.0f) {
@@ -362,7 +369,6 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
 
             // Calculate the size of the HP text using the same font size it will be rendered with.
             float hpFontSize = props.finalFontSize * RenderingLayout::HP_PERCENT_FONT_SIZE_MULTIPLIER;
-            ImFont* font = ImGui::GetFont();
             ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.c_str());
 
             // Add the width of the HP text plus another padding amount to the total offset.

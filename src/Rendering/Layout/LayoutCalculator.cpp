@@ -33,18 +33,15 @@ LayoutResult LayoutCalculator::CalculateLayout(const LayoutRequest& request) {
     result.elementPositions.fill(glm::vec2(0.0f));
     result.hasElement.fill(false);
     
-    // Gather all elements that need layout
-    std::vector<std::pair<LayoutElementKey, ImVec2>> aboveBoxElements;
-    std::vector<std::pair<LayoutElementKey, ImVec2>> belowBoxElements;
-    GatherLayoutElements(request, aboveBoxElements, belowBoxElements);
+    // Define the single, universal anchor point at the entity's projected origin
+    glm::vec2 infoAnchor = { request.visualProps.screenPos.x, request.visualProps.screenPos.y };
 
-    // Calculate positions for elements below the box
-    glm::vec2 belowBoxAnchor = { request.visualProps.center.x, request.visualProps.boxMax.y };
-    CalculateVerticalStack(belowBoxAnchor, belowBoxElements, result.elementPositions, result.hasElement, false);
+    // Gather all elements that need layout into a single stack
+    std::vector<std::pair<LayoutElementKey, ImVec2>> layoutStack;
+    GatherLayoutElements(request, layoutStack);
 
-    // Calculate positions for elements above the box
-    glm::vec2 aboveBoxAnchor = { request.visualProps.center.x, request.visualProps.boxMin.y };
-    CalculateVerticalStack(aboveBoxAnchor, aboveBoxElements, result.elementPositions, result.hasElement, true);
+    // Calculate positions for all elements, stacking downward from the anchor
+    CalculateVerticalStack(infoAnchor, layoutStack, result.elementPositions, result.hasElement, false);
 
     // Set health bar anchor for dependent elements
     if (result.HasElement(LayoutElementKey::HealthBar)) {
@@ -57,29 +54,79 @@ LayoutResult LayoutCalculator::CalculateLayout(const LayoutRequest& request) {
 
 void LayoutCalculator::GatherLayoutElements(
     const LayoutRequest& request,
-    std::vector<std::pair<LayoutElementKey, ImVec2>>& outAboveElements,
-    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outLayoutStack)
 {
     const auto& entityContext = request.entityContext;
     const auto& props = request.visualProps;
     const auto& context = request.frameContext;
 
-    // --- GATHER ABOVE BOX ELEMENTS ---
-    if (entityContext.renderDistance) {
-        TextElement element = TextElementFactory::CreateDistanceTextAt(entityContext.gameplayDistance, {0,0}, 0, props.finalFontSize);
-        ImVec2 size = TextRenderer::CalculateSize(element);
-        outAboveElements.push_back({LayoutElementKey::Distance, size});
+    // --- MERGED IDENTITY LINE (Name + Distance) ---
+    std::string entityName = "";
+    bool showName = false;
+    bool showDistance = entityContext.renderDistance;
+
+    // Determine the name and if it should be shown
+    switch (entityContext.entityType) {
+        case ESPEntityType::Player:
+            if (entityContext.renderPlayerName) {
+                entityName = entityContext.playerName;
+                // Fallback for anonymous hostile players in WvW
+                if (entityName.empty()) {
+                    const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+                    const char* profName = ESPFormatting::GetProfessionName(player->profession);
+                    if (profName) entityName = profName;
+                }
+                showName = !entityName.empty();
+            }
+            break;
+        case ESPEntityType::NPC:
+        case ESPEntityType::Gadget:
+            // For non-players, the "name" is part of the details panel.
+            // For this layout, we only show Name for Players.
+            break;
     }
 
-    // --- GATHER BELOW BOX ELEMENTS using helper functions ---
-    GatherStatusBarElements(request, outBelowElements);
-    GatherPlayerIdentityElements(request, outBelowElements);
-    GatherDetailElements(request, outBelowElements);
+    // Create the merged identity line element
+    if (showName || showDistance) {
+        TextElement identityElement = TextElementFactory::CreateIdentityLine(request, showName, showDistance);
+        ImVec2 size = TextRenderer::CalculateSize(identityElement);
+        // Reuse PlayerName key for the merged identity line
+        outLayoutStack.push_back({LayoutElementKey::PlayerName, size});
+    }
+
+    // --- GATHER REMAINING ELEMENTS ---
+    GatherStatusBarElements(request, outLayoutStack);
+    
+    // Player Gear/Attribute Summary (gathered before details panel)
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        if (player != nullptr) {
+            switch (entityContext.playerGearDisplayMode) {
+                case GearDisplayMode::Compact: {
+                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
+                    TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);
+                    outLayoutStack.push_back({LayoutElementKey::GearSummary, TextRenderer::CalculateSize(element)});
+                    break;
+                }
+                case GearDisplayMode::Attributes: {
+                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
+                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
+                    TextElement element = TextElementFactory::CreateDominantStats(stats, rarity, {0,0}, 0, props.finalFontSize);
+                    outLayoutStack.push_back({LayoutElementKey::DominantStats, TextRenderer::CalculateSize(element)});
+                    break;
+                }
+                default: break;
+            }
+        }
+    }
+    
+    // Details Panel (gathered last to ensure it's always at the bottom of the stack)
+    GatherDetailElements(request, outLayoutStack);
 }
 
 void LayoutCalculator::GatherStatusBarElements(
     const LayoutRequest& request,
-    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outLayoutStack)
 {
     const auto& entityContext = request.entityContext;
     const auto& props = request.visualProps;
@@ -91,7 +138,7 @@ void LayoutCalculator::GatherStatusBarElements(
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
     if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar) {
         ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};
-        outBelowElements.push_back({LayoutElementKey::HealthBar, size});
+        outLayoutStack.push_back({LayoutElementKey::HealthBar, size});
     }
 
     // Energy Bar (Players only)
@@ -99,69 +146,16 @@ void LayoutCalculator::GatherStatusBarElements(
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
-            ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight}; // Assuming same size as health bar
-            outBelowElements.push_back({LayoutElementKey::EnergyBar, size});
+            ImVec2 size = {props.finalHealthBarWidth, props.finalHealthBarHeight};
+            outLayoutStack.push_back({LayoutElementKey::EnergyBar, size});
         }
     }
 }
 
-void LayoutCalculator::GatherPlayerIdentityElements(
-    const LayoutRequest& request,
-    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
-{
-    const auto& entityContext = request.entityContext;
-    const auto& props = request.visualProps;
-    const auto& context = request.frameContext;
-
-    // Player Name (fallback to profession if name is empty)
-    if (entityContext.renderPlayerName) {
-        std::string displayName = entityContext.playerName;
-        
-        // Fallback to profession for hostile players without names (WvW)
-        if (displayName.empty() && entityContext.entityType == ESPEntityType::Player) {
-            const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-            if (player != nullptr) {
-                const char* profName = ESPFormatting::GetProfessionName(player->profession);
-                if (profName != nullptr) {
-                    displayName = profName;
-                }
-            }
-        }
-        
-        if (!displayName.empty()) {
-            TextElement element = TextElementFactory::CreatePlayerName(displayName, {0,0}, 0, 0, props.finalFontSize);
-            ImVec2 size = TextRenderer::CalculateSize(element);
-            outBelowElements.push_back({LayoutElementKey::PlayerName, size});
-        }
-    }
-
-    // Player Gear (Players only)
-    if (entityContext.entityType == ESPEntityType::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        if (player != nullptr) {
-            switch (entityContext.playerGearDisplayMode) {
-                case GearDisplayMode::Compact: {
-                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
-                    TextElement element = TextElementFactory::CreateGearSummary(summary, {0,0}, 0, props.finalFontSize);
-                    outBelowElements.push_back({LayoutElementKey::GearSummary, TextRenderer::CalculateSize(element)});
-                    break;
-                }
-                case GearDisplayMode::Attributes: {
-                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
-                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
-                    TextElement element = TextElementFactory::CreateDominantStats(stats, rarity, {0,0}, 0, props.finalFontSize);
-                    outBelowElements.push_back({LayoutElementKey::DominantStats, TextRenderer::CalculateSize(element)});
-                    break;
-                }
-                default: break;
-            }
-        }
-    }
-}
 
 void LayoutCalculator::GatherDetailElements(
     const LayoutRequest& request,
-    std::vector<std::pair<LayoutElementKey, ImVec2>>& outBelowElements)
+    std::vector<std::pair<LayoutElementKey, ImVec2>>& outLayoutStack)
 {
     const auto& entityContext = request.entityContext;
     const auto& props = request.visualProps;
@@ -170,7 +164,7 @@ void LayoutCalculator::GatherDetailElements(
     if (entityContext.renderDetails && !entityContext.details.empty()) {
         TextElement element = TextElementFactory::CreateDetailsText(entityContext.details, {0,0}, 0, props.finalFontSize);
         ImVec2 size = TextRenderer::CalculateSize(element);
-        outBelowElements.push_back({LayoutElementKey::Details, size});
+        outLayoutStack.push_back({LayoutElementKey::Details, size});
     }
 }
 
@@ -184,7 +178,7 @@ void LayoutCalculator::CalculateVerticalStack(
     float currentY = startAnchor.y;
     float direction = stackUpwards ? -1.0f : 1.0f;
 
-    // Start with a larger margin from the box itself.
+    // Add initial margin from the anchor point.
     currentY += RenderingLayout::REGION_MARGIN_VERTICAL * direction;
 
     for (const auto& item : elements) {

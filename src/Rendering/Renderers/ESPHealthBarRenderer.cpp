@@ -11,6 +11,7 @@
 #include "../Utils/EntityVisualsCalculator.h"
 #include "../Data/TextElement.h"
 #include "TextRenderer.h"
+#include "../Utils/LayoutConstants.h"
 #include "../../Core/AppState.h"
 
 namespace kx {
@@ -324,24 +325,30 @@ namespace kx {
 
     void ESPHealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha)
     {
-        // 1. Format the percentage string (unchanged)
+        // 1. Format the percentage string
         int percent = static_cast<int>(healthPercent * 100.0f);
-        std::string text = std::to_string(percent); // Let's drop the "%" for an even cleaner look
+        std::string text = std::to_string(percent);
 
-        // 2. Define the anchor point: to the right of the bar, vertically centered.
+        // 2. Calculate the text height for proper vertical centering
+        float finalFontSize = fontSize * RenderingLayout::HP_PERCENT_FONT_SIZE_MULTIPLIER;
+        ImFont* font = ImGui::GetFont();
+        ImVec2 textSize = font->CalcTextSizeA(finalFontSize, FLT_MAX, 0.0f, text.c_str());
+
+        // 3. Define the anchor point: to the right of the bar, vertically centered
         const float padding = 5.0f; // 5px gap between the bar and the text
+        float barCenterY = barMin.y + (barMax.y - barMin.y) * 0.5f;
         glm::vec2 anchor(
             barMax.x + padding,
-            barMin.y + (barMax.y - barMin.y) * 0.5f // Vertical center of the bar
+            barCenterY - (textSize.y / 2.0f) // Adjust for text height to achieve perfect centering
         );
 
-        // 3. Create the TextElement. We must align it to the left.
+        // 4. Create the TextElement. We must align it to the left.
         TextElement element(text, anchor, TextAnchor::Custom);
-        element.SetAlignment(TextAlignment::Left); // Anchor is on the left of the text
+        element.SetAlignment(TextAlignment::Left);
 
-        // 4. Define a style for high-contrast text (the previous style is still great)
+        // 5. Define a style for high-contrast text
         TextStyle style;
-        style.fontSize = fontSize * 0.8f; // Keep it slightly smaller and subtle
+        style.fontSize = finalFontSize;
         style.textColor = IM_COL32(255, 255, 255, 255); // Pure white
         style.enableBackground = false; // No background box
         style.enableShadow = true;
@@ -350,7 +357,7 @@ namespace kx {
 
         element.SetStyle(style);
 
-        // 5. Render using the global TextRenderer (unchanged)
+        // 6. Render using the global TextRenderer
         TextRenderer::Render(dl, element);
     }
 
