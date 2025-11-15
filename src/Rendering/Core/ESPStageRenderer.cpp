@@ -365,7 +365,7 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
 
         // If the HP% text is also being rendered, calculate its width and add it to our offset.
         if (entityContext.renderHealthPercentage && healthPercent >= 0.0f) {
-            std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f));
+            std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f)) + "%";
 
             // Calculate the size of the HP text using the same font size it will be rendered with.
             float hpFontSize = props.finalFontSize * RenderingLayout::HP_PERCENT_FONT_SIZE_MULTIPLIER;

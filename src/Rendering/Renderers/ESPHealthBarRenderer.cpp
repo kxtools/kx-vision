@@ -327,7 +327,7 @@ namespace kx {
     {
         // 1. Format the percentage string
         int percent = static_cast<int>(healthPercent * 100.0f);
-        std::string text = std::to_string(percent);
+        std::string text = std::to_string(percent) + "%";
 
         // 2. Calculate the text height for proper vertical centering
         float finalFontSize = fontSize * RenderingLayout::HP_PERCENT_FONT_SIZE_MULTIPLIER;
