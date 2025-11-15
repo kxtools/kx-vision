@@ -18,13 +18,11 @@ namespace { // Anonymous namespace for local helpers
 } // anonymous namespace
 
 std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const RenderableEntity& entity,
-                                                                   Camera& camera,
-                                                                   float screenWidth,
-                                                                   float screenHeight) {
+                                                                   const FrameContext& context) {
     VisualProperties props;
 
     // 1. Check if entity is on screen
-    if (!IsEntityOnScreen(entity, camera, screenWidth, screenHeight, props.screenPos)) {
+    if (!IsEntityOnScreen(entity, context.camera, context.screenWidth, context.screenHeight, props.screenPos)) {
         return std::nullopt; // Entity is not visible
     }
 
@@ -32,11 +30,11 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     unsigned int color = ESPStyling::GetEntityColor(entity);
 
     // 2. Calculate distance-based fade alpha
-    const auto& settings = AppState::Get().GetSettings();
-    bool useLimitMode = settings.distance.ShouldLimitEntityType(entity.entityType);
+    float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
+    bool useLimitMode = activeLimit > 0.0f;
     props.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance,
                                                          useLimitMode,
-                                                         settings.distance.renderDistanceLimit);
+                                                         activeLimit > 0.0f ? activeLimit : context.settings.distance.renderDistanceLimit);
 
     if (props.distanceFadeAlpha <= 0.0f) {
         return std::nullopt; // Entity is fully transparent
@@ -46,7 +44,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(color, props.distanceFadeAlpha);
 
     // 4. Calculate distance-based scale
-    props.scale = CalculateEntityScale(entity.visualDistance, entity.entityType);
+    props.scale = CalculateEntityScale(entity.visualDistance, entity.entityType, context);
 
     // 5. Calculate adaptive alpha
     float normalizedDistance = 0.0f;
@@ -116,8 +114,8 @@ bool EntityVisualsCalculator::IsEntityOnScreen(const RenderableEntity& entity, C
     return true;
 }
 
-float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityType entityType) {
-    const auto& settings = AppState::Get().GetSettings();
+float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityType entityType, const FrameContext& context) {
+    const auto& settings = context.settings;
     
     // Calculate the effective distance, which only starts counting after the "dead zone"
     float effectiveDistance = (std::max)(0.0f, visualDistance - settings.scaling.scalingStartDistance);
@@ -125,7 +123,8 @@ float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEnt
     float distanceFactor;
     float scalingExponent;
 
-    bool useLimitMode = settings.distance.ShouldLimitEntityType(entityType);
+    float activeLimit = settings.distance.GetActiveDistanceLimit(entityType, context.isInWvW);
+    bool useLimitMode = activeLimit > 0.0f;
     if (useLimitMode) {
         // --- LIMIT MODE ---
         // Use the static, user-configured curve for the short 0-90m range

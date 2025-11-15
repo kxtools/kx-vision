@@ -8,6 +8,7 @@
 #include <Windows.h>
 
 #include "../../Core/AppState.h"
+#include "../../Core/AppLifecycleManager.h"
 #include "../../Utils/ObjectPool.h"
 #include "../Utils/ESPMath.h"
 #include "../Data/RenderableData.h"
@@ -74,7 +75,7 @@ void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentT
         
         // Stage 2: Filter
         PooledFrameRenderData filteredData;
-        ESPFilter::FilterPooledData(extractedData, *s_camera, filteredData, g_combatStateManager, frameContext.now);
+        ESPFilter::FilterPooledData(extractedData, frameContext, filteredData);
         
         // Stage 2.5: Calculate Visuals
         ESPVisualsProcessor::Process(frameContext, filteredData, s_processedRenderData);
@@ -100,6 +101,9 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     const uint64_t now = GetTickCount64();
     const float currentTimeSeconds = now / 1000.0f;
 
+    // Get the WvW state from the single source of truth.
+    bool isInWvW = g_App.GetMumbleLinkManager().isInWvW();
+
     // 1. Create the context for the current frame
     FrameContext frameContext = {
         now,
@@ -108,7 +112,8 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
         AppState::Get().GetSettings(),
         ImGui::GetBackgroundDrawList(),
         screenWidth,
-        screenHeight
+        screenHeight,
+        isInWvW
     };
 
     // 2. Run the low-frequency logic/update pipeline if needed

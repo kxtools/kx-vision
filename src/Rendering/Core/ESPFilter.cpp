@@ -1,6 +1,5 @@
 #include "ESPFilter.h"
 
-#include "AppState.h"
 #include "Utils/EntityFilter.h"
 #include "../Data/RenderableData.h"
 #include "../Combat/CombatStateManager.h"
@@ -26,7 +25,7 @@ namespace { // Anonymous namespace for local helpers
         RenderableEntity* entity,
         const glm::vec3& cameraPos,
         const glm::vec3& playerPos,
-        const DistanceSettings& distanceSettings
+        const FrameContext& context
     ) {
         if (!entity || !entity->isValid) {
             return false;
@@ -35,7 +34,8 @@ namespace { // Anonymous namespace for local helpers
         entity->visualDistance = glm::length(entity->position - cameraPos);
         entity->gameplayDistance = glm::length(entity->position - playerPos);
 
-        if (distanceSettings.ShouldLimitEntityType(entity->entityType) && entity->gameplayDistance > distanceSettings.renderDistanceLimit) {
+        float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity->entityType, context.isInWvW);
+        if (activeLimit > 0.0f && entity->gameplayDistance > activeLimit) {
             return false;
         }
 
@@ -44,75 +44,74 @@ namespace { // Anonymous namespace for local helpers
 
 } // anonymous namespace
 
-void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
-                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager, uint64_t now) {
+void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, const FrameContext& context,
+                                 PooledFrameRenderData& filteredData) {
     filteredData.Reset();
     
-    const auto& settings = AppState::Get().GetSettings();
-    const glm::vec3 playerPos = camera.GetPlayerPosition();
-    const glm::vec3 cameraPos = camera.GetCameraPosition();
+    const glm::vec3 playerPos = context.camera.GetPlayerPosition();
+    const glm::vec3 cameraPos = context.camera.GetCameraPosition();
     
     // Filter players
-    if (settings.playerESP.enabled) {
+    if (context.settings.playerESP.enabled) {
         filteredData.players.reserve(extractedData.players.size());
         for (RenderablePlayer* player : extractedData.players) {
             // Call the common helper function first
-            if (!PassesCommonFilters(player, cameraPos, playerPos, settings.distance)) {
+            if (!PassesCommonFilters(player, cameraPos, playerPos, context)) {
                 continue;
             }
             
             // Now, perform player-specific filtering
-            if (player->isLocalPlayer && !settings.playerESP.showLocalPlayer) continue;
+            if (player->isLocalPlayer && !context.settings.playerESP.showLocalPlayer) continue;
             
-            if (player->currentHealth <= 0.0f && !IsDeathAnimationPlaying(player->address, stateManager, now)) {
+            if (player->currentHealth <= 0.0f && !IsDeathAnimationPlaying(player->address, context.stateManager, context.now)) {
                 continue;
             }
             
-            if (!Filtering::EntityFilter::ShouldRenderPlayer(player->attitude, settings.playerESP)) continue;
+            if (!Filtering::EntityFilter::ShouldRenderPlayer(player->attitude, context.settings.playerESP)) continue;
             
             filteredData.players.push_back(player);
         }
     }
     
     // Filter NPCs
-    if (settings.npcESP.enabled) {
+    if (context.settings.npcESP.enabled) {
         filteredData.npcs.reserve(extractedData.npcs.size());
         for (RenderableNpc* npc : extractedData.npcs) {
             // Call the common helper function first
-            if (!PassesCommonFilters(npc, cameraPos, playerPos, settings.distance)) {
+            if (!PassesCommonFilters(npc, cameraPos, playerPos, context)) {
                 continue;
             }
             
             // Now, perform NPC-specific filtering
-            if (npc->currentHealth <= 0.0f && !settings.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc->address, stateManager, now)) {
+            if (npc->currentHealth <= 0.0f && !context.settings.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc->address, context.stateManager, context.now)) {
                 continue;
             }
             
-            if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, npc->rank, settings.npcESP)) continue;
+            if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, npc->rank, context.settings.npcESP)) continue;
             
             filteredData.npcs.push_back(npc);
         }
     }
     
     // Filter gadgets
-    if (settings.objectESP.enabled) {
+    if (context.settings.objectESP.enabled) {
         filteredData.gadgets.reserve(extractedData.gadgets.size());
         for (RenderableGadget* gadget : extractedData.gadgets) {
             // Call the common helper function first
-            if (!PassesCommonFilters(gadget, cameraPos, playerPos, settings.distance)) {
+            if (!PassesCommonFilters(gadget, cameraPos, playerPos, context)) {
                 continue;
             }
 
             // Now, perform gadget-specific filtering
-            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !settings.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget->address, stateManager, now)) {
+            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !context.settings.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget->address, context.stateManager, context.now)) {
                 continue;
             }
 
-            if (settings.hideDepletedNodes && gadget->type == Game::GadgetType::ResourceNode && !gadget->isGatherable) {
+            if (context.settings.hideDepletedNodes && gadget->type == Game::GadgetType::ResourceNode && !gadget->isGatherable) {
                 continue;
             }
             
-            if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, settings.objectESP)) continue;
+            if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, context.settings.objectESP)) continue;
             
             // Note: Max height check is handled in context factory to disable box rendering only
             // Entity is still rendered with other visualizations (circles, dots, details, etc.)
@@ -122,16 +121,16 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, Cam
     }
     
     // Filter attack targets
-    if (settings.objectESP.enabled && settings.objectESP.showAttackTargetList) {
+    if (context.settings.objectESP.enabled && context.settings.objectESP.showAttackTargetList) {
         filteredData.attackTargets.reserve(extractedData.attackTargets.size());
         for (RenderableAttackTarget* attackTarget : extractedData.attackTargets) {
             // Call the common helper function first
-            if (!PassesCommonFilters(attackTarget, cameraPos, playerPos, settings.distance)) {
+            if (!PassesCommonFilters(attackTarget, cameraPos, playerPos, context)) {
                 continue;
             }
 
             // Filter by combat state if enabled
-            if (settings.objectESP.showAttackTargetListOnlyInCombat) {
+            if (context.settings.objectESP.showAttackTargetListOnlyInCombat) {
                 if (attackTarget->combatState != Game::AttackTargetCombatState::InCombat) {
                     continue;
                 }

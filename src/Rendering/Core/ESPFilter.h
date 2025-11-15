@@ -12,12 +12,11 @@ public:
     /**
      * @brief OPTIMIZED filter method - filters already pooled data (no object allocations)
      * @param extractedData Input pooled data from extraction
-     * @param camera Camera for distance calculations
+     * @param context Frame context containing camera, settings, game state, etc.
      * @param filteredData Output filtered pooled data
-     * @param stateManager The combat state manager for state-aware filtering
      */
-    static void FilterPooledData(const PooledFrameRenderData& extractedData, Camera& camera,
-                                 PooledFrameRenderData& filteredData, const CombatStateManager& stateManager, uint64_t now);
+    static void FilterPooledData(const PooledFrameRenderData& extractedData, const FrameContext& context,
+                                 PooledFrameRenderData& filteredData);
 
 };
 

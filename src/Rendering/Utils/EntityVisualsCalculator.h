@@ -42,15 +42,11 @@ public:
      * returns std::nullopt.
      * 
      * @param entity The entity to process
-     * @param camera Camera for world-to-screen projection
-     * @param screenWidth Screen width in pixels
-     * @param screenHeight Screen height in pixels
+     * @param context Frame context containing camera, settings, game state, etc.
      * @return Visual properties if entity should be rendered, nullopt otherwise
      */
     static std::optional<VisualProperties> Calculate(const RenderableEntity& entity,
-                                                     Camera& camera,
-                                                     float screenWidth,
-                                                     float screenHeight);
+                                                     const FrameContext& context);
 
     /**
      * @brief Calculate a font size multiplier for the damage number based on the damage value.
@@ -114,9 +110,10 @@ private:
      * @brief Calculate distance-based scale factor for entity rendering
      * @param visualDistance Visual distance from camera
      * @param entityType Type of entity (affects which scaling curve is used)
+     * @param context Frame context containing settings and game state
      * @return Clamped scale factor (between espMinScale and espMaxScale)
      */
-    static float CalculateEntityScale(float visualDistance, ESPEntityType entityType);
+    static float CalculateEntityScale(float visualDistance, ESPEntityType entityType, const FrameContext& context);
 
     /**
      * @brief Calculate box dimensions for entity based on type and scale

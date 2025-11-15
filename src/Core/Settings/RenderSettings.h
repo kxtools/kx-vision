@@ -2,6 +2,7 @@
 
 #include "../../libs/nlohmann/json.hpp"
 #include "../../Rendering/Data/ESPEntityTypes.h"
+#include "../../Rendering/GUI/UIConstants.h"
 
 namespace kx {
 
@@ -75,38 +76,41 @@ namespace kx {
         }
 
         /**
-         * @brief Determines if distance limit should be applied to a specific entity type based on the culling mode.
-         * This centralizes the entity-type-specific distance limiting logic used by both filtering and visual calculations.
-         * @param entityType The type of entity (Player, NPC, Gadget, AttackTarget)
-         * @return True if distance limit should be applied to this entity type, false otherwise
+         * @brief Gets the active distance limit for a specific entity type, considering the current mode and game context.
+         * This is the single source of truth for all distance culling logic.
+         * @param entityType The type of the entity being checked.
+         * @param isInWvW True if the player is currently on a WvW map.
+         * @return The distance limit in meters, or a value <= 0 if there is no limit.
          */
-        bool ShouldLimitEntityType(ESPEntityType entityType) const {
+        float GetActiveDistanceLimit(ESPEntityType entityType, bool isInWvW) const {
             switch (mode) {
                 case DistanceCullingMode::Natural:
-                    return true; // Always limit in Natural mode
+                    return isInWvW ? GUI::UIConstants::WVW_NATURAL_LIMIT : GUI::UIConstants::PVE_PVP_NATURAL_LIMIT;
 
                 case DistanceCullingMode::CombatFocus:
-                    // Limit only objects (Gadgets and AttackTargets)
-                    return (entityType == ESPEntityType::Gadget || entityType == ESPEntityType::AttackTarget);
+                    // In Combat Focus, only Objects are limited. Players/NPCs are unlimited.
+                    if (entityType == ESPEntityType::Gadget || entityType == ESPEntityType::AttackTarget) {
+                        return renderDistanceLimit;
+                    }
+                    return -1.0f; // No limit for Players/NPCs
 
                 case DistanceCullingMode::Unlimited:
-                    return false; // Never limit
+                    return -1.0f; // No limit for anything
 
                 case DistanceCullingMode::Custom:
-                    // Use the granular custom toggles
                     switch (entityType) {
                         case ESPEntityType::Player:
-                            return customLimitPlayers;
+                            return customLimitPlayers ? renderDistanceLimit : -1.0f;
                         case ESPEntityType::NPC:
-                            return customLimitNpcs;
+                            return customLimitNpcs ? renderDistanceLimit : -1.0f;
                         case ESPEntityType::Gadget:
                         case ESPEntityType::AttackTarget:
-                            return customLimitObjects;
+                            return customLimitObjects ? renderDistanceLimit : -1.0f;
                         default:
-                            return false;
+                            return -1.0f;
                     }
             }
-            return false; // Default fallback
+            return -1.0f; // Default to no limit
         }
     };
 

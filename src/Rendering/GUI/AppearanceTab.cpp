@@ -17,10 +17,9 @@ namespace kx {
                 
                 if (ImGui::RadioButton("Natural (Default)", &mode_int, static_cast<int>(DistanceCullingMode::Natural))) {
                     settings.distance.mode = DistanceCullingMode::Natural;
-                    settings.distance.renderDistanceLimit = 90.0f;
                 }
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Mimics the game's native 90m culling range for a clean, integrated experience. Recommended for PvE and exploration.");
+                    ImGui::SetTooltip("Automatically applies the game's natural culling distance. Uses 130m in WvW maps and 90m everywhere else.");
                 }
                 ImGui::SameLine();
                 
@@ -55,7 +54,7 @@ namespace kx {
                 // Context-aware controls based on selected mode
                 switch (settings.distance.mode) {
                     case DistanceCullingMode::Natural:
-                        settings.distance.renderDistanceLimit = 90.0f; // Silently enforce this
+                        // No UI controls needed. The backend handles the 90/130m logic via GetActiveDistanceLimit.
                         break;
                         
                     case DistanceCullingMode::CombatFocus:

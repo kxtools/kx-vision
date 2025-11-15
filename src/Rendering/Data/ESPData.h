@@ -73,6 +73,7 @@ struct FrameContext {
     ImDrawList* drawList;
     const float screenWidth;
     const float screenHeight;
+    const bool isInWvW; // Game context: true if player is on a WvW map
 };
 
 // NEW: FinalizedRenderable struct

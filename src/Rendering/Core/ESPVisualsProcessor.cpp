@@ -17,7 +17,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
     for (const auto* entity : filteredData.players) {
         if (!entity) continue;
 
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context.camera, context.screenWidth, context.screenHeight);
+        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
@@ -29,7 +29,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
     for (const auto* entity : filteredData.npcs) {
         if (!entity) continue;
 
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context.camera, context.screenWidth, context.screenHeight);
+        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
@@ -41,7 +41,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
     for (const auto* entity : filteredData.gadgets) {
         if (!entity) continue;
 
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context.camera, context.screenWidth, context.screenHeight);
+        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
@@ -53,7 +53,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
     for (const auto* entity : filteredData.attackTargets) {
         if (!entity) continue;
 
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context.camera, context.screenWidth, context.screenHeight);
+        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
