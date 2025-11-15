@@ -108,7 +108,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         .healthBarAnim = animState,
         .renderGadgetSphere = false,
         .renderGadgetCircle = false,
-        .playerGearDisplayMode = context.settings.playerESP.gearDisplayMode,
+        .playerGearDisplayMode = context.settings.playerESP.enableGearDisplay ? context.settings.playerESP.gearDisplayMode : GearDisplayMode::Compact,
         .playerEnergyDisplayType = context.settings.playerESP.energyDisplayType,
         .showCombatUI = true,
         .showDamageNumbers = context.settings.playerESP.showDamageNumbers,
@@ -154,7 +154,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         .healthBarAnim = animState,
         .renderGadgetSphere = false,
         .renderGadgetCircle = false,
-        .playerGearDisplayMode = GearDisplayMode::Off,
+        .playerGearDisplayMode = GearDisplayMode::Compact,
         .playerEnergyDisplayType = EnergyDisplayType::Special,
         .showCombatUI = true,
         .showDamageNumbers = context.settings.npcESP.showDamageNumbers,
@@ -216,7 +216,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         .healthBarAnim = animState,
         .renderGadgetSphere = context.settings.objectESP.renderSphere,
         .renderGadgetCircle = context.settings.objectESP.renderCircle,
-        .playerGearDisplayMode = GearDisplayMode::Off,
+        .playerGearDisplayMode = GearDisplayMode::Compact,
         .playerEnergyDisplayType = EnergyDisplayType::Special,
         .showCombatUI = !hideCombatUI,
         .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
@@ -275,7 +275,7 @@ EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const Render
         .healthBarAnim = animState,
         .renderGadgetSphere = context.settings.objectESP.renderSphere,
         .renderGadgetCircle = context.settings.objectESP.renderCircle,
-        .playerGearDisplayMode = GearDisplayMode::Off,
+        .playerGearDisplayMode = GearDisplayMode::Compact,
         .playerEnergyDisplayType = EnergyDisplayType::Special,
         .showCombatUI = !hideCombatUI,
         .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
@@ -291,7 +291,7 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
         {
             const auto* player = static_cast<const RenderablePlayer*>(entity);
             details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
-            if (context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
+            if (context.settings.playerESP.enableGearDisplay && context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
                 auto gearDetails = ESPPlayerDetailsBuilder::BuildGearDetails(player);
                 if (!gearDetails.empty()) {
                     if (!details.empty()) {

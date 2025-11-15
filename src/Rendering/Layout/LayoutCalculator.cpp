@@ -98,7 +98,7 @@ void LayoutCalculator::GatherLayoutElements(
     GatherStatusBarElements(request, outLayoutStack);
     
     // Player Gear/Attribute Summary (gathered before details panel)
-    if (entityContext.entityType == ESPEntityType::Player) {
+    if (entityContext.entityType == ESPEntityType::Player && context.settings.playerESP.enableGearDisplay) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         if (player != nullptr) {
             switch (entityContext.playerGearDisplayMode) {

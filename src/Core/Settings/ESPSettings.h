@@ -41,7 +41,8 @@ namespace kx {
         bool showOnlyDamaged = false;
         bool showHealthPercentage = false;
         bool showLocalPlayer = false; // Hide local player by default
-        GearDisplayMode gearDisplayMode = GearDisplayMode::Off;
+        bool enableGearDisplay = false;
+        GearDisplayMode gearDisplayMode = GearDisplayMode::Compact;
         EnergyDisplayType energyDisplayType = EnergyDisplayType::Special;
         // Detail-field filters
         bool showDetailLevel = true;
@@ -59,7 +60,7 @@ namespace kx {
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerEspSettings, enabled, renderBox, renderWireframe, renderDistance, renderDot, renderDetails,
                                        renderHealthBar, renderEnergyBar, renderPlayerName, showBurstDps,
                                        showDamageNumbers, showOnlyDamaged, showHealthPercentage, showLocalPlayer,
-                                       gearDisplayMode, energyDisplayType, showDetailLevel, showDetailHp,
+                                       enableGearDisplay, gearDisplayMode, energyDisplayType, showDetailLevel, showDetailHp,
                                        showDetailAttitude, showDetailEnergy, showDetailPosition, showDetailRank,
                                        showDetailProfession, showDetailRace, hostileBoostMultiplier, showFriendly, showHostile, showNeutral,
                                        showIndifferent, trails);

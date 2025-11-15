@@ -9,65 +9,70 @@ namespace kx {
         void RenderPlayersTab() {
             if (ImGui::BeginTabItem("Players")) {
                 auto& settings = AppState::Get().GetSettings();
-                
+
                 ImGui::Checkbox("Enable Player ESP", &settings.playerESP.enabled);
-                
+
                 if (settings.playerESP.enabled) {
                     ImGui::Separator();
-                    if (ImGui::CollapsingHeader("Attitude Filter"))
-                    {
+
+                    // --- PILLAR 1: FILTERING (Who to show) ---
+                    if (ImGui::CollapsingHeader("Filtering", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::SeparatorText("Attitude Filter");
                         ImGui::Checkbox("Show Friendly", &settings.playerESP.showFriendly); ImGui::SameLine();
                         ImGui::Checkbox("Show Hostile", &settings.playerESP.showHostile); ImGui::SameLine();
                         ImGui::Checkbox("Show Neutral", &settings.playerESP.showNeutral); ImGui::SameLine();
                         ImGui::Checkbox("Show Indifferent", &settings.playerESP.showIndifferent);
-                    }
 
-                    if (ImGui::CollapsingHeader("Combat Emphasis"))
-                    {
-                        ImGui::PushItemWidth(250.0f);
-                        ImGui::SliderFloat("Hostile Player Boost", &settings.playerESP.hostileBoostMultiplier, 1.0f, 3.0f, "%.1fx");
-                        ImGui::PopItemWidth();
-                        if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip(
-                                "Size multiplier for hostile player text and health bars.\n\n"
-                                "1.0x: No boost (uniform with other players)\n"
-                                "2.0x: Default (double size for combat awareness)\n"
-                                "3.0x: Maximum emphasis (triple size)\n\n"
-                                "Tip: Set to 1.0x for cleaner visuals, or increase for better combat clarity."
-                            );
-                        }
-                    }
-
-                    if (ImGui::CollapsingHeader("Player Filter Options", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::SeparatorText("Specific Players");
                         ImGui::Checkbox("Show Local Player", &settings.playerESP.showLocalPlayer);
                         if (ImGui::IsItemHovered()) {
                             ImGui::SetTooltip("Show your own character in the ESP overlay.");
                         }
-
-                        const char* energyTypes[] = { "Dodge", "Special/Mount" };
-                        int energyTypeInt = static_cast<int>(settings.playerESP.energyDisplayType);
-                        ImGui::PushItemWidth(250.0f);
-                        if (ImGui::Combo("Energy Bar Source", &energyTypeInt, energyTypes, IM_ARRAYSIZE(energyTypes))) {
-                            settings.playerESP.energyDisplayType = static_cast<EnergyDisplayType>(energyTypeInt);
-                        }
-                        ImGui::PopItemWidth();
-
-                        const char* gearModes[] = { "Off", "Compact (Top 3 Stat Sets)", "Compact (Top 3 Attributes)", "Detailed" };
-                        ImGui::PushItemWidth(250.0f);
-                        int gearModeInt = static_cast<int>(settings.playerESP.gearDisplayMode);
-                        if (ImGui::Combo("Gear Display", &gearModeInt, gearModes, IM_ARRAYSIZE(gearModes))) {
-                            settings.playerESP.gearDisplayMode = static_cast<GearDisplayMode>(gearModeInt);
-                        }
-                        ImGui::PopItemWidth();
                     }
 
-                    ImGui::Separator();
+                    // --- PILLAR 2: INFORMATION DISPLAY (What to show) ---
+                    if (ImGui::CollapsingHeader("Information Display", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::SeparatorText("Identity");
+                        ImGui::Checkbox("Show Player Name##Player", &settings.playerESP.renderPlayerName);
 
-                    if (ImGui::CollapsingHeader("Visual Style", ImGuiTreeNodeFlags_DefaultOpen)) {
-                        RenderPlayerStyleSettings(settings.playerESP);
-                    }
+                        ImGui::SeparatorText("Status Bars");
+                        ImGui::Checkbox("Show Health Bar##Player", &settings.playerESP.renderHealthBar);
+                        if (settings.playerESP.renderHealthBar) {
+                            ImGui::SameLine();
+                            ImGui::Checkbox("Show %##Player", &settings.playerESP.showHealthPercentage); ImGui::SameLine();
+                            ImGui::Checkbox("Only show damaged##Player", &settings.playerESP.showOnlyDamaged);
+                        }
 
-                    if (ImGui::CollapsingHeader("Detailed Information")) {
+                        ImGui::Checkbox("Show Energy Bar##Player", &settings.playerESP.renderEnergyBar);
+                        if (settings.playerESP.renderEnergyBar) {
+                            ImGui::Indent();
+                            ImGui::PushItemWidth(250.0f);
+                            const char* energyTypes[] = { "Dodge", "Special/Mount" };
+                            int energyTypeInt = static_cast<int>(settings.playerESP.energyDisplayType);
+                            if (ImGui::Combo("Source", &energyTypeInt, energyTypes, IM_ARRAYSIZE(energyTypes))) {
+                                settings.playerESP.energyDisplayType = static_cast<EnergyDisplayType>(energyTypeInt);
+                            }
+                            ImGui::PopItemWidth();
+                            ImGui::Unindent();
+                        }
+
+                        ImGui::SeparatorText("Analysis");
+                        ImGui::Checkbox("Enable Gear Display", &settings.playerESP.enableGearDisplay);
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Show an analysis of the player's equipped gear and stats.");
+                        }
+                        if (settings.playerESP.enableGearDisplay) {
+                            ImGui::Indent();
+                            ImGui::PushItemWidth(250.0f);
+                            const char* gearModes[] = { "Compact (Stat Sets)", "Compact (Attributes)", "Detailed" };
+                            int gearModeInt = static_cast<int>(settings.playerESP.gearDisplayMode);
+                            if (ImGui::Combo("Display Mode", &gearModeInt, gearModes, IM_ARRAYSIZE(gearModes))) {
+                                settings.playerESP.gearDisplayMode = static_cast<GearDisplayMode>(gearModeInt);
+                            }
+                            ImGui::PopItemWidth();
+                            ImGui::Unindent();
+                        }
+
                         ImGui::Checkbox("Show Details Panel", &settings.playerESP.renderDetails);
                         if (settings.playerESP.renderDetails) {
                             ImGui::Indent();
@@ -82,7 +87,35 @@ namespace kx {
                         }
                     }
 
-                    if (ImGui::CollapsingHeader("Movement Trails")) {
+                    // --- PILLAR 3: VISUAL STYLING (How it looks) ---
+                    if (ImGui::CollapsingHeader("Visual Styling", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        // The most common, pure styling options are presented first.
+                        ImGui::SeparatorText("Core Visuals");
+                        ImGui::Checkbox("Show Box##Player", &settings.playerESP.renderBox); ImGui::SameLine();
+                        ImGui::Checkbox("3D Wireframe##Player", &settings.playerESP.renderWireframe);
+                        ImGui::Checkbox("Show Dot##Player", &settings.playerESP.renderDot); ImGui::SameLine();
+                        ImGui::Checkbox("Show Distance##Player", &settings.playerESP.renderDistance);
+
+                        ImGui::SeparatorText("Floating Combat Text");
+                        ImGui::Checkbox("Show Damage Numbers##Player", &settings.playerESP.showDamageNumbers); ImGui::SameLine();
+                        ImGui::Checkbox("Show Burst DPS##Player", &settings.playerESP.showBurstDps);
+
+                        // We now use SeparatorText for clean, lightweight sub-grouping.
+                        ImGui::SeparatorText("Combat Emphasis");
+                        ImGui::PushItemWidth(250.0f);
+                        ImGui::SliderFloat("Hostile Player Boost", &settings.playerESP.hostileBoostMultiplier, 1.0f, 3.0f, "%.1fx");
+                        ImGui::PopItemWidth();
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip(
+                                "Size multiplier for hostile player text and health bars.\n\n"
+                                "1.0x: No boost (uniform with other players)\n"
+                                "2.0x: Default (double size for combat awareness)\n"
+                                "3.0x: Maximum emphasis (triple size)\n\n"
+                                "Tip: Set to 1.0x for cleaner visuals, or increase for better combat clarity."
+                            );
+                        }
+
+                        ImGui::SeparatorText("Movement Trails");
                         ImGui::Checkbox("Enable Trails", &settings.playerESP.trails.enabled);
                         if (ImGui::IsItemHovered()) {
                             ImGui::SetTooltip("Show smooth movement trails behind players for tactical awareness.");
