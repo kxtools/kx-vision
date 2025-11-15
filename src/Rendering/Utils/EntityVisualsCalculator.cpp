@@ -32,9 +32,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     // 2. Calculate distance-based fade alpha
     float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
     bool useLimitMode = activeLimit > 0.0f;
-    props.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance,
-                                                         useLimitMode,
-                                                         activeLimit > 0.0f ? activeLimit : context.settings.distance.renderDistanceLimit);
+    props.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance, useLimitMode, activeLimit);
 
     if (props.distanceFadeAlpha <= 0.0f) {
         return std::nullopt; // Entity is fully transparent
