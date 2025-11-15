@@ -8,23 +8,83 @@ namespace kx {
 
         // --- Helper Functions for Rendering UI Sections ---
 
-        // Renders the global settings like distance limit.
-        static void RenderGlobalSettings(Settings& settings) {
-            if (ImGui::CollapsingHeader("Global Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        // Renders all distance-related settings in a dedicated section.
+        static void RenderDistanceSettings(Settings& settings) {
+            if (ImGui::CollapsingHeader("Distance Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::SeparatorText("Culling Mode");
                 
-                // ===== DISTANCE SETTINGS =====
-                ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "Distance Settings");
-                ImGui::Spacing();
+                int mode_int = static_cast<int>(settings.distance.mode);
                 
-                ImGui::Checkbox("Use Distance Limit", &settings.distance.useDistanceLimit);
-                if (settings.distance.useDistanceLimit) {
-                    ImGui::SliderFloat("Render Distance Limit", &settings.distance.renderDistanceLimit, 10.0f, 500.0f, "%.0fm");
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("Entities beyond this distance will not be rendered based on gameplay distance (player-to-target).");
+                if (ImGui::RadioButton("Natural (Default)", &mode_int, static_cast<int>(DistanceCullingMode::Natural))) {
+                    settings.distance.mode = DistanceCullingMode::Natural;
+                    settings.distance.renderDistanceLimit = 90.0f;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Mimics the game's native 90m culling range for a clean, integrated experience. Recommended for PvE and exploration.");
+                }
+                ImGui::SameLine();
+                
+                if (ImGui::RadioButton("Combat Focus", &mode_int, static_cast<int>(DistanceCullingMode::CombatFocus))) {
+                    settings.distance.mode = DistanceCullingMode::CombatFocus;
+                    if (settings.distance.renderDistanceLimit < 100.0f) {
+                        settings.distance.renderDistanceLimit = 200.0f;
                     }
                 }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Removes the distance limit for Players & NPCs for maximum awareness, while keeping objects limited to reduce clutter. Ideal for PvP and WvW.");
+                }
+                ImGui::SameLine();
+                
+                if (ImGui::RadioButton("Unlimited", &mode_int, static_cast<int>(DistanceCullingMode::Unlimited))) {
+                    settings.distance.mode = DistanceCullingMode::Unlimited;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Shows all entities regardless of distance. Can increase screen clutter, but provides maximum information.");
+                }
+                ImGui::SameLine();
+                
+                if (ImGui::RadioButton("Custom", &mode_int, static_cast<int>(DistanceCullingMode::Custom))) {
+                    settings.distance.mode = DistanceCullingMode::Custom;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Manually configure distance limits for each entity type.");
+                }
+                
+                settings.distance.mode = static_cast<DistanceCullingMode>(mode_int);
+                
+                // Context-aware controls based on selected mode
+                switch (settings.distance.mode) {
+                    case DistanceCullingMode::Natural:
+                        settings.distance.renderDistanceLimit = 90.0f; // Silently enforce this
+                        break;
+                        
+                    case DistanceCullingMode::CombatFocus:
+                        ImGui::SliderFloat("Object Distance Limit", &settings.distance.renderDistanceLimit, 20.0f, 600.0f, "%.0fm");
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Distance limit for Objects (Gadgets and Attack Targets). Players and NPCs are unlimited.");
+                        }
+                        break;
+                        
+                    case DistanceCullingMode::Unlimited:
+                        break;
+                        
+                    case DistanceCullingMode::Custom:
+                        ImGui::Indent();
+                        ImGui::Checkbox("Limit Players", &settings.distance.customLimitPlayers);
+                        ImGui::Checkbox("Limit NPCs", &settings.distance.customLimitNpcs);
+                        ImGui::Checkbox("Limit Objects", &settings.distance.customLimitObjects);
+                        
+                        if (settings.distance.customLimitPlayers || settings.distance.customLimitNpcs || settings.distance.customLimitObjects) {
+                            ImGui::SliderFloat("Render Distance Limit", &settings.distance.renderDistanceLimit, 10.0f, 500.0f, "%.0fm");
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("Entities beyond this distance will not be rendered based on gameplay distance (player-to-target).");
+                            }
+                        }
+                        ImGui::Unindent();
+                        break;
+                }
 
-                ImGui::Separator();
+                ImGui::SeparatorText("Display Format");
                 
                 const char* displayModes[] = { "Meters", "GW2 Units", "Both" };
                 int currentMode = static_cast<int>(settings.distance.displayMode);
@@ -40,12 +100,13 @@ namespace kx {
                         "Note: 1 GW2 unit = 1 inch = 0.0254 meters"
                     );
                 }
+            }
+        }
 
-                // ===== APPEARANCE SETTINGS =====
-                ImGui::Separator();
-                ImGui::Spacing();
-                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.6f, 1.0f), "Appearance Settings");
-                ImGui::Spacing();
+        // Renders the global appearance settings (opacity, text styles).
+        static void RenderGlobalSettings(Settings& settings) {
+            if (ImGui::CollapsingHeader("Global Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::SeparatorText("General Appearance");
                 
                 float displayValue = settings.appearance.globalOpacity * 100.0f;
                 if (ImGui::SliderFloat("Global Opacity", &displayValue, 50.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp)) {
@@ -95,7 +156,7 @@ namespace kx {
                 }
 
                 // --- MODE-SPECIFIC CONTROLS ---
-                if (settings.distance.useDistanceLimit) {
+                if (settings.distance.IsInDistanceLimitMode()) {
                     // --- SETTINGS FOR "LIMIT MODE" ---
                     ImGui::Separator();
                     ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Render Limit Mode Scaling");
@@ -225,9 +286,7 @@ namespace kx {
             if (ImGui::BeginTabItem("Appearance")) {
                 auto& settings = AppState::Get().GetSettings();
 
-                ImGui::Text("Global Visual Style Settings");
-                ImGui::Separator();
-
+                RenderDistanceSettings(settings);
                 RenderGlobalSettings(settings);
                 RenderScalingSettings(settings);
                 RenderBaseSizeSettings(settings);

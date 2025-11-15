@@ -35,7 +35,7 @@ namespace { // Anonymous namespace for local helpers
         entity->visualDistance = glm::length(entity->position - cameraPos);
         entity->gameplayDistance = glm::length(entity->position - playerPos);
 
-        if (distanceSettings.useDistanceLimit && entity->gameplayDistance > distanceSettings.renderDistanceLimit) {
+        if (distanceSettings.ShouldLimitEntityType(entity->entityType) && entity->gameplayDistance > distanceSettings.renderDistanceLimit) {
             return false;
         }
 

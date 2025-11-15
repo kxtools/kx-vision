@@ -13,6 +13,9 @@
 
 namespace kx {
 
+namespace { // Anonymous namespace for local helpers
+
+} // anonymous namespace
 
 std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const RenderableEntity& entity,
                                                                    Camera& camera,
@@ -30,8 +33,9 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
 
     // 2. Calculate distance-based fade alpha
     const auto& settings = AppState::Get().GetSettings();
+    bool useLimitMode = settings.distance.ShouldLimitEntityType(entity.entityType);
     props.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance,
-                                                         settings.distance.useDistanceLimit,
+                                                         useLimitMode,
                                                          settings.distance.renderDistanceLimit);
 
     if (props.distanceFadeAlpha <= 0.0f) {
@@ -47,7 +51,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     // 5. Calculate adaptive alpha
     float normalizedDistance = 0.0f;
     props.finalAlpha = CalculateAdaptiveAlpha(entity.gameplayDistance, props.distanceFadeAlpha,
-                                             settings.distance.useDistanceLimit, entity.entityType,
+                                             useLimitMode, entity.entityType,
                                              normalizedDistance);
 
     // Removed: Hostile players now fade naturally with distance for better depth perception
@@ -121,7 +125,8 @@ float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEnt
     float distanceFactor;
     float scalingExponent;
 
-    if (settings.distance.useDistanceLimit) {
+    bool useLimitMode = settings.distance.ShouldLimitEntityType(entityType);
+    if (useLimitMode) {
         // --- LIMIT MODE ---
         // Use the static, user-configured curve for the short 0-90m range
         distanceFactor = settings.scaling.limitDistanceFactor;
