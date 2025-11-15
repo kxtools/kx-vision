@@ -29,6 +29,7 @@ namespace kx {
     struct PlayerEspSettings : AttitudeSettings {
         bool enabled = true;
         bool renderBox = false;
+        bool renderWireframe = false;
         bool renderDistance = false;
         bool renderDot = false;
         bool renderDetails = false;
@@ -55,7 +56,7 @@ namespace kx {
         TrailSettings trails;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerEspSettings, enabled, renderBox, renderDistance, renderDot, renderDetails,
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerEspSettings, enabled, renderBox, renderWireframe, renderDistance, renderDot, renderDetails,
                                        renderHealthBar, renderEnergyBar, renderPlayerName, showBurstDps,
                                        showDamageNumbers, showOnlyDamaged, showHealthPercentage, showLocalPlayer,
                                        gearDisplayMode, energyDisplayType, showDetailLevel, showDetailHp,
@@ -66,6 +67,7 @@ namespace kx {
     struct NpcEspSettings : AttitudeSettings {
         bool enabled = true;
         bool renderBox = false;
+        bool renderWireframe = false;
         bool renderDistance = false;
         bool renderDot = false;
         bool renderDetails = false;
@@ -91,7 +93,7 @@ namespace kx {
         bool showDetailPosition = true;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(NpcEspSettings, enabled, renderBox, renderDistance, renderDot, renderDetails,
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(NpcEspSettings, enabled, renderBox, renderWireframe, renderDistance, renderDot, renderDetails,
                                        renderHealthBar, showBurstDps, showDamageNumbers, showOnlyDamaged,
                                        showHealthPercentage, showLegendary, showChampion, showElite, showVeteran,
                                        showAmbient, showNormal, showDeadNpcs, showDetailLevel, showDetailHp,

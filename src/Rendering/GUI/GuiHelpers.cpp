@@ -7,6 +7,7 @@ namespace kx {
         void RenderPlayerStyleSettings(PlayerEspSettings& settings) {
             ImGui::SeparatorText("Core Visuals");
             ImGui::Checkbox("Show Box##Player", &settings.renderBox); ImGui::SameLine();
+            ImGui::Checkbox("3D Wireframe##Player", &settings.renderWireframe);
             ImGui::Checkbox("Show Dot##Player", &settings.renderDot); ImGui::SameLine();
             ImGui::Checkbox("Show Distance##Player", &settings.renderDistance);
 
@@ -30,6 +31,7 @@ namespace kx {
         void RenderNpcStyleSettings(NpcEspSettings& settings) {
             ImGui::SeparatorText("Core Visuals");
             ImGui::Checkbox("Show Box##NPC", &settings.renderBox); ImGui::SameLine();
+            ImGui::Checkbox("3D Wireframe##NPC", &settings.renderWireframe);
             ImGui::Checkbox("Show Dot##NPC", &settings.renderDot); ImGui::SameLine();
             ImGui::Checkbox("Show Distance##NPC", &settings.renderDistance);
 

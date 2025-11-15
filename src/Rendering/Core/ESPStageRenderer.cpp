@@ -280,8 +280,8 @@ void ESPStageRenderer::RenderStaticElements(
         ESPShapeRenderer::RenderBoundingBox(context.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
     }
 
-    // 3D Wireframe Box for gadgets
-    if ((entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget) && entityContext.renderWireframe) {
+    // 3D Wireframe Box
+    if (entityContext.renderWireframe) {
         ESPShapeRenderer::RenderWireframeBox(context.drawList, props, props.fadedEntityColor, props.finalBoxThickness);
     }
 
