@@ -58,10 +58,10 @@ struct RenderableEntity {
 struct RenderablePlayer : public RenderableEntity {
     std::string characterName;
     std::string playerName;
+    float currentEndurance;
+    float maxEndurance;
     float currentEnergy;
     float maxEnergy;
-    float currentSpecialEnergy;
-    float maxSpecialEnergy;
     uint32_t level;
     uint32_t scaledLevel;
     Game::Profession profession;     // Type-safe enum instead of uint32_t
@@ -72,8 +72,8 @@ struct RenderablePlayer : public RenderableEntity {
     std::unordered_map<Game::EquipmentSlot, GearSlotInfo> gear;
     
     RenderablePlayer() : RenderableEntity(),
+                         currentEndurance(0.0f), maxEndurance(0.0f),
                          currentEnergy(0.0f), maxEnergy(0.0f),
-                         currentSpecialEnergy(0.0f), maxSpecialEnergy(0.0f),
                          level(0), scaledLevel(0),
                          profession(Game::Profession::None), attitude(Game::Attitude::Neutral),
                          race(Game::Race::None), isLocalPlayer(false)

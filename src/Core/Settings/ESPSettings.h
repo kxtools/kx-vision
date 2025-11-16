@@ -43,7 +43,7 @@ namespace kx {
         bool showLocalPlayer = false; // Hide local player by default
         bool enableGearDisplay = false;
         GearDisplayMode gearDisplayMode = GearDisplayMode::Compact;
-        EnergyDisplayType energyDisplayType = EnergyDisplayType::Special;
+        EnergyDisplayType energyDisplayType = EnergyDisplayType::Energy;
         // Detail-field filters
         bool showDetailLevel = true;
         bool showDetailHp = true;

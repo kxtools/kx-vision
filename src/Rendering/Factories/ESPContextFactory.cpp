@@ -155,7 +155,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         .renderGadgetSphere = false,
         .renderGadgetCircle = false,
         .playerGearDisplayMode = GearDisplayMode::Compact,
-        .playerEnergyDisplayType = EnergyDisplayType::Special,
+        .playerEnergyDisplayType = EnergyDisplayType::Energy,
         .showCombatUI = true,
         .showDamageNumbers = context.settings.npcESP.showDamageNumbers,
         .showBurstDps = context.settings.npcESP.showBurstDps
@@ -217,7 +217,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
         .renderGadgetSphere = context.settings.objectESP.renderSphere,
         .renderGadgetCircle = context.settings.objectESP.renderCircle,
         .playerGearDisplayMode = GearDisplayMode::Compact,
-        .playerEnergyDisplayType = EnergyDisplayType::Special,
+        .playerEnergyDisplayType = EnergyDisplayType::Energy,
         .showCombatUI = !hideCombatUI,
         .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
         .showBurstDps = context.settings.objectESP.showBurstDps
@@ -276,7 +276,7 @@ EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const Render
         .renderGadgetSphere = context.settings.objectESP.renderSphere,
         .renderGadgetCircle = context.settings.objectESP.renderCircle,
         .playerGearDisplayMode = GearDisplayMode::Compact,
-        .playerEnergyDisplayType = EnergyDisplayType::Special,
+        .playerEnergyDisplayType = EnergyDisplayType::Energy,
         .showCombatUI = !hideCombatUI,
         .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
         .showBurstDps = context.settings.objectESP.showBurstDps

@@ -18,8 +18,8 @@ namespace kx {
      * @brief Energy source to display for the player energy bar
      */
     enum class EnergyDisplayType {
-        Dodge = 0,      // Player's dodge endurance
-        Special = 1     // Mount or other special energy
+        Endurance = 0,      // Player's dodge endurance
+        Energy = 1     // Mount or other special energy
     };
 
     /**

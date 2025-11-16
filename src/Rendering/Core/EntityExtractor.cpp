@@ -51,18 +51,18 @@ namespace PhysicsValidation {
         ReClass::ChCliHealth health = inCharacter.GetHealth();
         ExtractHealthData(outPlayer, health);
 
-        // Dodge Energy
+        // Dodge Endurance
+        ReClass::ChCliEndurance endurance = inCharacter.GetEndurance();
+        if (endurance) {
+            outPlayer.currentEndurance = endurance.GetCurrent();
+            outPlayer.maxEndurance = endurance.GetMax();
+        }
+
+        // Energy
         ReClass::ChCliEnergies energies = inCharacter.GetEnergies();
         if (energies) {
             outPlayer.currentEnergy = energies.GetCurrent();
             outPlayer.maxEnergy = energies.GetMax();
-        }
-
-        // Special Energy
-        ReClass::ChCliSpecialEnergies specialEnergies = inCharacter.GetSpecialEnergies();
-        if (specialEnergies) {
-            outPlayer.currentSpecialEnergy = specialEnergies.GetCurrent();
-            outPlayer.maxSpecialEnergy = specialEnergies.GetMax();
         }
 
         // --- Core Stats ---

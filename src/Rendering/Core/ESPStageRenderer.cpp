@@ -30,13 +30,13 @@ namespace kx {
 namespace {
     // Helper function to calculate energy percentage for players
     float CalculateEnergyPercent(const RenderablePlayer* player, EnergyDisplayType displayType) {
-        if (displayType == EnergyDisplayType::Dodge) {
-            if (player->maxEnergy > 0) {
-                return player->currentEnergy / player->maxEnergy;
+        if (displayType == EnergyDisplayType::Endurance) {
+            if (player->maxEndurance > 0) {
+                return player->currentEndurance / player->maxEndurance;
             }
         } else { // Special
-            if (player->maxSpecialEnergy > 0) {
-                return player->currentSpecialEnergy / player->maxSpecialEnergy;
+            if (player->maxEnergy > 0) {
+                return player->currentEnergy / player->maxEnergy;
             }
         }
         return -1.0f;

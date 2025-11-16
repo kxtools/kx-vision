@@ -47,7 +47,7 @@ namespace kx {
                         if (settings.playerESP.renderEnergyBar) {
                             ImGui::Indent();
                             ImGui::PushItemWidth(250.0f);
-                            const char* energyTypes[] = { "Dodge", "Special/Mount" };
+                            const char* energyTypes[] = { "Endurance", "Energy" };
                             int energyTypeInt = static_cast<int>(settings.playerESP.energyDisplayType);
                             if (ImGui::Combo("Source", &energyTypeInt, energyTypes, IM_ARRAYSIZE(energyTypes))) {
                                 settings.playerESP.energyDisplayType = static_cast<EnergyDisplayType>(energyTypeInt);

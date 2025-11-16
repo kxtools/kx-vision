@@ -51,9 +51,9 @@ std::vector<ColoredDetail> ESPPlayerDetailsBuilder::BuildPlayerDetails(const Ren
         details.push_back({ "HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)), ESPColors::DEFAULT_TEXT });
     }
 
-    if (settings.showDetailEnergy && player->maxEnergy > 0) {
-        const int energyPercent = static_cast<int>((player->currentEnergy / player->maxEnergy) * 100.0f);
-        details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEnergy)) + "/" + std::to_string(static_cast<int>(player->maxEnergy)) + " (" + std::to_string(energyPercent) + "%)", ESPColors::DEFAULT_TEXT });
+    if (settings.showDetailEnergy && player->maxEndurance > 0) {
+        const int energyPercent = static_cast<int>((player->currentEndurance / player->maxEndurance) * 100.0f);
+        details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEndurance)) + "/" + std::to_string(static_cast<int>(player->maxEndurance)) + " (" + std::to_string(energyPercent) + "%)", ESPColors::DEFAULT_TEXT });
     }
 
     if (settings.showDetailPosition) {

@@ -57,32 +57,6 @@ namespace kx {
         /**
          * @brief Character mount/special energy management wrapper
          */
-        class ChCliSpecialEnergies : public SafeForeignClass {
-        public:
-            ChCliSpecialEnergies(void* ptr) : SafeForeignClass(ptr) {}
-            
-            float GetCurrent() const { 
-                LOG_MEMORY("ChCliSpecialEnergies", "GetCurrent", data(), Offsets::ChCliSpecialEnergies::CURRENT);
-                
-                float current = ReadMember<float>(Offsets::ChCliSpecialEnergies::CURRENT, 0.0f);
-                
-                LOG_DEBUG("ChCliSpecialEnergies::GetCurrent - Current: %.2f", current);
-                return current;
-            }
-            
-            float GetMax() const { 
-                LOG_MEMORY("ChCliSpecialEnergies", "GetMax", data(), Offsets::ChCliSpecialEnergies::MAX);
-                
-                float max = ReadMember<float>(Offsets::ChCliSpecialEnergies::MAX, 0.0f);
-                
-                LOG_DEBUG("ChCliSpecialEnergies::GetMax - Max: %.2f", max);
-                return max;
-            }
-        };
-
-        /**
-         * @brief Character dodge/endurance management wrapper
-         */
         class ChCliEnergies : public SafeForeignClass {
         public:
             ChCliEnergies(void* ptr) : SafeForeignClass(ptr) {}
@@ -102,6 +76,32 @@ namespace kx {
                 float max = ReadMember<float>(Offsets::ChCliEnergies::MAX, 0.0f);
                 
                 LOG_DEBUG("ChCliEnergies::GetMax - Max: %.2f", max);
+                return max;
+            }
+        };
+
+        /**
+         * @brief Character dodge/endurance management wrapper
+         */
+        class ChCliEndurance : public SafeForeignClass {
+        public:
+            ChCliEndurance(void* ptr) : SafeForeignClass(ptr) {}
+            
+            float GetCurrent() const { 
+                LOG_MEMORY("ChCliEndurance", "GetCurrent", data(), Offsets::ChCliEndurance::CURRENT);
+                
+                float current = ReadMember<float>(Offsets::ChCliEndurance::CURRENT, 0.0f);
+                
+                LOG_DEBUG("ChCliEndurance::GetCurrent - Current: %.2f", current);
+                return current;
+            }
+            
+            float GetMax() const { 
+                LOG_MEMORY("ChCliEndurance", "GetMax", data(), Offsets::ChCliEndurance::MAX);
+                
+                float max = ReadMember<float>(Offsets::ChCliEndurance::MAX, 0.0f);
+                
+                LOG_DEBUG("ChCliEndurance::GetMax - Max: %.2f", max);
                 return max;
             }
         };
@@ -181,21 +181,21 @@ namespace kx {
                 return result;
             }
 
+            ChCliEndurance GetEndurance() const { 
+                LOG_MEMORY("ChCliCharacter", "GetEndurance", data(), Offsets::ChCliCharacter::ENDURANCE);
+                
+                ChCliEndurance result = ReadPointer<ChCliEndurance>(Offsets::ChCliCharacter::ENDURANCE);
+                
+                LOG_PTR("Endurance", result.data());
+                return result;
+            }
+
             ChCliEnergies GetEnergies() const { 
                 LOG_MEMORY("ChCliCharacter", "GetEnergies", data(), Offsets::ChCliCharacter::ENERGIES);
                 
                 ChCliEnergies result = ReadPointer<ChCliEnergies>(Offsets::ChCliCharacter::ENERGIES);
                 
                 LOG_PTR("Energies", result.data());
-                return result;
-            }
-
-            ChCliSpecialEnergies GetSpecialEnergies() const { 
-                LOG_MEMORY("ChCliCharacter", "GetSpecialEnergies", data(), Offsets::ChCliCharacter::SPECIAL_ENERGIES);
-                
-                ChCliSpecialEnergies result = ReadPointer<ChCliSpecialEnergies>(Offsets::ChCliCharacter::SPECIAL_ENERGIES);
-                
-                LOG_PTR("SpecialEnergies", result.data());
                 return result;
             }
 
