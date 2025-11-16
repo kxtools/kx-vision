@@ -89,14 +89,6 @@ namespace Offsets {
     struct AgentInl {
         static constexpr uintptr_t AG_KEYFRAMED = 0x18;    // AgKeyframed* agent wrapper
         static constexpr uintptr_t COMBAT_STATE = 0x0034;  // int32_t combat state flag (2=Idle, 3=In Combat) [CONFIRMED]
-        
-        // Unreliable offsets - commented out for reference
-        // static constexpr uintptr_t POSITION = 0x0028;      // glm::vec3 position (X, Y, Z at 0x0028, 0x002C, 0x0030) [UNRELIABLE - not standard position, requires conversion]
-        // static constexpr uintptr_t STATE_FLAG_1 = 0x00D4;  // int32_t state flag [UNRELIABLE]
-        // static constexpr uintptr_t STATE_FLAG_2 = 0x021C;  // int32_t state flag [UNRELIABLE]
-        // static constexpr uintptr_t HEALTH = 0x0220;        // ChCliHealth* health subsystem pointer [UNRELIABLE - doesn't work]
-        // static constexpr uintptr_t IS_DEFEATED_PTR_1 = 0x02B0; // void* pointer [UNRELIABLE]
-        // static constexpr uintptr_t IS_DEFEATED_PTR_2 = 0x02B8; // void* pointer [UNRELIABLE]
     };
 
     // ============================================================================
@@ -205,19 +197,17 @@ namespace Offsets {
      * @brief ChCliCharacter - Main character structure containing all subsystems
      */
     struct ChCliCharacter {
-        static constexpr uintptr_t AGENT = 0x98;          // AgChar* character's agent
-        static constexpr uintptr_t ATTITUDE = 0x00C0;     // uint32_t attitude flags
-        static constexpr uintptr_t BREAKBAR = 0x00C8;     // CmbtCliBreakBar* breakbar subsystem
-        static constexpr uintptr_t RANK_FLAGS = 0x0264;   // uint32_t rank flags (veteran, elite, etc.)
-        static constexpr uintptr_t CORE_STATS = 0x0388;   // ChCliCoreStats* stats subsystem
-        static constexpr uintptr_t ENDURANCE = 0x03D0;     // ChCliEndurance* dodge/endurance subsystem
-        static constexpr uintptr_t ENERGIES = 0x03D8; // ChCliEnergies* mount/special energy subsystem
+        static constexpr uintptr_t AGENT = 0x98;            // AgChar* character's agent
+        static constexpr uintptr_t ATTITUDE = 0x00C0;       // uint32_t attitude flags
+        static constexpr uintptr_t BREAKBAR = 0x00C8;       // CmbtCliBreakBar* breakbar subsystem
+        static constexpr uintptr_t RANK_FLAGS = 0x0264;     // uint32_t rank flags (veteran, elite, etc.)
+        static constexpr uintptr_t CORE_STATS = 0x0388;     // ChCliCoreStats* stats subsystem
+        static constexpr uintptr_t ENDURANCE = 0x03D0;      // ChCliEndurance* dodge/endurance subsystem
+        static constexpr uintptr_t ENERGIES = 0x03D8;       // ChCliEnergies* mount/special energy subsystem
         static constexpr uintptr_t FORCE = 0x03E0;          // ChCliForce* force subsystem
-        static constexpr uintptr_t HEALTH = 0x03E8;       // ChCliHealth* health subsystem
-        static constexpr uintptr_t INVENTORY = 0x3F0;     // ChCliInventory* inventory subsystem
-        static constexpr uintptr_t KENNEL = 0x03F8;        // ChCliKennel* kennel subsystem
-        static constexpr uintptr_t MOVEMENT = 0x0400;      // ChCliMovement* movement subsystem
-        static constexpr uintptr_t SKILLBAR = 0x0520;     // ChCliSkillbar* skillbar subsystem
+        static constexpr uintptr_t HEALTH = 0x03E8;         // ChCliHealth* health subsystem
+        static constexpr uintptr_t INVENTORY = 0x3F0;       // ChCliInventory* inventory subsystem
+        static constexpr uintptr_t SKILLBAR = 0x0520;       // ChCliSkillbar* skillbar subsystem
     };
 
     /**
