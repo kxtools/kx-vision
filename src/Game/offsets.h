@@ -212,12 +212,20 @@ namespace Offsets {
     // ============================================================================
 
     /**
+     * @brief GdCliHealth - Gadget health management
+     */
+    struct GdCliHealth {
+        static constexpr uintptr_t CURRENT = 0x0C;  // float current health
+        static constexpr uintptr_t MAX = 0x10;      // float maximum health
+    };
+
+    /**
      * @brief GdCliGadget - Game gadget/object structure
      */
     struct GdCliGadget {
         static constexpr uintptr_t AG_KEYFRAMED = 0x0038;         // AgKeyframed* agent wrapper
         static constexpr uintptr_t TYPE = 0x0208;                 // uint32_t gadget type
-        static constexpr uintptr_t HEALTH = 0x0220;               // ChCliHealth* health subsystem
+        static constexpr uintptr_t HEALTH = 0x0220;               // GdCliHealth* health subsystem
         static constexpr uintptr_t RESOURCE_NODE_TYPE = 0x04EC;   // uint32_t resource node type
         static constexpr uintptr_t FLAGS = 0x04F0;                // uint32_t gadget flags
         

@@ -65,6 +65,7 @@ namespace kx {
         static bool ValidateAndExtractGamePosition(const ReClass::AgKeyFramed& agKeyframed, glm::vec3& outGamePos);
         static glm::vec3 TransformGamePositionToMumble(const glm::vec3& gamePos);
         static void ExtractHealthData(RenderableEntity& entity, const ReClass::ChCliHealth& health);
+        static void ExtractHealthData(RenderableEntity& entity, const ReClass::GdCliHealth& health);
         
         /**
          * @brief Extract physics shape dimensions from player character

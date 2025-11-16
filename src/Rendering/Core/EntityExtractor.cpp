@@ -146,7 +146,7 @@ namespace PhysicsValidation {
         }
 
         // --- Health ---
-        ReClass::ChCliHealth health = inGadget.GetHealth();
+        ReClass::GdCliHealth health = inGadget.GetHealth();
         ExtractHealthData(outGadget, health);
 
         if (outGadget.type == Game::GadgetType::ResourceNode) {
@@ -283,6 +283,14 @@ void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass:
         entity.currentHealth = health.GetCurrent();
         entity.maxHealth = health.GetMax();
         entity.currentBarrier = health.GetBarrier();
+    }
+}
+
+void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass::GdCliHealth& health) {
+    if (health) {
+        entity.currentHealth = health.GetCurrent();
+        entity.maxHealth = health.GetMax();
+        entity.currentBarrier = 0.0f;
     }
 }
 

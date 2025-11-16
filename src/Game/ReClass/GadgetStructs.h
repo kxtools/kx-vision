@@ -4,7 +4,6 @@
 #include "../../Utils/SafeForeignClass.h"
 #include "../GameEnums.h"
 #include "../offsets.h"
-#include "CharacterStructs.h"
 #include "AgentStructs.h"
 #include "HavokStructs.h"
 #include <glm.hpp>
@@ -75,6 +74,32 @@ namespace kx {
         };
 
         /**
+         * @brief Gadget health management wrapper (current and max HP only)
+         */
+        class GdCliHealth : public SafeForeignClass {
+        public:
+            GdCliHealth(void* ptr) : SafeForeignClass(ptr) {}
+            
+            float GetCurrent() const { 
+                LOG_MEMORY("GdCliHealth", "GetCurrent", data(), Offsets::GdCliHealth::CURRENT);
+                
+                float current = ReadMember<float>(Offsets::GdCliHealth::CURRENT, 0.0f);
+                
+                LOG_DEBUG("GdCliHealth::GetCurrent - Current: %.2f", current);
+                return current;
+            }
+            
+            float GetMax() const { 
+                LOG_MEMORY("GdCliHealth", "GetMax", data(), Offsets::GdCliHealth::MAX);
+                
+                float max = ReadMember<float>(Offsets::GdCliHealth::MAX, 0.0f);
+                
+                LOG_DEBUG("GdCliHealth::GetMax - Max: %.2f", max);
+                return max;
+            }
+        };
+
+        /**
          * @brief Client gadget wrapper
          */
         class GdCliGadget : public SafeForeignClass {
@@ -91,10 +116,10 @@ namespace kx {
                 return gadgetType;
             }
 
-            ChCliHealth GetHealth() const {
+            GdCliHealth GetHealth() const {
                 LOG_MEMORY("GdCliGadget", "GetHealth", data(), Offsets::GdCliGadget::HEALTH);
 
-                ChCliHealth result = ReadPointer<ChCliHealth>(Offsets::GdCliGadget::HEALTH);
+                GdCliHealth result = ReadPointer<GdCliHealth>(Offsets::GdCliGadget::HEALTH);
 
                 LOG_PTR("Health", result.data());
                 return result;
