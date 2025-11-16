@@ -195,8 +195,11 @@ namespace Offsets {
         static constexpr uintptr_t CORE_STATS = 0x0388;   // ChCliCoreStats* stats subsystem
         static constexpr uintptr_t ENDURANCE = 0x03D0;     // ChCliEndurance* dodge/endurance subsystem
         static constexpr uintptr_t ENERGIES = 0x03D8; // ChCliEnergies* mount/special energy subsystem
+        static constexpr uintptr_t FORCE = 0x03E0;          // ChCliForce* force subsystem
         static constexpr uintptr_t HEALTH = 0x03E8;       // ChCliHealth* health subsystem
         static constexpr uintptr_t INVENTORY = 0x3F0;     // ChCliInventory* inventory subsystem
+        static constexpr uintptr_t SKILLBAR = 0x03F8;      // CharSkillbar* skillbar subsystem (likely)
+        static constexpr uintptr_t MOVEMENT = 0x0400;      // ChCliMovement* movement subsystem
     };
 
     /**
