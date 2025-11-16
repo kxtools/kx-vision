@@ -139,6 +139,14 @@ namespace Offsets {
     };
 
     /**
+     * @brief CmbtCliBreakBar - Combat breakbar management
+     */
+    struct CmbtCliBreakBar {
+        static constexpr uintptr_t STATE = 0x40;    // int32_t breakbar state (0=active, 1=regenerating)
+        static constexpr uintptr_t CURRENT = 0x44;  // float current breakbar (range: 1.0 to 0.0)
+    };
+
+    /**
      * @brief ChCliCoreStats - Character core statistics (race, level, profession)
      */
     struct ChCliCoreStats {
@@ -199,6 +207,7 @@ namespace Offsets {
     struct ChCliCharacter {
         static constexpr uintptr_t AGENT = 0x98;          // AgChar* character's agent
         static constexpr uintptr_t ATTITUDE = 0x00C0;     // uint32_t attitude flags
+        static constexpr uintptr_t BREAKBAR = 0x00C8;     // CmbtCliBreakBar* breakbar subsystem
         static constexpr uintptr_t RANK_FLAGS = 0x0264;   // uint32_t rank flags (veteran, elite, etc.)
         static constexpr uintptr_t CORE_STATS = 0x0388;   // ChCliCoreStats* stats subsystem
         static constexpr uintptr_t ENDURANCE = 0x03D0;     // ChCliEndurance* dodge/endurance subsystem
