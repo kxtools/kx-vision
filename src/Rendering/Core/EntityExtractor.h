@@ -57,7 +57,7 @@ namespace kx {
          * @param outPlayer The RenderablePlayer object to add gear information to.
          * @param inventory The player's inventory structure from the game.
          */
-        static void ExtractGear(RenderablePlayer& outPlayer, const ReClass::Inventory& inventory);
+        static void ExtractGear(RenderablePlayer& outPlayer, const ReClass::ChCliInventory& inventory);
 
         // Common extraction pattern helpers
         static bool ValidateAndExtractGamePosition(const ReClass::ChCliCharacter& character, glm::vec3& outGamePos);

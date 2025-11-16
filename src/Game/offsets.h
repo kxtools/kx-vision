@@ -161,9 +161,9 @@ namespace Offsets {
     };
 
     /**
-     * @brief EquipSlot - Equipment slot containing item and stat data
+     * @brief ItCliItem - Equipment slot containing item and stat data
      */
-    struct EquipSlot {
+    struct ItCliItem {
         static constexpr uintptr_t ITEM_DEF = 0x40;      // ItemDef* item definition
         static constexpr uintptr_t STAT_GEAR = 0xA0;     // Stat* for armor/trinkets
         static constexpr uintptr_t STAT_WEAPON = 0xA8;   // Stat* for weapons
@@ -175,10 +175,10 @@ namespace Offsets {
     };
 
     /**
-     * @brief Inventory - Character inventory container
+     * @brief ChCliInventory - Character inventory container
      */
-    struct Inventory {
-        static constexpr uintptr_t EQUIPMENT_ARRAY = 0x160;  // EquipSlot** array of equipment slots
+    struct ChCliInventory {
+        static constexpr uintptr_t EQUIPMENT_ARRAY = 0x160;  // ItCliItem** array of equipment slots
     };
 
     // ============================================================================
@@ -196,7 +196,7 @@ namespace Offsets {
         static constexpr uintptr_t ENDURANCE = 0x03D0;     // ChCliEndurance* dodge/endurance subsystem
         static constexpr uintptr_t ENERGIES = 0x03D8; // ChCliEnergies* mount/special energy subsystem
         static constexpr uintptr_t HEALTH = 0x03E8;       // ChCliHealth* health subsystem
-        static constexpr uintptr_t INVENTORY = 0x3F0;     // Inventory* inventory subsystem
+        static constexpr uintptr_t INVENTORY = 0x3F0;     // ChCliInventory* inventory subsystem
     };
 
     /**

@@ -238,8 +238,8 @@ namespace kx {
                 return Game::CharacterRank::Normal;
             }
 
-            Inventory GetInventory() const {
-                return ReadPointer<Inventory>(Offsets::ChCliCharacter::INVENTORY);
+            ChCliInventory GetInventory() const {
+                return ReadPointer<ChCliInventory>(Offsets::ChCliCharacter::INVENTORY);
             }
         };
 

@@ -76,7 +76,7 @@ namespace PhysicsValidation {
         }
 
         // --- Gear ---
-        ReClass::Inventory inventory = inCharacter.GetInventory();
+        ReClass::ChCliInventory inventory = inCharacter.GetInventory();
         if (inventory) {
             ExtractGear(outPlayer, inventory);
         }
@@ -195,7 +195,7 @@ namespace PhysicsValidation {
         return true;
     }
 
-    void EntityExtractor::ExtractGear(RenderablePlayer& outPlayer, const ReClass::Inventory& inventory) {
+    void EntityExtractor::ExtractGear(RenderablePlayer& outPlayer, const ReClass::ChCliInventory& inventory) {
         outPlayer.gear.clear();
 
         const std::vector<Game::EquipmentSlot> slotsToCheck = {
@@ -208,7 +208,7 @@ namespace PhysicsValidation {
         };
 
         for (const auto& slotEnum : slotsToCheck) {
-            ReClass::EquipSlot slot = inventory.GetEquipSlot(static_cast<int>(slotEnum));
+            ReClass::ItCliItem slot = inventory.GetEquipSlot(static_cast<int>(slotEnum));
             if (!slot) continue;
 
             ReClass::ItemDef itemDef = slot.GetItemDefinition();
