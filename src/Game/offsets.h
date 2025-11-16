@@ -131,6 +131,14 @@ namespace Offsets {
     };
 
     /**
+     * @brief ChCliSkillbar - Character skillbar management
+     */
+    struct ChCliSkillbar {
+        static constexpr uintptr_t SKILL_TRIGGER_BIT = 0xB0;  // uint32_t momentary indicator for which skill was just activated (always holds exactly one bit or zero)
+        static constexpr uintptr_t SKILLS_ARRAY = 0x1D0;      // array of skills
+    };
+
+    /**
      * @brief ChCliCoreStats - Character core statistics (race, level, profession)
      */
     struct ChCliCoreStats {
@@ -198,8 +206,9 @@ namespace Offsets {
         static constexpr uintptr_t FORCE = 0x03E0;          // ChCliForce* force subsystem
         static constexpr uintptr_t HEALTH = 0x03E8;       // ChCliHealth* health subsystem
         static constexpr uintptr_t INVENTORY = 0x3F0;     // ChCliInventory* inventory subsystem
-        static constexpr uintptr_t SKILLBAR = 0x03F8;      // CharSkillbar* skillbar subsystem (likely)
+        static constexpr uintptr_t KENNEL = 0x03F8;        // ChCliKennel* kennel subsystem
         static constexpr uintptr_t MOVEMENT = 0x0400;      // ChCliMovement* movement subsystem
+        static constexpr uintptr_t SKILLBAR = 0x0520;     // ChCliSkillbar* skillbar subsystem
     };
 
     /**
