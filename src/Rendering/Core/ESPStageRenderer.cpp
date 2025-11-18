@@ -7,7 +7,6 @@
 #include "../Utils/CombatConstants.h"
 #include "../Utils/LayoutConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
-#include "../Renderers/ESPTextRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
 #include "../Renderers/ESPTrailRenderer.h"
 #include "../Data/EntityRenderContext.h"
@@ -22,7 +21,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "../Utils/ESPPlayerDetailsBuilder.h"
+#include "../Utils/ESPInfoBuilder.h"
 #include "../Utils/RenderSettingsHelper.h"
 
 namespace kx {
@@ -254,7 +253,7 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
             GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(context.settings);
             switch (gearDisplayMode) {
                 case GearDisplayMode::Compact: {
-                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
+                    auto summary = ESPInfoBuilder::BuildCompactGearSummary(player);
                     if (!summary.empty()) {
                         TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, bottomStack.GetPosition(), props.finalAlpha, props.finalFontSize);
                         ImVec2 size = TextRenderer::Render(context.drawList, gearElement);
@@ -263,8 +262,8 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
                     break;
                 }
                 case GearDisplayMode::Attributes: {
-                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
-                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
+                    auto stats = ESPInfoBuilder::BuildDominantStats(player);
+                    auto rarity = ESPInfoBuilder::GetHighestRarity(player);
                     if (!stats.empty()) {
                         TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, bottomStack.GetPosition(), props.finalAlpha, props.finalFontSize);
                         ImVec2 size = TextRenderer::Render(context.drawList, statsElement);

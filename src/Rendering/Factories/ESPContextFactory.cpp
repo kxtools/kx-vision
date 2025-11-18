@@ -7,8 +7,7 @@
 #include "../../Game/GameEnums.h"
 #include "../Utils/ESPStyling.h"
 #include "../Animations/HealthBarAnimations.h"
-#include "../Utils/ESPPlayerDetailsBuilder.h"
-#include "../Utils/ESPEntityDetailsBuilder.h"
+#include "../Utils/ESPInfoBuilder.h"
 #include "../Data/ESPEntityTypes.h"
 
 namespace kx {
@@ -216,9 +215,9 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
         case ESPEntityType::Player:
         {
             const auto* player = static_cast<const RenderablePlayer*>(entity);
-            details = ESPPlayerDetailsBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
+            details = ESPInfoBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
             if (context.settings.playerESP.enableGearDisplay && context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
-                auto gearDetails = ESPPlayerDetailsBuilder::BuildGearDetails(player);
+                auto gearDetails = ESPInfoBuilder::BuildGearDetails(player);
                 if (!gearDetails.empty()) {
                     if (!details.empty()) {
                         details.push_back({ "--- Gear Stats ---", ESPColors::DEFAULT_TEXT });
@@ -231,19 +230,19 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
         case ESPEntityType::NPC:
         {
             const auto* npc = static_cast<const RenderableNpc*>(entity);
-            details = ESPEntityDetailsBuilder::BuildNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses);
+            details = ESPInfoBuilder::BuildNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses);
             break;
         }
         case ESPEntityType::Gadget:
         {
             const auto* gadget = static_cast<const RenderableGadget*>(entity);
-            details = ESPEntityDetailsBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
+            details = ESPInfoBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
             break;
         }
         case ESPEntityType::AttackTarget:
         {
             const auto* attackTarget = static_cast<const RenderableAttackTarget*>(entity);
-            details = ESPEntityDetailsBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
+            details = ESPInfoBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
             break;
         }
     }
