@@ -1,11 +1,12 @@
 #include "TextElementFactory.h"
 #include "../Data/RenderableData.h"
 #include "../Data/PlayerRenderData.h"
+#include "../Data/EntityRenderContext.h"
+#include "../Data/ESPData.h"
 #include "../Utils/ESPConstants.h"
 #include "../Utils/ESPStyling.h"
 #include "../Utils/ESPFormatting.h"
 #include "../Utils/ColorConstants.h"
-#include "../Layout/LayoutCalculator.h"
 #include "../../Core/AppState.h"
 #include "../../Utils/UnitConversion.h"
 #include <sstream>

@@ -35,8 +35,9 @@ public:
      * @brief Render a single text element
      * @param drawList ImGui draw list to render to
      * @param element The text element to render
+     * @return The size (width, height) of the rendered element
      */
-    static void Render(ImDrawList* drawList, const TextElement& element);
+    static ImVec2 Render(ImDrawList* drawList, const TextElement& element);
     
     /**
      * @brief Render multiple text elements (batch operation)

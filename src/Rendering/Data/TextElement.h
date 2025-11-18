@@ -126,6 +126,8 @@ public:
     TextElement& SetAlignment(TextAlignment alignment) { m_alignment = alignment; return *this; }
     TextElement& SetFadeAlpha(float alpha) { m_style.fadeAlpha = alpha; return *this; }
     TextElement& SetLineSpacing(float spacing) { m_lineSpacing = spacing; return *this; }
+    TextElement& SetAnchor(const glm::vec2& anchor) { m_anchor = anchor; return *this; }
+    TextElement& SetPositioning(TextAnchor positioning) { m_positioning = positioning; return *this; }
     
     // Getters
     const std::vector<std::vector<TextSegment>>& GetLines() const { return m_lines; }

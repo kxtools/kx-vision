@@ -7,19 +7,28 @@ using namespace kx::RenderingLayout;
 
 namespace kx {
 
-void TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
-    if (!drawList) return;
+ImVec2 TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
+    if (!drawList) {
+        return ImVec2(0, 0);
+    }
     
     // Critical: Check if ImGui context is still valid before any ImGui operations
-    if (!ImGui::GetCurrentContext()) return;
+    if (!ImGui::GetCurrentContext()) {
+        return ImVec2(0, 0);
+    }
     
     const auto& lines = element.GetLines();
-    if (lines.empty()) return;
+    if (lines.empty()) {
+        return ImVec2(0, 0);
+    }
+    
+    // Calculate size first (reuse existing logic)
+    ImVec2 totalSize = CalculateSize(element);
     
     const auto& style = element.GetStyle();
     ImFont* font = ImGui::GetFont();
     
-    // Calculate dimensions
+    // Calculate dimensions for rendering
     float totalHeight = 0.0f;
     std::vector<float> lineWidths;
     std::vector<float> lineHeights;
@@ -72,6 +81,8 @@ void TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
         // Render text
         RenderTextLine(drawList, line, linePos, style);
     }
+    
+    return totalSize;
 }
 
 void TextRenderer::RenderBatch(ImDrawList* drawList, const std::vector<TextElement>& elements) {

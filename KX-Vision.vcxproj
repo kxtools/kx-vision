@@ -118,7 +118,6 @@
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPVisualsProcessor.cpp" />
-    <ClCompile Include="src\Rendering\Layout\LayoutCalculator.cpp" />
     <ClCompile Include="src\Rendering\Factories\ESPContextFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPHealthBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPShapeRenderer.cpp" />
@@ -206,8 +205,7 @@
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPVisualsProcessor.h" />
     <ClInclude Include="src\Rendering\GUI\UIConstants.h" />
-    <ClInclude Include="src\Rendering\Layout\LayoutCalculator.h" />
-    <ClInclude Include="src\Rendering\Layout\LayoutElementKeys.h" />
+    <ClInclude Include="src\Rendering\Layout\LayoutCursor.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPTrailRenderer.h" />
     <ClInclude Include="src\Rendering\Utils\D3DState.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />

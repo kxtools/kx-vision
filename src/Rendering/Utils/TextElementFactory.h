@@ -12,7 +12,16 @@ namespace kx {
 struct ColoredDetail;
 struct CompactStatInfo;
 struct DominantStat;
-struct LayoutRequest;
+struct EntityRenderContext;
+struct VisualProperties;
+struct FrameContext;
+
+// LayoutRequest structure (used by CreateIdentityLine)
+struct LayoutRequest {
+    const EntityRenderContext& entityContext;
+    const VisualProperties& visualProps;
+    const FrameContext& frameContext;
+};
 
 /**
  * @brief Helper factory functions for creating common text elements

@@ -1,6 +1,5 @@
 #include "ESPStageRenderer.h"
-#include "../Layout/LayoutCalculator.h"
-#include "../Layout/LayoutElementKeys.h"
+#include "../Layout/LayoutCursor.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Utils/ESPMath.h"
@@ -138,139 +137,6 @@ void ESPStageRenderer::RenderFrameData(const FrameContext& context, const Pooled
 
 void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, EntityRenderContext& entityContext, const VisualProperties& props) {
     // 1. Render static elements that don't affect the layout first.
-    RenderStaticElements(context, entityContext, props);
-
-    // 2. Calculate layout using the new LayoutCalculator
-    LayoutRequest request = { entityContext, props, context };
-    LayoutResult layout = LayoutCalculator::CalculateLayout(request);
-
-    // 3. Render the dynamic elements at their calculated positions.
-    RenderLayoutElements(context, entityContext, props, layout);
-}
-
-
-void ESPStageRenderer::RenderLayoutElements(
-    const FrameContext& context,
-    EntityRenderContext& entityContext,
-    const VisualProperties& props,
-    const LayoutResult& layout)
-{
-    // RENDER MERGED IDENTITY LINE (Name + Distance)
-    if (layout.HasElement(LayoutElementKey::PlayerName)) {
-        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::PlayerName);
-
-        // Determine if we should show the name and distance based on settings
-        bool showName = entityContext.renderPlayerName && entityContext.entityType == ESPEntityType::Player;
-        bool showDistance = entityContext.renderDistance;
-
-        // Create the final, styled TextElement for rendering
-        LayoutRequest tempRequest = { entityContext, props, context };
-        TextElement identityElement = TextElementFactory::CreateIdentityLine(tempRequest, showName, showDistance);
-
-        // Update its position and alignment
-        const auto& lines = identityElement.GetLines();
-        TextElement finalElement(lines, position, TextAnchor::AbsoluteTopLeft);
-        finalElement.SetAlignment(TextAlignment::Center);
-        TextStyle style = TextElementFactory::GetPlayerNameStyle(props.finalAlpha, props.fadedEntityColor, props.finalFontSize);
-        style.useCustomTextColor = true;
-        finalElement.SetStyle(style);
-
-        TextRenderer::Render(context.drawList, finalElement);
-    }
-
-    // RENDER REMAINING ELEMENTS using helper functions
-    RenderStatusBars(context, entityContext, props, layout);
-    RenderPlayerGear(context, entityContext, props, layout);
-    RenderEntityDetails(context, entityContext, props, layout);
-
-    // RENDER DEPENDENT ELEMENTS
-    // These are not part of the stack, but are anchored to layout elements (like the health bar).
-    RenderDamageNumbers(context, entityContext, props, layout);
-    RenderBurstDps(context, entityContext, props, layout);
-}
-
-void ESPStageRenderer::RenderStatusBars(
-    const FrameContext& context,
-    EntityRenderContext& entityContext,
-    const VisualProperties& props,
-    const LayoutResult& layout)
-{
-    // Health Bar
-    bool isLivingEntity = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
-    bool isGadget = (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget);
-    float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
-    if ((isLivingEntity || isGadget) && healthPercent >= 0.0f && entityContext.renderHealthBar && layout.HasElement(LayoutElementKey::HealthBar)) {
-        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::HealthBar);
-        glm::vec2 topLeft = { position.x - props.finalHealthBarWidth / 2.0f, position.y };
-        ESPHealthBarRenderer::RenderStandaloneHealthBar(context.drawList, topLeft, entityContext,
-            props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
-    }
-
-    // Energy Bar (Players only)
-    if (entityContext.entityType == ESPEntityType::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
-        if (energyPercent >= 0.0f && entityContext.renderEnergyBar && layout.HasElement(LayoutElementKey::EnergyBar)) {
-            glm::vec2 position = layout.GetElementPosition(LayoutElementKey::EnergyBar);
-            glm::vec2 topLeft = { position.x - props.finalHealthBarWidth / 2.0f, position.y };
-            ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, topLeft, energyPercent,
-                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
-        }
-    }
-}
-
-void ESPStageRenderer::RenderPlayerGear(
-    const FrameContext& context,
-    const EntityRenderContext& entityContext,
-    const VisualProperties& props,
-    const LayoutResult& layout)
-{
-    // Player Gear (Players only)
-    if (entityContext.entityType == ESPEntityType::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        if (player != nullptr) {
-            switch (entityContext.playerGearDisplayMode) {
-                case GearDisplayMode::Compact: {
-                    if (layout.HasElement(LayoutElementKey::GearSummary)) {
-                        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::GearSummary);
-                        auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
-                        ESPTextRenderer::RenderGearSummaryAt(context.drawList, position, summary, props.finalAlpha, props.finalFontSize);
-                    }
-                    break;
-                }
-                case GearDisplayMode::Attributes: {
-                    if (layout.HasElement(LayoutElementKey::DominantStats)) {
-                        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::DominantStats);
-                        auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
-                        auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
-                        ESPTextRenderer::RenderDominantStatsAt(context.drawList, position, stats, rarity, props.finalAlpha, props.finalFontSize);
-                    }
-                    break;
-                }
-                default: break;
-            }
-        }
-    }
-}
-
-void ESPStageRenderer::RenderEntityDetails(
-    const FrameContext& context,
-    const EntityRenderContext& entityContext,
-    const VisualProperties& props,
-    const LayoutResult& layout)
-{
-    // Entity Details
-    if (entityContext.renderDetails && !entityContext.details.empty() && layout.HasElement(LayoutElementKey::Details)) {
-        glm::vec2 position = layout.GetElementPosition(LayoutElementKey::Details);
-        ESPTextRenderer::RenderDetailsTextAt(context.drawList, position, entityContext.details, props.finalAlpha, props.finalFontSize);
-    }
-}
-
-void ESPStageRenderer::RenderStaticElements(
-    const FrameContext& context,
-    const EntityRenderContext& entityContext,
-    const VisualProperties& props)
-{
     // Bounding Box
     if (entityContext.renderBox) {
         ESPShapeRenderer::RenderBoundingBox(context.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
@@ -299,9 +165,121 @@ void ESPStageRenderer::RenderStaticElements(
             ESPShapeRenderer::RenderColoredDot(context.drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius);
         }
     }
+
+    // 2. Initialize Bottom Stack Cursor
+    // Bottom Stack: Starts at Box Max (Feet), grows Downwards (+1)
+    LayoutCursor bottomStack({props.center.x, props.boxMax.y}, 1.0f);
+    
+    // Handle Gadgets (Center Anchor fallback)
+    if (entityContext.entityType == ESPEntityType::Gadget && !entityContext.renderBox) {
+        // If no box, stack everything below the center point
+        bottomStack = LayoutCursor(glm::vec2(props.screenPos.x, props.screenPos.y), 1.0f);
+    }
+
+    // ------------------------------------------------
+    // BOTTOM STACK (Name/Distance, Bars, Gear, Details)
+    // ------------------------------------------------
+    
+    glm::vec2 healthBarPos(0.0f, 0.0f);
+    bool hasHealthBar = false;
+
+    // 0. Name/Distance (first in bottom stack)
+    bool showName = entityContext.renderPlayerName && entityContext.entityType == ESPEntityType::Player;
+    bool showDistance = entityContext.renderDistance;
+
+    if (showName || showDistance) {
+        // Create temporary request struct just for the factory
+        LayoutRequest tempRequest = { entityContext, props, context };
+        TextElement identity = TextElementFactory::CreateIdentityLine(tempRequest, showName, showDistance);
+        
+        // Update Anchor/Alignment based on cursor (Below positioning for bottom stack)
+        identity.SetAnchor(bottomStack.GetPosition());
+        identity.SetPositioning(TextAnchor::Below);
+        identity.SetAlignment(TextAlignment::Center);
+        
+        // Render & Advance
+        ImVec2 size = TextRenderer::Render(context.drawList, identity);
+        bottomStack.Advance(size.y);
+    }
+
+    // 1. Health Bar
+    bool isLiving = (entityContext.entityType == ESPEntityType::Player || entityContext.entityType == ESPEntityType::NPC);
+    bool isGadget = (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget);
+    
+    if ((isLiving || isGadget) && entityContext.renderHealthBar) {
+        float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
+        if (healthPercent >= 0.0f) {
+            // Calculate Top-Left position using the cursor
+            healthBarPos = bottomStack.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
+            hasHealthBar = true;
+            
+            ESPHealthBarRenderer::RenderStandaloneHealthBar(context.drawList, healthBarPos, entityContext,
+                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
+
+            // Render Damage Numbers / Burst DPS relative to the bar we just drew
+            RenderDamageNumbers(context, entityContext, props, healthBarPos);
+            RenderBurstDps(context, entityContext, props, healthBarPos);
+
+            bottomStack.Advance(props.finalHealthBarHeight);
+        }
+    } else {
+        // If no HP bar, render DPS floating near center
+        glm::vec2 centerPos(props.center.x, props.center.y);
+        RenderDamageNumbers(context, entityContext, props, centerPos);
+        RenderBurstDps(context, entityContext, props, centerPos);
+    }
+
+    // 2. Energy Bar
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
+        if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
+            glm::vec2 barPos = bottomStack.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
+            ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, barPos, energyPercent,
+                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
+            bottomStack.Advance(props.finalHealthBarHeight);
+        }
+    }
+
+    // 3. Gear / Details
+    // Player Gear (Players only)
+    if (entityContext.entityType == ESPEntityType::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        if (player != nullptr) {
+            switch (entityContext.playerGearDisplayMode) {
+                case GearDisplayMode::Compact: {
+                    auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
+                    if (!summary.empty()) {
+                        TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, bottomStack.GetPosition(), props.finalAlpha, props.finalFontSize);
+                        ImVec2 size = TextRenderer::Render(context.drawList, gearElement);
+                        bottomStack.Advance(size.y);
+                    }
+                    break;
+                }
+                case GearDisplayMode::Attributes: {
+                    auto stats = ESPPlayerDetailsBuilder::BuildDominantStats(player);
+                    auto rarity = ESPPlayerDetailsBuilder::GetHighestRarity(player);
+                    if (!stats.empty()) {
+                        TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, bottomStack.GetPosition(), props.finalAlpha, props.finalFontSize);
+                        ImVec2 size = TextRenderer::Render(context.drawList, statsElement);
+                        bottomStack.Advance(size.y);
+                    }
+                    break;
+                }
+                default: break;
+            }
+        }
+    }
+
+    // Entity Details
+    if (entityContext.renderDetails && !entityContext.details.empty()) {
+        TextElement detailsElement = TextElementFactory::CreateDetailsTextAt(entityContext.details, bottomStack.GetPosition(), props.finalAlpha, props.finalFontSize);
+        ImVec2 size = TextRenderer::Render(context.drawList, detailsElement);
+        bottomStack.Advance(size.y);
+    }
 }
 
-void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const LayoutResult& layout) {
+void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const glm::vec2& healthBarPos) {
     // Check if combat UI should be shown and damage numbers are enabled
     if (!entityContext.showCombatUI || !entityContext.showDamageNumbers || entityContext.healthBarAnim.damageNumberAlpha <= 0.0f) {
         return;
@@ -309,9 +287,9 @@ void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const En
 
     // --- ANCHORING LOGIC ---
     glm::vec2 anchorPos;
-    if (entityContext.renderHealthBar) {
+    if (entityContext.renderHealthBar && healthBarPos.x != 0.0f && healthBarPos.y != 0.0f) {
         // If HP bar is on, anchor above it for perfect alignment.
-        anchorPos = { layout.healthBarAnchor.x + props.finalHealthBarWidth / 2.0f, layout.healthBarAnchor.y - entityContext.healthBarAnim.damageNumberYOffset };
+        anchorPos = { healthBarPos.x + props.finalHealthBarWidth / 2.0f, healthBarPos.y - entityContext.healthBarAnim.damageNumberYOffset };
     } else {
         // FALLBACK: If HP bar is off, anchor to the entity's visual center.
         anchorPos = { props.center.x, props.center.y - entityContext.healthBarAnim.damageNumberYOffset };
@@ -325,7 +303,7 @@ void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const En
     TextRenderer::Render(context.drawList, element);
 }
 
-void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const LayoutResult& layout) {
+void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const glm::vec2& healthBarPos) {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext()) return;
     
@@ -348,18 +326,18 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
 
     // --- ANCHORING LOGIC ---
     glm::vec2 anchorPos;
-    if (entityContext.renderHealthBar) {
+    if (entityContext.renderHealthBar && healthBarPos.x != 0.0f && healthBarPos.y != 0.0f) {
         // Calculate the DPS text height for proper vertical centering
         float dpsFontSize = props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
         ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, ss.str().c_str());
 
         // Calculate the bar's center Y position
-        float barCenterY = layout.healthBarAnchor.y + props.finalHealthBarHeight / 2.0f;
+        float barCenterY = healthBarPos.y + props.finalHealthBarHeight / 2.0f;
         
         // Base anchor is horizontally positioned, vertically centered on the bar
         anchorPos = { 
-            layout.healthBarAnchor.x + props.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, 
+            healthBarPos.x + props.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, 
             barCenterY - (dpsTextSize.y / 2.0f) // Adjust for text height to achieve perfect centering
         };
 
