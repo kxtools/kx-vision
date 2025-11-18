@@ -92,27 +92,15 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
         .color = color,
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = context.settings.playerESP.renderBox,
-        .renderWireframe = context.settings.playerESP.renderWireframe,
-        .renderDistance = context.settings.playerESP.renderDistance,
-        .renderDot = context.settings.playerESP.renderDot,
         .renderDetails = !details.empty(),
         .renderHealthBar = renderHealthBar,
-        .renderHealthPercentage = context.settings.playerESP.showHealthPercentage,
         .renderEnergyBar = context.settings.playerESP.renderEnergyBar,
-        .renderPlayerName = context.settings.playerESP.renderPlayerName,
         .entityType = ESPEntityType::Player,
         .attitude = player->attitude,
         .entity = player,
         .playerName = player->playerName,
         .healthBarAnim = animState,
-        .renderGadgetSphere = false,
-        .renderGadgetCircle = false,
-        .playerGearDisplayMode = context.settings.playerESP.enableGearDisplay ? context.settings.playerESP.gearDisplayMode : GearDisplayMode::Compact,
-        .playerEnergyDisplayType = context.settings.playerESP.energyDisplayType,
-        .showCombatUI = true,
-        .showDamageNumbers = context.settings.playerESP.showDamageNumbers,
-        .showBurstDps = context.settings.playerESP.showBurstDps
+        .showCombatUI = true
     };
 }
 
@@ -138,27 +126,15 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
         .color = color,
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = context.settings.npcESP.renderBox,
-        .renderWireframe = context.settings.npcESP.renderWireframe,
-        .renderDistance = context.settings.npcESP.renderDistance,
-        .renderDot = context.settings.npcESP.renderDot,
         .renderDetails = context.settings.npcESP.renderDetails,
         .renderHealthBar = renderHealthBar,
-        .renderHealthPercentage = context.settings.npcESP.showHealthPercentage,
         .renderEnergyBar = false, // No energy bar for NPCs
-        .renderPlayerName = false,
         .entityType = ESPEntityType::NPC,
         .attitude = npc->attitude,
         .entity = npc,
         .playerName = emptyPlayerName,
         .healthBarAnim = animState,
-        .renderGadgetSphere = false,
-        .renderGadgetCircle = false,
-        .playerGearDisplayMode = GearDisplayMode::Compact,
-        .playerEnergyDisplayType = EnergyDisplayType::Energy,
-        .showCombatUI = true,
-        .showDamageNumbers = context.settings.npcESP.showDamageNumbers,
-        .showBurstDps = context.settings.npcESP.showBurstDps
+        .showCombatUI = true
     };
 }
 
@@ -181,46 +157,21 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     // Check if combat UI should be hidden for this gadget type
     bool hideCombatUI = ESPStyling::ShouldHideCombatUIForGadget(gadget->type);
 
-    // Disable box rendering for oversized gadgets (world bosses, huge structures)
-    // This prevents screen clutter from massive 20-30m tall entities while still allowing
-    // other visualizations (circles, dots, details, etc.) to render
-    bool renderBox = context.settings.objectESP.renderBox;
-    if (renderBox && gadget->hasPhysicsDimensions && gadget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
-        renderBox = false;
-    }
-
-    bool renderWireframe = context.settings.objectESP.renderWireframe;
-    if (renderWireframe && gadget->hasPhysicsDimensions && gadget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
-        renderWireframe = false;
-    }
-
     return EntityRenderContext{
         .position = gadget->position,
         .gameplayDistance = gadget->gameplayDistance,
         .color = ESPStyling::GetEntityColor(*gadget),
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = renderBox,
-        .renderWireframe = renderWireframe,
-        .renderDistance = context.settings.objectESP.renderDistance,
-        .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,
         .renderHealthBar = renderHealthBar,
-        .renderHealthPercentage = context.settings.objectESP.showHealthPercentage,
         .renderEnergyBar = false, // No energy bar for gadgets
-        .renderPlayerName = false,
         .entityType = ESPEntityType::Gadget,
         .attitude = Game::Attitude::Neutral,
         .entity = gadget,
         .playerName = emptyPlayerName,
         .healthBarAnim = animState,
-        .renderGadgetSphere = context.settings.objectESP.renderSphere,
-        .renderGadgetCircle = context.settings.objectESP.renderCircle,
-        .playerGearDisplayMode = GearDisplayMode::Compact,
-        .playerEnergyDisplayType = EnergyDisplayType::Energy,
-        .showCombatUI = !hideCombatUI,
-        .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
-        .showBurstDps = context.settings.objectESP.showBurstDps
+        .showCombatUI = !hideCombatUI
     };
 }
 
@@ -240,46 +191,21 @@ EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const Render
 
     unsigned int color = ESPStyling::GetEntityColor(*attackTarget);
 
-    // Disable box rendering for oversized attack targets (walls, large structures)
-    // This prevents screen clutter from massive 20-30m tall entities while still allowing
-    // other visualizations (circles, dots, details, etc.) to render
-    bool renderBox = context.settings.objectESP.renderBox;
-    if (renderBox && attackTarget->hasPhysicsDimensions && attackTarget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
-        renderBox = false;
-    }
-
-    bool renderWireframe = context.settings.objectESP.renderWireframe;
-    if (renderWireframe && attackTarget->hasPhysicsDimensions && attackTarget->physicsHeight > context.settings.objectESP.maxBoxHeight) {
-        renderWireframe = false;
-    }
-
     return EntityRenderContext {
         .position = attackTarget->position,
         .gameplayDistance = attackTarget->gameplayDistance,
         .color = color,
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderBox = renderBox,
-        .renderWireframe = renderWireframe,
-        .renderDistance = context.settings.objectESP.renderDistance,
-        .renderDot = context.settings.objectESP.renderDot,
         .renderDetails = context.settings.objectESP.renderDetails,
         .renderHealthBar = renderHealthBar,
-        .renderHealthPercentage = context.settings.objectESP.showHealthPercentage,
         .renderEnergyBar = false,
-        .renderPlayerName = false,
         .entityType = ESPEntityType::AttackTarget,
         .attitude = Game::Attitude::Neutral,
         .entity = attackTarget,
         .playerName = emptyPlayerName,
         .healthBarAnim = animState,
-        .renderGadgetSphere = context.settings.objectESP.renderSphere,
-        .renderGadgetCircle = context.settings.objectESP.renderCircle,
-        .playerGearDisplayMode = GearDisplayMode::Compact,
-        .playerEnergyDisplayType = EnergyDisplayType::Energy,
-        .showCombatUI = !hideCombatUI,
-        .showDamageNumbers = context.settings.objectESP.showDamageNumbers,
-        .showBurstDps = context.settings.objectESP.showBurstDps
+        .showCombatUI = !hideCombatUI
     };
 }
 

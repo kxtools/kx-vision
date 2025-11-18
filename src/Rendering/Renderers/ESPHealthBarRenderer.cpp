@@ -13,6 +13,7 @@
 #include "TextRenderer.h"
 #include "../Utils/LayoutConstants.h"
 #include "../../Core/AppState.h"
+#include "../Utils/RenderSettingsHelper.h"
 
 namespace kx {
 
@@ -317,7 +318,9 @@ namespace kx {
         DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha);
 
         // 6. Health Percentage Text (drawn last, on top of everything)
-        if (context.renderHealthPercentage && context.entity->maxHealth > 0) {
+        const auto& settings = AppState::Get().GetSettings();
+        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(settings, context.entityType);
+        if (shouldRenderHealthPercentage && context.entity->maxHealth > 0) {
             float healthPercent = context.entity->currentHealth / context.entity->maxHealth;
             DrawHealthPercentageText(drawList, barMin, barMax, healthPercent, fontSize, fadeAlpha);
         }

@@ -95,30 +95,13 @@ struct EntityRenderContext {
 
     // ===== Style and Settings =====
     
-    /** Whether to render bounding box */
-    bool renderBox;
-    
-    /** Whether to render 3D wireframe box */
-    bool renderWireframe;
-    
-    /** Whether to render distance text */
-    bool renderDistance;
-    
-    /** Whether to render center dot */
-    bool renderDot;
-    
     /** Whether to render detail lines */
     bool renderDetails;
     
     /** Whether to render health bar */
     bool renderHealthBar;
-    /** Whether to render health percentage text */
-    bool renderHealthPercentage;
     /** Whether to render energy bar */
     bool renderEnergyBar;
-    
-    /** Whether to render player name (separate from details) */
-    bool renderPlayerName;
     
     /** Entity type classification for rendering logic */
     ESPEntityType entityType;
@@ -137,22 +120,10 @@ struct EntityRenderContext {
     /** Transient animation state for the health bar */
     HealthBarAnimationState healthBarAnim;
 
-    // ===== NEW: Complete Render Policy Fields =====
-    
-    /** Gadget-specific rendering flags */
-    bool renderGadgetSphere;
-    bool renderGadgetCircle;
-    
-    /** Player-specific display modes (avoid checking settings in renderer) */
-    GearDisplayMode playerGearDisplayMode;
-    EnergyDisplayType playerEnergyDisplayType;
+    // ===== Computed Logic Fields =====
     
     /** Combat UI visibility (consolidate the ShouldHideCombatUIForGadget check) */
     bool showCombatUI;  // false for decorative gadgets (vistas, waypoints, etc.)
-    
-    /** Damage/DPS feature flags (per-entity settings) */
-    bool showDamageNumbers;
-    bool showBurstDps;
 };
 
 } // namespace kx

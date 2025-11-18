@@ -23,6 +23,7 @@
 #include <string>
 #include <map>
 #include "../Utils/ESPPlayerDetailsBuilder.h"
+#include "../Utils/RenderSettingsHelper.h"
 
 namespace kx {
 
@@ -138,27 +139,30 @@ void ESPStageRenderer::RenderFrameData(const FrameContext& context, const Pooled
 void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, EntityRenderContext& entityContext, const VisualProperties& props) {
     // 1. Render static elements that don't affect the layout first.
     // Bounding Box
-    if (entityContext.renderBox) {
+    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entityContext.entityType);
+    float entityHeight = entityContext.entity->hasPhysicsDimensions ? entityContext.entity->physicsHeight : 0.0f;
+    if (shouldRenderBox && RenderSettingsHelper::IsBoxAllowedForSize(context.settings, entityContext.entityType, entityHeight)) {
         ESPShapeRenderer::RenderBoundingBox(context.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness);
     }
 
     // 3D Wireframe Box
-    if (entityContext.renderWireframe) {
+    bool shouldRenderWireframe = RenderSettingsHelper::ShouldRenderWireframe(context.settings, entityContext.entityType);
+    if (shouldRenderWireframe && RenderSettingsHelper::IsBoxAllowedForSize(context.settings, entityContext.entityType, entityHeight)) {
         ESPShapeRenderer::RenderWireframeBox(context.drawList, props, props.fadedEntityColor, props.finalBoxThickness);
     }
 
     // Gadget Visuals (Sphere/Circle)
     if (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget) {
-        if (entityContext.renderGadgetSphere) {
+        if (RenderSettingsHelper::ShouldRenderGadgetSphere(context.settings, entityContext.entityType)) {
             ESPShapeRenderer::RenderGadgetSphere(context.drawList, entityContext, context.camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale, context.screenWidth, context.screenHeight);
         }
-        if (entityContext.renderGadgetCircle) {
+        if (RenderSettingsHelper::ShouldRenderGadgetCircle(context.settings, entityContext.entityType)) {
             ESPShapeRenderer::RenderGadgetCircle(context.drawList, props.screenPos, props.circleRadius, props.fadedEntityColor, props.finalBoxThickness);
         }
     }
 
     // Center Dot
-    if (entityContext.renderDot) {
+    if (RenderSettingsHelper::ShouldRenderDot(context.settings, entityContext.entityType)) {
         if (entityContext.entityType == ESPEntityType::Gadget || entityContext.entityType == ESPEntityType::AttackTarget) {
             ESPShapeRenderer::RenderNaturalWhiteDot(context.drawList, props.screenPos, props.finalAlpha, props.finalDotRadius);
         } else {
@@ -171,7 +175,7 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
     LayoutCursor bottomStack({props.center.x, props.boxMax.y}, 1.0f);
     
     // Handle Gadgets (Center Anchor fallback)
-    if (entityContext.entityType == ESPEntityType::Gadget && !entityContext.renderBox) {
+    if (entityContext.entityType == ESPEntityType::Gadget && !shouldRenderBox) {
         // If no box, stack everything below the center point
         bottomStack = LayoutCursor(glm::vec2(props.screenPos.x, props.screenPos.y), 1.0f);
     }
@@ -184,8 +188,8 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
     bool hasHealthBar = false;
 
     // 0. Name/Distance (first in bottom stack)
-    bool showName = entityContext.renderPlayerName && entityContext.entityType == ESPEntityType::Player;
-    bool showDistance = entityContext.renderDistance;
+    bool showName = RenderSettingsHelper::ShouldRenderName(context.settings, entityContext.entityType);
+    bool showDistance = RenderSettingsHelper::ShouldRenderDistance(context.settings, entityContext.entityType);
 
     if (showName || showDistance) {
         // Create temporary request struct just for the factory
@@ -232,7 +236,8 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
     // 2. Energy Bar
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-        float energyPercent = CalculateEnergyPercent(player, entityContext.playerEnergyDisplayType);
+        EnergyDisplayType energyDisplayType = RenderSettingsHelper::GetPlayerEnergyDisplayType(context.settings);
+        float energyPercent = CalculateEnergyPercent(player, energyDisplayType);
         if (energyPercent >= 0.0f && entityContext.renderEnergyBar) {
             glm::vec2 barPos = bottomStack.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
             ESPHealthBarRenderer::RenderStandaloneEnergyBar(context.drawList, barPos, energyPercent,
@@ -246,7 +251,8 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
     if (entityContext.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
         if (player != nullptr) {
-            switch (entityContext.playerGearDisplayMode) {
+            GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(context.settings);
+            switch (gearDisplayMode) {
                 case GearDisplayMode::Compact: {
                     auto summary = ESPPlayerDetailsBuilder::BuildCompactGearSummary(player);
                     if (!summary.empty()) {
@@ -281,7 +287,8 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
 
 void ESPStageRenderer::RenderDamageNumbers(const FrameContext& context, const EntityRenderContext& entityContext, const VisualProperties& props, const glm::vec2& healthBarPos) {
     // Check if combat UI should be shown and damage numbers are enabled
-    if (!entityContext.showCombatUI || !entityContext.showDamageNumbers || entityContext.healthBarAnim.damageNumberAlpha <= 0.0f) {
+    bool shouldShowDamageNumbers = RenderSettingsHelper::ShouldShowDamageNumbers(context.settings, entityContext.entityType);
+    if (!entityContext.showCombatUI || !shouldShowDamageNumbers || entityContext.healthBarAnim.damageNumberAlpha <= 0.0f) {
         return;
     }
 
@@ -308,7 +315,8 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
     if (!ImGui::GetCurrentContext()) return;
     
     // Check if combat UI should be shown and burst DPS is enabled
-    if (!entityContext.showCombatUI || !entityContext.showBurstDps || entityContext.burstDPS <= 0.0f || entityContext.healthBarAnim.healthBarFadeAlpha <= 0.0f) {
+    bool shouldShowBurstDps = RenderSettingsHelper::ShouldShowBurstDps(context.settings, entityContext.entityType);
+    if (!entityContext.showCombatUI || !shouldShowBurstDps || entityContext.burstDPS <= 0.0f || entityContext.healthBarAnim.healthBarFadeAlpha <= 0.0f) {
         return;
     }
 
@@ -342,7 +350,8 @@ void ESPStageRenderer::RenderBurstDps(const FrameContext& context, const EntityR
         };
 
         // If the HP% text is also being rendered, calculate its width and add it to our offset.
-        if (entityContext.renderHealthPercentage && healthPercent >= 0.0f) {
+        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(context.settings, entityContext.entityType);
+        if (shouldRenderHealthPercentage && healthPercent >= 0.0f) {
             std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f)) + "%";
 
             // Calculate the size of the HP text using the same font size it will be rendered with.
