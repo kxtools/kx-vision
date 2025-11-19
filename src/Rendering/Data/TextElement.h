@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <cstdint>
 #include <glm.hpp>
 #include "../../../libs/ImGui/imgui.h"
 #include "Shared/LayoutConstants.h"
@@ -104,6 +105,14 @@ struct TextSegment {
 };
 
 /**
+ * @brief Helper struct to track where lines start and end in the flat buffer
+ */
+struct LineSpan {
+    uint16_t startIdx;
+    uint16_t count;
+};
+
+/**
  * @brief A text element that can be rendered
  * 
  * Supports:
@@ -120,7 +129,8 @@ public:
      */
     TextElement(const std::string& text, const glm::vec2& anchor, TextAnchor positioning = TextAnchor::Below)
         : m_anchor(anchor), m_positioning(positioning), m_alignment(TextAlignment::Center) {
-        m_lines.push_back({TextSegment(text)});
+        m_segments.emplace_back(text);
+        m_lines.push_back({ 0, 1 });
     }
     
     /**
@@ -128,7 +138,8 @@ public:
      */
     TextElement(const std::string& text, const glm::vec2& anchor, const glm::vec2& customOffset)
         : m_anchor(anchor), m_positioning(TextAnchor::Custom), m_customOffset(customOffset), m_alignment(TextAlignment::Center) {
-        m_lines.push_back({TextSegment(text)});
+        m_segments.emplace_back(text);
+        m_lines.push_back({ 0, 1 });
     }
     
     /**
@@ -136,8 +147,13 @@ public:
      */
     TextElement(const std::vector<std::string>& lines, const glm::vec2& anchor, TextAnchor positioning = TextAnchor::Below)
         : m_anchor(anchor), m_positioning(positioning), m_alignment(TextAlignment::Center) {
+        m_segments.reserve(lines.size());
+        m_lines.reserve(lines.size());
+        
         for (const auto& line : lines) {
-            m_lines.push_back({TextSegment(line)});
+            uint16_t start = static_cast<uint16_t>(m_segments.size());
+            m_segments.emplace_back(line);
+            m_lines.push_back({ start, 1 });
         }
     }
     
@@ -146,14 +162,27 @@ public:
      */
     TextElement(const std::vector<TextSegment>& segments, const glm::vec2& anchor, TextAnchor positioning = TextAnchor::Below)
         : m_anchor(anchor), m_positioning(positioning), m_alignment(TextAlignment::Center) {
-        m_lines.push_back(segments);
+        m_segments = segments;
+        m_lines.push_back({ 0, static_cast<uint16_t>(segments.size()) });
     }
     
     /**
      * @brief Multi-line, multi-colored text element
      */
     TextElement(const std::vector<std::vector<TextSegment>>& lines, const glm::vec2& anchor, TextAnchor positioning = TextAnchor::Below)
-        : m_lines(lines), m_anchor(anchor), m_positioning(positioning), m_alignment(TextAlignment::Center) {}
+        : m_anchor(anchor), m_positioning(positioning), m_alignment(TextAlignment::Center) {
+        size_t totalSegments = 0;
+        for (const auto& line : lines) totalSegments += line.size();
+        
+        m_segments.reserve(totalSegments);
+        m_lines.reserve(lines.size());
+
+        for (const auto& line : lines) {
+            uint16_t start = static_cast<uint16_t>(m_segments.size());
+            m_segments.insert(m_segments.end(), line.begin(), line.end());
+            m_lines.push_back({ start, static_cast<uint16_t>(line.size()) });
+        }
+    }
     
     // Setters for fluent API
     TextElement& SetStyle(const TextStyle& style) { m_style = style; return *this; }
@@ -164,7 +193,8 @@ public:
     TextElement& SetPositioning(TextAnchor positioning) { m_positioning = positioning; return *this; }
     
     // Getters
-    const std::vector<std::vector<TextSegment>>& GetLines() const { return m_lines; }
+    const std::vector<TextSegment>& GetSegments() const { return m_segments; }
+    const std::vector<LineSpan>& GetLines() const { return m_lines; }
     const glm::vec2& GetAnchor() const { return m_anchor; }
     TextAnchor GetPositioning() const { return m_positioning; }
     const glm::vec2& GetCustomOffset() const { return m_customOffset; }
@@ -173,7 +203,8 @@ public:
     float GetLineSpacing() const { return m_lineSpacing; }
     
 private:
-    std::vector<std::vector<TextSegment>> m_lines;  // Each line can have multiple colored segments
+    std::vector<TextSegment> m_segments;
+    std::vector<LineSpan> m_lines;
     glm::vec2 m_anchor;                             // Reference point for positioning
     TextAnchor m_positioning;                       // How to position relative to anchor
     glm::vec2 m_customOffset = {0.0f, 0.0f};       // Used when positioning == Custom

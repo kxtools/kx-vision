@@ -93,11 +93,12 @@ private:
     /**
      * @brief Render a single line of text with multiple colored segments
      * @param drawList ImGui draw list to render to
-     * @param segments Text segments to render
+     * @param allSegments All text segments (flat vector)
+     * @param span Line span indicating which segments belong to this line
      * @param basePos Starting position
      * @param style Style configuration
      */
-    static void RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& segments, const ImVec2& basePos, const TextStyle& style);
+    static void RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& allSegments, const LineSpan& span, const ImVec2& basePos, const TextStyle& style);
     
     /**
      * @brief Apply fade alpha to a color
@@ -109,11 +110,12 @@ private:
     
     /**
      * @brief Calculate total width of a line (sum of all segments)
-     * @param segments Text segments
+     * @param allSegments All text segments (flat vector)
+     * @param span Line span indicating which segments belong to this line
      * @param fontSize Font size
      * @return Total width in pixels
      */
-    static float CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize);
+    static float CalculateLineWidth(const std::vector<TextSegment>& allSegments, const LineSpan& span, float fontSize);
 };
 
 } // namespace kx

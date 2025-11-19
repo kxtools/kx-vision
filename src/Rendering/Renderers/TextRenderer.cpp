@@ -16,8 +16,10 @@ ImVec2 TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
         return ImVec2(0, 0);
     }
     
-    const auto& lines = element.GetLines();
-    if (lines.empty()) {
+    const auto& lineSpans = element.GetLines();
+    const auto& allSegments = element.GetSegments();
+    
+    if (lineSpans.empty()) {
         return ImVec2(0, 0);
     }
     
@@ -31,9 +33,11 @@ ImVec2 TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
     float totalHeight = 0.0f;
     std::vector<float> lineWidths;
     std::vector<float> lineHeights;
+    lineWidths.reserve(lineSpans.size());
+    lineHeights.reserve(lineSpans.size());
     
-    for (const auto& line : lines) {
-        float lineWidth = CalculateLineWidth(line, style.fontSize);
+    for (const auto& span : lineSpans) {
+        float lineWidth = CalculateLineWidth(allSegments, span, style.fontSize);
         float lineHeight = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, " ").y;
         
         lineWidths.push_back(lineWidth);
@@ -42,13 +46,13 @@ ImVec2 TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
     }
     
     // Add spacing between lines
-    if (lines.size() > 1) {
-        totalHeight += element.GetLineSpacing() * (lines.size() - 1);
+    if (lineSpans.size() > 1) {
+        totalHeight += element.GetLineSpacing() * (lineSpans.size() - 1);
     }
     
     // Render each line
-    for (size_t i = 0; i < lines.size(); ++i) {
-        const auto& line = lines[i];
+    for (size_t i = 0; i < lineSpans.size(); ++i) {
+        const auto& span = lineSpans[i];
         float lineWidth = lineWidths[i];
         float lineHeight = lineHeights[i];
         
@@ -78,7 +82,7 @@ ImVec2 TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
         }
         
         // Render text
-        RenderTextLine(drawList, line, linePos, style);
+        RenderTextLine(drawList, allSegments, span, linePos, style);
     }
     
     return totalSize;
@@ -91,8 +95,10 @@ void TextRenderer::RenderBatch(ImDrawList* drawList, const std::vector<TextEleme
 }
 
 ImVec2 TextRenderer::CalculateSize(const TextElement& element) {
-    const auto& lines = element.GetLines();
-    if (lines.empty()) {
+    const auto& lineSpans = element.GetLines();
+    const auto& allSegments = element.GetSegments();
+    
+    if (lineSpans.empty()) {
         return ImVec2(0, 0);
     }
 
@@ -102,8 +108,8 @@ ImVec2 TextRenderer::CalculateSize(const TextElement& element) {
     float maxWidth = 0.0f;
     float totalHeight = 0.0f;
 
-    for (const auto& line : lines) {
-        float lineWidth = CalculateLineWidth(line, style.fontSize);
+    for (const auto& span : lineSpans) {
+        float lineWidth = CalculateLineWidth(allSegments, span, style.fontSize);
         if (lineWidth > maxWidth) {
             maxWidth = lineWidth;
         }
@@ -111,8 +117,8 @@ ImVec2 TextRenderer::CalculateSize(const TextElement& element) {
         totalHeight += lineHeight;
     }
 
-    if (lines.size() > 1) {
-        totalHeight += element.GetLineSpacing() * (lines.size() - 1);
+    if (lineSpans.size() > 1) {
+        totalHeight += element.GetLineSpacing() * (lineSpans.size() - 1);
     }
 
     if (style.enableBackground) {
@@ -202,14 +208,16 @@ void TextRenderer::RenderBorder(ImDrawList* drawList, const ImVec2& textPos, con
     drawList->AddRect(borderMin, borderMax, borderColor, style.backgroundRounding, 0, style.borderThickness);
 }
 
-void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& segments, const ImVec2& basePos, const TextStyle& style) {
+void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& allSegments, const LineSpan& span, const ImVec2& basePos, const TextStyle& style) {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext()) return;
     
     ImFont* font = ImGui::GetFont();
     ImVec2 currentPos = basePos;
     
-    for (const auto& segment : segments) {
+    // Iterate only the segments belonging to this line
+    for (int i = 0; i < span.count; ++i) {
+        const auto& segment = allSegments[span.startIdx + i];
         if (segment.text.empty()) continue;
         
         // Calculate segment size with proper scaling
@@ -252,14 +260,16 @@ ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) {
     return (color & 0x00FFFFFF) | (static_cast<ImU32>(newAlpha) << IM_COL32_A_SHIFT);
 }
 
-float TextRenderer::CalculateLineWidth(const std::vector<TextSegment>& segments, float fontSize) {
+float TextRenderer::CalculateLineWidth(const std::vector<TextSegment>& allSegments, const LineSpan& span, float fontSize) {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext()) return 0.0f;
     
     ImFont* font = ImGui::GetFont();
     float totalWidth = 0.0f;
     
-    for (const auto& segment : segments) {
+    // Iterate only the segments belonging to this line
+    for (int i = 0; i < span.count; ++i) {
+        const auto& segment = allSegments[span.startIdx + i];
         ImVec2 segmentSize = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, segment.text.c_str());
         totalWidth += segmentSize.x;
     }
