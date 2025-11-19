@@ -1,16 +1,9 @@
-#pragma once
-
-#include <string>
+#include "Formatting.h"
 #include <cstdio>
-#include "../../Game/GameEnums.h"
-#include "../../Game/HavokEnums.h"
-#include "../../Game/Generated/EnumsAndStructs.h"
 
-namespace kx {
-namespace Formatting {
+namespace kx::Formatting {
 
-    // --- From former EnumHelpers ---
-    inline const char* GetProfessionName(Game::Profession prof) {
+    const char* GetProfessionName(Game::Profession prof) {
         switch (prof) {
             case Game::Profession::Guardian: return "Guardian";
             case Game::Profession::Warrior: return "Warrior";
@@ -21,22 +14,22 @@ namespace Formatting {
             case Game::Profession::Mesmer: return "Mesmer";
             case Game::Profession::Necromancer: return "Necromancer";
             case Game::Profession::Revenant: return "Revenant";
-            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
+            default: return nullptr;
         }
     }
 
-    inline const char* GetRaceName(Game::Race race) {
+    const char* GetRaceName(Game::Race race) {
         switch (race) {
             case Game::Race::Asura: return "Asura";
             case Game::Race::Charr: return "Charr";
             case Game::Race::Human: return "Human";
             case Game::Race::Norn: return "Norn";
             case Game::Race::Sylvari: return "Sylvari";
-            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
+            default: return nullptr;
         }
     }
 
-    inline const char* GetGadgetTypeName(Game::GadgetType type) {
+    const char* GetGadgetTypeName(Game::GadgetType type) {
         switch (type) {
             case Game::GadgetType::ResourceNode: return "Resource Node";
             case Game::GadgetType::Waypoint: return "Waypoint";
@@ -56,11 +49,11 @@ namespace Formatting {
             case Game::GadgetType::BuildSite: return "Build Site";
             case Game::GadgetType::Generic: return "Generic Trigger";
             case Game::GadgetType::Generic2: return "Generic Trigger 2";
-            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
+            default: return nullptr;
         }
     }
 
-    inline const char* GetRankName(Game::CharacterRank rank) {
+    const char* GetRankName(Game::CharacterRank rank) {
         switch (rank) {
             case Game::CharacterRank::Normal: return "Normal";
             case Game::CharacterRank::Ambient: return "Ambient";
@@ -68,21 +61,21 @@ namespace Formatting {
             case Game::CharacterRank::Elite: return "Elite";
             case Game::CharacterRank::Champion: return "Champion";
             case Game::CharacterRank::Legendary: return "Legendary";
-            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
+            default: return nullptr;
         }
     }
 
-    inline const char* GetAttitudeName(Game::Attitude attitude) {
+    const char* GetAttitudeName(Game::Attitude attitude) {
         switch (attitude) {
             case Game::Attitude::Friendly: return "Friendly";
             case Game::Attitude::Hostile: return "Hostile";
             case Game::Attitude::Indifferent: return "Indifferent";
             case Game::Attitude::Neutral: return "Neutral";
-            default: return nullptr; // Return nullptr for unknown, caller should handle ID display
+            default: return nullptr;
         }
     }
 
-    inline std::string GetAgentTypeName(Game::AgentType type) {
+    std::string GetAgentTypeName(Game::AgentType type) {
         switch (type) {
             case Game::AgentType::Character: return "Character";
             case Game::AgentType::Gadget: return "Gadget";
@@ -93,25 +86,25 @@ namespace Formatting {
         }
     }
 
-    inline bool IsWeaponSlot(Game::EquipmentSlot slot) {
+    bool IsWeaponSlot(Game::EquipmentSlot slot) {
         return slot == Game::EquipmentSlot::MainhandWeapon1 ||
                slot == Game::EquipmentSlot::OffhandWeapon1 ||
                slot == Game::EquipmentSlot::MainhandWeapon2 ||
                slot == Game::EquipmentSlot::OffhandWeapon2;
     }
 
-    inline std::string ResourceNodeTypeToString(Game::ResourceNodeType type) {
+    std::string ResourceNodeTypeToString(Game::ResourceNodeType type) {
         switch (type) {
-	    case Game::ResourceNodeType::Plant: return "Plant";
-	    case Game::ResourceNodeType::Tree: return "Tree";
-	    case Game::ResourceNodeType::Rock: return "Rock";
-	    case Game::ResourceNodeType::Quest: return "Quest Node";
-	    default:
-		    return "Node ID: " + std::to_string(static_cast<int>(type));
-	    }
+            case Game::ResourceNodeType::Plant: return "Plant";
+            case Game::ResourceNodeType::Tree: return "Tree";
+            case Game::ResourceNodeType::Rock: return "Rock";
+            case Game::ResourceNodeType::Quest: return "Quest Node";
+            default:
+                return "Node ID: " + std::to_string(static_cast<int>(type));
+        }
     }
 
-    inline const char* EquipmentSlotToString(Game::EquipmentSlot slot) {
+    const char* EquipmentSlotToString(Game::EquipmentSlot slot) {
         switch (slot) {
         case Game::EquipmentSlot::Helm: return "Helm";
         case Game::EquipmentSlot::Shoulders: return "Shoulders";
@@ -133,7 +126,7 @@ namespace Formatting {
         }
     }
 
-    inline std::string GetShapeTypeName(Havok::HkcdShapeType type) {
+    std::string GetShapeTypeName(Havok::HkcdShapeType type) {
         switch (type) {
             case Havok::HkcdShapeType::SPHERE: return "SPHERE";
             case Havok::HkcdShapeType::CYLINDER: return "CYLINDER";
@@ -175,7 +168,7 @@ namespace Formatting {
         }
     }
 
-    constexpr const char* GetAttributeShortName(data::ApiAttribute attribute) {
+    const char* GetAttributeShortName(data::ApiAttribute attribute) {
         switch (attribute) {
             case data::ApiAttribute::Power:             return "Power";
             case data::ApiAttribute::Precision:         return "Precision";
@@ -190,5 +183,5 @@ namespace Formatting {
         }
     }
 
-} // namespace ESPFormatting
-} // namespace kx
+} // namespace kx::Formatting
+

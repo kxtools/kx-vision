@@ -10,7 +10,7 @@
 
 #include "Styling.h"
 #include "Shared/ColorConstants.h"
-#include "Shared/Formatting.h"
+#include "Formatting.h"
 
 namespace kx {
 

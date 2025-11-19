@@ -130,6 +130,8 @@
     <ClCompile Include="src\Rendering\Logic\FrameDataProcessor.cpp" />
     <ClCompile Include="src\Rendering\Logic\StyleCalculator.cpp" />
     <ClCompile Include="src\Rendering\Presentation\ContextFactory.cpp" />
+    <ClCompile Include="src\Rendering\Presentation\Formatting.cpp" />
+    <ClCompile Include="src\Rendering\Presentation\Styling.cpp" />
     <ClCompile Include="src\Rendering\Renderers\EntityComponentRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\EnergyBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\HealthBarRenderer.cpp" />
@@ -219,6 +221,7 @@
     <ClInclude Include="src\Rendering\Logic\FrameDataProcessor.h" />
     <ClInclude Include="src\Rendering\GUI\UIConstants.h" />
     <ClInclude Include="src\Rendering\Logic\StyleCalculator.h" />
+    <ClInclude Include="src\Rendering\Presentation\Formatting.h" />
     <ClInclude Include="src\Rendering\Renderers\LayoutCursor.h" />
     <ClInclude Include="src\Rendering\Renderers\EntityComponentRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\EnergyBarRenderer.h" />
@@ -243,7 +246,6 @@
     <ClInclude Include="src\Rendering\Shared\ColorConstants.h" />
     <ClInclude Include="src\Rendering\Shared\CombatConstants.h" />
     <ClInclude Include="src\Rendering\Shared\D3DState.h" />
-    <ClInclude Include="src\Rendering\Shared\Formatting.h" />
     <ClInclude Include="src\Rendering\Shared\MathUtils.h" />
     <ClInclude Include="src\Rendering\Shared\LayoutConstants.h" />
     <ClInclude Include="src\Rendering\Shared\RenderSettingsHelper.h" />

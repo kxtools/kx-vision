@@ -4,7 +4,7 @@
 #include "../../Utils/StringHelpers.h"
 #include <vector>
 
-#include "Shared/Formatting.h"
+#include "Presentation/Formatting.h"
 
 namespace kx {
 
