@@ -59,144 +59,6 @@ namespace {
     }
 }
 
-TextElement TextElementFactory::CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
-    unsigned int entityColor, float fadeAlpha, float fontSize, const Settings& settings) {
-    TextElement element(playerName, {0,0});
-    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize, settings));
-    return element;
-}
-
-TextElement TextElementFactory::CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize, const Settings& settings) {
-    std::string formattedDistance = FormatDistance(distance, settings);
-    
-    TextElement element(formattedDistance, position, TextAnchor::AbsoluteTopLeft);
-    element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize, settings));
-    element.SetAlignment(TextAlignment::Center);
-    return element;
-}
-
-TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetail>& details,
-                                                  const glm::vec2& anchorPos, float fadeAlpha, float fontSize, const Settings& settings) {
-    if (details.empty()) {
-        return TextElement("", {0,0});
-    }
-    
-    // Convert ColoredDetail to text lines with colors
-    std::vector<std::vector<TextSegment>> lines;
-    for (const auto& detail : details) {
-        // ColoredDetail colors already have alpha = 255, they will be faded by the renderer
-        lines.push_back({TextSegment(detail.text.c_str(), detail.color)});
-    }
-    
-    TextElement element(lines, {0,0});
-    
-    TextStyle style = GetDetailsStyle(fadeAlpha, fontSize, settings);
-    element.SetStyle(style);
-    element.SetLineSpacing(RenderingLayout::DETAILS_TEXT_LINE_SPACING);
-    
-    return element;
-}
-
-TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatInfo>& summary,
-                                                  const glm::vec2& feetPos, float fadeAlpha, float fontSize, const Settings& settings) {
-    if (summary.empty()) {
-        return TextElement("", {0,0});
-    }
-    
-    // Build multi-colored segments
-    std::vector<TextSegment> segments;
-    
-    // Add prefix
-    segments.push_back(TextSegment("Stats: ", ESPColors::SUMMARY_TEXT_RGB));
-    
-    // Add each stat with its rarity color
-    for (size_t i = 0; i < summary.size(); ++i) {
-        const auto& info = summary[i];
-        
-        std::string segment = FormatTemp("{:.0f}% {}", info.percentage, info.statName);
-
-        ImU32 rarityColor = ESPStyling::GetRarityColor(info.highestRarity);
-        segments.push_back(TextSegment(segment, rarityColor));
-        
-        // Add separator
-        if (i < summary.size() - 1) {
-            segments.push_back(TextSegment(", ", ESPColors::SUMMARY_TEXT_RGB));
-        }
-    }
-    
-    TextElement element(segments, {0,0});
-    
-    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize, settings);
-    style.useCustomTextColor = true;  // Enable per-segment colors
-    element.SetStyle(style);
-    
-    return element;
-}
-
-TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantStat>& stats,
-                                                    Game::ItemRarity topRarity, // topRarity is no longer used for coloring, but kept for signature compatibility
-                                                    const glm::vec2& feetPos, float fadeAlpha, float fontSize, const Settings& settings) {
-    if (stats.empty()) {
-        return TextElement("", {0,0});
-    }
-
-    // Build multi-colored segments for the summary
-    std::vector<TextSegment> segments;
-    segments.push_back(TextSegment("[", ESPColors::SUMMARY_TEXT_RGB));
-
-    for (size_t i = 0; i < stats.size(); ++i) {
-        const auto& stat = stats[i];
-
-        // Format the string with name and percentage
-        std::string segment = FormatTemp("{} {:.0f}%", stat.name, stat.percentage);
-        
-        // Add the segment with its specific tactical color
-        segments.push_back(TextSegment(segment, stat.color));
-
-        // Add separator if not the last element
-        if (i < stats.size() - 1) {
-            segments.push_back(TextSegment(" | ", ESPColors::SUMMARY_TEXT_RGB));
-        }
-    }
-
-    segments.push_back(TextSegment("]", ESPColors::SUMMARY_TEXT_RGB));
-    
-    TextElement element(segments, {0,0});
-
-    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize, settings);
-    style.useCustomTextColor = true; // IMPORTANT: Enable per-segment coloring
-    element.SetStyle(style);
-    
-    return element;
-}
-
-TextElement TextElementFactory::CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize, const Settings& settings)
-{
-    // Anchor above the health bar with a small gap
-    TextElement element(number, anchorPos, glm::vec2(0.0f, -5.0f)); 
-    
-    // Define a unique style for the damage number
-    TextStyle style;
-    style.fontSize = fontSize;
-    style.fadeAlpha = fadeAlpha;
-    style.textColor = IM_COL32(255, 255, 255, 255); // Full white
-    // Shadow (respect global setting)
-    style.enableShadow = settings.appearance.enableTextShadows;
-    style.shadowAlpha = RenderingLayout::TEXT_SHADOW_ALPHA;
-    style.enableBackground = false; // No background, just the number
-
-    element.SetStyle(style);
-    return element;
-}
-
-TextElement TextElementFactory::CreatePlayerNameAt(const std::string& playerName, const glm::vec2& position, 
-    unsigned int entityColor, float fadeAlpha, float fontSize, const Settings& settings) {
-    TextElement element(playerName, position, TextAnchor::AbsoluteTopLeft);
-    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize, settings));
-    element.SetAlignment(TextAlignment::Center);
-    return element;
-}
-
 TextElement TextElementFactory::CreateDetailsTextAt(const std::vector<ColoredDetail>& details, const glm::vec2& position, 
                                                   float fadeAlpha, float fontSize, const Settings& settings) {
     if (details.empty()) {
@@ -280,6 +142,25 @@ TextElement TextElementFactory::CreateDominantStatsAt(const std::vector<Dominant
     element.SetStyle(style);
     element.SetAlignment(TextAlignment::Center);
     
+    return element;
+}
+
+TextElement TextElementFactory::CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize, const Settings& settings)
+{
+    // Anchor above the health bar with a small gap
+    TextElement element(number, anchorPos, glm::vec2(0.0f, -5.0f)); 
+    
+    // Define a unique style for the damage number
+    TextStyle style;
+    style.fontSize = fontSize;
+    style.fadeAlpha = fadeAlpha;
+    style.textColor = IM_COL32(255, 255, 255, 255); // Full white
+    // Shadow (respect global setting)
+    style.enableShadow = settings.appearance.enableTextShadows;
+    style.shadowAlpha = RenderingLayout::TEXT_SHADOW_ALPHA;
+    style.enableBackground = false; // No background, just the number
+
+    element.SetStyle(style);
     return element;
 }
 
