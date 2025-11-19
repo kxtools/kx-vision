@@ -1,6 +1,6 @@
 #define NOMINMAX
 
-#include "ImGuiManager.h"
+#include "OverlayWindow.h"
 
 #include <string>
 #include <windows.h>
@@ -25,13 +25,13 @@
 #include "GUI/Tabs/ValidationTab.h"
 
 // Define static members
-bool ImGuiManager::m_isInitialized = false;
+bool OverlayWindow::m_isInitialized = false;
 
 // NEW MEMBERS for UI-side timeout logic
-std::chrono::steady_clock::time_point ImGuiManager::m_connectingStartTime;
-bool ImGuiManager::m_isWaitingForConnection = false;
+std::chrono::steady_clock::time_point OverlayWindow::m_connectingStartTime;
+bool OverlayWindow::m_isWaitingForConnection = false;
 
-bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
+bool OverlayWindow::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -49,7 +49,7 @@ bool ImGuiManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
     return true;
 }
 
-void ImGuiManager::NewFrame() {
+void OverlayWindow::NewFrame() {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
@@ -61,7 +61,7 @@ void ImGuiManager::NewFrame() {
     ImGui::NewFrame();
 }
 
-void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView) {
+void OverlayWindow::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView) {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
@@ -76,7 +76,7 @@ void ImGuiManager::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* 
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
-void ImGuiManager::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, const kx::MumbleLinkData* mumbleData) {
+void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, const kx::MumbleLinkData* mumbleData) {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
@@ -175,7 +175,7 @@ void ImGuiManager::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, con
     ImGui::End();
 }
 
-void ImGuiManager::RenderUI(kx::Camera& camera, 
+void OverlayWindow::RenderUI(kx::Camera& camera, 
                             kx::MumbleLinkManager& mumbleLinkManager,
                             const kx::MumbleLinkData* mumbleLinkData,
                             HWND windowHandle,
@@ -195,7 +195,7 @@ void ImGuiManager::RenderUI(kx::Camera& camera,
     }
 }
 
-void ImGuiManager::RenderHints() {
+void OverlayWindow::RenderHints() {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
@@ -220,7 +220,7 @@ void ImGuiManager::RenderHints() {
     ImGui::Separator();
 }
 
-void ImGuiManager::Shutdown() {
+void OverlayWindow::Shutdown() {
     // Critical: Check if ImGui context exists before attempting shutdown
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;

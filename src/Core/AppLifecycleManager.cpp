@@ -13,7 +13,7 @@
 #include <windows.h>
 #include <shellapi.h>
 
-#include "GUI/Backend/ImGuiManager.h"
+#include "GUI/Backend/OverlayWindow.h"
 
 namespace kx {
 
@@ -320,7 +320,7 @@ namespace kx {
     // ===== Private Helper Methods =====
 
     bool AppLifecycleManager::IsImGuiReady() const {
-        return ImGuiManager::IsImGuiInitialized();
+        return OverlayWindow::IsImGuiInitialized();
     }
 
     bool AppLifecycleManager::IsPlayerInGame() const {

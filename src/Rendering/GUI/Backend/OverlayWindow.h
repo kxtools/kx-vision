@@ -12,13 +12,13 @@ namespace kx {
 }
 
 /**
- * @class ImGuiManager
+ * @class OverlayWindow
  * @brief Manages ImGui rendering and user interface for KX-Vision
  * 
  * This class is responsible for UI rendering only. It does not own or manage
  * game state (Camera, MumbleLinkManager). Game state is passed as parameters.
  */
-class ImGuiManager {
+class OverlayWindow {
 public:
     static bool Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd);
     static void NewFrame();

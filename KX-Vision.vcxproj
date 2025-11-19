@@ -114,7 +114,7 @@
     <ClCompile Include="src\Rendering\Combat\CombatLogic.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Rendering\Extraction\ESPDataExtractor.cpp" />
-    <ClCompile Include="src\Rendering\GUI\Backend\ImGuiManager.cpp" />
+    <ClCompile Include="src\Rendering\GUI\Backend\OverlayWindow.cpp" />
     <ClCompile Include="src\Rendering\GUI\Backend\ImGuiStyle.cpp" />
     <ClCompile Include="src\Rendering\GUI\Tabs\AppearanceTab.cpp" />
     <ClCompile Include="src\Rendering\GUI\Tabs\InfoTab.cpp" />
@@ -201,7 +201,7 @@
     <ClInclude Include="src\Rendering\Combat\CombatState.h" />
     <ClInclude Include="src\Rendering\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Rendering\Extraction\ESPDataExtractor.h" />
-    <ClInclude Include="src\Rendering\GUI\Backend\ImGuiManager.h" />
+    <ClInclude Include="src\Rendering\GUI\Backend\OverlayWindow.h" />
     <ClInclude Include="src\Rendering\GUI\Backend\ImGuiStyle.h" />
     <ClInclude Include="src\Rendering\GUI\Tabs\AppearanceTab.h" />
     <ClInclude Include="src\Rendering\GUI\Tabs\InfoTab.h" />
