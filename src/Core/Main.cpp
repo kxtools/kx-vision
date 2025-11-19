@@ -1,3 +1,4 @@
+#include "Config.h"
 #ifndef GW2AL_BUILD // This entire file is only compiled for standalone DLL mode
 
 #include <windows.h>
