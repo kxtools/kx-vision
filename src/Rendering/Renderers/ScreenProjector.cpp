@@ -31,6 +31,13 @@ bool ScreenProjector::Project(
         GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
     }
     
+    // Early culling: Check if entity is far behind camera before expensive 8-corner projection
+    glm::vec4 clipPos = camera.GetProjectionMatrix() * camera.GetViewMatrix() * glm::vec4(entity.position, 1.0f);
+    if (clipPos.w < -2.0f) {
+        // Far behind camera, safe to cull even large objects
+        return false;
+    }
+    
     // Project screen position (origin/feet point)
     bool isOriginValid = MathUtils::ProjectToScreen(entity.position, camera, screenW, screenH, outGeometry.screenPos);
     
