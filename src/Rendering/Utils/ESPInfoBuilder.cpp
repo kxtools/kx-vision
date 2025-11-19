@@ -179,20 +179,7 @@ std::vector<DominantStat> ESPInfoBuilder::BuildDominantStats(const RenderablePla
     allStats.reserve(attributeCounts.size());
 
     for (const auto& [attr, count] : attributeCounts) {
-        const char* name = "??";
-        switch (attr) {
-            using enum data::ApiAttribute;
-            case Power:             name = "Power"; break;
-            case Precision:         name = "Precision"; break;
-            case Toughness:         name = "Toughness"; break;
-            case Vitality:          name = "Vitality"; break;
-            case CritDamage:        name = "Ferocity"; break;
-            case Healing:           name = "Healing"; break;
-            case ConditionDamage:   name = "Condi Dmg"; break;
-            case BoonDuration:      name = "Boon Dura"; break;
-            case ConditionDuration: name = "Condi Dura"; break;
-            default:                break;
-        }
+        const char* name = ESPFormatting::GetAttributeShortName(attr);
         
         allStats.push_back({ name, (count / totalAttributes) * 100.0f, ESPStyling::GetTacticalColor(attr) });
     }

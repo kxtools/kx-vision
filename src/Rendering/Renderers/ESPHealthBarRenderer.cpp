@@ -384,39 +384,4 @@ namespace kx {
         DrawFilledRect(drawList, burstMin, burstMax, burstColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    void ESPHealthBarRenderer::RenderStandaloneEnergyBar(ImDrawList* drawList,
-        const glm::vec2& barTopLeftPosition,
-        float energyPercent,
-        float fadeAlpha,
-        float barWidth,
-        float barHeight,
-        float healthBarHeight,
-        const Settings& settings) {
-        if (energyPercent < 0.0f || energyPercent > 1.0f) return;
-
-        ImVec2 barMin(barTopLeftPosition.x, barTopLeftPosition.y);
-        ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
-
-        // Background
-        unsigned int bgAlpha =
-            ClampAlpha(static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f));
-        drawList->AddRectFilled(barMin,
-            barMax,
-            IM_COL32(0, 0, 0, bgAlpha),
-            RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-
-        // Energy fill
-        float fillWidth = barWidth * energyPercent;
-        ImVec2 eMin(barMin.x, barMin.y);
-        ImVec2 eMax(barMin.x + fillWidth, barMax.y);
-
-        ImU32 energyColor = ESPColors::ENERGY_BAR;
-        float colorA = ((energyColor >> 24) & 0xFF) / 255.0f;
-        ImU32 finalColor = ApplyAlphaToColor(energyColor, colorA * fadeAlpha * settings.appearance.globalOpacity);
-
-        DrawFilledRect(drawList, eMin, eMax, finalColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
-    }
-
-
-
 } // namespace kx

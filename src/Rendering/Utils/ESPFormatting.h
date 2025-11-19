@@ -4,6 +4,7 @@
 #include <cstdio>
 #include "../../Game/GameEnums.h"
 #include "../../Game/HavokEnums.h"
+#include "../../Game/Generated/EnumsAndStructs.h"
 
 namespace kx {
 namespace ESPFormatting {
@@ -171,6 +172,21 @@ namespace ESPFormatting {
                 std::snprintf(buffer, sizeof(buffer), "Unknown (0x%02X)", static_cast<uint8_t>(type));
                 return std::string(buffer);
             }
+        }
+    }
+
+    constexpr const char* GetAttributeShortName(data::ApiAttribute attribute) {
+        switch (attribute) {
+            case data::ApiAttribute::Power:             return "Power";
+            case data::ApiAttribute::Precision:         return "Precision";
+            case data::ApiAttribute::Toughness:         return "Toughness";
+            case data::ApiAttribute::Vitality:          return "Vitality";
+            case data::ApiAttribute::CritDamage:        return "Ferocity";
+            case data::ApiAttribute::Healing:           return "Healing";
+            case data::ApiAttribute::ConditionDamage:   return "Condi Dmg";
+            case data::ApiAttribute::BoonDuration:      return "Boon Dura";
+            case data::ApiAttribute::ConditionDuration: return "Condi Dura";
+            default:                                    return "Unknown";
         }
     }
 

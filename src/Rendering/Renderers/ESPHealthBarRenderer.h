@@ -25,15 +25,6 @@ namespace kx {
             float fontSize,
             const Settings& settings);
 
-        static void RenderStandaloneEnergyBar(ImDrawList* drawList,
-            const glm::vec2& barTopLeftPosition,
-            float energyPercent,
-            float fadeAlpha,
-            float barWidth,
-            float barHeight,
-            float healthBarHeight,
-            const Settings& settings);
-
     private:
         // --- Internal Specializations ---
         static void RenderAliveState(ImDrawList* drawList,

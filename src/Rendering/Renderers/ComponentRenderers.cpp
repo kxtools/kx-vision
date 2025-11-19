@@ -2,6 +2,7 @@
 #include "../Utils/RenderSettingsHelper.h"
 #include "ESPShapeRenderer.h"
 #include "ESPHealthBarRenderer.h"
+#include "ESPEnergyBarRenderer.h"
 #include "../Utils/TextElementFactory.h"
 #include "TextRenderer.h"
 #include "../Utils/ESPInfoBuilder.h"
@@ -194,8 +195,8 @@ void ComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRe
         float energyPercent = CalculateEnergyPercent(player, energyDisplayType);
         if (energyPercent >= 0.0f && eCtx.renderEnergyBar) {
             glm::vec2 barPos = cursor.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
-            ESPHealthBarRenderer::RenderStandaloneEnergyBar(ctx.drawList, barPos, energyPercent,
-                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight, ctx.settings);
+            ESPEnergyBarRenderer::Render(ctx.settings, ctx.drawList, barPos, energyPercent,
+                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight);
             cursor.Advance(props.finalHealthBarHeight);
         }
     }
