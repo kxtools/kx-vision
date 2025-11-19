@@ -2,6 +2,8 @@
 
 #include <string>
 #include <unordered_map>
+#include <array>
+#include <cstring>
 #include <vec3.hpp>
 #include <vec2.hpp>
 #include "../../Game/GameEnums.h"
@@ -18,9 +20,28 @@ namespace kx {
 
 // Shared rendering utility structures
 
+struct FixedText {
+    char buffer[64];
+
+    FixedText() { buffer[0] = '\0'; }
+    
+    FixedText(const char* str) {
+        strncpy_s(buffer, str, 63);
+    }
+    
+    FixedText(const std::string& str) {
+        strncpy_s(buffer, str.c_str(), 63);
+    }
+
+    const char* c_str() const { return buffer; }
+};
+
 struct ColoredDetail {
-    std::string text;
+    FixedText text;
     ImU32 color = 0; // 0 means default color
+    
+    ColoredDetail(const std::string& t, ImU32 c) : text(t), color(c) {}
+    ColoredDetail(const char* t, ImU32 c) : text(t), color(c) {}
 };
 
 // Base struct for all renderable entities

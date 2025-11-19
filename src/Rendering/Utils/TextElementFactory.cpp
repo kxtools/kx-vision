@@ -69,7 +69,7 @@ TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetai
     std::vector<std::vector<TextSegment>> lines;
     for (const auto& detail : details) {
         // ColoredDetail colors already have alpha = 255, they will be faded by the renderer
-        lines.push_back({TextSegment(detail.text, detail.color)});
+        lines.push_back({TextSegment(detail.text.c_str(), detail.color)});
     }
     
     TextElement element(lines, {0,0});
@@ -192,7 +192,7 @@ TextElement TextElementFactory::CreateDetailsTextAt(const std::vector<ColoredDet
     
     std::vector<std::vector<TextSegment>> lines;
     for (const auto& detail : details) {
-        lines.push_back({TextSegment(detail.text, detail.color)});
+        lines.push_back({TextSegment(detail.text.c_str(), detail.color)});
     }
     
     TextElement element(lines, position, TextAnchor::AbsoluteTopLeft);
