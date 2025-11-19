@@ -3,14 +3,13 @@
 #include "ESPShapeRenderer.h"
 #include "ESPHealthBarRenderer.h"
 #include "ESPEnergyBarRenderer.h"
-#include "../Utils/TextElementFactory.h"
+
 #include "TextRenderer.h"
-#include "../Utils/ESPInfoBuilder.h"
+
 #include "../Layout/LayoutCursor.h"
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"
-#include "../Utils/EntityVisualsCalculator.h"
-#include "../Utils/ESPStyling.h"
+
 #include "../Utils/CombatConstants.h"
 #include "../Utils/LayoutConstants.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -18,6 +17,10 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
+
+#include "Presentation/ESPStyling.h"
+#include "Presentation/InfoBuilder.h"
+#include "Presentation/TextElementFactory.h"
 
 namespace kx {
 
@@ -221,7 +224,7 @@ void ComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRende
             GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(ctx.settings);
             switch (gearDisplayMode) {
                 case GearDisplayMode::Compact: {
-                    auto summary = ESPInfoBuilder::BuildCompactGearSummary(player);
+                    auto summary = InfoBuilder::BuildCompactGearSummary(player);
                     if (!summary.empty()) {
                         TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
                         ImVec2 size = TextRenderer::Render(ctx.drawList, gearElement);
@@ -230,8 +233,8 @@ void ComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRende
                     break;
                 }
                 case GearDisplayMode::Attributes: {
-                    auto stats = ESPInfoBuilder::BuildDominantStats(player);
-                    auto rarity = ESPInfoBuilder::GetHighestRarity(player);
+                    auto stats = InfoBuilder::BuildDominantStats(player);
+                    auto rarity = InfoBuilder::GetHighestRarity(player);
                     if (!stats.empty()) {
                         TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
                         ImVec2 size = TextRenderer::Render(ctx.drawList, statsElement);

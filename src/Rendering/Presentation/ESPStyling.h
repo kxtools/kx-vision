@@ -2,11 +2,13 @@
 
 #include "../../Game/GameEnums.h"
 #include "../../libs/ImGui/imgui.h"
-#include "ESPConstants.h"
 #include "Generated/EnumsAndStructs.h"
 #include "../Data/RenderableData.h" // Need this for RenderableEntity, RenderablePlayer, RenderableNpc
 #include "../Data/ESPEntityTypes.h"
 #include <algorithm>
+
+#include "Utils/ColorConstants.h"
+#include "Utils/ScalingConstants.h"
 
 // Forward declaration to avoid circular dependency
 namespace kx {

@@ -1,16 +1,17 @@
-#include "ESPInfoBuilder.h"
-#include "ESPFormatting.h"
-#include "ESPConstants.h"
+#include "InfoBuilder.h"
 #include "../../Game/GameEnums.h"
 #include "../../Game/Generated/StatData.h"
 #include "../../Game/HavokEnums.h"
 #include "../../../libs/ImGui/imgui.h"
-#include "ESPStyling.h"
 
 #include <algorithm>
 #include <format>
 #include <ranges>
 #include <string_view>
+
+#include "ESPStyling.h"
+#include "Utils/ColorConstants.h"
+#include "Utils/ESPFormatting.h"
 
 namespace kx {
 
@@ -31,7 +32,7 @@ namespace {
 
 // ===== Player Methods =====
 
-std::vector<ColoredDetail> ESPInfoBuilder::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses) {
+std::vector<ColoredDetail> InfoBuilder::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
     
     if (!settings.renderDetails) {
@@ -91,7 +92,7 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildPlayerDetails(const RenderablePl
     return details;
 }
 
-std::vector<ColoredDetail> ESPInfoBuilder::BuildGearDetails(const RenderablePlayer* player) {
+std::vector<ColoredDetail> InfoBuilder::BuildGearDetails(const RenderablePlayer* player) {
     std::vector<ColoredDetail> gearDetails;
     gearDetails.reserve(16);
 
@@ -124,7 +125,7 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildGearDetails(const RenderablePlay
     return gearDetails;
 }
 
-std::vector<CompactStatInfo> ESPInfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player) {
+std::vector<CompactStatInfo> InfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player) {
     if (!player || player->gear.empty()) {
         return {};
     }
@@ -174,7 +175,7 @@ std::vector<CompactStatInfo> ESPInfoBuilder::BuildCompactGearSummary(const Rende
     return result;
 }
 
-std::vector<DominantStat> ESPInfoBuilder::BuildDominantStats(const RenderablePlayer* player) {
+std::vector<DominantStat> InfoBuilder::BuildDominantStats(const RenderablePlayer* player) {
     std::vector<DominantStat> result;
     auto attributeCounts = BuildAttributeSummary(player);
     
@@ -209,7 +210,7 @@ std::vector<DominantStat> ESPInfoBuilder::BuildDominantStats(const RenderablePla
     return result;
 }
 
-Game::ItemRarity ESPInfoBuilder::GetHighestRarity(const RenderablePlayer* player) {
+Game::ItemRarity InfoBuilder::GetHighestRarity(const RenderablePlayer* player) {
     if (!player || player->gear.empty()) {
         return Game::ItemRarity::None;
     }
@@ -225,7 +226,7 @@ Game::ItemRarity ESPInfoBuilder::GetHighestRarity(const RenderablePlayer* player
 
 // ===== NPC Methods =====
 
-std::vector<ColoredDetail> ESPInfoBuilder::BuildNpcDetails(const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses) {
+std::vector<ColoredDetail> InfoBuilder::BuildNpcDetails(const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
     
     if (!settings.renderDetails) {
@@ -275,7 +276,7 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildNpcDetails(const RenderableNpc* 
 
 // ===== Gadget Methods =====
 
-std::vector<ColoredDetail> ESPInfoBuilder::BuildGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses) {
+std::vector<ColoredDetail> InfoBuilder::BuildGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
     
     if (!settings.renderDetails) {
@@ -316,7 +317,7 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildGadgetDetails(const RenderableGa
     return details;
 }
 
-std::vector<ColoredDetail> ESPInfoBuilder::BuildAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses) {
+std::vector<ColoredDetail> InfoBuilder::BuildAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
     
     if (!settings.renderDetails) {
@@ -345,7 +346,7 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildAttackTargetDetails(const Render
 
 // ===== Private Helper Methods =====
 
-std::map<data::ApiAttribute, int> ESPInfoBuilder::BuildAttributeSummary(const RenderablePlayer* player) {
+std::map<data::ApiAttribute, int> InfoBuilder::BuildAttributeSummary(const RenderablePlayer* player) {
     std::map<data::ApiAttribute, int> attributeCounts;
     if (!player || player->gear.empty()) {
         return attributeCounts;

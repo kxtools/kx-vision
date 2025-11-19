@@ -1,8 +1,8 @@
 #include "ESPVisualsProcessor.h"
-#include "../Factories/ESPContextFactory.h"
 #include <vector>
 
 #include "Logic/VisualsCalculator.h"
+#include "Presentation/ContextFactory.h"
 
 namespace kx {
 
@@ -30,7 +30,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
         auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
-            EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
+            EntityRenderContext renderContext = ContextFactory::CreateEntityRenderContextForRendering(entity, context);
             // We add it to the list. Even if it's behind the camera right now.
             // ESPStageRenderer will check the camera later.
             outData.finalizedEntities.emplace_back(FinalizedRenderable{entity, *visualPropsOpt, renderContext});
@@ -44,7 +44,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
         auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
-            EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
+            EntityRenderContext renderContext = ContextFactory::CreateEntityRenderContextForRendering(entity, context);
             outData.finalizedEntities.emplace_back(FinalizedRenderable{entity, *visualPropsOpt, renderContext});
         }
     }
@@ -56,7 +56,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
         auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
-            EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
+            EntityRenderContext renderContext = ContextFactory::CreateEntityRenderContextForRendering(entity, context);
             outData.finalizedEntities.emplace_back(FinalizedRenderable{entity, *visualPropsOpt, renderContext});
         }
     }
@@ -68,7 +68,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
         auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
-            EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
+            EntityRenderContext renderContext = ContextFactory::CreateEntityRenderContextForRendering(entity, context);
             outData.finalizedEntities.emplace_back(FinalizedRenderable{entity, *visualPropsOpt, renderContext});
         }
     }

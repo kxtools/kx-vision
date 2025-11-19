@@ -1,14 +1,15 @@
-#include "ESPContextFactory.h"
+#include "ContextFactory.h"
 
 #include "../Combat/CombatStateManager.h" // For CombatStateManager
 #include "../Utils/ESPConstants.h" // For CombatEffects
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
-#include "../Utils/ESPStyling.h"
 #include "../Animations/HealthBarAnimations.h"
-#include "../Utils/ESPInfoBuilder.h"
 #include "../Data/ESPEntityTypes.h"
+#include "Settings/ESPSettings.h"
+#include "InfoBuilder.h"
+#include "ESPStyling.h"
 
 namespace kx {
 
@@ -70,7 +71,7 @@ float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showB
 
 } // anonymous namespace
 
-EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
     unsigned int color = ESPStyling::GetEntityColor(*player);
 
@@ -103,7 +104,7 @@ EntityRenderContext ESPContextFactory::CreateContextForPlayer(const RenderablePl
     };
 }
 
-EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     // Use attitude-based coloring for NPCs
     unsigned int color = ESPStyling::GetEntityColor(*npc);
 
@@ -137,7 +138,7 @@ EntityRenderContext ESPContextFactory::CreateContextForNpc(const RenderableNpc* 
     };
 }
 
-EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
     const EntityCombatState* state = context.stateManager.GetState(gadget->address);
@@ -174,7 +175,7 @@ EntityRenderContext ESPContextFactory::CreateContextForGadget(const RenderableGa
     };
 }
 
-EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const RenderableAttackTarget* attackTarget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForAttackTarget(const RenderableAttackTarget* attackTarget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
     const EntityCombatState* state = context.stateManager.GetState(attackTarget->address);
@@ -208,16 +209,16 @@ EntityRenderContext ESPContextFactory::CreateContextForAttackTarget(const Render
     };
 }
 
-EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(const RenderableEntity* entity, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateEntityRenderContextForRendering(const RenderableEntity* entity, const FrameContext& context) {
     std::vector<ColoredDetail> details;
     // Use a switch on entity->entityType to call the correct details builder
     switch(entity->entityType) {
         case ESPEntityType::Player:
         {
             const auto* player = static_cast<const RenderablePlayer*>(entity);
-            details = ESPInfoBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
+            details = InfoBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
             if (context.settings.playerESP.enableGearDisplay && context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
-                auto gearDetails = ESPInfoBuilder::BuildGearDetails(player);
+                auto gearDetails = InfoBuilder::BuildGearDetails(player);
                 if (!gearDetails.empty()) {
                     if (!details.empty()) {
                         details.push_back({ "--- Gear Stats ---", ESPColors::DEFAULT_TEXT });
@@ -230,19 +231,19 @@ EntityRenderContext ESPContextFactory::CreateEntityRenderContextForRendering(con
         case ESPEntityType::NPC:
         {
             const auto* npc = static_cast<const RenderableNpc*>(entity);
-            details = ESPInfoBuilder::BuildNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses);
+            details = InfoBuilder::BuildNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses);
             break;
         }
         case ESPEntityType::Gadget:
         {
             const auto* gadget = static_cast<const RenderableGadget*>(entity);
-            details = ESPInfoBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
+            details = InfoBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
             break;
         }
         case ESPEntityType::AttackTarget:
         {
             const auto* attackTarget = static_cast<const RenderableAttackTarget*>(entity);
-            details = ESPInfoBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
+            details = InfoBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
             break;
         }
     }

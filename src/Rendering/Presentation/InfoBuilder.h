@@ -14,7 +14,7 @@ namespace kx {
  * This class consolidates functionality from ESPPlayerDetailsBuilder and ESPEntityDetailsBuilder
  * to provide a single source for generating display information for all entity types.
  */
-class ESPInfoBuilder {
+class InfoBuilder {
 public:
     // ===== Player Methods =====
     

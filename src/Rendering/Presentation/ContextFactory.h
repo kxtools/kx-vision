@@ -9,7 +9,7 @@ namespace kx {
 
 class CombatStateManager; // Forward declaration
 
-class ESPContextFactory {
+class ContextFactory {
 public:
     static EntityRenderContext CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FrameContext& context);
     static EntityRenderContext CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FrameContext& context);
