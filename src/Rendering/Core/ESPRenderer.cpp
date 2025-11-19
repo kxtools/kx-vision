@@ -11,7 +11,7 @@
 #include "../../Core/AppLifecycleManager.h"
 #include "../../Utils/ObjectPool.h"
 #include "../Data/RenderableData.h"
-#include "ESPDataExtractor.h"
+#include "../Extraction/ESPDataExtractor.h"
 #include "ESPVisualsProcessor.h"
 #include "ESPStageRenderer.h"
 #include "../Combat/CombatStateManager.h"

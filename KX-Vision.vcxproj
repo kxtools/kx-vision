@@ -114,7 +114,7 @@
     <ClCompile Include="src\Rendering\Animations\HealthBarAnimations.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatLogic.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
-    <ClCompile Include="src\Rendering\Core\ESPDataExtractor.cpp" />
+    <ClCompile Include="src\Rendering\Extraction\ESPDataExtractor.cpp" />
     <ClCompile Include="src\Rendering\Logic\EntityFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
@@ -131,7 +131,7 @@
     <ClCompile Include="src\Rendering\Logic\VisualsCalculator.cpp" />
     <ClCompile Include="src\Core\AppLifecycleManager.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
-    <ClCompile Include="src\Rendering\Core\EntityExtractor.cpp" />
+    <ClCompile Include="src\Rendering\Extraction\EntityExtractor.cpp" />
     <ClCompile Include="src\Rendering\GUI\AppearanceTab.cpp" />
     <ClCompile Include="src\Rendering\GUI\GuiHelpers.cpp" />
     <ClCompile Include="src\Rendering\GUI\InfoTab.cpp" />
@@ -201,7 +201,7 @@
     <ClInclude Include="src\Rendering\Combat\CombatLogic.h" />
     <ClInclude Include="src\Rendering\Combat\CombatState.h" />
     <ClInclude Include="src\Rendering\Combat\CombatStateManager.h" />
-    <ClInclude Include="src\Rendering\Core\ESPDataExtractor.h" />
+    <ClInclude Include="src\Rendering\Extraction\ESPDataExtractor.h" />
     <ClInclude Include="src\Rendering\Logic\EntityFilter.h" />
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
@@ -216,7 +216,7 @@
     <ClInclude Include="src\Rendering\Data\ESPEntityTypes.h" />
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />
-    <ClInclude Include="src\Rendering\Core\EntityExtractor.h" />
+    <ClInclude Include="src\Rendering\Extraction\EntityExtractor.h" />
     <ClInclude Include="src\Rendering\GUI\AppearanceTab.h" />
     <ClInclude Include="src\Rendering\GUI\GuiHelpers.h" />
     <ClInclude Include="src\Rendering\GUI\InfoTab.h" />
