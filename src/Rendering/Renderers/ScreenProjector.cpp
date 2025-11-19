@@ -31,19 +31,36 @@ bool ScreenProjector::Project(
         GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
     }
     
+    // OPTIMIZED: Calculate clip position ONCE
+    // Get matrices by reference (fast)
+    const glm::mat4& view = camera.GetViewMatrix();
+    const glm::mat4& proj = camera.GetProjectionMatrix();
+    
+    // Perform the heavy math one time
+    glm::vec4 clipPos = proj * view * glm::vec4(entity.position, 1.0f);
+    
     // Early culling: Check if entity is far behind camera before expensive 8-corner projection
-    glm::vec4 clipPos = camera.GetProjectionMatrix() * camera.GetViewMatrix() * glm::vec4(entity.position, 1.0f);
+    // w < -2.0f allows objects slightly behind camera to still process (prevents popping)
     if (clipPos.w < -2.0f) {
         // Far behind camera, safe to cull even large objects
         return false;
     }
     
-    // Project screen position (origin/feet point)
-    bool isOriginValid = MathUtils::ProjectToScreen(entity.position, camera, screenW, screenH, outGeometry.screenPos);
-    
-    if (!isOriginValid) {
-        // If origin point is behind camera, we'll use center of projected box later
+    // Calculate screen position (Reuse clipPos)
+    // This replaces the call to MathUtils::ProjectToScreen
+    bool isOriginValid = false;
+    if (clipPos.w > 0.0f) {
+        // Perspective Division
+        glm::vec3 ndc = glm::vec3(clipPos) / clipPos.w;
+        
+        // Viewport Transform (matches MathUtils logic)
+        outGeometry.screenPos.x = (ndc.x + 1.0f) * 0.5f * screenW;
+        outGeometry.screenPos.y = (1.0f - ndc.y) * 0.5f * screenH; // 1.0 - y because screen Y is down
+        isOriginValid = true;
+    } else {
+        // Behind camera (but passed the -2.0f check)
         outGeometry.screenPos = glm::vec2(0.0f);
+        isOriginValid = false;
     }
     
     // Project based on entity type
