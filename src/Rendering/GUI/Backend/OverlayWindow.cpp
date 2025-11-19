@@ -187,7 +187,7 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
     }
 
     // Render the ESP overlay
-    kx::MasterRenderer::Render(displayWidth, displayHeight, mumbleLinkData);
+    kx::AppState::Get().GetMasterRenderer().Render(displayWidth, displayHeight, mumbleLinkData, camera);
     
     // Render the UI window if it's shown (check AppState's unified visibility flag)
     if (kx::AppState::Get().IsVisionWindowOpen()) {

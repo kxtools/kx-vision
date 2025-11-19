@@ -346,10 +346,6 @@ namespace kx {
         AddressManager::Initialize();
         LOG_INFO("AppLifecycleManager: AddressManager initialized");
 
-        // Initialize ESPRenderer with Camera reference (both DLL and GW2AL modes)
-        MasterRenderer::Initialize(m_camera);
-        LOG_INFO("AppLifecycleManager: ESPRenderer initialized");
-
         // Note: HookManager was initialized earlier in Initialize() or InitializeForGW2AL()
 
         // Initialize the game thread hook (both DLL and GW2AL modes)

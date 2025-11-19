@@ -2,17 +2,24 @@
 
 #include "../../Game/Camera.h"
 #include "../../Game/MumbleLink.h"
+#include "../Data/RenderableData.h"
+#include "../../Utils/ObjectPool.h"
+#include "../Combat/CombatStateManager.h"
 #include "Data/FrameData.h"
 
 namespace kx {
 
 class MasterRenderer {
 public:
-    static void Initialize(Camera& camera);
-    static void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData);
+    MasterRenderer();
+    ~MasterRenderer() = default;
+
+    void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera);
+
+    void Reset();
 
 private:
-    static bool ShouldHideESP(const MumbleLinkData* mumbleData);
+    bool ShouldHideESP(const MumbleLinkData* mumbleData);
     
     /**
      * @brief Executes the low-frequency data processing pipeline if the update interval has passed.
@@ -20,9 +27,17 @@ private:
      * @param context The current frame's context.
      * @param currentTimeSeconds The current time in seconds, used to check the update interval.
      */
-    static void UpdateESPData(const FrameContext& context, float currentTimeSeconds);
+    void UpdateESPData(const FrameContext& context, float currentTimeSeconds);
 
-    static Camera* s_camera; // Camera reference for world-to-screen projections
+    ObjectPool<RenderablePlayer> m_playerPool{500};
+    ObjectPool<RenderableNpc> m_npcPool{2000};
+    ObjectPool<RenderableGadget> m_gadgetPool{5000};
+    ObjectPool<RenderableAttackTarget> m_attackTargetPool{1000};
+
+    CombatStateManager m_combatStateManager;
+    PooledFrameRenderData m_processedRenderData;
+    
+    float m_lastUpdateTime = 0.0f;
 };
 
 } // namespace kx

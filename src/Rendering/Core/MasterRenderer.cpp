@@ -21,38 +21,21 @@
 
 namespace kx {
 
-// Initialize the static camera pointer
-Camera* MasterRenderer::s_camera = nullptr;
-
-// Object pools to eliminate heap churn - pre-allocate reasonable number of entities
-static ObjectPool<RenderablePlayer> s_playerPool(500);
-static ObjectPool<RenderableNpc> s_npcPool(2000);
-static ObjectPool<RenderableGadget> s_gadgetPool(5000);
-static ObjectPool<RenderableAttackTarget> s_attackTargetPool(1000);
-
-// Static variables for frame rate limiting and three-stage pipeline
-static PooledFrameRenderData s_processedRenderData; // Filtered data ready for rendering
-static float s_lastUpdateTime = 0.0f;
-static CombatStateManager g_combatStateManager;
-
-void MasterRenderer::Initialize(Camera& camera) {
-    s_camera = &camera;
+MasterRenderer::MasterRenderer() {
 }
 
 void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float currentTimeSeconds) {
     float espUpdateInterval = 1.0f / std::max(1.0f, frameContext.settings.espUpdateRate);
 
-    if (currentTimeSeconds - s_lastUpdateTime >= espUpdateInterval) {
-        // Reset object pools to reuse all objects for this frame
-        s_playerPool.Reset();
-        s_npcPool.Reset();
-        s_gadgetPool.Reset();
-        s_attackTargetPool.Reset();
-        s_processedRenderData.Reset();
+    if (currentTimeSeconds - m_lastUpdateTime >= espUpdateInterval) {
+        m_playerPool.Reset();
+        m_npcPool.Reset();
+        m_gadgetPool.Reset();
+        m_attackTargetPool.Reset();
+        m_processedRenderData.Reset();
         
-        // Stage 1: Extract
         PooledFrameRenderData extractedData;
-        DataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, s_attackTargetPool, extractedData);
+        DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, extractedData);
         
         std::unordered_set<CombatStateKey, CombatStateKeyHash> activeKeys;
         auto collectKeys = [&](const auto& collection) {
@@ -66,38 +49,33 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         collectKeys(extractedData.gadgets);
         collectKeys(extractedData.attackTargets);
 
-        g_combatStateManager.Prune(activeKeys);
+        m_combatStateManager.Prune(activeKeys);
         
-        // Stage 1.5: Update combat state
         std::vector<RenderableEntity*> allEntities;
         allEntities.reserve(extractedData.players.size() + extractedData.npcs.size() + extractedData.gadgets.size() + extractedData.attackTargets.size());
         allEntities.insert(allEntities.end(), extractedData.players.begin(), extractedData.players.end());
         allEntities.insert(allEntities.end(), extractedData.npcs.begin(), extractedData.npcs.end());
         allEntities.insert(allEntities.end(), extractedData.gadgets.begin(), extractedData.gadgets.end());
         allEntities.insert(allEntities.end(), extractedData.attackTargets.begin(), extractedData.attackTargets.end());
-        g_combatStateManager.Update(allEntities, frameContext.now);
+        m_combatStateManager.Update(allEntities, frameContext.now);
         
-        // Stage 2: Filter
         PooledFrameRenderData filteredData;
         EntityFilter::FilterPooledData(extractedData, frameContext, filteredData);
         
-        // Stage 2.5: Calculate Visuals
-        FrameDataProcessor::Process(frameContext, filteredData, s_processedRenderData);
+        FrameDataProcessor::Process(frameContext, filteredData, m_processedRenderData);
 
-        // Stage 2.8: Update adaptive far plane (use extracted data for true scene depth)
         AppState::Get().UpdateAdaptiveFarPlane(extractedData);
         
-        s_lastUpdateTime = currentTimeSeconds;
+        m_lastUpdateTime = currentTimeSeconds;
     }
 }
 
 
-void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData) {
-    if (!s_camera || ShouldHideESP(mumbleData)) {
+void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera) {
+    if (ShouldHideESP(mumbleData)) {
         return;
     }
 
-    // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext()) {
         return;
     }
@@ -105,14 +83,12 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
     const uint64_t now = GetTickCount64();
     const float currentTimeSeconds = now / 1000.0f;
 
-    // Get the WvW state from the single source of truth.
     bool isInWvW = g_App.GetMumbleLinkManager().isInWvW();
 
-    // 1. Create the context for the current frame
     FrameContext frameContext = {
         now,
-        *s_camera,
-        g_combatStateManager,
+        camera,
+        m_combatStateManager,
         AppState::Get().GetSettings(),
         ImGui::GetBackgroundDrawList(),
         screenWidth,
@@ -120,11 +96,17 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
         isInWvW
     };
 
-    // 2. Run the low-frequency logic/update pipeline if needed
     UpdateESPData(frameContext, currentTimeSeconds);
 
-    // 3. Render the final, processed data every frame
-    StageRenderer::RenderFrameData(frameContext, s_processedRenderData);
+    StageRenderer::RenderFrameData(frameContext, m_processedRenderData);
+}
+
+void MasterRenderer::Reset() {
+    m_playerPool.Reset();
+    m_npcPool.Reset();
+    m_gadgetPool.Reset();
+    m_attackTargetPool.Reset();
+    m_processedRenderData.Reset();
 }
 
 bool MasterRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {
