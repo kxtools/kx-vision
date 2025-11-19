@@ -131,6 +131,21 @@ namespace ESPStyling {
         return MIN + progress * (MAX - MIN);
     }
 
+    inline float GetDamageNumberFontSizeMultiplier(float damageToDisplay) {
+        if (damageToDisplay <= 0.0f) {
+            return DamageNumberScaling::MIN_MULTIPLIER;
+        }
+
+        const float MIN = DamageNumberScaling::MIN_MULTIPLIER;
+        const float MAX = DamageNumberScaling::MAX_MULTIPLIER;
+        const float DAMAGE_CAP = DamageNumberScaling::DAMAGE_TO_REACH_MAX;
+        
+        float progress = damageToDisplay / DAMAGE_CAP;
+        progress = (std::min)(progress, 1.0f);
+
+        return MIN + progress * (MAX - MIN);
+    }
+
 } // namespace ESPStyling
 
 } // namespace kx

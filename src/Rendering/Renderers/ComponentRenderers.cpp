@@ -10,6 +10,7 @@
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Utils/EntityVisualsCalculator.h"
+#include "../Utils/ESPStyling.h"
 #include "../Utils/CombatConstants.h"
 #include "../Utils/LayoutConstants.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -116,7 +117,7 @@ static void RenderDamageNumbers(const FrameContext& context, const EntityRenderC
 
     std::stringstream ss;
     ss << std::fixed << std::setprecision(0) << entityContext.healthBarAnim.damageNumberToDisplay;
-    float finalFontSize = props.finalFontSize * EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
+    float finalFontSize = props.finalFontSize * ESPStyling::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
     TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize, context.settings);
     TextRenderer::Render(context.drawList, element);
 }

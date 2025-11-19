@@ -49,14 +49,6 @@ public:
                                                      const FrameContext& context);
 
     /**
-     * @brief Calculate a font size multiplier for the damage number based on the damage value.
-     *        100,000 damage should result in a 2x multiplier.
-     * @param damageToDisplay The total damage value to display.
-     * @return A float multiplier for the font size.
-     */
-    static float GetDamageNumberFontSizeMultiplier(float damageToDisplay);
-
-    /**
      * @brief Calculate 3D bounding box projection to screen space
      * 
      * Projects an 8-corner 3D bounding box from world space to screen space,

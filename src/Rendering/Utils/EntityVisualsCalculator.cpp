@@ -459,22 +459,6 @@ float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, fl
     }
 }
 
-float EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(float damageToDisplay) {
-    if (damageToDisplay <= 0.0f) {
-        return DamageNumberScaling::MIN_MULTIPLIER;
-    }
-
-    const float MIN_MULTIPLIER = DamageNumberScaling::MIN_MULTIPLIER;
-    const float MAX_MULTIPLIER = DamageNumberScaling::MAX_MULTIPLIER;
-    const float DAMAGE_TO_REACH_MAX = DamageNumberScaling::DAMAGE_TO_REACH_MAX;
-    
-    float progress = damageToDisplay / DAMAGE_TO_REACH_MAX;
-    progress = (std::min)(progress, 1.0f);
-
-    return MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
-}
-
-
 float EntityVisualsCalculator::CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier) {
     float scaledSize = baseSize * scale * multiplier;
     return std::clamp(scaledSize, minLimit, maxLimit);
