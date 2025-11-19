@@ -32,8 +32,8 @@ namespace SafeAccess {
     };
 
     // Thread-safe cache accessors using function-local statics
-    inline ankerl::unordered_dense::segmented_map<uintptr_t, PageCacheEntry>& GetValidPagesCache() {
-        thread_local ankerl::unordered_dense::segmented_map<uintptr_t, PageCacheEntry> cache;
+    inline ankerl::unordered_dense::map<uintptr_t, PageCacheEntry>& GetValidPagesCache() {
+        thread_local ankerl::unordered_dense::map<uintptr_t, PageCacheEntry> cache;
         return cache;
     }
     
@@ -93,54 +93,63 @@ namespace SafeAccess {
     }
 
     /**
-     * @brief Validates if a memory address is safe to read (with caching for performance)
-     * @param ptr Pointer to validate
-     * @param size Size of data to read (default: pointer size)
-     * @return true if memory is safe to read, false otherwise
+     * @brief Validates if a memory address is safe to read.
+     * OPTIMIZED: Uses a thread_local micro-cache to skip hash lookups for sequential reads.
      */
     inline bool IsMemorySafe(void* ptr, size_t size = sizeof(void*)) {
         if (!ptr) return false;
         
         uintptr_t address = reinterpret_cast<uintptr_t>(ptr);
         
-        // Quick validation for obviously invalid addresses
+        // 1. Fast Bounds Check (Constants defined at top of file)
         if (address < MIN_VALID_MEMORY_ADDRESS || address > MAX_VALID_MEMORY_ADDRESS) {
             return false;
         }
 
-        // Clean up expired cache entries periodically to handle entity despawning
-        auto now = GetTickCount64();
-        CleanupCacheIfNeeded(now);
+        // 2. Calculate Page Base (Assume 4KB pages for speed: 0xFFF)
+        // This avoids the function call overhead of GetPageBase/GetPageSize in the hot path
+        uintptr_t page = address & ~0xFFF;
+
+        // 3. HOT PATH: Micro-Cache
+        // If we are reading the same page as the immediate last call, return result instantly.
+        // NO time checks, NO map lookups.
+        static thread_local uintptr_t s_LastPage = 0;
+        static thread_local bool s_LastResult = false;
+
+        if (page == s_LastPage) {
+            return s_LastResult;
+        }
+
+        // 4. COLD PATH: New Page Encountered
+        s_LastPage = page;
         
-        // Check cache first - avoid expensive VirtualQuery if already validated
-        // Use find() for single lookup instead of count() + insert()
-        // Use the page base instead of the address, since memory protections apply to whole pages, reducing the number of cache entries needed
-        uintptr_t page = GetPageBase(address);
+        // Check the main hash map
         auto& cache = GetValidPagesCache();
         auto it = cache.find(page);
         
-        // Check if cache contains this page AND it has not expired yet
-        if (it != cache.end() && it->second.expiry > now) {
-            return it->second.isReadable;
+        // If found in map, trust it. We don't check expiry here to save CPU.
+        // Expiry is handled by CleanupCacheIfNeeded() called elsewhere.
+        if (it != cache.end()) {
+            s_LastResult = it->second.isReadable;
+            return s_LastResult;
         }
-        
-        // Slow path: System call
-        MEMORY_BASIC_INFORMATION mbi = {};
-        SIZE_T result = VirtualQuery(ptr, &mbi, sizeof(mbi));
-        
-        // Determine safety
-        bool isSafe = false;
-        if (result != 0) {
-            bool committed = (mbi.State == MEM_COMMIT);
-            bool readable = (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE));
-            bool notGuarded = !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS));
-            isSafe = committed && readable && notGuarded;
+
+        // 5. SLOW PATH: System Call (VirtualQuery)
+        // This only happens once per page per cache duration
+        MEMORY_BASIC_INFORMATION mbi;
+        if (VirtualQuery(ptr, &mbi, sizeof(mbi))) {
+            s_LastResult = (mbi.State == MEM_COMMIT) && 
+                           (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE)) &&
+                           !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS));
+        } else {
+            s_LastResult = false;
         }
+
+        // Update main cache
+        // We only pay the cost of GetTickCount64 here (rarely)
+        cache.insert_or_assign(page, PageCacheEntry{ GetRandomCacheTTL(GetTickCount64()), s_LastResult });
         
-        // Cache the result regardless of success/failure
-        cache.insert_or_assign(page, PageCacheEntry{ GetRandomCacheTTL(now), isSafe });
-        
-        return isSafe;
+        return s_LastResult;
     }
 
     /**

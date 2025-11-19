@@ -3,6 +3,7 @@
 #include "AppState.h"
 #include "Config.h"
 #include "../Utils/DebugLogger.h"
+#include "../Utils/MemorySafety.h"
 #include "../../libs/ImGui/imgui.h"
 #include "UI/Backend/D3DState.h"
 #include "UI/Backend/OverlayWindow.h"
@@ -30,6 +31,9 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
 
     // Update ImGui display size
     UpdateImGuiDisplaySize(displayWidth, displayHeight);
+
+    // Cleanup expired memory safety cache entries (once per frame)
+    kx::SafeAccess::CleanupCacheIfNeeded(GetTickCount64());
 
     // Handle input for UI toggle
     HandleInput(windowHandle);
