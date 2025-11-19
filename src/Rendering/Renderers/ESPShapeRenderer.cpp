@@ -5,9 +5,9 @@
 #include <array>
 #include <vector>
 
-#include "../Utils/ESPConstants.h"
+#include "../Shared/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
-#include "../Utils/ESPMath.h"
+#include "../Shared/ESPMath.h"
 #include "../Data/ESPData.h"
 
 namespace kx {

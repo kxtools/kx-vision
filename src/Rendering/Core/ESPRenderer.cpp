@@ -10,7 +10,7 @@
 #include "../../Core/AppState.h"
 #include "../../Core/AppLifecycleManager.h"
 #include "../../Utils/ObjectPool.h"
-#include "../Utils/ESPMath.h"
+#include "../Shared/ESPMath.h"
 #include "../Data/RenderableData.h"
 #include "ESPDataExtractor.h"
 #include "ESPVisualsProcessor.h"

@@ -10,8 +10,8 @@
 #include <string_view>
 
 #include "ESPStyling.h"
-#include "Utils/ColorConstants.h"
-#include "Utils/ESPFormatting.h"
+#include "Shared/ColorConstants.h"
+#include "Shared/ESPFormatting.h"
 
 namespace kx {
 

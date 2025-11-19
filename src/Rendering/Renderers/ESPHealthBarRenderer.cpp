@@ -2,18 +2,17 @@
 
 #include "ESPHealthBarRenderer.h"
 #include <iomanip>
-#include "../Utils/ESPConstants.h"
+#include "../Shared/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <Windows.h>
 
 #include "../Data/EntityRenderContext.h"
 #include <algorithm>
-#include "../Utils/EntityVisualsCalculator.h"
 #include "../Data/TextElement.h"
 #include "TextRenderer.h"
-#include "../Utils/LayoutConstants.h"
+#include "../Shared/LayoutConstants.h"
 #include "../../Core/Settings.h"
-#include "../Utils/RenderSettingsHelper.h"
+#include "../Shared/RenderSettingsHelper.h"
 
 namespace kx {
 

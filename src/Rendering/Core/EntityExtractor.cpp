@@ -1,10 +1,11 @@
 #include "EntityExtractor.h"
-#include "../Utils/ESPConstants.h"
-#include "../Utils/ESPFormatting.h"
+#include "../Shared/ESPConstants.h"
 #include "../../Game/GameEnums.h"
 #include "../../Game/ReClass/HavokStructs.h"
 #include "../../Utils/StringHelpers.h"
 #include <vector>
+
+#include "Shared/ESPFormatting.h"
 
 namespace kx {
 

@@ -7,8 +7,8 @@
 #include "../Data/ESPEntityTypes.h"
 #include <algorithm>
 
-#include "Utils/ColorConstants.h"
-#include "Utils/ScalingConstants.h"
+#include "Shared/ColorConstants.h"
+#include "Shared/ScalingConstants.h"
 
 // Forward declaration to avoid circular dependency
 namespace kx {

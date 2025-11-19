@@ -1,6 +1,6 @@
 #include "TextRenderer.h"
 #include "../../../libs/ImGui/imgui.h"
-#include "../Utils/ESPConstants.h"
+#include "../Shared/ESPConstants.h"
 #include "../../Core/AppState.h"
 
 using namespace kx::RenderingLayout;

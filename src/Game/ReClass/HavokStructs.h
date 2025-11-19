@@ -2,7 +2,7 @@
 
 #include "../../Utils/DebugLogger.h"
 #include "../../Utils/SafeForeignClass.h"
-#include "../../Rendering/Utils/LayoutConstants.h"
+#include "../../Rendering/Shared/LayoutConstants.h"
 #include "../HavokEnums.h"
 #include "../HavokOffsets.h"
 #include <glm.hpp>

@@ -2,20 +2,18 @@
 #include "../Layout/LayoutCursor.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
-#include "../Utils/ESPMath.h"
-#include "../Utils/ESPStyling.h"
-#include "../Utils/CombatConstants.h"
-#include "../Utils/LayoutConstants.h"
+#include "../Shared/ESPMath.h"
+#include "../Shared/LayoutConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPHealthBarRenderer.h"
 #include "../Renderers/ESPTrailRenderer.h"
 #include "../Renderers/ComponentRenderers.h"
 #include "../Data/EntityRenderContext.h"
-#include "../Utils/RenderSettingsHelper.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <optional>
 
 #include "Logic/VisualsCalculator.h"
+#include "Shared/RenderSettingsHelper.h"
 
 namespace kx {
 

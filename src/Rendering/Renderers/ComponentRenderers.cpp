@@ -1,5 +1,4 @@
 #include "ComponentRenderers.h"
-#include "../Utils/RenderSettingsHelper.h"
 #include "ESPShapeRenderer.h"
 #include "ESPHealthBarRenderer.h"
 #include "ESPEnergyBarRenderer.h"
@@ -10,8 +9,7 @@
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"
 
-#include "../Utils/CombatConstants.h"
-#include "../Utils/LayoutConstants.h"
+#include "../Shared/LayoutConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Data/RenderableData.h"
 #include <sstream>
@@ -21,6 +19,7 @@
 #include "Presentation/ESPStyling.h"
 #include "Presentation/InfoBuilder.h"
 #include "Presentation/TextElementFactory.h"
+#include "Shared/RenderSettingsHelper.h"
 
 namespace kx {
 

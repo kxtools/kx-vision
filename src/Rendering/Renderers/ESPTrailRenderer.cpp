@@ -3,7 +3,7 @@
 #include "../Data/EntityRenderContext.h"
 #include "../Combat/CombatStateManager.h"
 #include "../Combat/CombatState.h"
-#include "../Utils/ESPMath.h"
+#include "../Shared/ESPMath.h"
 #include "ESPShapeRenderer.h"
 #include "../../Core/AppState.h"
 #include "../../Game/GameEnums.h"

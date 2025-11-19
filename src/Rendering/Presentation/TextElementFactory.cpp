@@ -3,15 +3,15 @@
 #include "../Data/PlayerRenderData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Data/ESPData.h"
-#include "../Utils/ESPConstants.h"
-#include "../Utils/ESPStyling.h"
-#include "../Utils/ESPFormatting.h"
-#include "../Utils/ColorConstants.h"
+#include "../Shared/ESPConstants.h"
 #include "../../Core/Settings.h"
 #include "../../Utils/UnitConversion.h"
 #include <sstream>
 #include <iomanip>
 #include <format>
+
+#include "ESPStyling.h"
+#include "Shared/ESPFormatting.h"
 
 namespace kx {
 

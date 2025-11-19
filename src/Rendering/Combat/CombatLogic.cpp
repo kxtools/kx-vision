@@ -1,7 +1,7 @@
 #include "CombatLogic.h"
 #include "CombatState.h"
 #include "../Data/RenderableData.h"
-#include "../Utils/ESPConstants.h"
+#include "../Shared/ESPConstants.h"
 #include "../../Core/AppState.h"
 #include <algorithm>
 #include <glm/geometric.hpp>

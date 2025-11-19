@@ -8,10 +8,9 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Utils/ESPMath.h"
-#include "Utils/ESPStyling.h"
-#include "Utils/LayoutConstants.h"
-#include "Utils/ScalingConstants.h"
+#include "Presentation/ESPStyling.h"
+#include "Shared/ESPMath.h"
+#include "Shared/LayoutConstants.h"
 
 namespace kx {
 
