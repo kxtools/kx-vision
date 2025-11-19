@@ -32,16 +32,18 @@ bool ScreenProjector::Project(
     }
     
     // Project screen position (origin/feet point)
-    if (!MathUtils::ProjectToScreen(entity.position, camera, screenW, screenH, outGeometry.screenPos)) {
+    bool isOriginValid = MathUtils::ProjectToScreen(entity.position, camera, screenW, screenH, outGeometry.screenPos);
+    
+    if (!isOriginValid) {
         // If origin point is behind camera, we'll use center of projected box later
         outGeometry.screenPos = glm::vec2(0.0f);
     }
     
     // Project based on entity type
     if (entity.entityType == EntityTypes::Gadget || entity.entityType == EntityTypes::AttackTarget) {
-        ProjectGadget(entity, camera, screenW, screenH, outGeometry, style.scale);
+        ProjectGadget(entity, camera, screenW, screenH, outGeometry, style.scale, isOriginValid);
     } else {
-        ProjectCharacter(entity, camera, screenW, screenH, outGeometry, style.scale);
+        ProjectCharacter(entity, camera, screenW, screenH, outGeometry, style.scale, isOriginValid);
     }
     
     // Perform frustum culling check
@@ -185,7 +187,8 @@ void ScreenProjector::ProjectGadget(
     float screenWidth,
     float screenHeight,
     ScreenGeometry& geometry,
-    float scale) {
+    float scale,
+    bool isOriginValid) {
     const auto& settings = AppState::Get().GetSettings();
     
     float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
@@ -216,8 +219,10 @@ void ScreenProjector::ProjectGadget(
     );
     
     if (!boxValid) {
-        geometry.boxMin = ImVec2(geometry.screenPos.x - geometry.circleRadius, geometry.screenPos.y - geometry.circleRadius);
-        geometry.boxMax = ImVec2(geometry.screenPos.x + geometry.circleRadius, geometry.screenPos.y + geometry.circleRadius);
+        if (isOriginValid) {
+            geometry.boxMin = ImVec2(geometry.screenPos.x - geometry.circleRadius, geometry.screenPos.y - geometry.circleRadius);
+            geometry.boxMax = ImVec2(geometry.screenPos.x + geometry.circleRadius, geometry.screenPos.y + geometry.circleRadius);
+        }
     }
 }
 
@@ -227,7 +232,8 @@ void ScreenProjector::ProjectCharacter(
     float screenWidth,
     float screenHeight,
     ScreenGeometry& geometry,
-    float scale) {
+    float scale,
+    bool isOriginValid) {
     float worldWidth, worldDepth, worldHeight;
     
     if (entity.hasPhysicsDimensions) {
@@ -252,7 +258,9 @@ void ScreenProjector::ProjectCharacter(
     );
     
     if (!boxValid) {
-        ApplyFallback2DBox(entity, geometry, scale, geometry.screenPos);
+        if (isOriginValid) {
+            ApplyFallback2DBox(entity, geometry, scale, geometry.screenPos);
+        }
     }
     
     geometry.center = ImVec2(

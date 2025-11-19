@@ -75,7 +75,8 @@ private:
         float screenWidth,
         float screenHeight,
         ScreenGeometry& geometry,
-        float scale);
+        float scale,
+        bool isOriginValid);
 
     static void ProjectCharacter(
         const RenderableEntity& entity,
@@ -83,7 +84,8 @@ private:
         float screenWidth,
         float screenHeight,
         ScreenGeometry& geometry,
-        float scale);
+        float scale,
+        bool isOriginValid);
 };
 
 } // namespace kx::Renderers
