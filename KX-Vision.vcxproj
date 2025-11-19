@@ -221,7 +221,7 @@
     <ClInclude Include="src\Rendering\Renderers\ESPEnergyBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPTrailRenderer.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
-    <ClInclude Include="src\Rendering\Data\ESPData.h" />
+    <ClInclude Include="src\Rendering\Data\FrameData.h" />
     <ClInclude Include="src\Rendering\Data\ESPEntityTypes.h" />
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />

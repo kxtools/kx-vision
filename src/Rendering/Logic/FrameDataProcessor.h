@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 
 namespace kx {
     class FrameDataProcessor {

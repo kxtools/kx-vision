@@ -2,7 +2,7 @@
 
 #include "../Combat/CombatStateManager.h" // For CombatStateManager
 #include "../Shared/ESPConstants.h" // For CombatEffects
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
 #include "../Logic/Animations/HealthBarAnimations.h"

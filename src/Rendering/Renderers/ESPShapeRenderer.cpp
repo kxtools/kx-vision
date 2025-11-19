@@ -8,7 +8,7 @@
 #include "../Shared/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Shared/ESPMath.h"
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 
 namespace kx {
 

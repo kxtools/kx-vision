@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include "../Data/RenderableData.h"
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 #include "../../Utils/ObjectPool.h"
 
 namespace kx {

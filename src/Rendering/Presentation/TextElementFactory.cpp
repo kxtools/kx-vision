@@ -2,7 +2,7 @@
 #include "../Data/RenderableData.h"
 #include "../Data/PlayerRenderData.h"
 #include "../Data/EntityRenderContext.h"
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 #include "../Shared/ESPConstants.h"
 #include "../../Core/Settings.h"
 #include "../../Utils/UnitConversion.h"

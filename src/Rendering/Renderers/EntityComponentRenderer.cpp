@@ -5,7 +5,7 @@
 
 #include "TextRenderer.h"
 
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 #include "../Data/EntityRenderContext.h"
 
 #include "../Shared/LayoutConstants.h"

@@ -1,7 +1,7 @@
 #define NOMINMAX
 
 #include "MasterRenderer.h"
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 
 #include <algorithm>
 #include <unordered_set>

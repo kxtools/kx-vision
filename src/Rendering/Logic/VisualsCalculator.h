@@ -2,7 +2,7 @@
 
 #include <optional>
 #include "glm.hpp"
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 #include "../Data/ESPEntityTypes.h"
 
 // Forward declarations

@@ -1,5 +1,5 @@
 #include "ESPTrailRenderer.h"
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Combat/CombatStateManager.h"
 #include "../Combat/CombatState.h"

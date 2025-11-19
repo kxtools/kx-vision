@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "../Data/ESPData.h"
+#include "../Data/FrameData.h"
 #include "../Data/EntityRenderContext.h"
 
 // Forward declarations
