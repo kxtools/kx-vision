@@ -4,7 +4,6 @@
 #include "../Shared/ESPMath.h"
 #include "../Shared/LayoutConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
-#include "../Renderers/ESPHealthBarRenderer.h"
 #include "../Renderers/ESPTrailRenderer.h"
 #include "../Renderers/ComponentRenderers.h"
 #include "../Data/EntityRenderContext.h"

@@ -2,7 +2,6 @@
 #include "MumbleLinkManager.h"
 
 #include <iostream>
-#include <string>
 #include <windows.h>
 
 namespace kx {

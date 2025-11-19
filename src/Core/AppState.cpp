@@ -1,6 +1,5 @@
 #include "AppState.h"
 #include "SettingsManager.h"
-#include "../Utils/DebugLogger.h"
 
 namespace kx {
 

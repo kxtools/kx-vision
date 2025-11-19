@@ -3,8 +3,6 @@
 #include "Config.h"
 #include <iostream>
 #include <sstream>
-#include <ctime>
-#include <iomanip>
 #include <chrono>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>

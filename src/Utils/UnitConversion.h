@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-
 /**
  * @file UnitConversion.h
  * @brief GW2 distance unit conversion utilities

@@ -8,7 +8,6 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Game/AddressManager.h"
 #include "../../Game/ReClassStructs.h"
-#include "../../Core/Config.h"
 
 namespace kx {
     namespace GUI {

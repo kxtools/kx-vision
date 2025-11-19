@@ -4,7 +4,6 @@
 #include "../../Utils/SafeForeignClass.h"
 #include "../GameEnums.h"
 #include "../offsets.h"
-#include "AgentStructs.h"
 #include "HavokStructs.h"
 #include <glm.hpp>
 

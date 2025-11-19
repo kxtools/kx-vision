@@ -5,7 +5,6 @@
 #include "RenderableData.h"
 #include "ESPEntityTypes.h"
 #include "../../Game/GameEnums.h"
-#include "../../Core/Settings/SettingsConstants.h"
 
 namespace kx {
 

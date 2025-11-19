@@ -1,7 +1,6 @@
 #include "InfoBuilder.h"
 #include "../../Game/GameEnums.h"
 #include "../../Game/Generated/StatData.h"
-#include "../../Game/HavokEnums.h"
 #include "../../../libs/ImGui/imgui.h"
 
 #include <algorithm>

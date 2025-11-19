@@ -6,7 +6,6 @@
 #include "../HavokEnums.h"
 #include "../HavokOffsets.h"
 #include <glm.hpp>
-#include <cmath>
 
 namespace kx {
     namespace ReClass {

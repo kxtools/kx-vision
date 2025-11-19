@@ -1,7 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <glm.hpp>
 
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"

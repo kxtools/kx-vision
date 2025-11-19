@@ -3,9 +3,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <array>
 #include <algorithm>
-#include <cstring>
 #include <vec3.hpp>
 #include <vec2.hpp>
 #include "../../Game/GameEnums.h"

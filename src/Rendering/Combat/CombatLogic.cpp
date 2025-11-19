@@ -3,7 +3,6 @@
 #include "../Data/RenderableData.h"
 #include "../Shared/ESPConstants.h"
 #include "../../Core/AppState.h"
-#include <algorithm>
 #include <glm/geometric.hpp>
 
 namespace kx {

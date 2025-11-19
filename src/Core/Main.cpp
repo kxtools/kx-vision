@@ -1,11 +1,8 @@
-#include "Config.h"
 #ifndef GW2AL_BUILD // This entire file is only compiled for standalone DLL mode
 
-#include <cstdio> // Required for fclose
 #include <windows.h>
 
 #include "AppLifecycleManager.h"
-#include "AppState.h"
 #include "Bootstrap.h"
 #include "../Utils/DebugLogger.h"
 

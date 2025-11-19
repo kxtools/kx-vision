@@ -4,7 +4,6 @@
 #include <unordered_set>
 #include <vector>
 #include "CombatState.h"
-#include "CombatLogic.h"
 #include "../Data/RenderableData.h" // For RenderableEntity
 
 namespace kx

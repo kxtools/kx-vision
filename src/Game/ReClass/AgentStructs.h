@@ -3,8 +3,6 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Utils/SafeForeignClass.h"
 #include "../offsets.h"
-#include "../HavokOffsets.h"
-#include "../HavokEnums.h"
 #include "../GameEnums.h"
 #include "HavokStructs.h"
 #include <glm.hpp>
