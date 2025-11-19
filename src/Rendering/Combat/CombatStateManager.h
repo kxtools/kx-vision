@@ -34,7 +34,7 @@ namespace kx
 		 * @brief Remove combat state for entities that are no longer present in the game.
 		 * @param activeKeys Set of entity keys that are currently active in the game.
 		 */
-		void Prune(const std::unordered_set<CombatStateKey, CombatStateKeyHash>& activeKeys);
+		void Prune(const ankerl::unordered_dense::set<CombatStateKey>& activeKeys);
 
 		/**
 		 * @brief Get immutable pointer to stored entity combat state (nullptr if missing).

@@ -3,7 +3,7 @@
 #include "RenderableEntity.h"
 #include "../PlayerRenderData.h"
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 namespace kx {
 
@@ -21,7 +21,7 @@ struct RenderablePlayer : public RenderableEntity {
     Game::Race race;
     bool isLocalPlayer;
 
-    std::unordered_map<Game::EquipmentSlot, GearSlotInfo> gear;
+    ankerl::unordered_dense::map<Game::EquipmentSlot, GearSlotInfo> gear;
     
     RenderablePlayer() : RenderableEntity(),
                          currentEndurance(0.0f), maxEndurance(0.0f),

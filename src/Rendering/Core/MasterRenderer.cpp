@@ -4,7 +4,7 @@
 #include "../Data/FrameData.h"
 
 #include <algorithm>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <Windows.h>
 
 #include "../../Core/AppState.h"
@@ -37,7 +37,11 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         PooledFrameRenderData extractedData;
         DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, extractedData);
         
-        std::unordered_set<CombatStateKey, CombatStateKeyHash> activeKeys;
+        ankerl::unordered_dense::set<CombatStateKey> activeKeys;
+        size_t totalCount = extractedData.players.size() + extractedData.npcs.size() + 
+                            extractedData.gadgets.size() + extractedData.attackTargets.size();
+        activeKeys.reserve(totalCount);
+        
         auto collectKeys = [&](const auto& collection) {
             for (const auto* e : collection) {
                 activeKeys.insert(e->GetCombatKey());
