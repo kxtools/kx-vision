@@ -4,7 +4,7 @@
 #include "../../Combat/CombatState.h"
 #include "../../Data/EntityRenderContext.h"
 #include "../../Shared/AnimationHelpers.h"
-#include "Shared/CombatConstants.h"
+#include "Combat/CombatConstants.h"
 
 namespace kx {
 

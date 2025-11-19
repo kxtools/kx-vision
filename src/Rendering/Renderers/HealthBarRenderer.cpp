@@ -12,7 +12,7 @@
 #include "../Shared/LayoutConstants.h"
 #include "../../Core/Settings.h"
 #include "../Shared/RenderSettingsHelper.h"
-#include "Shared/CombatConstants.h"
+#include "Combat/CombatConstants.h"
 
 namespace kx {
 

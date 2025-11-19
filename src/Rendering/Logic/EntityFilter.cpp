@@ -4,7 +4,7 @@
 #include "../Data/RenderableData.h"
 #include "../Combat/CombatStateManager.h"
 #include "Camera.h"
-#include "Shared/CombatConstants.h"
+#include "Combat/CombatConstants.h"
 
 namespace kx {
 

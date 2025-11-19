@@ -10,7 +10,7 @@
 #include "InfoBuilder.h"
 #include "Styling.h"
 #include "Shared/ColorConstants.h"
-#include "Shared/CombatConstants.h"
+#include "Combat/CombatConstants.h"
 
 namespace kx {
 

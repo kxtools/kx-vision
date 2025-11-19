@@ -4,7 +4,7 @@
 #include "../../Core/AppState.h"
 #include <glm/geometric.hpp>
 
-#include "Shared/CombatConstants.h"
+#include "Combat/CombatConstants.h"
 
 namespace kx {
 
