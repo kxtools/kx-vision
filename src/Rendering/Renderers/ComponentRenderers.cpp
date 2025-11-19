@@ -175,8 +175,8 @@ void ComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRe
         if (healthPercent >= 0.0f) {
             glm::vec2 healthBarPos = cursor.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
             
-            ESPHealthBarRenderer::RenderStandaloneHealthBar(ctx.drawList, healthBarPos, eCtx,
-                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize, ctx.settings);
+            // REFACTORED CALL: Pass props directly instead of individual fields
+            ESPHealthBarRenderer::RenderStandaloneHealthBar(ctx.drawList, healthBarPos, eCtx, props, ctx.settings);
 
             RenderDamageNumbers(ctx, eCtx, props, healthBarPos);
             RenderBurstDps(ctx, eCtx, props, healthBarPos);

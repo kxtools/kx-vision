@@ -2,6 +2,7 @@
 
 #include "glm.hpp"
 #include "../../../libs/ImGui/imgui.h"
+#include "../Data/ESPData.h"
 
 namespace kx {
 
@@ -19,10 +20,7 @@ namespace kx {
         static void RenderStandaloneHealthBar(ImDrawList* drawList,
             const glm::vec2& barTopLeftPosition,
             const EntityRenderContext& context,
-            unsigned int entityColor,
-            float barWidth,
-            float barHeight,
-            float fontSize,
+            const VisualProperties& props,
             const Settings& settings);
 
     private:
@@ -31,10 +29,8 @@ namespace kx {
             const EntityRenderContext& context,
             const ImVec2& barMin,
             const ImVec2& barMax,
-            float barWidth,
-            unsigned int entityColor,
+            const VisualProperties& props,
             float fadeAlpha,
-            float fontSize,
             const Settings& settings);
 
         // Add new helper for drawing text

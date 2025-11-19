@@ -218,21 +218,20 @@ namespace kx {
     void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList,
         const glm::vec2& barTopLeftPosition,
         const EntityRenderContext& context,
-        unsigned int entityColor,
-        float barWidth,
-        float barHeight,
-        float fontSize,
-        const Settings& settings) { 
-        
+        const VisualProperties& props,
+        const Settings& settings) 
+    { 
         const auto& anim = context.healthBarAnim;
-        float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
+        
+        // Use properties from VisualProperties directly
+        float fadeAlpha = ((props.fadedEntityColor >> 24) & 0xFF) / 255.0f;
         fadeAlpha *= anim.healthBarFadeAlpha;
 
         if (fadeAlpha <= 0.f) return; // Exit if NOTHING is visible
 
         // Geometry
         ImVec2 barMin(barTopLeftPosition.x, barTopLeftPosition.y);
-        ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
+        ImVec2 barMax(barTopLeftPosition.x + props.finalHealthBarWidth, barTopLeftPosition.y + props.finalHealthBarHeight);
 
         // Background
         unsigned int bgAlpha =
@@ -244,10 +243,10 @@ namespace kx {
 
         // Alive vs Dead specialized rendering
         if (context.entity->currentHealth > 0) {
-            RenderAliveState(drawList, context, barMin, barMax, barWidth, entityColor, fadeAlpha, fontSize, settings);
+            RenderAliveState(drawList, context, barMin, barMax, props, fadeAlpha, settings);
         }
         else {
-            RenderDeadState(drawList, context, barMin, barMax, barWidth, fadeAlpha);
+            RenderDeadState(drawList, context, barMin, barMax, props.finalHealthBarWidth, fadeAlpha);
         }
 
 		// Outer stroke settings
@@ -288,21 +287,20 @@ namespace kx {
         const EntityRenderContext& context,
         const ImVec2& barMin,
         const ImVec2& barMax,
-        float barWidth,
-        unsigned int entityColor,
+        const VisualProperties& props,
         float fadeAlpha,
-        float fontSize,
-        const Settings& settings) {
+        const Settings& settings) 
+    {
         const RenderableEntity* entity = context.entity;
         if (!entity || entity->maxHealth <= 0) return;
 
-        const auto& anim = context.healthBarAnim;
-        float barHeight = barMax.y - barMin.y;
+        float barWidth = props.finalHealthBarWidth;
+        float barHeight = props.finalHealthBarHeight;
 
         // 1. Base health fill
         DrawHealthBase(drawList, barMin, barMax, barWidth, 
             context.entity->maxHealth > 0 ? (context.entity->currentHealth / context.entity->maxHealth) : 0.0f, 
-            entityColor, fadeAlpha, settings);
+            props.fadedEntityColor, fadeAlpha, settings);
 
         // 2. Healing overlays
         DrawHealOverlay(drawList, context, barMin, barWidth, barHeight, fadeAlpha, settings);
@@ -321,7 +319,7 @@ namespace kx {
         bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(settings, context.entityType);
         if (shouldRenderHealthPercentage && context.entity->maxHealth > 0) {
             float healthPercent = context.entity->currentHealth / context.entity->maxHealth;
-            DrawHealthPercentageText(drawList, barMin, barMax, healthPercent, fontSize, fadeAlpha);
+            DrawHealthPercentageText(drawList, barMin, barMax, healthPercent, props.finalFontSize, fadeAlpha);
         }
     }
 
