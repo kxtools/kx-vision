@@ -112,6 +112,7 @@
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_WndProc.cpp" />
     <ClCompile Include="src\Rendering\Animations\HealthBarAnimations.cpp" />
+    <ClCompile Include="src\Rendering\Combat\CombatLogic.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPDataExtractor.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPFilter.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
     <ClInclude Include="src\Rendering\Animations\HealthBarAnimations.h" />
+    <ClInclude Include="src\Rendering\Combat\CombatLogic.h" />
     <ClInclude Include="src\Rendering\Combat\CombatState.h" />
     <ClInclude Include="src\Rendering\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Rendering\Core\ESPDataExtractor.h" />
