@@ -5,11 +5,12 @@
 #include "../../Game/Generated/StatData.h"
 #include "../../Game/HavokEnums.h"
 #include "../../../libs/ImGui/imgui.h"
-#include <algorithm>
-#include <sstream>
-#include <iomanip>
-#include <format>
 #include "ESPStyling.h"
+
+#include <algorithm>
+#include <format>
+#include <ranges>
+#include <string_view>
 
 namespace kx {
 
@@ -18,58 +19,58 @@ namespace kx {
 std::vector<ColoredDetail> ESPInfoBuilder::BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses) {
     std::vector<ColoredDetail> details;
     
-    // Check if details rendering is enabled
     if (!settings.renderDetails) {
         return details;
     }
     
-    details.reserve(16);
+    details.reserve(8);
 
     if (settings.showDetailLevel && player->level > 0) {
-        std::string levelText = "Level: " + std::to_string(player->level);
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {
-            levelText += " (" + std::to_string(player->scaledLevel) + ")";
+            details.emplace_back(std::format("Level: {} ({})", player->level, player->scaledLevel), ESPColors::DEFAULT_TEXT);
+        } else {
+            details.emplace_back(std::format("Level: {}", player->level), ESPColors::DEFAULT_TEXT);
         }
-        details.push_back({ levelText, ESPColors::DEFAULT_TEXT });
     }
 
     if (settings.showDetailProfession && player->profession != Game::Profession::None) {
         const char* profName = ESPFormatting::GetProfessionName(player->profession);
-        details.push_back({ "Prof: " + (profName ? std::string(profName) : "ID: " + std::to_string(static_cast<uint32_t>(player->profession))), ESPColors::DEFAULT_TEXT });
+        if (profName) {
+            details.emplace_back(std::format("Prof: {}", profName), ESPColors::DEFAULT_TEXT);
+        } else {
+            details.emplace_back(std::format("Prof: ID: {}", std::to_underlying(player->profession)), ESPColors::DEFAULT_TEXT);
+        }
     }
 
-    // Display player attitude
     if (settings.showDetailAttitude) {
         const char* attitudeName = ESPFormatting::GetAttitudeName(player->attitude);
-        details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "Unknown"), ESPColors::DEFAULT_TEXT });
-	}
+        details.emplace_back(std::format("Attitude: {}", attitudeName ? attitudeName : "Unknown"), ESPColors::DEFAULT_TEXT);
+    }
 
     if (settings.showDetailRace && player->race != Game::Race::None) {
         const char* raceName = ESPFormatting::GetRaceName(player->race);
-        details.push_back({ "Race: " + (raceName ? std::string(raceName) : "ID: " + std::to_string(static_cast<uint8_t>(player->race))), ESPColors::DEFAULT_TEXT });
+        if (raceName) {
+            details.emplace_back(std::format("Race: {}", raceName), ESPColors::DEFAULT_TEXT);
+        } else {
+            details.emplace_back(std::format("Race: ID: {}", std::to_underlying(player->race)), ESPColors::DEFAULT_TEXT);
+        }
     }
 
     if (settings.showDetailHp && player->maxHealth > 0) {
-        details.push_back({ "HP: " + std::to_string(static_cast<int>(player->currentHealth)) + "/" + std::to_string(static_cast<int>(player->maxHealth)), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("HP: {:.0f}/{:.0f}", player->currentHealth, player->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailEnergy && player->maxEndurance > 0) {
         const int energyPercent = static_cast<int>((player->currentEndurance / player->maxEndurance) * 100.0f);
-        details.push_back({ "Energy: " + std::to_string(static_cast<int>(player->currentEndurance)) + "/" + std::to_string(static_cast<int>(player->maxEndurance)) + " (" + std::to_string(energyPercent) + "%)", ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Energy: {:.0f}/{:.0f} ({}%)", player->currentEndurance, player->maxEndurance, energyPercent), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailPosition) {
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(1)
-            << "Pos: (" << player->position.x
-            << ", " << player->position.y
-            << ", " << player->position.z << ")";
-        details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", player->position.x, player->position.y, player->position.z), ESPColors::DEFAULT_TEXT);
     }
 
     if (showDebugAddresses) {
-        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(player->address));
-        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(player->address)), ESPColors::DEFAULT_TEXT);
     }
 
     return details;
@@ -77,49 +78,33 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildPlayerDetails(const RenderablePl
 
 std::vector<ColoredDetail> ESPInfoBuilder::BuildGearDetails(const RenderablePlayer* player) {
     std::vector<ColoredDetail> gearDetails;
-    gearDetails.reserve(20);
+    gearDetails.reserve(16);
 
     const std::vector<Game::EquipmentSlot> displayOrder = {
-        // Armor
-        Game::EquipmentSlot::Helm,
-        Game::EquipmentSlot::Shoulders,
-        Game::EquipmentSlot::Chest,
-        Game::EquipmentSlot::Gloves,
-        Game::EquipmentSlot::Pants,
-        Game::EquipmentSlot::Boots,
-        // Trinkets
-        Game::EquipmentSlot::Back,
-        Game::EquipmentSlot::Amulet,
-        Game::EquipmentSlot::Ring1,
-        Game::EquipmentSlot::Ring2,
-        Game::EquipmentSlot::Accessory1,
-        Game::EquipmentSlot::Accessory2,
-        // Weapons
-        Game::EquipmentSlot::MainhandWeapon1,
-        Game::EquipmentSlot::OffhandWeapon1,
-        Game::EquipmentSlot::MainhandWeapon2,
-        Game::EquipmentSlot::OffhandWeapon2,
+        Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
+        Game::EquipmentSlot::Gloves, Game::EquipmentSlot::Pants, Game::EquipmentSlot::Boots,
+        Game::EquipmentSlot::Back, Game::EquipmentSlot::Amulet, Game::EquipmentSlot::Ring1,
+        Game::EquipmentSlot::Ring2, Game::EquipmentSlot::Accessory1, Game::EquipmentSlot::Accessory2,
+        Game::EquipmentSlot::MainhandWeapon1, Game::EquipmentSlot::OffhandWeapon1,
+        Game::EquipmentSlot::MainhandWeapon2, Game::EquipmentSlot::OffhandWeapon2,
     };
 
     for (const auto& slotEnum : displayOrder) {
-        auto gearIt = player->gear.find(slotEnum);
-        if (gearIt != player->gear.end()) {
+        if (auto gearIt = player->gear.find(slotEnum); gearIt != player->gear.end()) {
             const char* slotName = ESPFormatting::EquipmentSlotToString(gearIt->first);
             const GearSlotInfo& info = gearIt->second;
             ImU32 rarityColor = ESPStyling::GetRarityColor(info.rarity);
 
             std::string statName = "No Stats";
             if (info.statId > 0) {
-                auto statIt = data::stat::DATA.find(info.statId);
-                if (statIt != data::stat::DATA.end()) {
+                if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
                     statName = statIt->second.name;
-                }
-                else {
-                    statName = "stat(" + std::to_string(info.statId) + ")";
+                } else {
+                    statName = std::format("stat({})", info.statId);
                 }
             }
 
-            gearDetails.push_back({ std::string(slotName) + ": " + statName, rarityColor });
+            gearDetails.emplace_back(std::format("{}: {}", slotName, statName), rarityColor);
         }
     }
     return gearDetails;
@@ -130,24 +115,21 @@ std::vector<CompactStatInfo> ESPInfoBuilder::BuildCompactGearSummary(const Rende
         return {};
     }
 
-    // Use a map to group stats and find the highest rarity for each
-    std::map<std::string, CompactStatInfo> statSummary;
+    std::map<std::string_view, CompactStatInfo> statSummary;
     int totalItems = 0;
-    for (const auto& pair : player->gear) {
-        const GearSlotInfo& info = pair.second;
+
+    for (const auto& [slot, info] : player->gear) {
         if (info.statId > 0) {
             totalItems++;
-            auto statIt = data::stat::DATA.find(info.statId);
-            if (statIt != data::stat::DATA.end()) {
-                std::string statName = statIt->second.name;
+            if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
+                std::string_view statName = statIt->second.name;
 
-                // Increment count
-                statSummary[statName].count++;
-                statSummary[statName].statName = statName;
+                auto& entry = statSummary[statName];
+                entry.statName = statName;
+                entry.count++;
 
-                // Keep track of the highest rarity
-                if (info.rarity > statSummary[statName].highestRarity) {
-                    statSummary[statName].highestRarity = info.rarity;
+                if (info.rarity > entry.highestRarity) {
+                    entry.highestRarity = info.rarity;
                 }
             }
         }
@@ -157,22 +139,20 @@ std::vector<CompactStatInfo> ESPInfoBuilder::BuildCompactGearSummary(const Rende
         return {};
     }
 
-    // Convert the map to a vector and calculate percentages
     std::vector<CompactStatInfo> result;
     result.reserve(statSummary.size());
+    
     if (totalItems > 0) {
-        for (auto& pair : statSummary) {
-            pair.second.percentage = (static_cast<float>(pair.second.count) / totalItems) * 100.0f;
-            result.push_back(pair.second);
+        for (const auto& [name, info] : statSummary) {
+            auto& item = result.emplace_back(info);
+            item.percentage = (static_cast<float>(info.count) / totalItems) * 100.0f;
         }
     }
 
-    // Sort by percentage descending
-    std::sort(result.begin(), result.end(), [](const CompactStatInfo& a, const CompactStatInfo& b) {
+    std::ranges::sort(result, [](const CompactStatInfo& a, const CompactStatInfo& b) {
         return a.percentage > b.percentage;
     });
 
-    // Keep only top 3
     if (result.size() > 3) {
         result.resize(3);
     }
@@ -182,50 +162,47 @@ std::vector<CompactStatInfo> ESPInfoBuilder::BuildCompactGearSummary(const Rende
 
 std::vector<DominantStat> ESPInfoBuilder::BuildDominantStats(const RenderablePlayer* player) {
     std::vector<DominantStat> result;
-
-    // 1. Get the raw attribute counts
-    std::map<data::ApiAttribute, int> attributeCounts = BuildAttributeSummary(player);
+    auto attributeCounts = BuildAttributeSummary(player);
+    
     if (attributeCounts.empty()) {
         return result;
     }
 
-    // 2. Calculate the total number of attribute instances
     float totalAttributes = 0.0f;
-    for (const auto& pair : attributeCounts) {
-        totalAttributes += pair.second;
+    for (const auto& [attr, count] : attributeCounts) {
+        totalAttributes += count;
     }
+
     if (totalAttributes == 0) return result;
 
-    // 3. Convert to a vector of DominantStat with percentages and tactical colors
     std::vector<DominantStat> allStats;
     allStats.reserve(attributeCounts.size());
-    for (const auto& pair : attributeCounts) {
+
+    for (const auto& [attr, count] : attributeCounts) {
         const char* name = "??";
-        switch (pair.first) {
-        case data::ApiAttribute::Power:           name = "Power"; break;
-        case data::ApiAttribute::Precision:       name = "Precision"; break;
-        case data::ApiAttribute::Toughness:       name = "Toughness"; break;
-        case data::ApiAttribute::Vitality:        name = "Vitality"; break;
-        case data::ApiAttribute::CritDamage:      name = "Ferocity"; break;
-        case data::ApiAttribute::Healing:         name = "Healing"; break;
-        case data::ApiAttribute::ConditionDamage: name = "Condi Dmg"; break;
-        case data::ApiAttribute::BoonDuration:    name = "Boon Dura"; break;
-        case data::ApiAttribute::ConditionDuration: name = "Condi Dura"; break;
+        switch (attr) {
+            using enum data::ApiAttribute;
+            case Power:             name = "Power"; break;
+            case Precision:         name = "Precision"; break;
+            case Toughness:         name = "Toughness"; break;
+            case Vitality:          name = "Vitality"; break;
+            case CritDamage:        name = "Ferocity"; break;
+            case Healing:           name = "Healing"; break;
+            case ConditionDamage:   name = "Condi Dmg"; break;
+            case BoonDuration:      name = "Boon Dura"; break;
+            case ConditionDuration: name = "Condi Dura"; break;
+            default:                break;
         }
         
-        // Assign the name, percentage, AND the new tactical color
-        allStats.push_back({ name, (pair.second / totalAttributes) * 100.0f, ESPStyling::GetTacticalColor(pair.first) });
+        allStats.push_back({ name, (count / totalAttributes) * 100.0f, ESPStyling::GetTacticalColor(attr) });
     }
 
-    // 4. Sort the vector in descending order of percentage
-    std::sort(allStats.begin(), allStats.end(), [](const DominantStat& a, const DominantStat& b) {
+    std::ranges::sort(allStats, [](const DominantStat& a, const DominantStat& b) {
         return a.percentage > b.percentage;
     });
 
-    // 5. Return the top 3
-    result.reserve(3);
-    for (size_t i = 0; i < allStats.size() && i < 3; ++i) {
-        result.push_back(allStats[i]);
+    for (const auto& stat : allStats | std::views::take(3)) {
+        result.push_back(stat);
     }
 
     return result;
@@ -254,44 +231,42 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildNpcDetails(const RenderableNpc* 
         return details;
     }
 
-    details.reserve(12);
+    details.reserve(6);
 
     if (!npc->name.empty()) {
-        details.push_back({ "NPC: " + npc->name, ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("NPC: {}", npc->name), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailLevel && npc->level > 0) {
-        details.push_back({ "Level: " + std::to_string(npc->level), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Level: {}", npc->level), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailHp && npc->maxHealth > 0) {
-        details.push_back({ "HP: " + std::to_string(static_cast<int>(npc->currentHealth)) + "/" + std::to_string(static_cast<int>(npc->maxHealth)), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("HP: {:.0f}/{:.0f}", npc->currentHealth, npc->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailAttitude) {
         const char* attitudeName = ESPFormatting::GetAttitudeName(npc->attitude);
-        details.push_back({ "Attitude: " + (attitudeName ? std::string(attitudeName) : "ID: " + std::to_string(static_cast<uint32_t>(npc->attitude))), ESPColors::DEFAULT_TEXT });
+        if (attitudeName) {
+            details.emplace_back(std::format("Attitude: {}", attitudeName), ESPColors::DEFAULT_TEXT);
+        } else {
+            details.emplace_back(std::format("Attitude: ID: {}", std::to_underlying(npc->attitude)), ESPColors::DEFAULT_TEXT);
+        }
     }
 
     if (settings.showDetailRank) {
         const char* rankName = ESPFormatting::GetRankName(npc->rank);
         if (rankName && rankName[0] != '\0') {
-            details.push_back({ "Rank: " + std::string(rankName), ESPColors::DEFAULT_TEXT });
+            details.emplace_back(std::format("Rank: {}", rankName), ESPColors::DEFAULT_TEXT);
         }
     }
 
     if (settings.showDetailPosition) {
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(1)
-            << "Pos: (" << npc->position.x
-            << ", " << npc->position.y
-            << ", " << npc->position.z << ")";
-        details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", npc->position.x, npc->position.y, npc->position.z), ESPColors::DEFAULT_TEXT);
     }
 
     if (showDebugAddresses) {
-        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(npc->address));
-        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(npc->address)), ESPColors::DEFAULT_TEXT);
     }
 
     return details;
@@ -306,37 +281,35 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildGadgetDetails(const RenderableGa
         return details;
     }
 
-    details.reserve(8);
+    details.reserve(5);
 
     if (settings.showDetailGadgetType) {
         const char* gadgetName = ESPFormatting::GetGadgetTypeName(gadget->type);
-        details.push_back({ "Type: " + (gadgetName ? std::string(gadgetName) : "ID: " + std::to_string(static_cast<uint32_t>(gadget->type))), ESPColors::DEFAULT_TEXT });
+        if (gadgetName) {
+            details.emplace_back(std::format("Type: {}", gadgetName), ESPColors::DEFAULT_TEXT);
+        } else {
+            details.emplace_back(std::format("Type: ID: {}", std::to_underlying(gadget->type)), ESPColors::DEFAULT_TEXT);
+        }
     }
 
     if (settings.showDetailHealth && gadget->maxHealth > 0) {
-        details.push_back({ "HP: " + std::to_string(static_cast<int>(gadget->currentHealth)) + "/" + std::to_string(static_cast<int>(gadget->maxHealth)), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("HP: {:.0f}/{:.0f}", gadget->currentHealth, gadget->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailResourceInfo && gadget->type == Game::GadgetType::ResourceNode) {
-        details.push_back({ "Node: " + ESPFormatting::ResourceNodeTypeToString(gadget->resourceType), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Node: {}", ESPFormatting::ResourceNodeTypeToString(gadget->resourceType)), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailGatherableStatus && gadget->isGatherable) {
-        details.push_back({ "Status: Gatherable", ESPColors::DEFAULT_TEXT });
+        details.emplace_back("Status: Gatherable", ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailPosition) {
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(1)
-            << "Pos: (" << gadget->position.x
-            << ", " << gadget->position.y
-            << ", " << gadget->position.z << ")";
-        details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", gadget->position.x, gadget->position.y, gadget->position.z), ESPColors::DEFAULT_TEXT);
     }
 
     if (showDebugAddresses) {
-        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(gadget->address));
-        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(gadget->address)), ESPColors::DEFAULT_TEXT);
     }
 
     return details;
@@ -349,28 +322,21 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildAttackTargetDetails(const Render
         return details;
     }
 
-    details.reserve(8);
-
-    details.push_back({ "Type: Attack Target", ESPColors::DEFAULT_TEXT });
+    details.reserve(5);
+    details.emplace_back("Type: Attack Target", ESPColors::DEFAULT_TEXT);
 
     if (settings.showDetailHealth && attackTarget->maxHealth > 0) {
-        details.push_back({ "HP: " + std::to_string(static_cast<int>(attackTarget->currentHealth)) + "/" + std::to_string(static_cast<int>(attackTarget->maxHealth)), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("HP: {:.0f}/{:.0f}", attackTarget->currentHealth, attackTarget->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailPosition) {
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(1)
-            << "Pos: (" << attackTarget->position.x
-            << ", " << attackTarget->position.y
-            << ", " << attackTarget->position.z << ")";
-        details.push_back({ oss.str(), ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", attackTarget->position.x, attackTarget->position.y, attackTarget->position.z), ESPColors::DEFAULT_TEXT);
     }
 
-    details.push_back({ "AgentID: " + std::to_string(attackTarget->agentId), ESPColors::DEFAULT_TEXT });
+    details.emplace_back(std::format("AgentID: {}", attackTarget->agentId), ESPColors::DEFAULT_TEXT);
 
     if (showDebugAddresses) {
-        std::string addrStr = std::format("Addr: 0x{:X}", reinterpret_cast<uintptr_t>(attackTarget->address));
-        details.push_back({ addrStr, ESPColors::DEFAULT_TEXT });
+        details.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(attackTarget->address)), ESPColors::DEFAULT_TEXT);
     }
 
     return details;
@@ -384,11 +350,9 @@ std::map<data::ApiAttribute, int> ESPInfoBuilder::BuildAttributeSummary(const Re
         return attributeCounts;
     }
 
-    for (const auto& pair : player->gear) {
-        const GearSlotInfo& info = pair.second;
+    for (const auto& [slot, info] : player->gear) {
         if (info.statId > 0) {
-            auto statIt = data::stat::DATA.find(info.statId);
-            if (statIt != data::stat::DATA.end()) {
+            if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
                 for (const auto& attr : statIt->second.attributes) {
                     attributeCounts[attr.attribute]++;
                 }
