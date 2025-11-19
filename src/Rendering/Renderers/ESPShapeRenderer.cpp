@@ -10,12 +10,11 @@
 #include "../Utils/ESPMath.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Data/ESPData.h"
-#include "../../Core/AppState.h"
 
 namespace kx {
 
 void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& entityContext, Camera& camera,
-    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale, float screenWidth, float screenHeight) {
+    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale, float screenWidth, float screenHeight, float globalOpacity) {
     // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
 
     // --- Define the 3D sphere's geometric properties ---
@@ -143,8 +142,7 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
                     }
                     
                     // Apply global opacity to gadget sphere rings
-                    const auto& settings = AppState::Get().GetSettings();
-                    segmentColor = ApplyAlphaToColor(segmentColor, settings.appearance.globalOpacity);
+                    segmentColor = ApplyAlphaToColor(segmentColor, globalOpacity);
                     
                     float segmentThickness = finalLineThickness * thicknessFactor;
                     
@@ -191,14 +189,13 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
     }
 }
 
-void ESPShapeRenderer::RenderGadgetCircle(ImDrawList* drawList, const glm::vec2& screenPos, float radius, unsigned int color, float thickness) {
+void ESPShapeRenderer::RenderGadgetCircle(ImDrawList* drawList, const glm::vec2& screenPos, float radius, unsigned int color, float thickness, float globalOpacity) {
     // Apply global opacity to gadget circles
-    const auto& settings = AppState::Get().GetSettings();
-    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    unsigned int finalColor = ApplyAlphaToColor(color, globalOpacity);
     drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), radius, finalColor, 0, thickness);
 }
 
-void ESPShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProperties& props, unsigned int color, float thickness) {
+void ESPShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProperties& props, unsigned int color, float thickness, float globalOpacity) {
     // This array defines the 12 edges of a cube by connecting the indices of the corners.
     // The corner indices match the order defined in Calculate3DBoundingBox.
     const std::array<std::pair<int, int>, 12> edges = {{
@@ -211,8 +208,7 @@ void ESPShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProp
     }};
 
     // Apply global opacity from settings
-    const auto& settings = AppState::Get().GetSettings();
-    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    unsigned int finalColor = ApplyAlphaToColor(color, globalOpacity);
 
     // Render each edge
     for (const auto& edge : edges) {
@@ -227,10 +223,9 @@ void ESPShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProp
 }
 
 void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax,
-                                        unsigned int color, float thickness) {
+                                        unsigned int color, float thickness, float globalOpacity) {
     // Apply global opacity to bounding boxes
-    const auto& settings = AppState::Get().GetSettings();
-    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    unsigned int finalColor = ApplyAlphaToColor(color, globalOpacity);
     
     // Dark outer stroke for better visibility (consistent with health bar rendering)
     const float outset = 1.0f; // 1px outside, feels "harder" and more separated
@@ -248,10 +243,9 @@ void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& box
 }
 
 void ESPShapeRenderer::RenderColoredDot(ImDrawList* drawList, const glm::vec2& feetPos,
-                                       unsigned int color, float radius) {
+                                       unsigned int color, float radius, float globalOpacity) {
     // Apply global opacity to colored dots
-    const auto& settings = AppState::Get().GetSettings();
-    unsigned int finalColor = ApplyAlphaToColor(color, settings.appearance.globalOpacity);
+    unsigned int finalColor = ApplyAlphaToColor(color, globalOpacity);
     
     // Extract fade alpha from the final color parameter
     float fadeAlpha = ((finalColor >> 24) & 0xFF) / 255.0f;
@@ -265,10 +259,9 @@ void ESPShapeRenderer::RenderColoredDot(ImDrawList* drawList, const glm::vec2& f
 }
 
 void ESPShapeRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos,
-                                            float fadeAlpha, float radius) {
+                                            float fadeAlpha, float radius, float globalOpacity) {
     // Apply global opacity to natural dots
-    const auto& settings = AppState::Get().GetSettings();
-    float combinedAlpha = fadeAlpha * settings.appearance.globalOpacity;
+    float combinedAlpha = fadeAlpha * globalOpacity;
     
     ImVec2 pos(feetPos.x, feetPos.y);
 
