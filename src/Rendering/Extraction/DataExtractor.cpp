@@ -1,4 +1,4 @@
-#include "ESPDataExtractor.h"
+#include "DataExtractor.h"
 #include "../../Game/AddressManager.h"
 #include "../../Game/ReClassStructs.h"
 #include "../../Utils/SafeIterators.h"
@@ -8,7 +8,7 @@
 
 namespace kx {
 
-    void ESPDataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
+    void DataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
         ObjectPool<RenderableNpc>& npcPool,
         ObjectPool<RenderableGadget>& gadgetPool,
         ObjectPool<RenderableAttackTarget>& attackTargetPool,
@@ -41,7 +41,7 @@ namespace kx {
         ExtractAttackTargetData(attackTargetPool, pooledData.attackTargets);
     }
 
-    void ESPDataExtractor::ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
+    void DataExtractor::ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
         ObjectPool<RenderableNpc>& npcPool,
         std::vector<RenderablePlayer*>& players,
         std::vector<RenderableNpc*>& npcs,
@@ -89,7 +89,7 @@ namespace kx {
         }
     }
 
-    void ESPDataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
+    void DataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
         std::vector<RenderableGadget*>& gadgets) {
         gadgets.clear();
         gadgets.reserve(ExtractionCapacity::GADGETS_RESERVE);
@@ -113,7 +113,7 @@ namespace kx {
         }
     }
 
-    void ESPDataExtractor::ExtractAttackTargetData(ObjectPool<RenderableAttackTarget>& attackTargetPool,
+    void DataExtractor::ExtractAttackTargetData(ObjectPool<RenderableAttackTarget>& attackTargetPool,
         std::vector<RenderableAttackTarget*>& attackTargets) {
         attackTargets.clear();
         attackTargets.reserve(ExtractionCapacity::ATTACK_TARGETS_RESERVE);

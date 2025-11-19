@@ -11,7 +11,7 @@
 #include "../../Core/AppLifecycleManager.h"
 #include "../../Utils/ObjectPool.h"
 #include "../Data/RenderableData.h"
-#include "../Extraction/ESPDataExtractor.h"
+#include "../Extraction/DataExtractor.h"
 #include "StageRenderer.h"
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -51,7 +51,7 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         
         // Stage 1: Extract
         PooledFrameRenderData extractedData;
-        ESPDataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, s_attackTargetPool, extractedData);
+        DataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, s_attackTargetPool, extractedData);
         
         // Build a set of all currently active entity addresses
         std::unordered_set<const void*> activeEntities;

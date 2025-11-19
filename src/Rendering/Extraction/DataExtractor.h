@@ -19,7 +19,7 @@ namespace kx {
      * - Implements fail-fast validation of root ContextCollection pointer
      * - Prevents thousands of failed memory reads during loading screens or when game is not ready
      */
-    class ESPDataExtractor {
+    class DataExtractor {
     public:
         /**
          * @brief OPTIMIZED extraction method - extracts directly into object pools (eliminates heap allocations)
