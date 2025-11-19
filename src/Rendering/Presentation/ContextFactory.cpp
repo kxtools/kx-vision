@@ -215,6 +215,10 @@ EntityRenderContext ContextFactory::CreateContextForAttackTarget(const Renderabl
 EntityRenderContext ContextFactory::CreateEntityRenderContextForRendering(const RenderableEntity* entity, const FrameContext& context) {
     s_DetailsBuffer.clear();
     
+    // Most entities have < 10 lines of text. 16 covers almost everything including gear.
+    // This prevents resizing/copying during the frame.
+    s_DetailsBuffer.reserve(16);
+    
     switch(entity->entityType) {
         case EntityTypes::Player:
         {
