@@ -1,6 +1,6 @@
 #define NOMINMAX
 
-#include "ESPRenderer.h"
+#include "MasterRenderer.h"
 #include "../Data/ESPData.h"
 
 #include <algorithm>
@@ -21,7 +21,7 @@
 namespace kx {
 
 // Initialize the static camera pointer
-Camera* ESPRenderer::s_camera = nullptr;
+Camera* MasterRenderer::s_camera = nullptr;
 
 // Object pools to eliminate heap churn - pre-allocate reasonable number of entities
 static ObjectPool<RenderablePlayer> s_playerPool(500);
@@ -34,11 +34,11 @@ static PooledFrameRenderData s_processedRenderData; // Filtered data ready for r
 static float s_lastUpdateTime = 0.0f;
 static CombatStateManager g_combatStateManager;
 
-void ESPRenderer::Initialize(Camera& camera) {
+void MasterRenderer::Initialize(Camera& camera) {
     s_camera = &camera;
 }
 
-void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentTimeSeconds) {
+void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float currentTimeSeconds) {
     float espUpdateInterval = 1.0f / std::max(1.0f, frameContext.settings.espUpdateRate);
 
     if (currentTimeSeconds - s_lastUpdateTime >= espUpdateInterval) {
@@ -87,7 +87,7 @@ void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentT
 }
 
 
-void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData) {
+void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData) {
     if (!s_camera || ShouldHideESP(mumbleData)) {
         return;
     }
@@ -122,7 +122,7 @@ void ESPRenderer::Render(float screenWidth, float screenHeight, const MumbleLink
     ESPStageRenderer::RenderFrameData(frameContext, s_processedRenderData);
 }
 
-bool ESPRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {
+bool MasterRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {
     if (mumbleData && (mumbleData->context.uiState & IsMapOpen)) {
         return true;
     }

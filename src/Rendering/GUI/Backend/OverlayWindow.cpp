@@ -5,7 +5,6 @@
 #include <string>
 #include <windows.h>
 
-#include "Core/ESPRenderer.h"
 #include "ImGuiStyle.h"
 #include "../../libs/ImGui/imgui.h"
 #include "../../libs/ImGui/imgui_impl_dx11.h"
@@ -15,6 +14,7 @@
 #include "../Game/MumbleLinkManager.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
+#include "Core/MasterRenderer.h"
 
 #include "GUI/Tabs/AppearanceTab.h"
 #include "GUI/Tabs/InfoTab.h"
@@ -187,7 +187,7 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
     }
 
     // Render the ESP overlay
-    kx::ESPRenderer::Render(displayWidth, displayHeight, mumbleLinkData);
+    kx::MasterRenderer::Render(displayWidth, displayHeight, mumbleLinkData);
     
     // Render the UI window if it's shown (check AppState's unified visibility flag)
     if (kx::AppState::Get().IsVisionWindowOpen()) {

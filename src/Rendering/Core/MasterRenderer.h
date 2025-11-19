@@ -6,7 +6,7 @@
 
 namespace kx {
 
-class ESPRenderer {
+class MasterRenderer {
 public:
     static void Initialize(Camera& camera);
     static void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData);
