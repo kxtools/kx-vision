@@ -16,13 +16,13 @@
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 
-#include "GUI/AppearanceTab.h"
-#include "GUI/InfoTab.h"
-#include "GUI/NpcsTab.h"
-#include "GUI/ObjectsTab.h"
-#include "GUI/PlayersTab.h"
-#include "GUI/SettingsTab.h"
-#include "GUI/ValidationTab.h"
+#include "GUI/Tabs/AppearanceTab.h"
+#include "GUI/Tabs/InfoTab.h"
+#include "GUI/Tabs/NpcsTab.h"
+#include "GUI/Tabs/ObjectsTab.h"
+#include "GUI/Tabs/PlayersTab.h"
+#include "GUI/Tabs/SettingsTab.h"
+#include "GUI/Tabs/ValidationTab.h"
 
 // Define static members
 bool ImGuiManager::m_isInitialized = false;

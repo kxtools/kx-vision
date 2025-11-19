@@ -1,6 +1,6 @@
 #include "InfoTab.h"
 #include <windows.h>
-#include "../../../libs/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 
 namespace kx {
     namespace GUI {

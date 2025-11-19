@@ -2,12 +2,13 @@
 #include <string>
 #include <algorithm>
 #include <format>
-#include "../../../libs/ImGui/imgui.h"
-#include "../../Core/AppState.h"
-#include "../../Core/SettingsManager.h"
-#include "../../Utils/DebugLogger.h"
-#include "../../Game/AddressManager.h"
-#include "../../Game/ReClassStructs.h"
+
+#include "DebugLogger.h"
+#include "SettingsManager.h"
+
+#include "ImGui/imgui.h"
+#include "ReClass/ContextStructs.h"
+#include "ReClass/GadgetStructs.h"
 
 namespace kx {
     namespace GUI {

@@ -1,7 +1,8 @@
 #include "AppearanceTab.h"
-#include "../../../libs/ImGui/imgui.h"
-#include "../../Core/AppState.h"
-#include "../../Core/Settings.h"
+
+#include "Settings.h"
+#include "AppState.h"
+#include "ImGui/imgui.h"
 
 namespace kx {
     namespace GUI {

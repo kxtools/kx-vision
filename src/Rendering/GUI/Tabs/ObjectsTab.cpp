@@ -1,10 +1,11 @@
 #include "ObjectsTab.h"
-#include "GuiHelpers.h"
-#include "../../../libs/ImGui/imgui.h"
-#include "../../Core/AppState.h"
-#include "../../Core/Settings.h"
 #include <string>
 #include <vector>
+
+#include "AppState.h"
+#include "ImGui/imgui.h"
+#include "Settings.h"
+#include "GUI/GuiHelpers.h"
 
 namespace kx {
     namespace GUI {

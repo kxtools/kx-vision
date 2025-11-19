@@ -6,13 +6,14 @@
 #include "AddressManager.h"
 #include "HookManager.h"
 #include "Hooks.h"
-#include "../Rendering/ImGui/ImGuiManager.h"
 #include "../Rendering/Core/ESPRenderer.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
 #include <windows.h>
 #include <shellapi.h>
+
+#include "GUI/Backend/ImGuiManager.h"
 
 namespace kx {
 

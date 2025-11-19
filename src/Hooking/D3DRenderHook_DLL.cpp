@@ -12,7 +12,7 @@
 #include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"
-#include "../Rendering/ImGui/ImGuiManager.h"
+#include "GUI/Backend/ImGuiManager.h"
 
 namespace kx::Hooking {
 

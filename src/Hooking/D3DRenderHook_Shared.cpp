@@ -7,9 +7,9 @@
 #include "../Core/Config.h"
 #include "../Core/AppState.h"
 #include "../Utils/DebugLogger.h"
-#include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
 #include "HookManager.h"
+#include "GUI/Backend/ImGuiManager.h"
 
 namespace kx::Hooking {
 
