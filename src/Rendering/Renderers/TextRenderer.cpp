@@ -1,6 +1,5 @@
 #include "TextRenderer.h"
 #include "../../../libs/ImGui/imgui.h"
-#include "../Shared/Constants.h"
 #include "../../Core/AppState.h"
 
 using namespace kx::RenderingLayout;

@@ -1,9 +1,10 @@
 #include "CombatLogic.h"
 #include "CombatState.h"
 #include "../Data/RenderableData.h"
-#include "../Shared/Constants.h"
 #include "../../Core/AppState.h"
 #include <glm/geometric.hpp>
+
+#include "Shared/CombatConstants.h"
 
 namespace kx {
 

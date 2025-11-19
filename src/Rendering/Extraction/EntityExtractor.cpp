@@ -1,5 +1,4 @@
 #include "EntityExtractor.h"
-#include "../Shared/Constants.h"
 #include "../../Game/GameEnums.h"
 #include "../../Game/ReClass/HavokStructs.h"
 #include "../../Utils/StringHelpers.h"

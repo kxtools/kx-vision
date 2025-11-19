@@ -3,7 +3,6 @@
 #include "../../Game/ReClassStructs.h"
 #include "../../Utils/SafeIterators.h"
 #include "../../Utils/MemorySafety.h"
-#include "../Shared/Constants.h"
 #include "Extraction/EntityExtractor.h"
 
 namespace kx {

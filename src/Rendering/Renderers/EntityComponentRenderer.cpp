@@ -18,6 +18,7 @@
 #include "Presentation/Styling.h"
 #include "Presentation/InfoBuilder.h"
 #include "Presentation/TextElementFactory.h"
+#include "Shared/CombatConstants.h"
 #include "Shared/RenderSettingsHelper.h"
 
 namespace kx {

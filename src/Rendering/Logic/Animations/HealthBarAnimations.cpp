@@ -3,8 +3,8 @@
 #include "../../Data/RenderableData.h"
 #include "../../Combat/CombatState.h"
 #include "../../Data/EntityRenderContext.h"
-#include "../../Shared/Constants.h"
 #include "../../Shared/AnimationHelpers.h"
+#include "Shared/CombatConstants.h"
 
 namespace kx {
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "../../../libs/ImGui/imgui.h"
 
 namespace kx {

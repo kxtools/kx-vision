@@ -1,7 +1,6 @@
 #include "ContextFactory.h"
 
 #include "../Combat/CombatStateManager.h" // For CombatStateManager
-#include "../Shared/Constants.h" // For CombatEffects
 #include "../Data/FrameData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
@@ -10,6 +9,7 @@
 #include "Settings/ESPSettings.h"
 #include "InfoBuilder.h"
 #include "Styling.h"
+#include "Shared/CombatConstants.h"
 
 namespace kx {
 

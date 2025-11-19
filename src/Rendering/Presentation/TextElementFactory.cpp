@@ -3,7 +3,6 @@
 #include "../Data/PlayerRenderData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Data/FrameData.h"
-#include "../Shared/Constants.h"
 #include "../../Core/Settings.h"
 #include "../../Utils/UnitConversion.h"
 #include <sstream>
@@ -12,6 +11,7 @@
 
 #include "Styling.h"
 #include "Shared/Formatting.h"
+#include "Shared/LayoutConstants.h"
 
 namespace kx {
 

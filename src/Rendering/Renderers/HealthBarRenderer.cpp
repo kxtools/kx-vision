@@ -2,7 +2,6 @@
 
 #include "HealthBarRenderer.h"
 #include <iomanip>
-#include "../Shared/Constants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <Windows.h>
 
@@ -13,6 +12,7 @@
 #include "../Shared/LayoutConstants.h"
 #include "../../Core/Settings.h"
 #include "../Shared/RenderSettingsHelper.h"
+#include "Shared/CombatConstants.h"
 
 namespace kx {
 
