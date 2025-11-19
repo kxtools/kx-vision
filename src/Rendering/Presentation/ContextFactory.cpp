@@ -14,6 +14,8 @@
 
 namespace kx {
 
+static thread_local std::vector<ColoredDetail> s_DetailsBuffer;
+
 namespace { // Anonymous namespace for helpers
 
 static bool DeterminePlayerHealthBarVisibility(const RenderablePlayer* player, const PlayerEspSettings& settings) {
@@ -211,59 +213,52 @@ EntityRenderContext ContextFactory::CreateContextForAttackTarget(const Renderabl
 }
 
 EntityRenderContext ContextFactory::CreateEntityRenderContextForRendering(const RenderableEntity* entity, const FrameContext& context) {
-    std::vector<ColoredDetail> details;
-    // Use a switch on entity->entityType to call the correct details builder
+    s_DetailsBuffer.clear();
+    
     switch(entity->entityType) {
         case EntityTypes::Player:
         {
             const auto* player = static_cast<const RenderablePlayer*>(entity);
-            details = InfoBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
+            InfoBuilder::AppendPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses, s_DetailsBuffer);
             if (context.settings.playerESP.enableGearDisplay && context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
-                auto gearDetails = InfoBuilder::BuildGearDetails(player);
-                if (!gearDetails.empty()) {
-                    if (!details.empty()) {
-                        details.push_back({ "--- Gear Stats ---", ESPColors::DEFAULT_TEXT });
-                    }
-                    details.insert(details.end(), gearDetails.begin(), gearDetails.end());
+                if (!s_DetailsBuffer.empty()) {
+                    s_DetailsBuffer.emplace_back("--- Gear Stats ---", ESPColors::DEFAULT_TEXT);
                 }
+                InfoBuilder::AppendGearDetails(player, s_DetailsBuffer);
             }
             break;
         }
         case EntityTypes::NPC:
         {
             const auto* npc = static_cast<const RenderableNpc*>(entity);
-            details = InfoBuilder::BuildNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses);
+            InfoBuilder::AppendNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses, s_DetailsBuffer);
             break;
         }
         case EntityTypes::Gadget:
         {
             const auto* gadget = static_cast<const RenderableGadget*>(entity);
-            details = InfoBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
+            InfoBuilder::AppendGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses, s_DetailsBuffer);
             break;
         }
         case EntityTypes::AttackTarget:
         {
             const auto* attackTarget = static_cast<const RenderableAttackTarget*>(entity);
-            details = InfoBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
+            InfoBuilder::AppendAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses, s_DetailsBuffer);
             break;
         }
     }
 
-    // Now, create the context using the ESPContextFactory, just like before.
-    // We pass the main 'context' directly.
     switch(entity->entityType) {
         case EntityTypes::Player:
-            return CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), details, context);
+            return CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), s_DetailsBuffer, context);
         case EntityTypes::NPC:
-            return CreateContextForNpc(static_cast<const RenderableNpc*>(entity), details, context);
+            return CreateContextForNpc(static_cast<const RenderableNpc*>(entity), s_DetailsBuffer, context);
         case EntityTypes::Gadget:
-            return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
+            return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), s_DetailsBuffer, context);
         case EntityTypes::AttackTarget:
-            return CreateContextForAttackTarget(static_cast<const RenderableAttackTarget*>(entity), details, context);
+            return CreateContextForAttackTarget(static_cast<const RenderableAttackTarget*>(entity), s_DetailsBuffer, context);
     }
-    // This should not be reached, but we need to return something.
-    // Returning a gadget context as a fallback.
-    return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
+    return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), s_DetailsBuffer, context);
 }
 
 } // namespace kx

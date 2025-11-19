@@ -19,20 +19,20 @@ public:
     // ===== Player Methods =====
     
     /**
-     * @brief Build basic player information details (name, level, profession, etc.)
+     * @brief Append basic player information details (name, level, profession, etc.)
      * @param player The player entity to build details for
      * @param settings Player ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @return Vector of colored text details
+     * @param out Output vector to append details to
      */
-    static std::vector<ColoredDetail> BuildPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses);
+    static void AppendPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
 
     /**
-     * @brief Build detailed gear information showing each equipment slot and stat
+     * @brief Append detailed gear information showing each equipment slot and stat
      * @param player The player entity to analyze
-     * @return Vector of colored text details (one per gear slot)
+     * @param out Output vector to append details to
      */
-    static std::vector<ColoredDetail> BuildGearDetails(const RenderablePlayer* player);
+    static void AppendGearDetails(const RenderablePlayer* player, std::vector<ColoredDetail>& out);
 
     /**
      * @brief Build compact gear summary showing stat names and counts
@@ -58,33 +58,33 @@ public:
     // ===== NPC Methods =====
     
     /**
-     * @brief Build NPC information details (name, level, health, attitude, rank)
+     * @brief Append NPC information details (name, level, health, attitude, rank)
      * @param npc The NPC entity to build details for
      * @param settings NPC ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @return Vector of colored text details
+     * @param out Output vector to append details to
      */
-    static std::vector<ColoredDetail> BuildNpcDetails(const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses);
+    static void AppendNpcDetails(const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
 
     // ===== Gadget Methods =====
     
     /**
-     * @brief Build Gadget information details (type, resource node info, gatherable status)
+     * @brief Append Gadget information details (type, resource node info, gatherable status)
      * @param gadget The gadget entity to build details for
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @return Vector of colored text details
+     * @param out Output vector to append details to
      */
-    static std::vector<ColoredDetail> BuildGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses);
+    static void AppendGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
 
     /**
-     * @brief Build Attack Target information details (position, agent ID, type)
+     * @brief Append Attack Target information details (position, agent ID, type)
      * @param attackTarget The attack target entity to build details for
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @return Vector of colored text details
+     * @param out Output vector to append details to
      */
-    static std::vector<ColoredDetail> BuildAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses);
+    static void AppendAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
 
 private:
     /**
