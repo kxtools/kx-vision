@@ -285,7 +285,7 @@ TextElement TextElementFactory::CreateIdentityLine(const LayoutRequest& request,
                 if (profName) entityName = profName;
             }
         }
-        segments.push_back({ entityName, props.fadedEntityColor });
+        segments.push_back({ entityName, props.style.fadedEntityColor });
     }
 
     // Add the Separator and Distance segments
@@ -299,7 +299,7 @@ TextElement TextElementFactory::CreateIdentityLine(const LayoutRequest& request,
     
     // Create and Style the TextElement
     TextElement element(segments, {0,0});
-    TextStyle style = GetPlayerNameStyle(props.finalAlpha, props.fadedEntityColor, props.finalFontSize, request.frameContext.settings);
+    TextStyle style = GetPlayerNameStyle(props.style.finalAlpha, props.style.fadedEntityColor, props.style.finalFontSize, request.frameContext.settings);
     style.useCustomTextColor = true;
     element.SetStyle(style);
 

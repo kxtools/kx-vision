@@ -23,42 +23,69 @@ namespace kx {
 namespace kx {
 
 /**
- * @brief Visual properties calculated for rendering an entity
- *
- * This struct contains all the pre-calculated visual properties needed
- * to render an entity. It separates calculation from drawing.
+ * @brief Visual style properties calculated on the update thread
+ * 
+ * Contains opacity, color, scale factors, and abstract sizes (e.g., font size in px)
+ * based on game state and settings. These are stable and don't depend on camera.
  */
-struct VisualProperties {
-    glm::vec2 screenPos;           // 2D screen position
+struct VisualStyle {
     float scale;                   // Distance-based scale factor
-    float distanceFadeAlpha;       // Distance-based fade alpha
-    float finalAlpha;              // Final alpha after adaptive effects
-    unsigned int fadedEntityColor; // Entity color with distance fade applied
+    float distanceFadeAlpha;       // Raw distance fade (for logic culling)
+    float finalAlpha;              // Final visible alpha
+    unsigned int fadedEntityColor; // Pre-calculated color
 
-    // Box/Circle dimensions
-    ImVec2 boxMin;                 // Bounding box minimum (or circle bounds for gadgets)
-    ImVec2 boxMax;                 // Bounding box maximum (or circle bounds for gadgets)
-    ImVec2 center;                 // Center point
-    float circleRadius;            // Circle radius for gadgets (0 for players/NPCs)
-
-    // 3D wireframe box corners
-    std::array<glm::vec2, 8> projectedCorners; // 2D positions of all 8 projected corners
-    std::array<bool, 8> cornerValidity;        // Tracks if each corner was successfully projected
-
-    // Scaled sizes
+    // Abstract Sizes (calculated once per low-freq update)
     float finalFontSize;
     float finalBoxThickness;
     float finalDotRadius;
     float finalHealthBarWidth;
     float finalHealthBarHeight;
 
-    VisualProperties()
-        : screenPos(0.0f), scale(0.0f), distanceFadeAlpha(0.0f), finalAlpha(0.0f),
-          fadedEntityColor(0), boxMin(), boxMax(), center(), circleRadius(0.0f),
-          projectedCorners(), cornerValidity(),
+    VisualStyle()
+        : scale(0.0f), distanceFadeAlpha(0.0f), finalAlpha(0.0f),
+          fadedEntityColor(0),
           finalFontSize(0.0f), finalBoxThickness(0.0f), finalDotRadius(0.0f),
           finalHealthBarWidth(0.0f), finalHealthBarHeight(0.0f) {
+    }
+};
+
+/**
+ * @brief Screen geometry properties calculated on the render thread
+ * 
+ * Contains 3D-to-2D projection data, bounding boxes, and screen positions.
+ * These depend on the live camera and are recalculated every frame.
+ */
+struct ScreenGeometry {
+    glm::vec2 screenPos;           // Origin/Feet position
+    ImVec2 boxMin;                 // 2D Bounding Box Min
+    ImVec2 boxMax;                 // 2D Bounding Box Max
+    ImVec2 center;                 // Visual Center
+    float circleRadius;            // For gadgets
+    
+    // 3D projection data
+    std::array<glm::vec2, 8> projectedCorners;
+    std::array<bool, 8> cornerValidity;
+    bool isOnScreen;               // Result of frustum check
+
+    ScreenGeometry()
+        : screenPos(0.0f), boxMin(), boxMax(), center(), circleRadius(0.0f),
+          projectedCorners(), cornerValidity(), isOnScreen(false) {
         cornerValidity.fill(false);
+    }
+};
+
+/**
+ * @brief Visual properties calculated for rendering an entity
+ *
+ * This struct contains all the pre-calculated visual properties needed
+ * to render an entity. It separates calculation from drawing.
+ * The style is populated by FrameDataProcessor (Low Freq), geometry by StageRenderer (High Freq).
+ */
+struct VisualProperties {
+    VisualStyle style;       // Populated by FrameDataProcessor (Low Freq)
+    ScreenGeometry geometry; // Populated by StageRenderer (High Freq)
+
+    VisualProperties() : style(), geometry() {
     }
 };
 

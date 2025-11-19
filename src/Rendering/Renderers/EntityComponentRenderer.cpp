@@ -50,12 +50,12 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Enti
     bool sizeAllowed = RenderSettingsHelper::IsBoxAllowedForSize(ctx.settings, eCtx.entityType, entityHeight);
 
     if (shouldRenderBox && sizeAllowed) {
-        ShapeRenderer::RenderBoundingBox(ctx.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
+        ShapeRenderer::RenderBoundingBox(ctx.drawList, props.geometry.boxMin, props.geometry.boxMax, props.style.fadedEntityColor, props.style.finalBoxThickness, globalOpacity);
     }
 
     bool shouldRenderWireframe = RenderSettingsHelper::ShouldRenderWireframe(ctx.settings, eCtx.entityType);
     if (shouldRenderWireframe && sizeAllowed) {
-        ShapeRenderer::RenderWireframeBox(ctx.drawList, props, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
+        ShapeRenderer::RenderWireframeBox(ctx.drawList, props, props.style.fadedEntityColor, props.style.finalBoxThickness, globalOpacity);
     }
 
     if (eCtx.entityType == EntityTypes::Gadget || eCtx.entityType == EntityTypes::AttackTarget) {
@@ -67,22 +67,22 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Enti
                 ctx.camera, 
                 ctx.screenWidth, 
                 ctx.screenHeight, 
-                props.finalAlpha, 
-                props.fadedEntityColor, 
-                props.scale, 
+                props.style.finalAlpha, 
+                props.style.fadedEntityColor, 
+                props.style.scale, 
                 globalOpacity
             );
         }
         if (RenderSettingsHelper::ShouldRenderGadgetCircle(ctx.settings, eCtx.entityType)) {
-            ShapeRenderer::RenderGadgetCircle(ctx.drawList, props.screenPos, props.circleRadius, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
+            ShapeRenderer::RenderGadgetCircle(ctx.drawList, props.geometry.screenPos, props.geometry.circleRadius, props.style.fadedEntityColor, props.style.finalBoxThickness, globalOpacity);
         }
     }
 
     if (RenderSettingsHelper::ShouldRenderDot(ctx.settings, eCtx.entityType)) {
         if (eCtx.entityType == EntityTypes::Gadget || eCtx.entityType == EntityTypes::AttackTarget) {
-            ShapeRenderer::RenderNaturalWhiteDot(ctx.drawList, props.screenPos, props.finalAlpha, props.finalDotRadius, globalOpacity);
+            ShapeRenderer::RenderNaturalWhiteDot(ctx.drawList, props.geometry.screenPos, props.style.finalAlpha, props.style.finalDotRadius, globalOpacity);
         } else {
-            ShapeRenderer::RenderColoredDot(ctx.drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius, globalOpacity);
+            ShapeRenderer::RenderColoredDot(ctx.drawList, props.geometry.screenPos, props.style.fadedEntityColor, props.style.finalDotRadius, globalOpacity);
         }
     }
 }
@@ -112,14 +112,14 @@ static void RenderDamageNumbers(const FrameContext& context, const EntityRenderC
 
     glm::vec2 anchorPos;
     if (entityContext.renderHealthBar && healthBarPos.x != 0.0f && healthBarPos.y != 0.0f) {
-        anchorPos = { healthBarPos.x + props.finalHealthBarWidth / 2.0f, healthBarPos.y - entityContext.healthBarAnim.damageNumberYOffset };
+        anchorPos = { healthBarPos.x + props.style.finalHealthBarWidth / 2.0f, healthBarPos.y - entityContext.healthBarAnim.damageNumberYOffset };
     } else {
-        anchorPos = { props.center.x, props.center.y - entityContext.healthBarAnim.damageNumberYOffset };
+        anchorPos = { props.geometry.center.x, props.geometry.center.y - entityContext.healthBarAnim.damageNumberYOffset };
     }
 
     std::stringstream ss;
     ss << std::fixed << std::setprecision(0) << entityContext.healthBarAnim.damageNumberToDisplay;
-    float finalFontSize = props.finalFontSize * Styling::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
+    float finalFontSize = props.style.finalFontSize * Styling::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
     TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize, context.settings);
     TextRenderer::Render(context.drawList, element);
 }
@@ -144,14 +144,14 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
 
     glm::vec2 anchorPos;
     if (entityContext.renderHealthBar && healthBarPos.x != 0.0f && healthBarPos.y != 0.0f) {
-        float dpsFontSize = props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
+        float dpsFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
         ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, ss.str().c_str());
 
-        float barCenterY = healthBarPos.y + props.finalHealthBarHeight / 2.0f;
+        float barCenterY = healthBarPos.y + props.style.finalHealthBarHeight / 2.0f;
         
         anchorPos = { 
-            healthBarPos.x + props.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, 
+            healthBarPos.x + props.style.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, 
             barCenterY - (dpsTextSize.y / 2.0f)
         };
 
@@ -159,7 +159,7 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
         if (shouldRenderHealthPercentage && healthPercent >= 0.0f) {
             std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f)) + "%";
 
-            float hpFontSize = props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
+            float hpFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
             ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.c_str());
 
             anchorPos.x += hpTextSize.x + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING;
@@ -167,12 +167,12 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
 
     }
     else {
-        anchorPos = { props.screenPos.x, props.screenPos.y + RenderingLayout::BURST_DPS_FALLBACK_Y_OFFSET };
+        anchorPos = { props.geometry.screenPos.x, props.geometry.screenPos.y + RenderingLayout::BURST_DPS_FALLBACK_Y_OFFSET };
     }
 
     TextElement element(ss.str(), anchorPos, TextAnchor::Custom);
     element.SetAlignment(TextAlignment::Left);
-    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER, context.settings);
+    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER, context.settings);
     style.enableBackground = false;
     style.textColor = ESPBarColors::BURST_DPS_TEXT;
     element.SetStyle(style);
@@ -187,7 +187,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const En
         float healthPercent = eCtx.entity->maxHealth > 0 ? (eCtx.entity->currentHealth / eCtx.entity->maxHealth) : -1.0f;
         
         if (healthPercent >= 0.0f) {
-            glm::vec2 healthBarPos = cursor.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
+            glm::vec2 healthBarPos = cursor.GetTopLeftForBar(props.style.finalHealthBarWidth, props.style.finalHealthBarHeight);
             
             // REFACTORED CALL: Pass props directly instead of individual fields
             HealthBarRenderer::RenderStandaloneHealthBar(ctx.drawList, healthBarPos, eCtx, props, ctx.settings);
@@ -195,10 +195,10 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const En
             RenderDamageNumbers(ctx, eCtx, props, healthBarPos);
             RenderBurstDps(ctx, eCtx, props, healthBarPos);
 
-            cursor.Advance(props.finalHealthBarHeight);
+            cursor.Advance(props.style.finalHealthBarHeight);
         }
     } else {
-        glm::vec2 centerPos(props.center.x, props.center.y);
+        glm::vec2 centerPos(props.geometry.center.x, props.geometry.center.y);
         RenderDamageNumbers(ctx, eCtx, props, centerPos);
         RenderBurstDps(ctx, eCtx, props, centerPos);
     }
@@ -208,10 +208,10 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const En
         EnergyDisplayType energyDisplayType = RenderSettingsHelper::GetPlayerEnergyDisplayType(ctx.settings);
         float energyPercent = CalculateEnergyPercent(player, energyDisplayType);
         if (energyPercent >= 0.0f && eCtx.renderEnergyBar) {
-            glm::vec2 barPos = cursor.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
+            glm::vec2 barPos = cursor.GetTopLeftForBar(props.style.finalHealthBarWidth, props.style.finalHealthBarHeight);
             EnergyBarRenderer::Render(ctx.settings, ctx.drawList, barPos, energyPercent,
-                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight);
-            cursor.Advance(props.finalHealthBarHeight);
+                props.style.finalAlpha, props.style.finalHealthBarWidth, props.style.finalHealthBarHeight);
+            cursor.Advance(props.style.finalHealthBarHeight);
         }
     }
 }
@@ -225,7 +225,7 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx, const Entit
                 case GearDisplayMode::Compact: {
                     auto summary = InfoBuilder::BuildCompactGearSummary(player);
                     if (!summary.empty()) {
-                        TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
+                        TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, cursor.GetPosition(), props.style.finalAlpha, props.style.finalFontSize, ctx.settings);
                         ImVec2 size = TextRenderer::Render(ctx.drawList, gearElement);
                         cursor.Advance(size.y);
                     }
@@ -235,7 +235,7 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx, const Entit
                     auto stats = InfoBuilder::BuildDominantStats(player);
                     auto rarity = InfoBuilder::GetHighestRarity(player);
                     if (!stats.empty()) {
-                        TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
+                        TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, cursor.GetPosition(), props.style.finalAlpha, props.style.finalFontSize, ctx.settings);
                         ImVec2 size = TextRenderer::Render(ctx.drawList, statsElement);
                         cursor.Advance(size.y);
                     }
@@ -247,7 +247,7 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx, const Entit
     }
 
     if (eCtx.renderDetails && !eCtx.details.empty()) {
-        TextElement detailsElement = TextElementFactory::CreateDetailsTextAt(eCtx.details, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
+        TextElement detailsElement = TextElementFactory::CreateDetailsTextAt(eCtx.details, cursor.GetPosition(), props.style.finalAlpha, props.style.finalFontSize, ctx.settings);
         ImVec2 size = TextRenderer::Render(ctx.drawList, detailsElement);
         cursor.Advance(size.y);
     }

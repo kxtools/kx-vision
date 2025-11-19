@@ -54,7 +54,7 @@ void TrailRenderer::RenderPlayerTrail(
     bool renderTeleportConnections = (trailSettings.teleportMode == TrailTeleportMode::Analysis);
     
     ProjectAndRenderTrail(context, segmentData, trailSettings.thickness, 
-                         props.fadedEntityColor, props.finalAlpha, settings.appearance.globalOpacity,
+                         props.style.fadedEntityColor, props.style.finalAlpha, settings.appearance.globalOpacity,
                          renderTeleportConnections);
 }
 

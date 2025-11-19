@@ -9,7 +9,7 @@
 #include "../../../libs/ImGui/imgui.h"
 #include <optional>
 
-#include "Logic/VisualsCalculator.h"
+#include "Renderers/ScreenProjector.h"
 #include "Shared/MathUtils.h"
 #include "Shared/RenderSettingsHelper.h"
 
@@ -22,74 +22,30 @@ namespace {
 }
 
 std::optional<VisualProperties> StageRenderer::CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context) {
-    // 1. Start with the pre-calculated, non-geometric properties from the low-frequency update.
-    VisualProperties liveVisuals = item.visuals;
-
-    // 2. Determine the entity's 3D world-space dimensions for the bounding box.
-    float worldWidth, worldDepth, worldHeight;
-    if (item.entity->hasPhysicsDimensions) {
-        worldWidth = item.entity->physicsWidth;
-        worldDepth = item.entity->physicsDepth;
-        worldHeight = item.entity->physicsHeight;
-    } else {
-        // Fallback to constants for entities without physics data.
-        VisualsCalculator::GetWorldBoundsForEntity(item.entity->entityType, worldWidth, worldDepth, worldHeight);
-    }
+    // 1. Copy existing style from the pooled data
+    VisualProperties liveProps = item.visuals;
     
-    // 3. Project the 8 corners of the 3D world-space box into 2D screen space.
-    // This is the core logic that ensures perspective correctness.
-    bool isProjectionValid = false;
-    VisualsCalculator::Calculate3DBoundingBox(
-        item.entity->position,
-        worldWidth,
-        worldDepth,
-        worldHeight,
+    // 2. Perform Geometry Projection (HOT PATH)
+    bool isOnScreen = Renderers::ScreenProjector::Project(
+        *item.entity,
         context.camera,
         context.screenWidth,
         context.screenHeight,
-        liveVisuals,
-        isProjectionValid
-    );
-
-    // If no corners could be validly projected (e.g., entity is entirely behind the camera), cull it.
-    if (!isProjectionValid) {
-        return std::nullopt;
-    }
-
-    // 4. Perform the final, high-frequency culling check.
-    // An entity is visible if its TRUE projected 2D box overlaps the screen area.
-    bool overlapsX = liveVisuals.boxMin.x < context.screenWidth && liveVisuals.boxMax.x > 0;
-    bool overlapsY = liveVisuals.boxMin.y < context.screenHeight && liveVisuals.boxMax.y > 0;
-
-    if (!overlapsX || !overlapsY) {
-        return std::nullopt;
-    }
-
-    // 5. Finalize remaining screen-space properties based on the new, correct box.
-    // Project the origin point separately for anchoring UI elements.
-    if (!MathUtils::ProjectToScreen(item.entity->position, context.camera, context.screenWidth, context.screenHeight, liveVisuals.screenPos)) {
-        // If origin point is behind camera, use center of projected box
-        liveVisuals.screenPos.x = (liveVisuals.boxMin.x + liveVisuals.boxMax.x) * 0.5f;
-        liveVisuals.screenPos.y = (liveVisuals.boxMin.y + liveVisuals.boxMax.y) * 0.5f;
-    }
-    
-    // Calculate the visual center of the final projected box.
-    liveVisuals.center = ImVec2(
-        (liveVisuals.boxMin.x + liveVisuals.boxMax.x) * 0.5f,
-        (liveVisuals.boxMin.y + liveVisuals.boxMax.y) * 0.5f
+        liveProps.style,
+        liveProps.geometry
     );
     
-    // 6. Calculate gadget circle radius if needed (scale-based, so can be calculated here)
-    if (item.entity->entityType == EntityTypes::Gadget || item.entity->entityType == EntityTypes::AttackTarget) {
-        const auto& settings = AppState::Get().GetSettings();
-        float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
-        liveVisuals.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * liveVisuals.scale);
-    } else {
-        liveVisuals.circleRadius = 0.0f; // No circle for players/NPCs
+    if (!isOnScreen) {
+        return std::nullopt;
     }
     
-    // Return the complete, correct, and visible properties for this frame.
-    return liveVisuals;
+    // 3. If origin point projection failed, use center of projected box
+    if (liveProps.geometry.screenPos.x == 0.0f && liveProps.geometry.screenPos.y == 0.0f) {
+        liveProps.geometry.screenPos.x = (liveProps.geometry.boxMin.x + liveProps.geometry.boxMax.x) * 0.5f;
+        liveProps.geometry.screenPos.y = (liveProps.geometry.boxMin.y + liveProps.geometry.boxMax.y) * 0.5f;
+    }
+    
+    return liveProps;
 }
 
 void StageRenderer::RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData) {
@@ -118,10 +74,10 @@ void StageRenderer::RenderEntityComponents(const FrameContext& context, EntityRe
     EntityComponentRenderer::RenderGeometry(context, entityContext, props);
 
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entityContext.entityType);
-    LayoutCursor bottomStack({props.center.x, props.boxMax.y}, 1.0f);
+    LayoutCursor bottomStack({props.geometry.center.x, props.geometry.boxMax.y}, 1.0f);
     
     if (entityContext.entityType == EntityTypes::Gadget && !shouldRenderBox) {
-        bottomStack = LayoutCursor(glm::vec2(props.screenPos.x, props.screenPos.y), 1.0f);
+        bottomStack = LayoutCursor(glm::vec2(props.geometry.screenPos.x, props.geometry.screenPos.y), 1.0f);
     }
 
     EntityComponentRenderer::RenderIdentity(context, entityContext, props, bottomStack);

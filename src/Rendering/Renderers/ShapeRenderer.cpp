@@ -207,9 +207,9 @@ void ShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualPropert
     for (const auto& edge : edges) {
         // Only draw an edge if BOTH of its corners were successfully projected.
         // This prevents lines from being drawn from off-screen, creating visual artifacts.
-        if (props.cornerValidity[edge.first] && props.cornerValidity[edge.second]) {
-            const auto& p1 = props.projectedCorners[edge.first];
-            const auto& p2 = props.projectedCorners[edge.second];
+        if (props.geometry.cornerValidity[edge.first] && props.geometry.cornerValidity[edge.second]) {
+            const auto& p1 = props.geometry.projectedCorners[edge.first];
+            const auto& p2 = props.geometry.projectedCorners[edge.second];
             drawList->AddLine(ImVec2(p1.x, p1.y), ImVec2(p2.x, p2.y), finalColor, thickness);
         }
     }
