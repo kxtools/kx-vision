@@ -1,5 +1,5 @@
 #define NOMINMAX
-#include "ESPShapeRenderer.h"
+#include "ShapeRenderer.h"
 
 #include <algorithm>
 #include <array>
@@ -12,7 +12,7 @@
 
 namespace kx {
 
-void ESPShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList, 
+void ShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList, 
     const glm::vec3& worldPos, 
     float gameplayDistance,
     Camera& camera,
@@ -182,13 +182,13 @@ void ESPShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList,
     }
 }
 
-void ESPShapeRenderer::RenderGadgetCircle(ImDrawList* drawList, const glm::vec2& screenPos, float radius, unsigned int color, float thickness, float globalOpacity) {
+void ShapeRenderer::RenderGadgetCircle(ImDrawList* drawList, const glm::vec2& screenPos, float radius, unsigned int color, float thickness, float globalOpacity) {
     // Apply global opacity to gadget circles
     unsigned int finalColor = ApplyAlphaToColor(color, globalOpacity);
     drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), radius, finalColor, 0, thickness);
 }
 
-void ESPShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProperties& props, unsigned int color, float thickness, float globalOpacity) {
+void ShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProperties& props, unsigned int color, float thickness, float globalOpacity) {
     // This array defines the 12 edges of a cube by connecting the indices of the corners.
     // The corner indices match the order defined in Calculate3DBoundingBox.
     const std::array<std::pair<int, int>, 12> edges = {{
@@ -215,7 +215,7 @@ void ESPShapeRenderer::RenderWireframeBox(ImDrawList* drawList, const VisualProp
     }
 }
 
-void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax,
+void ShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& boxMin, const ImVec2& boxMax,
                                         unsigned int color, float thickness, float globalOpacity) {
     // Apply global opacity to bounding boxes
     unsigned int finalColor = ApplyAlphaToColor(color, globalOpacity);
@@ -235,7 +235,7 @@ void ESPShapeRenderer::RenderBoundingBox(ImDrawList* drawList, const ImVec2& box
     drawList->AddRect(boxMin, boxMax, finalColor, 0.0f, 0, thickness);
 }
 
-void ESPShapeRenderer::RenderColoredDot(ImDrawList* drawList, const glm::vec2& feetPos,
+void ShapeRenderer::RenderColoredDot(ImDrawList* drawList, const glm::vec2& feetPos,
                                        unsigned int color, float radius, float globalOpacity) {
     // Apply global opacity to colored dots
     unsigned int finalColor = ApplyAlphaToColor(color, globalOpacity);
@@ -251,7 +251,7 @@ void ESPShapeRenderer::RenderColoredDot(ImDrawList* drawList, const glm::vec2& f
     drawList->AddCircleFilled(ImVec2(feetPos.x, feetPos.y), radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, finalColor);
 }
 
-void ESPShapeRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos,
+void ShapeRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::vec2& feetPos,
                                             float fadeAlpha, float radius, float globalOpacity) {
     // Apply global opacity to natural dots
     float combinedAlpha = fadeAlpha * globalOpacity;
@@ -267,7 +267,7 @@ void ESPShapeRenderer::RenderNaturalWhiteDot(ImDrawList* drawList, const glm::ve
     drawList->AddCircleFilled(pos, radius * RenderingLayout::DOT_RADIUS_MULTIPLIER, IM_COL32(255, 255, 255, dotAlpha));
 }
 
-unsigned int ESPShapeRenderer::ApplyAlphaToColor(unsigned int color, float alpha) {
+unsigned int ShapeRenderer::ApplyAlphaToColor(unsigned int color, float alpha) {
     // Extract RGBA components using ImGui's standard bit shifts
     int r = (color >> IM_COL32_R_SHIFT) & 0xFF;
     int g = (color >> IM_COL32_G_SHIFT) & 0xFF;

@@ -4,7 +4,7 @@
 #include "../Combat/CombatStateManager.h"
 #include "../Combat/CombatState.h"
 #include "../Shared/MathUtils.h"
-#include "ESPShapeRenderer.h"
+#include "ShapeRenderer.h"
 #include "../../Core/AppState.h"
 #include "../../Game/GameEnums.h"
 #include <algorithm>
@@ -220,7 +220,7 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
             float timeBasedFade = 1.0f - glm::clamp(age / maxDuration, 0.0f, 1.0f);
             timeBasedFade *= timeBasedFade;
             float combinedAlpha = timeBasedFade * finalAlpha * globalOpacity;
-            ImU32 fadedColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, combinedAlpha);
+            ImU32 fadedColor = ShapeRenderer::ApplyAlphaToColor(baseColor, combinedAlpha);
             
             context.drawList->AddLine(screenPoints[i].position, screenPoints[i + 1].position, fadedColor, thickness);
         }
@@ -236,7 +236,7 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
             float timeBasedFade = 1.0f - glm::clamp(age / maxDuration, 0.0f, 1.0f);
             timeBasedFade *= timeBasedFade;
             
-            ImU32 teleportColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, timeBasedFade * TELEPORT_ALPHA * finalAlpha * globalOpacity);
+            ImU32 teleportColor = ShapeRenderer::ApplyAlphaToColor(baseColor, timeBasedFade * TELEPORT_ALPHA * finalAlpha * globalOpacity);
             
             glm::vec2 startScreen, endScreen;
             if (MathUtils::WorldToScreen(startWorld.position, context.camera, context.screenWidth, context.screenHeight, startScreen) &&

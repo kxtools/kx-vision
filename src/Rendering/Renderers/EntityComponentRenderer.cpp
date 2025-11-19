@@ -1,5 +1,5 @@
 #include "EntityComponentRenderer.h"
-#include "ESPShapeRenderer.h"
+#include "ShapeRenderer.h"
 #include "HealthBarRenderer.h"
 #include "EnergyBarRenderer.h"
 
@@ -49,17 +49,17 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Enti
     bool sizeAllowed = RenderSettingsHelper::IsBoxAllowedForSize(ctx.settings, eCtx.entityType, entityHeight);
 
     if (shouldRenderBox && sizeAllowed) {
-        ESPShapeRenderer::RenderBoundingBox(ctx.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
+        ShapeRenderer::RenderBoundingBox(ctx.drawList, props.boxMin, props.boxMax, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
     }
 
     bool shouldRenderWireframe = RenderSettingsHelper::ShouldRenderWireframe(ctx.settings, eCtx.entityType);
     if (shouldRenderWireframe && sizeAllowed) {
-        ESPShapeRenderer::RenderWireframeBox(ctx.drawList, props, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
+        ShapeRenderer::RenderWireframeBox(ctx.drawList, props, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
     }
 
     if (eCtx.entityType == ESPEntityType::Gadget || eCtx.entityType == ESPEntityType::AttackTarget) {
         if (RenderSettingsHelper::ShouldRenderGadgetSphere(ctx.settings, eCtx.entityType)) {
-            ESPShapeRenderer::RenderGyroscopicOverlay(
+            ShapeRenderer::RenderGyroscopicOverlay(
                 ctx.drawList, 
                 eCtx.position,          
                 eCtx.gameplayDistance,  
@@ -73,15 +73,15 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Enti
             );
         }
         if (RenderSettingsHelper::ShouldRenderGadgetCircle(ctx.settings, eCtx.entityType)) {
-            ESPShapeRenderer::RenderGadgetCircle(ctx.drawList, props.screenPos, props.circleRadius, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
+            ShapeRenderer::RenderGadgetCircle(ctx.drawList, props.screenPos, props.circleRadius, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
         }
     }
 
     if (RenderSettingsHelper::ShouldRenderDot(ctx.settings, eCtx.entityType)) {
         if (eCtx.entityType == ESPEntityType::Gadget || eCtx.entityType == ESPEntityType::AttackTarget) {
-            ESPShapeRenderer::RenderNaturalWhiteDot(ctx.drawList, props.screenPos, props.finalAlpha, props.finalDotRadius, globalOpacity);
+            ShapeRenderer::RenderNaturalWhiteDot(ctx.drawList, props.screenPos, props.finalAlpha, props.finalDotRadius, globalOpacity);
         } else {
-            ESPShapeRenderer::RenderColoredDot(ctx.drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius, globalOpacity);
+            ShapeRenderer::RenderColoredDot(ctx.drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius, globalOpacity);
         }
     }
 }

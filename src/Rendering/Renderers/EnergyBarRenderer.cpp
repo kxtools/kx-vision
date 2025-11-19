@@ -1,6 +1,7 @@
 #include "EnergyBarRenderer.h"
+
+#include "ShapeRenderer.h"
 #include "../Shared/ESPConstants.h"
-#include "ESPShapeRenderer.h"
 #include "../../Core/Settings.h"
 #include "../../../libs/ImGui/imgui.h"
 
@@ -36,7 +37,7 @@ namespace kx {
         ImU32 energyColor = ESPColors::ENERGY_BAR;
         float colorA = ((energyColor >> 24) & 0xFF) / 255.0f;
         
-        ImU32 finalColor = ESPShapeRenderer::ApplyAlphaToColor(
+        ImU32 finalColor = ShapeRenderer::ApplyAlphaToColor(
             energyColor, 
             colorA * fadeAlpha * settings.appearance.globalOpacity
         );

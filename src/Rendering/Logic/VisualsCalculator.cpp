@@ -4,7 +4,7 @@
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Data/RenderableData.h"
-#include "../Renderers/ESPShapeRenderer.h"
+#include "../Renderers/ShapeRenderer.h"
 #include <algorithm>
 #include <cmath>
 
@@ -42,7 +42,7 @@ std::optional<VisualProperties> VisualsCalculator::Calculate(const RenderableEnt
     unsigned int color = Styling::GetEntityColor(entity);
 
     // 3. Apply distance fade to entity color
-    props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(color, props.distanceFadeAlpha);
+    props.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(color, props.distanceFadeAlpha);
 
     // 4. Calculate distance-based scale
     props.scale = CalculateEntityScale(entity.visualDistance, entity.entityType, context);
@@ -54,7 +54,7 @@ std::optional<VisualProperties> VisualsCalculator::Calculate(const RenderableEnt
                                              normalizedDistance);
 
     // 6. Apply final alpha to the entity color
-    props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
+    props.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
 
     // 7. Calculate scaled sizes (Abstract sizes, not screen coordinates)
     EntityMultipliers multipliers = CalculateEntityMultipliers(entity);

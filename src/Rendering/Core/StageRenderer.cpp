@@ -2,7 +2,7 @@
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Shared/LayoutConstants.h"
-#include "../Renderers/ESPShapeRenderer.h"
+#include "../Renderers/ShapeRenderer.h"
 #include "../Renderers/ESPTrailRenderer.h"
 #include "../Renderers/EntityComponentRenderer.h"
 #include "../Data/EntityRenderContext.h"

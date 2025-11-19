@@ -15,7 +15,7 @@ class Camera;
  * This class handles all shape-based rendering including bounding boxes and dots.
  * Separated for better organization and future extensibility.
  */
-class ESPShapeRenderer {
+class ShapeRenderer {
 public:
     /**
      * @brief Render a 3D gyroscope sphere effect.
