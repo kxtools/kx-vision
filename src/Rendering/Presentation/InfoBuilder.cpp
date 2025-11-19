@@ -8,7 +8,7 @@
 #include <ranges>
 #include <string_view>
 
-#include "ESPStyling.h"
+#include "Styling.h"
 #include "Shared/ColorConstants.h"
 #include "Shared/ESPFormatting.h"
 
@@ -108,7 +108,7 @@ std::vector<ColoredDetail> InfoBuilder::BuildGearDetails(const RenderablePlayer*
         if (auto gearIt = player->gear.find(slotEnum); gearIt != player->gear.end()) {
             const char* slotName = ESPFormatting::EquipmentSlotToString(gearIt->first);
             const GearSlotInfo& info = gearIt->second;
-            ImU32 rarityColor = ESPStyling::GetRarityColor(info.rarity);
+            ImU32 rarityColor = Styling::GetRarityColor(info.rarity);
 
             if (info.statId > 0) {
                 if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
@@ -195,7 +195,7 @@ std::vector<DominantStat> InfoBuilder::BuildDominantStats(const RenderablePlayer
     for (const auto& [attr, count] : attributeCounts) {
         const char* name = ESPFormatting::GetAttributeShortName(attr);
         
-        allStats.push_back({ name, (count / totalAttributes) * 100.0f, ESPStyling::GetTacticalColor(attr) });
+        allStats.push_back({ name, (count / totalAttributes) * 100.0f, Styling::GetTacticalColor(attr) });
     }
 
     std::ranges::sort(allStats, [](const DominantStat& a, const DominantStat& b) {

@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <format>
 
-#include "ESPStyling.h"
+#include "Styling.h"
 #include "Shared/ESPFormatting.h"
 
 namespace kx {
@@ -94,7 +94,7 @@ TextElement TextElementFactory::CreateGearSummaryAt(const std::vector<CompactSta
         
         std::string segment = FormatTemp("{:.0f}% {}", info.percentage, info.statName);
 
-        ImU32 rarityColor = ESPStyling::GetRarityColor(info.highestRarity);
+        ImU32 rarityColor = Styling::GetRarityColor(info.highestRarity);
         segments.push_back(TextSegment(segment, rarityColor));
         
         if (i < summary.size() - 1) {

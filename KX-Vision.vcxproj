@@ -235,7 +235,7 @@
     <ClInclude Include="src\Rendering\Presentation\TextElementFactory.h" />
     <ClInclude Include="src\Rendering\Renderers\TextRenderer.h" />
     <ClInclude Include="src\Rendering\Logic\VisualsCalculator.h" />
-    <ClInclude Include="src\Rendering\Presentation\ESPStyling.h" />
+    <ClInclude Include="src\Rendering\Presentation\Styling.h" />
     <ClInclude Include="src\Rendering\Shared\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Shared\ColorConstants.h" />
     <ClInclude Include="src\Rendering\Shared\CombatConstants.h" />

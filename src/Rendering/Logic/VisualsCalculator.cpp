@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Presentation/ESPStyling.h"
+#include "Presentation/Styling.h"
 #include "Shared/MathUtils.h"
 #include "Shared/LayoutConstants.h"
 
@@ -39,7 +39,7 @@ std::optional<VisualProperties> VisualsCalculator::Calculate(const RenderableEnt
     }
 
     // 2. Determine color based on entity type and attitude
-    unsigned int color = ESPStyling::GetEntityColor(entity);
+    unsigned int color = Styling::GetEntityColor(entity);
 
     // 3. Apply distance fade to entity color
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(color, props.distanceFadeAlpha);
@@ -455,12 +455,12 @@ EntityMultipliers VisualsCalculator::CalculateEntityMultipliers(const Renderable
     // Calculate rank multiplier
     if (entity.entityType == ESPEntityType::NPC) {
         const auto* npc = static_cast<const RenderableNpc*>(&entity);
-        multipliers.rank = ESPStyling::GetRankMultiplier(npc->rank);
+        multipliers.rank = Styling::GetRankMultiplier(npc->rank);
     }
     
     // Calculate gadget health multiplier
     if (entity.entityType == ESPEntityType::Gadget || entity.entityType == ESPEntityType::AttackTarget) {
-        multipliers.gadgetHealth = ESPStyling::GetGadgetHealthMultiplier(entity.maxHealth);
+        multipliers.gadgetHealth = Styling::GetGadgetHealthMultiplier(entity.maxHealth);
     }
     
     // Calculate combined health bar multiplier

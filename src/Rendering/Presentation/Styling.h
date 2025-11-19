@@ -19,7 +19,7 @@ namespace Filtering {
 
 namespace kx {
 
-namespace ESPStyling {
+namespace Styling {
 
     inline ImU32 GetRarityColor(Game::ItemRarity rarity) {
         switch (rarity) {

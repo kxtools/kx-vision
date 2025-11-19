@@ -15,7 +15,7 @@
 #include <iomanip>
 #include <string>
 
-#include "Presentation/ESPStyling.h"
+#include "Presentation/Styling.h"
 #include "Presentation/InfoBuilder.h"
 #include "Presentation/TextElementFactory.h"
 #include "Shared/RenderSettingsHelper.h"
@@ -118,7 +118,7 @@ static void RenderDamageNumbers(const FrameContext& context, const EntityRenderC
 
     std::stringstream ss;
     ss << std::fixed << std::setprecision(0) << entityContext.healthBarAnim.damageNumberToDisplay;
-    float finalFontSize = props.finalFontSize * ESPStyling::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
+    float finalFontSize = props.finalFontSize * Styling::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
     TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize, context.settings);
     TextRenderer::Render(context.drawList, element);
 }

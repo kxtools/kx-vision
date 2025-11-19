@@ -9,7 +9,7 @@
 #include "../Data/ESPEntityTypes.h"
 #include "Settings/ESPSettings.h"
 #include "InfoBuilder.h"
-#include "ESPStyling.h"
+#include "Styling.h"
 
 namespace kx {
 
@@ -39,7 +39,7 @@ static bool DetermineGadgetHealthBarVisibility(const RenderableGadget* gadget, c
     if (!settings.renderHealthBar) {
         return false;
     }
-    if (ESPStyling::ShouldHideCombatUIForGadget(gadget->type)) {
+    if (Styling::ShouldHideCombatUIForGadget(gadget->type)) {
         return false;
     }
     if (gadget->maxHealth > 0) {
@@ -73,7 +73,7 @@ float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showB
 
 EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
-    unsigned int color = ESPStyling::GetEntityColor(*player);
+    unsigned int color = Styling::GetEntityColor(*player);
 
     bool renderHealthBar = DeterminePlayerHealthBarVisibility(player, context.settings.playerESP);
 
@@ -106,7 +106,7 @@ EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlaye
 
 EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     // Use attitude-based coloring for NPCs
-    unsigned int color = ESPStyling::GetEntityColor(*npc);
+    unsigned int color = Styling::GetEntityColor(*npc);
 
     bool renderHealthBar = DetermineNpcHealthBarVisibility(npc, context.settings.npcESP);
 
@@ -155,12 +155,12 @@ EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadge
     float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.objectESP.showBurstDps);
 
     // Check if combat UI should be hidden for this gadget type
-    bool hideCombatUI = ESPStyling::ShouldHideCombatUIForGadget(gadget->type);
+    bool hideCombatUI = Styling::ShouldHideCombatUIForGadget(gadget->type);
 
     return EntityRenderContext{
         .position = gadget->position,
         .gameplayDistance = gadget->gameplayDistance,
-        .color = ESPStyling::GetEntityColor(*gadget),
+        .color = Styling::GetEntityColor(*gadget),
         .details = std::move(details),
         .burstDPS = burstDpsValue,
         .renderDetails = context.settings.objectESP.renderDetails,
@@ -189,7 +189,7 @@ EntityRenderContext ContextFactory::CreateContextForAttackTarget(const Renderabl
 
     bool hideCombatUI = false; // Can be customized if needed
 
-    unsigned int color = ESPStyling::GetEntityColor(*attackTarget);
+    unsigned int color = Styling::GetEntityColor(*attackTarget);
 
     return EntityRenderContext {
         .position = attackTarget->position,
