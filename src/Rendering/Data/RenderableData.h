@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <array>
+#include <algorithm>
 #include <cstring>
 #include <vec3.hpp>
 #include <vec2.hpp>
@@ -25,12 +27,12 @@ struct FixedText {
 
     FixedText() { buffer[0] = '\0'; }
     
-    FixedText(const char* str) {
-        strncpy_s(buffer, str, 63);
-    }
-    
-    FixedText(const std::string& str) {
-        strncpy_s(buffer, str.c_str(), 63);
+    FixedText(std::string_view sv) {
+        size_t length = std::min(sv.length(), static_cast<size_t>(63));
+        if (length > 0) {
+            std::memcpy(buffer, sv.data(), length);
+        }
+        buffer[length] = '\0';
     }
 
     const char* c_str() const { return buffer; }
@@ -40,8 +42,8 @@ struct ColoredDetail {
     FixedText text;
     ImU32 color = 0; // 0 means default color
     
-    ColoredDetail(const std::string& t, ImU32 c) : text(t), color(c) {}
-    ColoredDetail(const char* t, ImU32 c) : text(t), color(c) {}
+    template <typename T>
+    ColoredDetail(const T& t, ImU32 c) : text(t), color(c) {}
 };
 
 // Base struct for all renderable entities

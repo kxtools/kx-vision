@@ -11,10 +11,25 @@
 #include "../../Utils/UnitConversion.h"
 #include <sstream>
 #include <iomanip>
+#include <format>
 
 namespace kx {
 
 namespace {
+    /**
+     * @brief Format to a temporary string without streams
+     * @param fmt Format string
+     * @param args Format arguments
+     * @return Formatted string
+     */
+    template<typename... Args>
+    std::string FormatTemp(std::format_string<Args...> fmt, Args&&... args) {
+        char buffer[128];
+        auto result = std::format_to_n(buffer, 127, fmt, std::forward<Args>(args)...);
+        *result.out = '\0';
+        return std::string(buffer);
+    }
+
     /**
      * @brief Format distance based on user's display mode preference
      * @param meters Distance in meters
@@ -97,9 +112,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
     for (size_t i = 0; i < summary.size(); ++i) {
         const auto& info = summary[i];
         
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(0) << info.percentage << "% " << info.statName;
-        std::string segment = oss.str();
+        std::string segment = FormatTemp("{:.0f}% {}", info.percentage, info.statName);
 
         ImU32 rarityColor = ESPStyling::GetRarityColor(info.highestRarity);
         segments.push_back(TextSegment(segment, rarityColor));
@@ -134,11 +147,10 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
         const auto& stat = stats[i];
 
         // Format the string with name and percentage
-        std::ostringstream oss;
-        oss << stat.name << " " << std::fixed << std::setprecision(0) << stat.percentage << "%";
+        std::string segment = FormatTemp("{} {:.0f}%", stat.name, stat.percentage);
         
         // Add the segment with its specific tactical color
-        segments.push_back(TextSegment(oss.str(), stat.color));
+        segments.push_back(TextSegment(segment, stat.color));
 
         // Add separator if not the last element
         if (i < stats.size() - 1) {
@@ -217,9 +229,7 @@ TextElement TextElementFactory::CreateGearSummaryAt(const std::vector<CompactSta
     for (size_t i = 0; i < summary.size(); ++i) {
         const auto& info = summary[i];
         
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(0) << info.percentage << "% " << info.statName;
-        std::string segment = oss.str();
+        std::string segment = FormatTemp("{:.0f}% {}", info.percentage, info.statName);
 
         ImU32 rarityColor = ESPStyling::GetRarityColor(info.highestRarity);
         segments.push_back(TextSegment(segment, rarityColor));
@@ -251,10 +261,9 @@ TextElement TextElementFactory::CreateDominantStatsAt(const std::vector<Dominant
     for (size_t i = 0; i < stats.size(); ++i) {
         const auto& stat = stats[i];
 
-        std::ostringstream oss;
-        oss << stat.name << " " << std::fixed << std::setprecision(0) << stat.percentage << "%";
+        std::string segment = FormatTemp("{} {:.0f}%", stat.name, stat.percentage);
         
-        segments.push_back(TextSegment(oss.str(), stat.color));
+        segments.push_back(TextSegment(segment, stat.color));
 
         if (i < stats.size() - 1) {
             segments.push_back(TextSegment(" | ", ESPColors::SUMMARY_TEXT_RGB));

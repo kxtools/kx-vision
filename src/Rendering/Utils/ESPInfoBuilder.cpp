@@ -19,8 +19,8 @@ namespace {
     ColoredDetail MakeDetail(ImU32 color, std::format_string<Args...> fmt, Args&&... args) {
         char buffer[64];
         try {
-            std::string formatted = std::format(fmt, std::forward<Args>(args)...);
-            strncpy_s(buffer, formatted.c_str(), 63);
+            auto result = std::format_to_n(buffer, 63, fmt, std::forward<Args>(args)...);
+            *result.out = '\0';
         } catch (...) {
             buffer[0] = '\0';
         }
@@ -109,19 +109,15 @@ std::vector<ColoredDetail> ESPInfoBuilder::BuildGearDetails(const RenderablePlay
             const GearSlotInfo& info = gearIt->second;
             ImU32 rarityColor = ESPStyling::GetRarityColor(info.rarity);
 
-            const char* statName = "No Stats";
-            char statNameBuffer[64];
             if (info.statId > 0) {
                 if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
-                    statName = statIt->second.name;
+                    gearDetails.emplace_back(MakeDetail(rarityColor, "{}: {}", slotName, statIt->second.name));
                 } else {
-                    std::string temp = std::format("stat({})", info.statId);
-                    strncpy_s(statNameBuffer, 64, temp.c_str(), 63);
-                    statName = statNameBuffer;
+                    gearDetails.emplace_back(MakeDetail(rarityColor, "{}: stat({})", slotName, info.statId));
                 }
+            } else {
+                gearDetails.emplace_back(MakeDetail(rarityColor, "{}: {}", slotName, "No Stats"));
             }
-
-            gearDetails.emplace_back(MakeDetail(rarityColor, "{}: {}", slotName, statName));
         }
     }
     return gearDetails;
