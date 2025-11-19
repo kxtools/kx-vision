@@ -474,31 +474,6 @@ float EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(float damageToD
     return MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
 }
 
-// Helper method implementations
-float EntityVisualsCalculator::GetRankMultiplier(Game::CharacterRank rank) {
-    switch (rank) {
-        case Game::CharacterRank::Veteran:    return RankMultipliers::VETERAN;
-        case Game::CharacterRank::Elite:      return RankMultipliers::ELITE;
-        case Game::CharacterRank::Champion:   return RankMultipliers::CHAMPION;
-        case Game::CharacterRank::Legendary:  return RankMultipliers::LEGENDARY;
-        default:                              return RankMultipliers::NORMAL;
-    }
-}
-
-float EntityVisualsCalculator::GetGadgetHealthMultiplier(float maxHealth) {
-    if (maxHealth <= 0.0f) {
-        return 1.0f; // No boost for invalid/zero health
-    }
-    
-    const float MIN_MULTIPLIER = GadgetHealthScaling::MIN_MULTIPLIER;    // Normal gadgets
-    const float MAX_MULTIPLIER = GadgetHealthScaling::MAX_MULTIPLIER;    // Epic structures (matches legendary rank)
-    const float HP_TO_REACH_MAX = GadgetHealthScaling::HP_TO_REACH_MAX; // 1M HP = max emphasis
-    
-    float progress = maxHealth / HP_TO_REACH_MAX;
-    progress = (std::min)(progress, 1.0f); // Clamp to prevent > 2.0x
-    
-    return MIN_MULTIPLIER + progress * (MAX_MULTIPLIER - MIN_MULTIPLIER);
-}
 
 float EntityVisualsCalculator::CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier) {
     float scaledSize = baseSize * scale * multiplier;
@@ -542,12 +517,12 @@ EntityMultipliers EntityVisualsCalculator::CalculateEntityMultipliers(const Rend
     // Calculate rank multiplier
     if (entity.entityType == ESPEntityType::NPC) {
         const auto* npc = static_cast<const RenderableNpc*>(&entity);
-        multipliers.rank = GetRankMultiplier(npc->rank);
+        multipliers.rank = ESPStyling::GetRankMultiplier(npc->rank);
     }
     
     // Calculate gadget health multiplier
     if (entity.entityType == ESPEntityType::Gadget || entity.entityType == ESPEntityType::AttackTarget) {
-        multipliers.gadgetHealth = GetGadgetHealthMultiplier(entity.maxHealth);
+        multipliers.gadgetHealth = ESPStyling::GetGadgetHealthMultiplier(entity.maxHealth);
     }
     
     // Calculate combined health bar multiplier

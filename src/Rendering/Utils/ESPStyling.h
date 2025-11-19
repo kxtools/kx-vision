@@ -6,6 +6,7 @@
 #include "Generated/EnumsAndStructs.h"
 #include "../Data/RenderableData.h" // Need this for RenderableEntity, RenderablePlayer, RenderableNpc
 #include "../Data/ESPEntityTypes.h"
+#include <algorithm>
 
 // Forward declaration to avoid circular dependency
 namespace kx {
@@ -105,6 +106,29 @@ namespace ESPStyling {
                 return ESPColors::GADGET; // Use same color as gadgets
         }
         return ESPColors::NPC_UNKNOWN; // Fallback
+    }
+
+    inline float GetRankMultiplier(Game::CharacterRank rank) {
+        switch (rank) {
+            case Game::CharacterRank::Veteran:    return RankMultipliers::VETERAN;
+            case Game::CharacterRank::Elite:      return RankMultipliers::ELITE;
+            case Game::CharacterRank::Champion:   return RankMultipliers::CHAMPION;
+            case Game::CharacterRank::Legendary:  return RankMultipliers::LEGENDARY;
+            default:                              return RankMultipliers::NORMAL;
+        }
+    }
+
+    inline float GetGadgetHealthMultiplier(float maxHealth) {
+        if (maxHealth <= 0.0f) return 1.0f;
+        
+        const float MIN = GadgetHealthScaling::MIN_MULTIPLIER;
+        const float MAX = GadgetHealthScaling::MAX_MULTIPLIER;
+        const float HP_CAP = GadgetHealthScaling::HP_TO_REACH_MAX;
+        
+        float progress = maxHealth / HP_CAP;
+        progress = (std::min)(progress, 1.0f);
+        
+        return MIN + progress * (MAX - MIN);
     }
 
 } // namespace ESPStyling

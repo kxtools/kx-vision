@@ -7,7 +7,6 @@
 namespace kx {
 
 // Forward declarations
-struct EntityRenderContext;
 class Camera;
 
 /**
@@ -19,10 +18,23 @@ class Camera;
 class ESPShapeRenderer {
 public:
     /**
-     * @brief Render a 3D gyroscope sphere for gadgets, with LOD transition to a 2D circle.
+     * @brief Render a 3D gyroscope sphere effect.
+     * REFACTOR: Decoupled from EntityRenderContext. Now takes raw position/distance.
+     * This makes the renderer "dumb" (pure drawing) and reusable.
+     * 
+     * @param worldPos The 3D center of the sphere
+     * @param gameplayDistance Distance from player (used for LOD fading)
      */
-    static void RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& entityContext, Camera& camera,
-        const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale, float screenWidth, float screenHeight, float globalOpacity);
+    static void RenderGyroscopicOverlay(ImDrawList* drawList, 
+        const glm::vec3& worldPos, 
+        float gameplayDistance,
+        Camera& camera,
+        float screenWidth, 
+        float screenHeight, 
+        float finalAlpha, 
+        unsigned int fadedEntityColor, 
+        float scale, 
+        float globalOpacity);
 
     /**
      * @brief Render a simple 2D circle for gadgets

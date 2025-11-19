@@ -57,7 +57,18 @@ void ComponentRenderer::RenderGeometry(const FrameContext& ctx, const EntityRend
 
     if (eCtx.entityType == ESPEntityType::Gadget || eCtx.entityType == ESPEntityType::AttackTarget) {
         if (RenderSettingsHelper::ShouldRenderGadgetSphere(ctx.settings, eCtx.entityType)) {
-            ESPShapeRenderer::RenderGadgetSphere(ctx.drawList, eCtx, ctx.camera, props.screenPos, props.finalAlpha, props.fadedEntityColor, props.scale, ctx.screenWidth, ctx.screenHeight, globalOpacity);
+            ESPShapeRenderer::RenderGyroscopicOverlay(
+                ctx.drawList, 
+                eCtx.position,          
+                eCtx.gameplayDistance,  
+                ctx.camera, 
+                ctx.screenWidth, 
+                ctx.screenHeight, 
+                props.finalAlpha, 
+                props.fadedEntityColor, 
+                props.scale, 
+                globalOpacity
+            );
         }
         if (RenderSettingsHelper::ShouldRenderGadgetCircle(ctx.settings, eCtx.entityType)) {
             ESPShapeRenderer::RenderGadgetCircle(ctx.drawList, props.screenPos, props.circleRadius, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);

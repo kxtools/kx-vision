@@ -170,8 +170,6 @@ private:
                                        float& outNormalizedDistance);
 
     // Helper methods for internal calculations
-    static float GetRankMultiplier(Game::CharacterRank rank);
-    static float GetGadgetHealthMultiplier(float maxHealth);
     static float CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier = 1.0f);
     static float CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit);
     

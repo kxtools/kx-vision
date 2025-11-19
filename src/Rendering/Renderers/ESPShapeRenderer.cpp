@@ -8,15 +8,17 @@
 #include "../Utils/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Utils/ESPMath.h"
-#include "../Data/EntityRenderContext.h"
 #include "../Data/ESPData.h"
 
 namespace kx {
 
-void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRenderContext& entityContext, Camera& camera,
-    const glm::vec2& screenPos, float finalAlpha, unsigned int fadedEntityColor, float scale, float screenWidth, float screenHeight, float globalOpacity) {
-    // --- Final 3D Gyroscope with a Robust LOD to a 2D Circle ---
-
+void ESPShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList, 
+    const glm::vec3& worldPos, 
+    float gameplayDistance,
+    Camera& camera,
+    float screenWidth, float screenHeight, 
+    float finalAlpha, unsigned int fadedEntityColor, float scale, float globalOpacity) 
+{
     // --- Define the 3D sphere's geometric properties ---
     const int NUM_RING_POINTS = GadgetSphere::NUM_RING_POINTS;
     const float PI = 3.14159265359f;
@@ -40,27 +42,20 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
 
     // --- 1. LOD (Level of Detail) Calculation ---
     float gyroscopeAlpha = 1.0f;
-    float circleAlpha = 0.0f;
 
-    if (entityContext.gameplayDistance > GadgetSphere::LOD_TRANSITION_START) {
-        // We are in or past the transition zone.
+    // Use the passed 'gameplayDistance' directly
+    if (gameplayDistance > GadgetSphere::LOD_TRANSITION_START) {
         float range = GadgetSphere::LOD_TRANSITION_END - GadgetSphere::LOD_TRANSITION_START;
-        float progress = std::clamp((entityContext.gameplayDistance - GadgetSphere::LOD_TRANSITION_START) / range, 0.0f, 1.0f);
-
-        gyroscopeAlpha = 1.0f - progress; // Fades out from 1.0 to 0.0
-        circleAlpha = progress;          // Fades in from 0.0 to 1.0
+        float progress = std::clamp((gameplayDistance - GadgetSphere::LOD_TRANSITION_START) / range, 0.0f, 1.0f);
+        gyroscopeAlpha = 1.0f - progress; 
     }
 
-    // --- RENDER THE 3D GYROSCOPE (if it's visible) ---
     if (gyroscopeAlpha > 0.0f) {
         const float finalLineThickness = std::clamp(GadgetSphere::BASE_THICKNESS * scale, GadgetSphere::MIN_THICKNESS, GadgetSphere::MAX_THICKNESS);
 
-        // --- Project points with camera-facing information ---
         std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
         std::vector<float> facingRingXY, facingRingXZ, facingRingYZ;
         bool projection_ok = true;
-        
-        // Get camera position once for all rings (optimization)
         glm::vec3 cameraPos = camera.GetCameraPosition();
         
         auto project_ring_with_facing = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points, std::vector<float>& facing_points) {
@@ -69,23 +64,21 @@ void ESPShapeRenderer::RenderGadgetSphere(ImDrawList* drawList, const EntityRend
             facing_points.reserve(local_points.size());
             
             for (const auto& point : local_points) {
-                glm::vec3 worldPoint = entityContext.position + point;
+                // Use the passed 'worldPos' directly
+                glm::vec3 currentWorldPoint = worldPos + point;
                 glm::vec2 sp;
                 
-                if (ESPMath::WorldToScreen(worldPoint, camera, screenWidth, screenHeight, sp)) {
+                if (ESPMath::WorldToScreen(currentWorldPoint, camera, screenWidth, screenHeight, sp)) {
                     screen_points.push_back(ImVec2(sp.x, sp.y));
                     
-                    // Calculate camera-facing factor using dot product
-                    glm::vec3 viewDir = glm::normalize(worldPoint - cameraPos);
-                    glm::vec3 outwardNormal = glm::normalize(point); // point is local offset from sphere center
+                    glm::vec3 viewDir = glm::normalize(currentWorldPoint - cameraPos);
+                    glm::vec3 outwardNormal = glm::normalize(point);
                     float facingFactor = glm::dot(outwardNormal, -viewDir);
                     
                     facing_points.push_back(facingFactor);
                 }
                 else { 
                     projection_ok = false; 
-                    screen_points.clear(); 
-                    facing_points.clear(); 
                     return; 
                 }
             }
