@@ -12,11 +12,11 @@
 #include "../../Utils/ObjectPool.h"
 #include "../Data/RenderableData.h"
 #include "../Extraction/ESPDataExtractor.h"
-#include "ESPVisualsProcessor.h"
 #include "ESPStageRenderer.h"
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "Logic/EntityFilter.h"
+#include "Logic/ESPVisualsProcessor.h"
 
 namespace kx {
 

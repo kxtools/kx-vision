@@ -127,7 +127,7 @@
     <ClCompile Include="src\Rendering\Logic\EntityFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Core\ESPVisualsProcessor.cpp" />
+    <ClCompile Include="src\Rendering\Logic\ESPVisualsProcessor.cpp" />
     <ClCompile Include="src\Rendering\Presentation\ContextFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ComponentRenderers.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPEnergyBarRenderer.cpp" />
@@ -214,7 +214,7 @@
     <ClInclude Include="src\Rendering\Logic\EntityFilter.h" />
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
-    <ClInclude Include="src\Rendering\Core\ESPVisualsProcessor.h" />
+    <ClInclude Include="src\Rendering\Logic\ESPVisualsProcessor.h" />
     <ClInclude Include="src\Rendering\GUI\UIConstants.h" />
     <ClInclude Include="src\Rendering\Renderers\LayoutCursor.h" />
     <ClInclude Include="src\Rendering\Renderers\ComponentRenderers.h" />
