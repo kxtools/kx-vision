@@ -2,10 +2,10 @@
 #include "AppLifecycleManager.h"
 #include "AppState.h"
 #include "Config.h"
-#include "../Rendering/ImGui/ImGuiManager.h"
-#include "../Rendering/Utils/D3DState.h"
+#include "../Rendering/Shared/D3DState.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
+#include "GUI/Backend/OverlayWindow.h"
 
 void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
                                HWND windowHandle, 
@@ -56,10 +56,10 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         camera.Update(mumbleLinkManager, windowHandle);
 
         // Render ImGui UI
-        ImGuiManager::NewFrame();
-        ImGuiManager::RenderUI(camera, mumbleLinkManager, mumbleLinkData,
+        OverlayWindow::NewFrame();
+        OverlayWindow::RenderUI(camera, mumbleLinkManager, mumbleLinkData,
             windowHandle, displayWidth, displayHeight);
-        ImGuiManager::Render(context, renderTargetView);
+        OverlayWindow::Render(context, renderTargetView);
 
         // CRITICAL: Restore D3D state after rendering
         RestoreD3D11State(context, d3dState);

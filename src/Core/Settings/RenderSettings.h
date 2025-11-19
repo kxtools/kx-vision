@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../libs/nlohmann/json.hpp"
-#include "../../Rendering/Data/ESPEntityTypes.h"
+#include "../../Rendering/Data/EntityTypes.h"
 #include "../../Rendering/GUI/UIConstants.h"
 
 namespace kx {
@@ -82,14 +82,14 @@ namespace kx {
          * @param isInWvW True if the player is currently on a WvW map.
          * @return The distance limit in meters, or a value <= 0 if there is no limit.
          */
-        float GetActiveDistanceLimit(ESPEntityType entityType, bool isInWvW) const {
+        float GetActiveDistanceLimit(EntityTypes entityType, bool isInWvW) const {
             switch (mode) {
                 case DistanceCullingMode::Natural:
                     return isInWvW ? GUI::UIConstants::WVW_NATURAL_LIMIT : GUI::UIConstants::PVE_PVP_NATURAL_LIMIT;
 
                 case DistanceCullingMode::CombatFocus:
                     // In Combat Focus, only Objects are limited. Players/NPCs are unlimited.
-                    if (entityType == ESPEntityType::Gadget || entityType == ESPEntityType::AttackTarget) {
+                    if (entityType == EntityTypes::Gadget || entityType == EntityTypes::AttackTarget) {
                         return renderDistanceLimit;
                     }
                     return -1.0f; // No limit for Players/NPCs
@@ -99,12 +99,12 @@ namespace kx {
 
                 case DistanceCullingMode::Custom:
                     switch (entityType) {
-                        case ESPEntityType::Player:
+                        case EntityTypes::Player:
                             return customLimitPlayers ? renderDistanceLimit : -1.0f;
-                        case ESPEntityType::NPC:
+                        case EntityTypes::NPC:
                             return customLimitNpcs ? renderDistanceLimit : -1.0f;
-                        case ESPEntityType::Gadget:
-                        case ESPEntityType::AttackTarget:
+                        case EntityTypes::Gadget:
+                        case EntityTypes::AttackTarget:
                             return customLimitObjects ? renderDistanceLimit : -1.0f;
                         default:
                             return -1.0f;

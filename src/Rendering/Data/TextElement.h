@@ -4,7 +4,7 @@
 #include <vector>
 #include <glm.hpp>
 #include "../../../libs/ImGui/imgui.h"
-#include "../Utils/ESPConstants.h"
+#include "../Shared/Constants.h"
 
 namespace kx {
 

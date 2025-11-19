@@ -1,9 +1,8 @@
 #include "CombatLogic.h"
 #include "CombatState.h"
 #include "../Data/RenderableData.h"
-#include "../Utils/ESPConstants.h"
+#include "../Shared/Constants.h"
 #include "../../Core/AppState.h"
-#include <algorithm>
 #include <glm/geometric.hpp>
 
 namespace kx {
@@ -74,7 +73,7 @@ namespace kx {
         }
 
         // Case 2: Instant destruction from full health (gadget-only behavior)
-        if (entity->entityType == ESPEntityType::Gadget)
+        if (entity->entityType == EntityTypes::Gadget)
         {
             if (state.lastKnownMaxHealth > 0 &&
                 state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health

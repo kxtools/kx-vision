@@ -1,5 +1,7 @@
 #include "CombatStateManager.h"
 
+#include "CombatLogic.h"
+
 namespace kx
 {
 	EntityCombatState& CombatStateManager::AcquireState(const RenderableEntity* entity)

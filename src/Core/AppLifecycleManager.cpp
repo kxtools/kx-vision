@@ -6,15 +6,14 @@
 #include "AddressManager.h"
 #include "HookManager.h"
 #include "Hooks.h"
-#include "../Rendering/ImGui/ImGuiManager.h"
-#include "../Rendering/Core/ESPRenderer.h"
-#include "../Rendering/Utils/D3DState.h"
+#include "../Rendering/Core/MasterRenderer.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
 #include <windows.h>
 #include <shellapi.h>
-#include <cstdlib>
+
+#include "GUI/Backend/OverlayWindow.h"
 
 namespace kx {
 
@@ -321,7 +320,7 @@ namespace kx {
     // ===== Private Helper Methods =====
 
     bool AppLifecycleManager::IsImGuiReady() const {
-        return ImGuiManager::IsImGuiInitialized();
+        return OverlayWindow::IsImGuiInitialized();
     }
 
     bool AppLifecycleManager::IsPlayerInGame() const {
@@ -348,7 +347,7 @@ namespace kx {
         LOG_INFO("AppLifecycleManager: AddressManager initialized");
 
         // Initialize ESPRenderer with Camera reference (both DLL and GW2AL modes)
-        ESPRenderer::Initialize(m_camera);
+        MasterRenderer::Initialize(m_camera);
         LOG_INFO("AppLifecycleManager: ESPRenderer initialized");
 
         // Note: HookManager was initialized earlier in Initialize() or InitializeForGW2AL()

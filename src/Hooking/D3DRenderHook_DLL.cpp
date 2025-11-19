@@ -12,7 +12,7 @@
 #include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"
-#include "../Rendering/ImGui/ImGuiManager.h"
+#include "GUI/Backend/OverlayWindow.h"
 
 namespace kx::Hooking {
 
@@ -182,7 +182,7 @@ namespace kx::Hooking {
         }
 
         // Initialize ImGui
-        if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
+        if (!OverlayWindow::Initialize(m_pDevice, m_pContext, m_hWindow)) {
             LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui");
             CleanupD3DResources(true);
             return false;

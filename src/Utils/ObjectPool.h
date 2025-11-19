@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <memory>
 #include "DebugLogger.h"
 
 namespace kx {

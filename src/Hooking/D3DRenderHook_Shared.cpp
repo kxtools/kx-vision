@@ -7,9 +7,9 @@
 #include "../Core/Config.h"
 #include "../Core/AppState.h"
 #include "../Utils/DebugLogger.h"
-#include "../Rendering/ImGui/ImGuiManager.h"
 #include "../../libs/ImGui/imgui.h"
 #include "HookManager.h"
+#include "GUI/Backend/OverlayWindow.h"
 
 namespace kx::Hooking {
 
@@ -73,7 +73,7 @@ namespace kx::Hooking {
             }
 
             // Initialize ImGui
-            if (!ImGuiManager::Initialize(m_pDevice, m_pContext, m_hWindow)) {
+            if (!OverlayWindow::Initialize(m_pDevice, m_pContext, m_hWindow)) {
                 LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui in GW2AL mode.");
                 CleanupD3DResources(true);
                 return false;
@@ -122,7 +122,7 @@ namespace kx::Hooking {
             }
 
             // Now safe to shutdown ImGui
-            ImGuiManager::Shutdown();
+            OverlayWindow::Shutdown();
             LOG_INFO("[D3DRenderHook] ImGui shutdown.");
         }
 
