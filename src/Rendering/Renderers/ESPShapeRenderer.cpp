@@ -7,7 +7,7 @@
 
 #include "../Shared/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
-#include "../Shared/ESPMath.h"
+#include "../Shared/MathUtils.h"
 #include "../Data/FrameData.h"
 
 namespace kx {
@@ -68,7 +68,7 @@ void ESPShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList,
                 glm::vec3 currentWorldPoint = worldPos + point;
                 glm::vec2 sp;
                 
-                if (ESPMath::WorldToScreen(currentWorldPoint, camera, screenWidth, screenHeight, sp)) {
+                if (MathUtils::WorldToScreen(currentWorldPoint, camera, screenWidth, screenHeight, sp)) {
                     screen_points.push_back(ImVec2(sp.x, sp.y));
                     
                     glm::vec3 viewDir = glm::normalize(currentWorldPoint - cameraPos);

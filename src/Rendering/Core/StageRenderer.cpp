@@ -1,7 +1,6 @@
 #include "StageRenderer.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
-#include "../Shared/ESPMath.h"
 #include "../Shared/LayoutConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTrailRenderer.h"
@@ -11,6 +10,7 @@
 #include <optional>
 
 #include "Logic/VisualsCalculator.h"
+#include "Shared/MathUtils.h"
 #include "Shared/RenderSettingsHelper.h"
 
 namespace kx {
@@ -67,7 +67,7 @@ std::optional<VisualProperties> StageRenderer::CalculateLiveVisuals(const Finali
 
     // 5. Finalize remaining screen-space properties based on the new, correct box.
     // Project the origin point separately for anchoring UI elements.
-    if (!ESPMath::ProjectToScreen(item.entity->position, context.camera, context.screenWidth, context.screenHeight, liveVisuals.screenPos)) {
+    if (!MathUtils::ProjectToScreen(item.entity->position, context.camera, context.screenWidth, context.screenHeight, liveVisuals.screenPos)) {
         // If origin point is behind camera, use center of projected box
         liveVisuals.screenPos.x = (liveVisuals.boxMin.x + liveVisuals.boxMax.x) * 0.5f;
         liveVisuals.screenPos.y = (liveVisuals.boxMin.y + liveVisuals.boxMax.y) * 0.5f;

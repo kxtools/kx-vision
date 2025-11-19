@@ -1,10 +1,10 @@
-#include "ESPMath.h"
+#include "MathUtils.h"
 
 #include "gtc/type_ptr.hpp" // Required for glm::value_ptr
 
 namespace kx {
 
-    namespace ESPMath {
+    namespace MathUtils {
 
         bool WorldToScreen(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight, glm::vec2& outScreenPos) {
             // Get matrices

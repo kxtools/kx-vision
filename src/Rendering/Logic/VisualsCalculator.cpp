@@ -9,7 +9,7 @@
 #include <cmath>
 
 #include "Presentation/ESPStyling.h"
-#include "Shared/ESPMath.h"
+#include "Shared/MathUtils.h"
 #include "Shared/LayoutConstants.h"
 
 namespace kx {
@@ -186,7 +186,7 @@ void VisualsCalculator::Calculate3DBoundingBox(
     int validCornerCount = 0;
     
     for (int i = 0; i < 8; ++i) {
-        if (ESPMath::ProjectToScreen(worldCorners[i], camera, screenWidth, screenHeight, props.projectedCorners[i])) {
+        if (MathUtils::ProjectToScreen(worldCorners[i], camera, screenWidth, screenHeight, props.projectedCorners[i])) {
             props.cornerValidity[i] = true;
             validCornerCount++;
             

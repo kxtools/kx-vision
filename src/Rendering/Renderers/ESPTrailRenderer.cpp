@@ -3,7 +3,7 @@
 #include "../Data/EntityRenderContext.h"
 #include "../Combat/CombatStateManager.h"
 #include "../Combat/CombatState.h"
-#include "../Shared/ESPMath.h"
+#include "../Shared/MathUtils.h"
 #include "ESPShapeRenderer.h"
 #include "../../Core/AppState.h"
 #include "../../Game/GameEnums.h"
@@ -206,7 +206,7 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
         
         for (const auto& worldPoint : segment) {
             glm::vec2 screenPos;
-            if (ESPMath::WorldToScreen(worldPoint.position, context.camera, context.screenWidth, context.screenHeight, screenPos)) {
+            if (MathUtils::WorldToScreen(worldPoint.position, context.camera, context.screenWidth, context.screenHeight, screenPos)) {
                 screenPoints.push_back({ImVec2(screenPos.x, screenPos.y), worldPoint.timestamp});
             }
         }
@@ -239,8 +239,8 @@ void ESPTrailRenderer::ProjectAndRenderTrail(
             ImU32 teleportColor = ESPShapeRenderer::ApplyAlphaToColor(baseColor, timeBasedFade * TELEPORT_ALPHA * finalAlpha * globalOpacity);
             
             glm::vec2 startScreen, endScreen;
-            if (ESPMath::WorldToScreen(startWorld.position, context.camera, context.screenWidth, context.screenHeight, startScreen) &&
-                ESPMath::WorldToScreen(endWorld.position, context.camera, context.screenWidth, context.screenHeight, endScreen)) {
+            if (MathUtils::WorldToScreen(startWorld.position, context.camera, context.screenWidth, context.screenHeight, startScreen) &&
+                MathUtils::WorldToScreen(endWorld.position, context.camera, context.screenWidth, context.screenHeight, endScreen)) {
                 
                 ImVec2 start(startScreen.x, startScreen.y);
                 ImVec2 end(endScreen.x, endScreen.y);
