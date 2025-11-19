@@ -25,9 +25,15 @@ namespace SafeAccess {
     static constexpr uint64_t CACHE_TTL_JITTER = 1000; // ms
     static constexpr uint64_t CACHE_CLEANUP_INTERVAL = 8000; // ms, this should be greater than CACHE_TTL + CACHE_TTL_JITTER combined
 
+    // --- Cache Structure ---
+    struct PageCacheEntry {
+        uint64_t expiry;
+        bool isReadable;
+    };
+
     // Thread-safe cache accessors using function-local statics
-    inline ankerl::unordered_dense::segmented_map<uintptr_t, uint64_t>& GetValidPagesCache() {
-        thread_local ankerl::unordered_dense::segmented_map<uintptr_t, uint64_t> cache;
+    inline ankerl::unordered_dense::segmented_map<uintptr_t, PageCacheEntry>& GetValidPagesCache() {
+        thread_local ankerl::unordered_dense::segmented_map<uintptr_t, PageCacheEntry> cache;
         return cache;
     }
     
@@ -50,7 +56,7 @@ namespace SafeAccess {
         if (now - lastCleanup >= CACHE_CLEANUP_INTERVAL) {
             auto& cache = GetValidPagesCache();
             for (auto it = cache.begin(); it != cache.end(); ) {
-                if (now > it->second) {
+                if (now > it->second.expiry) {
                     it = cache.erase(it);
                 }
                 else {
@@ -110,29 +116,31 @@ namespace SafeAccess {
         // Use find() for single lookup instead of count() + insert()
         // Use the page base instead of the address, since memory protections apply to whole pages, reducing the number of cache entries needed
         uintptr_t page = GetPageBase(address);
-        auto& validPages = GetValidPagesCache();
-        auto it = validPages.find(page);
-        bool entryCached = it != validPages.end();
-        // Check if validPages already contains this page AND it has not expired yet
-        if (entryCached && it->second > now) {
-            return true;
+        auto& cache = GetValidPagesCache();
+        auto it = cache.find(page);
+        
+        // Check if cache contains this page AND it has not expired yet
+        if (it != cache.end() && it->second.expiry > now) {
+            return it->second.isReadable;
         }
         
+        // Slow path: System call
         MEMORY_BASIC_INFORMATION mbi = {};
         SIZE_T result = VirtualQuery(ptr, &mbi, sizeof(mbi));
         
-        if (result == 0) return false;
+        // Determine safety
+        bool isSafe = false;
+        if (result != 0) {
+            bool committed = (mbi.State == MEM_COMMIT);
+            bool readable = (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE));
+            bool notGuarded = !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS));
+            isSafe = committed && readable && notGuarded;
+        }
         
-        // Check if memory is committed and readable
-        if (mbi.State != MEM_COMMIT) return false;
-        if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))) return false;
-        if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) return false;
+        // Cache the result regardless of success/failure
+        cache.insert_or_assign(page, PageCacheEntry{ GetRandomCacheTTL(now), isSafe });
         
-        // Cache the valid page for future use
-        // If it was already cached, just refresh the expiry, if not, add it to the cache
-        validPages.insert_or_assign(page, GetRandomCacheTTL(now));
-        
-        return true;
+        return isSafe;
     }
 
     /**
