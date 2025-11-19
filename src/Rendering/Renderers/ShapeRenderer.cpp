@@ -5,10 +5,10 @@
 #include <array>
 #include <vector>
 
-#include "../Shared/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Shared/MathUtils.h"
 #include "../Data/FrameData.h"
+#include "Shared/LayoutConstants.h"
 
 namespace kx {
 

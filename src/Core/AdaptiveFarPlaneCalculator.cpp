@@ -1,7 +1,7 @@
 #include "AdaptiveFarPlaneCalculator.h"
 #include "../Rendering/Data/FrameData.h"
 #include "../Rendering/Data/RenderableData.h"
-#include "../Rendering/Shared/ESPConstants.h"
+#include "../Rendering/Shared/Constants.h"
 #include "../Utils/DebugLogger.h"
 #include <vector>
 #include <algorithm>

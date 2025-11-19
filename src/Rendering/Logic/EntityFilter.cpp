@@ -3,7 +3,7 @@
 #include "FilterSettings.h"
 #include "../Data/RenderableData.h"
 #include "../Combat/CombatStateManager.h"
-#include "../Shared/ESPConstants.h"
+#include "../Shared/Constants.h"
 #include "Camera.h"
 
 namespace kx {

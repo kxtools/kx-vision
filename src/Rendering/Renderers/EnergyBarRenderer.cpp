@@ -1,7 +1,7 @@
 #include "EnergyBarRenderer.h"
 
 #include "ShapeRenderer.h"
-#include "../Shared/ESPConstants.h"
+#include "../Shared/Constants.h"
 #include "../../Core/Settings.h"
 #include "../../../libs/ImGui/imgui.h"
 

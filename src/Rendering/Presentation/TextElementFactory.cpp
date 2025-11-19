@@ -3,7 +3,7 @@
 #include "../Data/PlayerRenderData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Data/FrameData.h"
-#include "../Shared/ESPConstants.h"
+#include "../Shared/Constants.h"
 #include "../../Core/Settings.h"
 #include "../../Utils/UnitConversion.h"
 #include <sstream>

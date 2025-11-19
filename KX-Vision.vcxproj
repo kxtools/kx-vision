@@ -240,7 +240,7 @@
     <ClInclude Include="src\Rendering\Shared\ColorConstants.h" />
     <ClInclude Include="src\Rendering\Shared\CombatConstants.h" />
     <ClInclude Include="src\Rendering\Shared\D3DState.h" />
-    <ClInclude Include="src\Rendering\Shared\ESPConstants.h" />
+    <ClInclude Include="src\Rendering\Shared\Constants.h" />
     <ClInclude Include="src\Rendering\Shared\ESPFormatting.h" />
     <ClInclude Include="src\Rendering\Shared\MathUtils.h" />
     <ClInclude Include="src\Rendering\Shared\LayoutConstants.h" />

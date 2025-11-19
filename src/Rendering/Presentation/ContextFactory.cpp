@@ -1,7 +1,7 @@
 #include "ContextFactory.h"
 
 #include "../Combat/CombatStateManager.h" // For CombatStateManager
-#include "../Shared/ESPConstants.h" // For CombatEffects
+#include "../Shared/Constants.h" // For CombatEffects
 #include "../Data/FrameData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
