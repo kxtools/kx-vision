@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "RenderableData.h"
+#include "Entities/RenderableEntity.h"
 #include "EntityTypes.h"
 #include "../../Game/GameEnums.h"
 
