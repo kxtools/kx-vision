@@ -245,7 +245,7 @@
     <ClInclude Include="src\Rendering\Shared\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Shared\ColorConstants.h" />
     <ClInclude Include="src\Rendering\Shared\CombatConstants.h" />
-    <ClInclude Include="src\Rendering\Shared\D3DState.h" />
+    <ClInclude Include="src\Rendering\UI\Backend\D3DState.h" />
     <ClInclude Include="src\Rendering\Shared\MathUtils.h" />
     <ClInclude Include="src\Rendering\Shared\LayoutConstants.h" />
     <ClInclude Include="src\Rendering\Shared\RenderSettingsHelper.h" />

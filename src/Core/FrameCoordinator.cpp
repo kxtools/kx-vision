@@ -2,9 +2,9 @@
 #include "AppLifecycleManager.h"
 #include "AppState.h"
 #include "Config.h"
-#include "../Rendering/Shared/D3DState.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
+#include "UI/Backend/D3DState.h"
 #include "UI/Backend/OverlayWindow.h"
 
 void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
