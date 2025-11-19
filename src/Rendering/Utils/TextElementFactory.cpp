@@ -24,8 +24,9 @@ namespace {
      */
     template<typename... Args>
     std::string FormatTemp(std::format_string<Args...> fmt, Args&&... args) {
-        char buffer[128];
-        auto result = std::format_to_n(buffer, 127, fmt, std::forward<Args>(args)...);
+        char buffer[kMaxTextBufferSize];
+        // Write to buffer - 1 to guarantee space for null terminator
+        auto result = std::format_to_n(buffer, kMaxTextBufferSize - 1, fmt, std::forward<Args>(args)...);
         *result.out = '\0';
         return std::string(buffer);
     }

@@ -17,10 +17,11 @@ namespace kx {
 namespace {
     template<typename... Args>
     ColoredDetail MakeDetail(ImU32 color, std::format_string<Args...> fmt, Args&&... args) {
-        char buffer[64];
+        char buffer[kMaxTextBufferSize];
         try {
-            auto result = std::format_to_n(buffer, 63, fmt, std::forward<Args>(args)...);
-            *result.out = '\0';
+            // Format to buffer size - 1 to leave room for null terminator
+            auto result = std::format_to_n(buffer, kMaxTextBufferSize - 1, fmt, std::forward<Args>(args)...);
+            *result.out = '\0'; // Null terminate
         } catch (...) {
             buffer[0] = '\0';
         }

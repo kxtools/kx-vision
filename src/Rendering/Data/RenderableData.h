@@ -16,6 +16,10 @@
 
 namespace kx {
 
+// Unified buffer size for all stack-based string operations.
+// 128 bytes is large enough for detailed labels but small enough to be efficient.
+constexpr size_t kMaxTextBufferSize = 128;
+
 // Safe data structures for the two-stage rendering pipeline
 // These contain only plain data types, no pointers to game memory
 // Now using proper enum types for better type safety
@@ -23,12 +27,13 @@ namespace kx {
 // Shared rendering utility structures
 
 struct FixedText {
-    char buffer[64];
+    char buffer[kMaxTextBufferSize];
 
     FixedText() { buffer[0] = '\0'; }
     
     FixedText(std::string_view sv) {
-        size_t length = std::min(sv.length(), static_cast<size_t>(63));
+        // Cap length to buffer size - 1 to leave room for null terminator
+        size_t length = std::min(sv.length(), kMaxTextBufferSize - 1);
         if (length > 0) {
             std::memcpy(buffer, sv.data(), length);
         }
