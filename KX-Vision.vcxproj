@@ -130,7 +130,7 @@
     <ClCompile Include="src\Rendering\Logic\FrameDataProcessor.cpp" />
     <ClCompile Include="src\Rendering\Presentation\ContextFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\EntityComponentRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\ESPEnergyBarRenderer.cpp" />
+    <ClCompile Include="src\Rendering\Renderers\EnergyBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\HealthBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPShapeRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ESPTrailRenderer.cpp" />
@@ -218,7 +218,7 @@
     <ClInclude Include="src\Rendering\GUI\UIConstants.h" />
     <ClInclude Include="src\Rendering\Renderers\LayoutCursor.h" />
     <ClInclude Include="src\Rendering\Renderers\EntityComponentRenderer.h" />
-    <ClInclude Include="src\Rendering\Renderers\ESPEnergyBarRenderer.h" />
+    <ClInclude Include="src\Rendering\Renderers\EnergyBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPTrailRenderer.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\FrameData.h" />

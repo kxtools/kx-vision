@@ -1,4 +1,4 @@
-#include "ESPEnergyBarRenderer.h"
+#include "EnergyBarRenderer.h"
 #include "../Shared/ESPConstants.h"
 #include "ESPShapeRenderer.h"
 #include "../../Core/Settings.h"
@@ -6,7 +6,7 @@
 
 namespace kx {
 
-    void ESPEnergyBarRenderer::Render(
+    void EnergyBarRenderer::Render(
         const Settings& settings,
         ImDrawList* drawList,
         const glm::vec2& barTopLeftPosition,

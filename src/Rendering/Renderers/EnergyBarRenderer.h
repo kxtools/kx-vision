@@ -6,7 +6,7 @@ struct ImDrawList;
 namespace kx {
     struct Settings;
 
-    class ESPEnergyBarRenderer {
+    class EnergyBarRenderer {
     public:
         static void Render(
             const Settings& settings, 
