@@ -15,7 +15,7 @@ namespace kx {
     /**
      * @brief Utility functions for rendering health & energy bars with combat effect overlays.
      */
-    class ESPHealthBarRenderer {
+    class HealthBarRenderer {
     public:
         static void RenderStandaloneHealthBar(ImDrawList* drawList,
             const glm::vec2& barTopLeftPosition,

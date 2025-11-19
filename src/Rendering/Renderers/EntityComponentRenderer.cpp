@@ -1,6 +1,6 @@
 #include "EntityComponentRenderer.h"
 #include "ESPShapeRenderer.h"
-#include "ESPHealthBarRenderer.h"
+#include "HealthBarRenderer.h"
 #include "ESPEnergyBarRenderer.h"
 
 #include "TextRenderer.h"
@@ -189,7 +189,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const En
             glm::vec2 healthBarPos = cursor.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
             
             // REFACTORED CALL: Pass props directly instead of individual fields
-            ESPHealthBarRenderer::RenderStandaloneHealthBar(ctx.drawList, healthBarPos, eCtx, props, ctx.settings);
+            HealthBarRenderer::RenderStandaloneHealthBar(ctx.drawList, healthBarPos, eCtx, props, ctx.settings);
 
             RenderDamageNumbers(ctx, eCtx, props, healthBarPos);
             RenderBurstDps(ctx, eCtx, props, healthBarPos);

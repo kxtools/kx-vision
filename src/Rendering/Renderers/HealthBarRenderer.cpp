@@ -1,6 +1,6 @@
 #define NOMINMAX
 
-#include "ESPHealthBarRenderer.h"
+#include "HealthBarRenderer.h"
 #include <iomanip>
 #include "../Shared/ESPConstants.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -19,14 +19,14 @@ namespace kx {
     // -----------------------------------------------------------------------------
     // Small Utilities
     // -----------------------------------------------------------------------------
-    ImU32 ESPHealthBarRenderer::ApplyAlphaToColor(ImU32 color, float alphaMul) {
+    ImU32 HealthBarRenderer::ApplyAlphaToColor(ImU32 color, float alphaMul) {
         alphaMul = (alphaMul < 0.f ? 0.f : (alphaMul > 1.f ? 1.f : alphaMul));
         unsigned int a = (color >> 24) & 0xFF;
         unsigned int finalA = ClampAlpha(static_cast<unsigned int>(a * alphaMul + 0.5f));
         return (color & 0x00FFFFFF) | (finalA << 24);
     }
 
-    void ESPHealthBarRenderer::DrawFilledRect(ImDrawList* dl,
+    void HealthBarRenderer::DrawFilledRect(ImDrawList* dl,
         const ImVec2& min,
         const ImVec2& max,
         ImU32 color,
@@ -36,7 +36,7 @@ namespace kx {
         }
     }
 
-    void ESPHealthBarRenderer::DrawHealthBase(ImDrawList* dl,
+    void HealthBarRenderer::DrawHealthBase(ImDrawList* dl,
         const ImVec2& barMin,
         const ImVec2& barMax,
         float barWidth,
@@ -57,7 +57,7 @@ namespace kx {
         DrawFilledRect(dl, hMin, hMax, baseHealthColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    void ESPHealthBarRenderer::DrawHealOverlay(ImDrawList* dl, const EntityRenderContext& context, const ImVec2& barMin, float barWidth, float barHeight,
+    void HealthBarRenderer::DrawHealOverlay(ImDrawList* dl, const EntityRenderContext& context, const ImVec2& barMin, float barWidth, float barHeight,
 	    float fadeAlpha, const Settings& settings)
     {
         const auto& anim = context.healthBarAnim;
@@ -75,7 +75,7 @@ namespace kx {
         DrawFilledRect(dl, oMin, oMax, color, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    void ESPHealthBarRenderer::DrawHealFlash(ImDrawList* dl,
+    void HealthBarRenderer::DrawHealFlash(ImDrawList* dl,
         const EntityRenderContext& context,
         const ImVec2& barMin,
         float barWidth,
@@ -99,7 +99,7 @@ namespace kx {
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    void ESPHealthBarRenderer::DrawAccumulatedDamage(ImDrawList* dl,
+    void HealthBarRenderer::DrawAccumulatedDamage(ImDrawList* dl,
         const EntityRenderContext& context,
         const ImVec2& barMin,
         float barWidth,
@@ -127,7 +127,7 @@ namespace kx {
         DrawFilledRect(dl, oMin, oMax, base, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
-    void ESPHealthBarRenderer::DrawDamageFlash(ImDrawList* dl,
+    void HealthBarRenderer::DrawDamageFlash(ImDrawList* dl,
         const EntityRenderContext& context,
         const ImVec2& barMin,
         float barWidth,
@@ -154,7 +154,7 @@ namespace kx {
 
 
 
-    void ESPHealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
+    void HealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
         const EntityRenderContext& context,
         const ImVec2& barMin,
         const ImVec2& barMax,
@@ -214,7 +214,7 @@ namespace kx {
     // -----------------------------------------------------------------------------
     // Public API
     // -----------------------------------------------------------------------------
-    void ESPHealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList,
+    void HealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList,
         const glm::vec2& barTopLeftPosition,
         const EntityRenderContext& context,
         const VisualProperties& props,
@@ -282,7 +282,7 @@ namespace kx {
         }
     }
 
-    void ESPHealthBarRenderer::RenderAliveState(ImDrawList* drawList,
+    void HealthBarRenderer::RenderAliveState(ImDrawList* drawList,
         const EntityRenderContext& context,
         const ImVec2& barMin,
         const ImVec2& barMax,
@@ -322,7 +322,7 @@ namespace kx {
         }
     }
 
-    void ESPHealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha)
+    void HealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha)
     {
         // 1. Format the percentage string
         int percent = static_cast<int>(healthPercent * 100.0f);
@@ -360,7 +360,7 @@ namespace kx {
         TextRenderer::Render(dl, element);
     }
 
-    void ESPHealthBarRenderer::RenderDeadState(ImDrawList* drawList,
+    void HealthBarRenderer::RenderDeadState(ImDrawList* drawList,
                                                const EntityRenderContext& context,
                                                const ImVec2& barMin,
                                                const ImVec2& barMax,
