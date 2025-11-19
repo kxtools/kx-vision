@@ -11,6 +11,7 @@
 #include "../../../libs/ImGui/imgui.h"
 #include "PlayerRenderData.h"
 #include "EntityTypes.h"
+#include "../Combat/CombatStateKey.h"
 
 namespace kx {
 
@@ -78,6 +79,10 @@ struct RenderableEntity {
                          entityType(EntityTypes::Gadget), agentType(Game::AgentType::Error), agentId(0), // Default, will be overwritten
                          shapeType(Havok::HkcdShapeType::INVALID)
     {
+    }
+
+    CombatStateKey GetCombatKey() const {
+        return CombatStateKey(static_cast<uint32_t>(agentId), address);
     }
 };
 

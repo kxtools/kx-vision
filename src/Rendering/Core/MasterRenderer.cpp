@@ -14,6 +14,7 @@
 #include "../Extraction/DataExtractor.h"
 #include "StageRenderer.h"
 #include "../Combat/CombatStateManager.h"
+#include "../Combat/CombatStateKey.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "Logic/EntityFilter.h"
 #include "Logic/FrameDataProcessor.h"
@@ -53,15 +54,19 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         PooledFrameRenderData extractedData;
         DataExtractor::ExtractFrameData(s_playerPool, s_npcPool, s_gadgetPool, s_attackTargetPool, extractedData);
         
-        // Build a set of all currently active entity addresses
-        std::unordered_set<const void*> activeEntities;
-        for (auto* e : extractedData.players) { activeEntities.insert(e->address); }
-        for (auto* e : extractedData.npcs) { activeEntities.insert(e->address); }
-        for (auto* e : extractedData.gadgets) { activeEntities.insert(e->address); }
-        for (auto* e : extractedData.attackTargets) { activeEntities.insert(e->address); }
+        std::unordered_set<CombatStateKey, CombatStateKeyHash> activeKeys;
+        auto collectKeys = [&](const auto& collection) {
+            for (const auto* e : collection) {
+                activeKeys.insert(e->GetCombatKey());
+            }
+        };
 
-        // Tell the CombatStateManager to remove any state for entities that no longer exist.
-        g_combatStateManager.Prune(activeEntities);
+        collectKeys(extractedData.players);
+        collectKeys(extractedData.npcs);
+        collectKeys(extractedData.gadgets);
+        collectKeys(extractedData.attackTargets);
+
+        g_combatStateManager.Prune(activeKeys);
         
         // Stage 1.5: Update combat state
         std::vector<RenderableEntity*> allEntities;

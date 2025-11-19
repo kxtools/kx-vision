@@ -26,7 +26,7 @@ namespace kx {
     private:
         // Internal logic helpers
         static void UpdateDamageAccumulatorAnimation(EntityCombatState& state, uint64_t now);
-        static bool DetectStateChangeOrRespawn(const RenderableEntity* entity, EntityCombatState& state, uint64_t now);
+        static bool HandleAttributeChanges(const RenderableEntity* entity, EntityCombatState& state, uint64_t now);
         static void ResetForRespawn(EntityCombatState& state, float currentHealth, uint64_t now);
         
         static void UpdateBarrierState(const RenderableEntity* entity, EntityCombatState& state, uint64_t now);

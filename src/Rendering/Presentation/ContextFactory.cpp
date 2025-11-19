@@ -78,7 +78,7 @@ EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlaye
     bool renderHealthBar = DeterminePlayerHealthBarVisibility(player, context.settings.playerESP);
 
     // --- Animation State --- 
-    const EntityCombatState* state = context.stateManager.GetState(player->address);
+    const EntityCombatState* state = context.stateManager.GetState(player->GetCombatKey());
     HealthBarAnimationState animState;
     if (renderHealthBar && state) {
         PopulateHealthBarAnimations(player, state, animState, context.now); // Pass 'now' to the animation logic
@@ -111,7 +111,7 @@ EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc
     bool renderHealthBar = DetermineNpcHealthBarVisibility(npc, context.settings.npcESP);
 
     // --- Animation State --- 
-    const EntityCombatState* state = context.stateManager.GetState(npc->address);
+    const EntityCombatState* state = context.stateManager.GetState(npc->GetCombatKey());
     HealthBarAnimationState animState;
     if (renderHealthBar && state) {
         PopulateHealthBarAnimations(npc, state, animState, context.now); // Pass 'now' to the animation logic
@@ -141,7 +141,7 @@ EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc
 EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
-    const EntityCombatState* state = context.stateManager.GetState(gadget->address);
+    const EntityCombatState* state = context.stateManager.GetState(gadget->GetCombatKey());
     bool renderHealthBar = DetermineGadgetHealthBarVisibility(gadget, context.settings.objectESP, state, context.now);
 
     // --- Animation State --- 
@@ -178,7 +178,7 @@ EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadge
 EntityRenderContext ContextFactory::CreateContextForAttackTarget(const RenderableAttackTarget* attackTarget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
-    const EntityCombatState* state = context.stateManager.GetState(attackTarget->address);
+    const EntityCombatState* state = context.stateManager.GetState(attackTarget->GetCombatKey());
     bool renderHealthBar = false; // Attack targets typically don't have health data
 
     // --- Animation State --- 

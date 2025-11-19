@@ -200,6 +200,7 @@
     <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
     <ClInclude Include="src\Rendering\Combat\CombatLogic.h" />
     <ClInclude Include="src\Rendering\Combat\CombatState.h" />
+    <ClInclude Include="src\Rendering\Combat\CombatStateKey.h" />
     <ClInclude Include="src\Rendering\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Rendering\Extraction\DataExtractor.h" />
     <ClInclude Include="src\Rendering\GUI\Backend\OverlayWindow.h" />

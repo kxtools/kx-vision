@@ -63,7 +63,7 @@ std::vector<PositionHistoryPoint> TrailRenderer::CollectTrailPoints(
     const EntityRenderContext& entityContext,
     uint64_t now)
 {
-    const EntityCombatState* state = context.stateManager.GetState(entityContext.entity->address);
+    const EntityCombatState* state = context.stateManager.GetState(entityContext.entity->GetCombatKey());
     if (!state || state->positionHistory.empty()) {
         return {};
     }

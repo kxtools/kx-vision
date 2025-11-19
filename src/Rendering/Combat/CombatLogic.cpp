@@ -20,9 +20,9 @@ namespace kx {
         // 1. Animate fade-outs for damage bars
         UpdateDamageAccumulatorAnimation(state, now);
         
-        // 2. Check for Respawns/Mounting/Phase Changes
-        // If this returns true, the state was reset, so we stop processing changes this frame.
-        if (DetectStateChangeOrRespawn(entity, state, now)) {
+        // 2. Check for State Transitions (Mounting, Downed state, Form changes)
+        // If this returns true, the state was adjusted, so we stop processing changes this frame.
+        if (HandleAttributeChanges(entity, state, now)) {
             return; 
         }
 
@@ -60,28 +60,37 @@ namespace kx {
         }
     }
 
-    bool CombatLogic::DetectStateChangeOrRespawn(const RenderableEntity* entity, EntityCombatState& state, uint64_t now)
+    bool CombatLogic::HandleAttributeChanges(const RenderableEntity* entity, EntityCombatState& state, uint64_t now)
     {
         const float currentHealth = entity->currentHealth;
         const float currentMaxHealth = entity->maxHealth;
 
-        // Case 1: Max health changes (handles downed state, mounting, phase transitions, address reuse)
+        // Case 1: Max health changes (Downed state, Mounting, Form change)
+        // We check for > 1.0f diff to ignore floating point jitter
         if (state.lastKnownMaxHealth > 0 && abs(currentMaxHealth - state.lastKnownMaxHealth) > 1.0f)
         {
-            ResetForRespawn(state, currentHealth, now);
-            state.lastKnownMaxHealth = currentMaxHealth; // Update max health after reset
-            return true;
+            // OPTION B: "Swallow" the change.
+            // We update the baselines so the next frame calculates damage relative to 
+            // this new state, but we DO NOT wipe the accumulated history.
+            state.lastKnownHealth = currentHealth;
+            state.lastKnownMaxHealth = currentMaxHealth;
+            
+            // Update barrier baseline too, as mounting often resets barrier
+            state.lastKnownBarrier = entity->currentBarrier;
+
+            return true; // Signal that we handled a state change, so skip standard damage logic this frame
         }
 
-        // Case 2: Instant destruction from full health (gadget-only behavior)
+        // Case 2: Instant destruction (Gadgets)
+        // Gadgets don't mount or go downed, so a sudden drop to 0 is valid death/respawn logic.
         if (entity->entityType == EntityTypes::Gadget)
         {
             if (state.lastKnownMaxHealth > 0 &&
-                state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health
-                currentHealth <= 0.0f) // Is now at zero or less
+                state.lastKnownHealth >= state.lastKnownMaxHealth && 
+                currentHealth <= 0.0f) 
             {
-                ResetForRespawn(state, currentHealth, now);
-                return true;
+                 ResetForRespawn(state, currentHealth, now);
+                 return true;
             }
         }
 

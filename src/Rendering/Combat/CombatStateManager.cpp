@@ -4,9 +4,9 @@
 
 namespace kx
 {
-	EntityCombatState& CombatStateManager::AcquireState(const RenderableEntity* entity)
+	EntityCombatState& CombatStateManager::AcquireState(CombatStateKey key)
 	{
-		return m_entityStates[entity->address]; // creates if missing
+		return m_entityStates[key];
 	}
 
 	void CombatStateManager::Update(const std::vector<RenderableEntity*>& entities, uint64_t now)
@@ -18,32 +18,29 @@ namespace kx
 				continue;
 			}
 
-			// 1. Get Storage
-			EntityCombatState& state = AcquireState(entity);
-			
-			// 2. Delegate Logic
+			CombatStateKey key = entity->GetCombatKey();
+			EntityCombatState& state = AcquireState(key);
 			CombatLogic::UpdateState(state, entity, now);
 		}
 	}
 
-	const EntityCombatState* CombatStateManager::GetState(const void* entityId) const
+	const EntityCombatState* CombatStateManager::GetState(CombatStateKey key) const
 	{
-		auto it = m_entityStates.find(entityId);
+		auto it = m_entityStates.find(key);
 		return (it != m_entityStates.end()) ? &it->second : nullptr;
 	}
 
-	EntityCombatState* CombatStateManager::GetStateNonConst(const void* entityId)
+	EntityCombatState* CombatStateManager::GetStateNonConst(CombatStateKey key)
 	{
-		auto it = m_entityStates.find(entityId);
+		auto it = m_entityStates.find(key);
 		return (it != m_entityStates.end()) ? &it->second : nullptr;
 	}
 
-	void CombatStateManager::Prune(const std::unordered_set<const void*>& activeEntities)
+	void CombatStateManager::Prune(const std::unordered_set<CombatStateKey, CombatStateKeyHash>& activeKeys)
 	{
 		for (auto it = m_entityStates.begin(); it != m_entityStates.end();)
 		{
-			// If the entity address is NOT in the active list, it's truly gone.
-			if (activeEntities.find(it->first) == activeEntities.end()) {
+			if (activeKeys.find(it->first) == activeKeys.end()) {
 				it = m_entityStates.erase(it);
 			} else {
 				++it;

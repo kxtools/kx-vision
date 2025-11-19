@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <vector>
 #include "CombatState.h"
+#include "CombatStateKey.h"
 #include "../Data/RenderableData.h" // For RenderableEntity
 
 namespace kx
@@ -31,19 +32,19 @@ namespace kx
 
 		/**
 		 * @brief Remove combat state for entities that are no longer present in the game.
-		 * @param activeEntities Set of entity addresses that are currently active in the game.
+		 * @param activeKeys Set of entity keys that are currently active in the game.
 		 */
-		void Prune(const std::unordered_set<const void*>& activeEntities);
+		void Prune(const std::unordered_set<CombatStateKey, CombatStateKeyHash>& activeKeys);
 
 		/**
 		 * @brief Get immutable pointer to stored entity combat state (nullptr if missing).
 		 */
-		const EntityCombatState* GetState(const void* entityId) const;
+		const EntityCombatState* GetState(CombatStateKey key) const;
 
 	private:
-		EntityCombatState* GetStateNonConst(const void* entityId);
-		std::unordered_map<const void*, EntityCombatState> m_entityStates;
+		EntityCombatState* GetStateNonConst(CombatStateKey key);
+		std::unordered_map<CombatStateKey, EntityCombatState, CombatStateKeyHash> m_entityStates;
 
-		EntityCombatState& AcquireState(const RenderableEntity* entity);
+		EntityCombatState& AcquireState(CombatStateKey key);
 	};
 } // namespace kx

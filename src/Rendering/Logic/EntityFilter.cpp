@@ -10,8 +10,8 @@ namespace kx {
 
 namespace { // Anonymous namespace for local helpers
 
-    bool IsDeathAnimationPlaying(const void* entityAddress, const CombatStateManager& stateManager, uint64_t now) {
-        const EntityCombatState* state = stateManager.GetState(entityAddress);
+    bool IsDeathAnimationPlaying(const RenderableEntity* entity, const CombatStateManager& stateManager, uint64_t now) {
+        const EntityCombatState* state = stateManager.GetState(entity->GetCombatKey());
         if (!state || state->deathTimestamp == 0) {
             return false;
         }
@@ -64,7 +64,7 @@ void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, 
             // Now, perform player-specific filtering
             if (player->isLocalPlayer && !context.settings.playerESP.showLocalPlayer) continue;
             
-            if (player->currentHealth <= 0.0f && !IsDeathAnimationPlaying(player->address, context.stateManager, context.now)) {
+            if (player->currentHealth <= 0.0f && !IsDeathAnimationPlaying(player, context.stateManager, context.now)) {
                 continue;
             }
             
@@ -84,7 +84,7 @@ void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, 
             }
             
             // Now, perform NPC-specific filtering
-            if (npc->currentHealth <= 0.0f && !context.settings.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc->address, context.stateManager, context.now)) {
+            if (npc->currentHealth <= 0.0f && !context.settings.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc, context.stateManager, context.now)) {
                 continue;
             }
             
@@ -104,7 +104,7 @@ void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, 
             }
 
             // Now, perform gadget-specific filtering
-            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !context.settings.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget->address, context.stateManager, context.now)) {
+            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !context.settings.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget, context.stateManager, context.now)) {
                 continue;
             }
 
