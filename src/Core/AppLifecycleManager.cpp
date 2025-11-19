@@ -8,7 +8,7 @@
 #include "Hooks.h"
 #include "../Rendering/ImGui/ImGuiManager.h"
 #include "../Rendering/Core/ESPRenderer.h"
-#include "../Rendering/Utils/D3DState.h"
+#include "../Rendering/Shared/D3DState.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"

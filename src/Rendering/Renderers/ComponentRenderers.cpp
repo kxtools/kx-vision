@@ -5,7 +5,6 @@
 
 #include "TextRenderer.h"
 
-#include "../Layout/LayoutCursor.h"
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"
 

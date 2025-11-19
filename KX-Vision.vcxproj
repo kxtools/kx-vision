@@ -207,7 +207,7 @@
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPVisualsProcessor.h" />
     <ClInclude Include="src\Rendering\GUI\UIConstants.h" />
-    <ClInclude Include="src\Rendering\Layout\LayoutCursor.h" />
+    <ClInclude Include="src\Rendering\Renderers\LayoutCursor.h" />
     <ClInclude Include="src\Rendering\Renderers\ComponentRenderers.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPEnergyBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ESPTrailRenderer.h" />

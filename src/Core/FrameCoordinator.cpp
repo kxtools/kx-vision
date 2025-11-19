@@ -3,7 +3,7 @@
 #include "AppState.h"
 #include "Config.h"
 #include "../Rendering/ImGui/ImGuiManager.h"
-#include "../Rendering/Utils/D3DState.h"
+#include "../Rendering/Shared/D3DState.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
 

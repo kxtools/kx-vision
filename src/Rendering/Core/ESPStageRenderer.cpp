@@ -1,5 +1,4 @@
 #include "ESPStageRenderer.h"
-#include "../Layout/LayoutCursor.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Shared/ESPMath.h"
