@@ -15,7 +15,7 @@ struct TrailSegmentData {
     std::vector<std::pair<PositionHistoryPoint, PositionHistoryPoint>> teleportConnections;
 };
 
-class ESPTrailRenderer {
+class TrailRenderer {
 public:
     static void RenderPlayerTrail(
         const FrameContext& context,

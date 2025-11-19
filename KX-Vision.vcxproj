@@ -133,7 +133,7 @@
     <ClCompile Include="src\Rendering\Renderers\EnergyBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\HealthBarRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\ShapeRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\ESPTrailRenderer.cpp" />
+    <ClCompile Include="src\Rendering\Renderers\TrailRenderer.cpp" />
     <ClCompile Include="src\Rendering\Presentation\InfoBuilder.cpp" />
     <ClCompile Include="src\Rendering\Presentation\TextElementFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\TextRenderer.cpp" />
@@ -219,7 +219,7 @@
     <ClInclude Include="src\Rendering\Renderers\LayoutCursor.h" />
     <ClInclude Include="src\Rendering\Renderers\EntityComponentRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\EnergyBarRenderer.h" />
-    <ClInclude Include="src\Rendering\Renderers\ESPTrailRenderer.h" />
+    <ClInclude Include="src\Rendering\Renderers\TrailRenderer.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\FrameData.h" />
     <ClInclude Include="src\Rendering\Data\ESPEntityTypes.h" />

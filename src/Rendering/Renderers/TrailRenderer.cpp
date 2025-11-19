@@ -1,4 +1,4 @@
-#include "ESPTrailRenderer.h"
+#include "TrailRenderer.h"
 #include "../Data/FrameData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../Combat/CombatStateManager.h"
@@ -20,7 +20,7 @@ namespace {
     constexpr float TELEPORT_THRESHOLD_METERS = 10.0f;
 }
 
-void ESPTrailRenderer::RenderPlayerTrail(
+void TrailRenderer::RenderPlayerTrail(
     const FrameContext& context,
     const EntityRenderContext& entityContext,
     const VisualProperties& props)
@@ -58,7 +58,7 @@ void ESPTrailRenderer::RenderPlayerTrail(
                          renderTeleportConnections);
 }
 
-std::vector<PositionHistoryPoint> ESPTrailRenderer::CollectTrailPoints(
+std::vector<PositionHistoryPoint> TrailRenderer::CollectTrailPoints(
     const FrameContext& context,
     const EntityRenderContext& entityContext,
     uint64_t now)
@@ -108,7 +108,7 @@ std::vector<PositionHistoryPoint> ESPTrailRenderer::CollectTrailPoints(
     return worldPoints;
 }
 
-TrailSegmentData ESPTrailRenderer::GenerateSmoothTrail(
+TrailSegmentData TrailRenderer::GenerateSmoothTrail(
     const std::vector<PositionHistoryPoint>& worldPoints,
     float teleportThreshold)
 {
@@ -179,7 +179,7 @@ TrailSegmentData ESPTrailRenderer::GenerateSmoothTrail(
     return result;
 }
 
-void ESPTrailRenderer::ProjectAndRenderTrail(
+void TrailRenderer::ProjectAndRenderTrail(
     const FrameContext& context,
     const TrailSegmentData& segmentData,
     float thickness,

@@ -3,7 +3,7 @@
 #include "../../Game/Camera.h"
 #include "../Shared/LayoutConstants.h"
 #include "../Renderers/ShapeRenderer.h"
-#include "../Renderers/ESPTrailRenderer.h"
+#include "../Renderers/TrailRenderer.h"
 #include "../Renderers/EntityComponentRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../../libs/ImGui/imgui.h"
@@ -108,7 +108,7 @@ void StageRenderer::RenderFrameData(const FrameContext& context, const PooledFra
             
             // Render movement trail for players
             if (entityContext.entityType == ESPEntityType::Player) {
-                ESPTrailRenderer::RenderPlayerTrail(context, entityContext, *liveVisualsOpt);
+                TrailRenderer::RenderPlayerTrail(context, entityContext, *liveVisualsOpt);
             }
         }
     }
