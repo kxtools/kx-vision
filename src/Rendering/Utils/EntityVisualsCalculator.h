@@ -25,10 +25,11 @@ namespace {
 /**
  * @brief Utility class for calculating entity visual properties
  * 
- * This class separates the calculation of visual properties (screen position,
- * scale, alpha, dimensions) from the actual drawing. This enforces the Single
- * Responsibility Principle and makes the calculation logic pure, stateless,
- * and easily testable.
+ * This class separates the calculation of visual properties (scale, alpha, dimensions)
+ * from the actual drawing. Geometric projection (World-to-Screen) is handled exclusively
+ * in the render thread (ESPStageRenderer) to ensure accuracy with live camera data.
+ * This enforces the Single Responsibility Principle and makes the calculation logic pure,
+ * stateless, and easily testable.
  * 
  * All methods are static and operate on provided data without side effects.
  */
@@ -37,13 +38,13 @@ public:
     /**
      * @brief Calculate all visual properties for an entity
      * 
-     * This is the main entry point that calculates everything needed to render
-     * an entity. If the entity is not visible (off-screen, fully transparent),
-     * returns std::nullopt.
+     * This is the main entry point that calculates abstract visual properties (alpha, color, scale, sizes).
+     * Geometric projection (World-to-Screen) is NOT performed here - it is handled exclusively in
+     * ESPStageRenderer using the live camera. This method only performs distance-based culling.
      * 
      * @param entity The entity to process
      * @param context Frame context containing camera, settings, game state, etc.
-     * @return Visual properties if entity should be rendered, nullopt otherwise
+     * @return Visual properties if entity should be rendered (distance-based), nullopt if fully transparent
      */
     static std::optional<VisualProperties> Calculate(const RenderableEntity& entity,
                                                      const FrameContext& context);
@@ -86,18 +87,6 @@ public:
         float& outHeight);
 
 private:
-    /**
-     * @brief Check if entity is on screen and calculate screen position
-     * @param entity Entity to check (needed for type and dimensions)
-     * @param camera Camera for projection
-     * @param screenWidth Screen width
-     * @param screenHeight Screen height
-     * @param outScreenPos Output screen position (only valid if returns true)
-     * @return True if entity is visible on screen, false otherwise
-     */
-    static bool IsEntityOnScreen(const RenderableEntity& entity, Camera& camera,
-                                float screenWidth, float screenHeight, glm::vec2& outScreenPos);
-
     /**
      * @brief Calculate distance-based scale factor for entity rendering
      * @param visualDistance Visual distance from camera

@@ -21,22 +21,24 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
                                                                    const FrameContext& context) {
     VisualProperties props;
 
-    // 1. Check if entity is on screen
-    if (!IsEntityOnScreen(entity, context.camera, context.screenWidth, context.screenHeight, props.screenPos)) {
-        return std::nullopt; // Entity is not visible
-    }
+    // --- REMOVED PROJECTION CULLING ---
+    // We no longer check IsEntityOnScreen here.
+    // The background thread shouldn't cull based on Frustum, only Distance.
+    // Frustum culling is now handled exclusively in ESPStageRenderer::CalculateLiveVisuals.
+    // --------------------------------------------------
 
-    // Determine color based on entity type and attitude
-    unsigned int color = ESPStyling::GetEntityColor(entity);
-
-    // 2. Calculate distance-based fade alpha
     float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
     bool useLimitMode = activeLimit > 0.0f;
     props.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance, useLimitMode, activeLimit);
 
+    // Optimization: If the entity is too far away (gameplay distance), we can cull it here
+    // to save processing time.
     if (props.distanceFadeAlpha <= 0.0f) {
-        return std::nullopt; // Entity is fully transparent
+        return std::nullopt;
     }
+
+    // 2. Determine color based on entity type and attitude
+    unsigned int color = ESPStyling::GetEntityColor(entity);
 
     // 3. Apply distance fade to entity color
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(color, props.distanceFadeAlpha);
@@ -50,66 +52,17 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
                                              useLimitMode, entity.entityType,
                                              normalizedDistance);
 
-    // Removed: Hostile players now fade naturally with distance for better depth perception
-    // Red color + 2x text/health bars provide sufficient emphasis
-
-    // Apply final alpha to the entity color
+    // 6. Apply final alpha to the entity color
     props.fadedEntityColor = ESPShapeRenderer::ApplyAlphaToColor(props.fadedEntityColor, props.finalAlpha);
 
-    // 7. Calculate scaled sizes with limits
+    // 7. Calculate scaled sizes (Abstract sizes, not screen coordinates)
     EntityMultipliers multipliers = CalculateEntityMultipliers(entity);
     CalculateFinalSizes(props, props.scale, multipliers);
 
-    return props;
-}
+    // NOTE: props.screenPos, props.boxMin, props.boxMax are NOT calculated here anymore.
+    // They will be zero-initialized. ESPStageRenderer will calculate them using the live camera.
 
-bool EntityVisualsCalculator::IsEntityOnScreen(const RenderableEntity& entity, Camera& camera,
-                                              float screenWidth, float screenHeight, glm::vec2& outScreenPos) {
-    // Get world-space dimensions for the entity
-    float worldWidth, worldDepth, worldHeight;
-    
-    if (entity.hasPhysicsDimensions) {
-        worldWidth = entity.physicsWidth;
-        worldDepth = entity.physicsDepth;
-        worldHeight = entity.physicsHeight;
-    } else {
-        // Fallback to hardcoded constants if physics dimensions unavailable
-        GetWorldBoundsForEntity(entity.entityType, worldWidth, worldDepth, worldHeight);
-    }
-    
-    // Calculate the true 2D bounding box using the full 3D projection
-    VisualProperties tempProps;
-    bool isValidProjection;
-    Calculate3DBoundingBox(
-        entity.position,
-        worldWidth,
-        worldDepth,
-        worldHeight,
-        camera,
-        screenWidth,
-        screenHeight,
-        tempProps,
-        isValidProjection
-    );
-    
-    if (!isValidProjection) {
-        return false; // Entity is behind camera or invalid projection
-    }
-    
-    // Perform a 2D Axis-Aligned Bounding Box (AABB) intersection test.
-    // The entity is visible if its projected box overlaps with the screen's box.
-    bool overlapsX = tempProps.boxMin.x < screenWidth && tempProps.boxMax.x > 0;
-    bool overlapsY = tempProps.boxMin.y < screenHeight && tempProps.boxMax.y > 0;
-    
-    if (!overlapsX || !overlapsY) {
-        return false; // Entity is off-screen
-    }
-    
-    // Calculate screen position from the center of the projected box
-    outScreenPos.x = (tempProps.boxMin.x + tempProps.boxMax.x) * 0.5f;
-    outScreenPos.y = (tempProps.boxMin.y + tempProps.boxMax.y) * 0.5f;
-    
-    return true;
+    return props;
 }
 
 float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityType entityType, const FrameContext& context) {
