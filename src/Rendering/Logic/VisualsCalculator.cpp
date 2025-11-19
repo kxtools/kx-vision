@@ -1,15 +1,17 @@
 #define NOMINMAX
 
-#include "EntityVisualsCalculator.h"
+#include "VisualsCalculator.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
-#include "ESPMath.h"
-#include "ESPConstants.h"
-#include "ESPStyling.h"
 #include "../Data/RenderableData.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include <algorithm>
 #include <cmath>
+
+#include "Utils/ESPMath.h"
+#include "Utils/ESPStyling.h"
+#include "Utils/LayoutConstants.h"
+#include "Utils/ScalingConstants.h"
 
 namespace kx {
 
@@ -17,7 +19,7 @@ namespace { // Anonymous namespace for local helpers
 
 } // anonymous namespace
 
-std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const RenderableEntity& entity,
+std::optional<VisualProperties> VisualsCalculator::Calculate(const RenderableEntity& entity,
                                                                    const FrameContext& context) {
     VisualProperties props;
 
@@ -65,7 +67,7 @@ std::optional<VisualProperties> EntityVisualsCalculator::Calculate(const Rendera
     return props;
 }
 
-float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityType entityType, const FrameContext& context) {
+float VisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityType entityType, const FrameContext& context) {
     const auto& settings = context.settings;
     
     // Calculate the effective distance, which only starts counting after the "dead zone"
@@ -109,7 +111,7 @@ float EntityVisualsCalculator::CalculateEntityScale(float visualDistance, ESPEnt
     return (std::max)(settings.scaling.minScale, (std::min)(rawScale, settings.scaling.maxScale));
 }
 
-void EntityVisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityType, float scale,
+void VisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityType, float scale,
                                                           float& outBoxWidth, float& outBoxHeight) {
     const auto& settings = AppState::Get().GetSettings();
     
@@ -152,7 +154,7 @@ void EntityVisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityT
     }
 }
 
-void EntityVisualsCalculator::Calculate3DBoundingBox(
+void VisualsCalculator::Calculate3DBoundingBox(
     const glm::vec3& entityPos,
     float worldWidth,
     float worldDepth,
@@ -209,7 +211,7 @@ void EntityVisualsCalculator::Calculate3DBoundingBox(
     }
 }
 
-void EntityVisualsCalculator::GetWorldBoundsForEntity(
+void VisualsCalculator::GetWorldBoundsForEntity(
     ESPEntityType entityType,
     float& outWidth,
     float& outDepth,
@@ -238,7 +240,7 @@ void EntityVisualsCalculator::GetWorldBoundsForEntity(
     }
 }
 
-void EntityVisualsCalculator::ApplyFallback2DBox(
+void VisualsCalculator::ApplyFallback2DBox(
     const RenderableEntity& entity,
     VisualProperties& props,
     float scale,
@@ -250,7 +252,7 @@ void EntityVisualsCalculator::ApplyFallback2DBox(
     props.boxMax = ImVec2(screenPos.x + boxWidth / 2, screenPos.y);
 }
 
-void EntityVisualsCalculator::CalculateGadgetDimensions(
+void VisualsCalculator::CalculateGadgetDimensions(
     const RenderableEntity& entity,
     Camera& camera,
     float screenWidth,
@@ -301,7 +303,7 @@ void EntityVisualsCalculator::CalculateGadgetDimensions(
     }
 }
 
-void EntityVisualsCalculator::CalculatePlayerNPCDimensions(
+void VisualsCalculator::CalculatePlayerNPCDimensions(
     const RenderableEntity& entity,
     Camera& camera,
     float screenWidth,
@@ -349,7 +351,7 @@ void EntityVisualsCalculator::CalculatePlayerNPCDimensions(
     props.circleRadius = 0.0f; // No circle for players/NPCs
 }
 
-float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
+float VisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
                                                       bool useDistanceLimit, ESPEntityType entityType,
                                                       float& outNormalizedDistance) {
     const auto& settings = AppState::Get().GetSettings();
@@ -412,12 +414,12 @@ float EntityVisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, fl
     }
 }
 
-float EntityVisualsCalculator::CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier) {
+float VisualsCalculator::CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier) {
     float scaledSize = baseSize * scale * multiplier;
     return std::clamp(scaledSize, minLimit, maxLimit);
 }
 
-float EntityVisualsCalculator::CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
+float VisualsCalculator::CalculateDistanceFadeAlpha(float distance, bool useDistanceLimit, float distanceLimit) {
     if (!useDistanceLimit) {
         return 1.0f; // Fully visible when no distance limit
     }
@@ -439,7 +441,7 @@ float EntityVisualsCalculator::CalculateDistanceFadeAlpha(float distance, bool u
     }
 }
 
-EntityMultipliers EntityVisualsCalculator::CalculateEntityMultipliers(const RenderableEntity& entity) {
+EntityMultipliers VisualsCalculator::CalculateEntityMultipliers(const RenderableEntity& entity) {
     EntityMultipliers multipliers;
     
     // Calculate hostile multiplier
@@ -468,7 +470,7 @@ EntityMultipliers EntityVisualsCalculator::CalculateEntityMultipliers(const Rend
     return multipliers;
 }
 
-void EntityVisualsCalculator::CalculateFinalSizes(VisualProperties& props, 
+void VisualsCalculator::CalculateFinalSizes(VisualProperties& props, 
                                                  float scale,
                                                  const EntityMultipliers& multipliers) {
     const auto& settings = AppState::Get().GetSettings();

@@ -13,11 +13,11 @@
 #include "../Utils/ESPMath.h"
 #include "../Data/RenderableData.h"
 #include "ESPDataExtractor.h"
-#include "ESPFilter.h"
 #include "ESPVisualsProcessor.h"
 #include "ESPStageRenderer.h"
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
+#include "Logic/EntityFilter.h"
 
 namespace kx {
 
@@ -75,7 +75,7 @@ void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentT
         
         // Stage 2: Filter
         PooledFrameRenderData filteredData;
-        ESPFilter::FilterPooledData(extractedData, frameContext, filteredData);
+        EntityFilter::FilterPooledData(extractedData, frameContext, filteredData);
         
         // Stage 2.5: Calculate Visuals
         ESPVisualsProcessor::Process(frameContext, filteredData, s_processedRenderData);

@@ -1,7 +1,8 @@
 #include "ESPVisualsProcessor.h"
-#include "../Utils/EntityVisualsCalculator.h"
 #include "../Factories/ESPContextFactory.h"
 #include <vector>
+
+#include "Logic/VisualsCalculator.h"
 
 namespace kx {
 
@@ -26,7 +27,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
         // This now ONLY calculates colors, scales, and alphas.
         // It returns nullopt ONLY if distance culling (logic) fails.
         // It does NOT return nullopt if the entity is simply off-screen (geometry).
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
+        auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
@@ -40,7 +41,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
     for (const auto* entity : filteredData.npcs) {
         if (!entity) continue;
 
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
+        auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
@@ -52,7 +53,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
     for (const auto* entity : filteredData.gadgets) {
         if (!entity) continue;
 
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
+        auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);
@@ -64,7 +65,7 @@ void ESPVisualsProcessor::Process(const FrameContext& context,
     for (const auto* entity : filteredData.attackTargets) {
         if (!entity) continue;
 
-        auto visualPropsOpt = EntityVisualsCalculator::Calculate(*entity, context);
+        auto visualPropsOpt = VisualsCalculator::Calculate(*entity, context);
         
         if (visualPropsOpt) {
             EntityRenderContext renderContext = ESPContextFactory::CreateEntityRenderContextForRendering(entity, context);

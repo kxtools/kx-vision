@@ -7,7 +7,7 @@ namespace kx {
 
     class CombatStateManager; // Forward declaration
 
-class ESPFilter {
+class EntityFilter {
 public:
     /**
      * @brief OPTIMIZED filter method - filters already pooled data (no object allocations)

@@ -33,7 +33,7 @@ namespace {
  * 
  * All methods are static and operate on provided data without side effects.
  */
-class EntityVisualsCalculator {
+class VisualsCalculator {
 public:
     /**
      * @brief Calculate all visual properties for an entity

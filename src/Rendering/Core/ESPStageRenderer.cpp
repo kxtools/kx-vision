@@ -13,8 +13,9 @@
 #include "../Data/EntityRenderContext.h"
 #include "../Utils/RenderSettingsHelper.h"
 #include "../../../libs/ImGui/imgui.h"
-#include "../Utils/EntityVisualsCalculator.h"
 #include <optional>
+
+#include "Logic/VisualsCalculator.h"
 
 namespace kx {
 
@@ -36,13 +37,13 @@ std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const Fin
         worldHeight = item.entity->physicsHeight;
     } else {
         // Fallback to constants for entities without physics data.
-        EntityVisualsCalculator::GetWorldBoundsForEntity(item.entity->entityType, worldWidth, worldDepth, worldHeight);
+        VisualsCalculator::GetWorldBoundsForEntity(item.entity->entityType, worldWidth, worldDepth, worldHeight);
     }
     
     // 3. Project the 8 corners of the 3D world-space box into 2D screen space.
     // This is the core logic that ensures perspective correctness.
     bool isProjectionValid = false;
-    EntityVisualsCalculator::Calculate3DBoundingBox(
+    VisualsCalculator::Calculate3DBoundingBox(
         item.entity->position,
         worldWidth,
         worldDepth,

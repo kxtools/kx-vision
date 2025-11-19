@@ -9,7 +9,7 @@ namespace Filtering {
 /**
  * @brief Enhanced filtering utilities using the new game enums
  */
-class EntityFilter {
+class FilterSettings {
     static bool ShouldRenderByAttitude(Game::Attitude attitude, const AttitudeSettings& settings) {
         switch (attitude) {
             case Game::Attitude::Friendly:    return settings.showFriendly;

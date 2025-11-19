@@ -115,7 +115,7 @@
     <ClCompile Include="src\Rendering\Combat\CombatLogic.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPDataExtractor.cpp" />
-    <ClCompile Include="src\Rendering\Core\ESPFilter.cpp" />
+    <ClCompile Include="src\Rendering\Logic\EntityFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPVisualsProcessor.cpp" />
@@ -128,7 +128,7 @@
     <ClCompile Include="src\Rendering\Utils\ESPInfoBuilder.cpp" />
     <ClCompile Include="src\Rendering\Utils\TextElementFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\TextRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Utils\EntityVisualsCalculator.cpp" />
+    <ClCompile Include="src\Rendering\Logic\VisualsCalculator.cpp" />
     <ClCompile Include="src\Rendering\Utils\ESPMath.cpp" />
     <ClCompile Include="src\Core\AppLifecycleManager.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
@@ -202,7 +202,7 @@
     <ClInclude Include="src\Rendering\Combat\CombatState.h" />
     <ClInclude Include="src\Rendering\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Rendering\Core\ESPDataExtractor.h" />
-    <ClInclude Include="src\Rendering\Core\ESPFilter.h" />
+    <ClInclude Include="src\Rendering\Logic\EntityFilter.h" />
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPVisualsProcessor.h" />
@@ -237,7 +237,7 @@
     <ClInclude Include="src\Rendering\Utils\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Utils\ColorConstants.h" />
     <ClInclude Include="src\Rendering\Utils\CombatConstants.h" />
-    <ClInclude Include="src\Rendering\Utils\EntityVisualsCalculator.h" />
+    <ClInclude Include="src\Rendering\Logic\VisualsCalculator.h" />
     <ClInclude Include="src\Rendering\Utils\ESPConstants.h" />
     <ClInclude Include="src\Rendering\Utils\ESPFormatting.h" />
     <ClInclude Include="src\Rendering\Utils\ESPMath.h" />
@@ -246,7 +246,7 @@
     <ClInclude Include="src\Rendering\Utils\ScalingConstants.h" />
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Utils\DebugLogger.h" />
-    <ClInclude Include="src\Rendering\Utils\EntityFilter.h" />
+    <ClInclude Include="src\Rendering\Logic\FilterSettings.h" />
     <ClInclude Include="src\Rendering\ImGui\ImGuiStyle.h" />
     <ClInclude Include="src\Hooking\HookManager.h" />
     <ClInclude Include="src\Hooking\Hooks.h" />

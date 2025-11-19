@@ -1,6 +1,6 @@
-#include "ESPFilter.h"
+#include "EntityFilter.h"
 
-#include "Utils/EntityFilter.h"
+#include "FilterSettings.h"
 #include "../Data/RenderableData.h"
 #include "../Combat/CombatStateManager.h"
 #include "../Utils/ESPConstants.h"
@@ -44,7 +44,7 @@ namespace { // Anonymous namespace for local helpers
 
 } // anonymous namespace
 
-void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, const FrameContext& context,
+void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, const FrameContext& context,
                                  PooledFrameRenderData& filteredData) {
     filteredData.Reset();
     
@@ -67,7 +67,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, con
                 continue;
             }
             
-            if (!Filtering::EntityFilter::ShouldRenderPlayer(player->attitude, context.settings.playerESP)) continue;
+            if (!Filtering::FilterSettings::ShouldRenderPlayer(player->attitude, context.settings.playerESP)) continue;
             
             filteredData.players.push_back(player);
         }
@@ -87,7 +87,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, con
                 continue;
             }
             
-            if (!Filtering::EntityFilter::ShouldRenderNpc(npc->attitude, npc->rank, context.settings.npcESP)) continue;
+            if (!Filtering::FilterSettings::ShouldRenderNpc(npc->attitude, npc->rank, context.settings.npcESP)) continue;
             
             filteredData.npcs.push_back(npc);
         }
@@ -111,7 +111,7 @@ void ESPFilter::FilterPooledData(const PooledFrameRenderData& extractedData, con
                 continue;
             }
             
-            if (!Filtering::EntityFilter::ShouldRenderGadget(gadget->type, context.settings.objectESP)) continue;
+            if (!Filtering::FilterSettings::ShouldRenderGadget(gadget->type, context.settings.objectESP)) continue;
             
             // Note: Max height check is handled in context factory to disable box rendering only
             // Entity is still rendered with other visualizations (circles, dots, details, etc.)

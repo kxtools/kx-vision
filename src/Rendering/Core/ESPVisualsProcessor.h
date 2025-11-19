@@ -1,5 +1,3 @@
-// In Core/ESPVisualsProcessor.h
-
 #pragma once
 
 #include "../Data/ESPData.h"

@@ -11,7 +11,7 @@
 // Forward declaration to avoid circular dependency
 namespace kx {
 namespace Filtering {
-    class EntityFilter;
+    class FilterSettings;
 }
 }
 
