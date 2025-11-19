@@ -105,7 +105,7 @@ static void RenderDamageNumbers(const FrameContext& context, const EntityRenderC
     std::stringstream ss;
     ss << std::fixed << std::setprecision(0) << entityContext.healthBarAnim.damageNumberToDisplay;
     float finalFontSize = props.finalFontSize * EntityVisualsCalculator::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
-    TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize);
+    TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize, context.settings);
     TextRenderer::Render(context.drawList, element);
 }
 
@@ -157,7 +157,7 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
 
     TextElement element(ss.str(), anchorPos, TextAnchor::Custom);
     element.SetAlignment(TextAlignment::Left);
-    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER);
+    TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER, context.settings);
     style.enableBackground = false;
     style.textColor = ESPBarColors::BURST_DPS_TEXT;
     element.SetStyle(style);
@@ -175,7 +175,7 @@ void ComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRe
             glm::vec2 healthBarPos = cursor.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
             
             ESPHealthBarRenderer::RenderStandaloneHealthBar(ctx.drawList, healthBarPos, eCtx,
-                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize);
+                props.fadedEntityColor, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalFontSize, ctx.settings);
 
             RenderDamageNumbers(ctx, eCtx, props, healthBarPos);
             RenderBurstDps(ctx, eCtx, props, healthBarPos);
@@ -195,7 +195,7 @@ void ComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRe
         if (energyPercent >= 0.0f && eCtx.renderEnergyBar) {
             glm::vec2 barPos = cursor.GetTopLeftForBar(props.finalHealthBarWidth, props.finalHealthBarHeight);
             ESPHealthBarRenderer::RenderStandaloneEnergyBar(ctx.drawList, barPos, energyPercent,
-                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight);
+                props.finalAlpha, props.finalHealthBarWidth, props.finalHealthBarHeight, props.finalHealthBarHeight, ctx.settings);
             cursor.Advance(props.finalHealthBarHeight);
         }
     }
@@ -210,7 +210,7 @@ void ComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRende
                 case GearDisplayMode::Compact: {
                     auto summary = ESPInfoBuilder::BuildCompactGearSummary(player);
                     if (!summary.empty()) {
-                        TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, cursor.GetPosition(), props.finalAlpha, props.finalFontSize);
+                        TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
                         ImVec2 size = TextRenderer::Render(ctx.drawList, gearElement);
                         cursor.Advance(size.y);
                     }
@@ -220,7 +220,7 @@ void ComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRende
                     auto stats = ESPInfoBuilder::BuildDominantStats(player);
                     auto rarity = ESPInfoBuilder::GetHighestRarity(player);
                     if (!stats.empty()) {
-                        TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, cursor.GetPosition(), props.finalAlpha, props.finalFontSize);
+                        TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
                         ImVec2 size = TextRenderer::Render(ctx.drawList, statsElement);
                         cursor.Advance(size.y);
                     }
@@ -232,7 +232,7 @@ void ComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRende
     }
 
     if (eCtx.renderDetails && !eCtx.details.empty()) {
-        TextElement detailsElement = TextElementFactory::CreateDetailsTextAt(eCtx.details, cursor.GetPosition(), props.finalAlpha, props.finalFontSize);
+        TextElement detailsElement = TextElementFactory::CreateDetailsTextAt(eCtx.details, cursor.GetPosition(), props.finalAlpha, props.finalFontSize, ctx.settings);
         ImVec2 size = TextRenderer::Render(ctx.drawList, detailsElement);
         cursor.Advance(size.y);
     }

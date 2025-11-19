@@ -9,6 +9,7 @@ namespace kx {
     class CombatStateManager;
     struct EntityRenderContext;
     struct EntityCombatState;
+    struct Settings;
 
     /**
      * @brief Utility functions for rendering health & energy bars with combat effect overlays.
@@ -21,7 +22,8 @@ namespace kx {
             unsigned int entityColor,
             float barWidth,
             float barHeight,
-            float fontSize);
+            float fontSize,
+            const Settings& settings);
 
         static void RenderStandaloneEnergyBar(ImDrawList* drawList,
             const glm::vec2& barTopLeftPosition,
@@ -29,7 +31,8 @@ namespace kx {
             float fadeAlpha,
             float barWidth,
             float barHeight,
-            float healthBarHeight);
+            float healthBarHeight,
+            const Settings& settings);
 
     private:
         // --- Internal Specializations ---
@@ -40,7 +43,8 @@ namespace kx {
             float barWidth,
             unsigned int entityColor,
             float fadeAlpha,
-            float fontSize);
+            float fontSize,
+            const Settings& settings);
 
         // Add new helper for drawing text
         static void DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha);
@@ -70,30 +74,34 @@ namespace kx {
             float barWidth,
             float healthPercent,
             unsigned int entityColor,
-            float fadeAlpha);
+            float fadeAlpha,
+            const Settings& settings);
 
-        static void DrawHealOverlay(ImDrawList* dl, const EntityRenderContext& context, const ImVec2& barMin, float barWidth, float barHeight, float fadeAlpha);
+        static void DrawHealOverlay(ImDrawList* dl, const EntityRenderContext& context, const ImVec2& barMin, float barWidth, float barHeight, float fadeAlpha, const Settings& settings);
 
         static void DrawHealFlash(ImDrawList* dl,
             const EntityRenderContext& context,
             const ImVec2& barMin,
             float barWidth,
             float barHeight,
-            float fadeAlpha);
+            float fadeAlpha,
+            const Settings& settings);
 
         static void DrawAccumulatedDamage(ImDrawList* dl,
 			const EntityRenderContext& context,
             const ImVec2& barMin,
             float barWidth,
             float barHeight,
-            float fadeAlpha);
+            float fadeAlpha,
+            const Settings& settings);
 
         static void DrawDamageFlash(ImDrawList* dl,
             const EntityRenderContext& context,
             const ImVec2& barMin,
             float barWidth,
             float barHeight,
-            float fadeAlpha);
+            float fadeAlpha,
+            const Settings& settings);
 
         static void DrawBarrierOverlay(ImDrawList* dl,
             const EntityRenderContext& context,
@@ -101,7 +109,8 @@ namespace kx {
             const ImVec2& barMax,
             float barWidth,
             float barHeight,
-            float fadeAlpha);
+            float fadeAlpha,
+            const Settings& settings);
 
 
     };

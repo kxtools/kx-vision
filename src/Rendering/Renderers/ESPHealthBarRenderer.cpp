@@ -12,7 +12,7 @@
 #include "../Data/TextElement.h"
 #include "TextRenderer.h"
 #include "../Utils/LayoutConstants.h"
-#include "../../Core/AppState.h"
+#include "../../Core/Settings.h"
 #include "../Utils/RenderSettingsHelper.h"
 
 namespace kx {
@@ -43,13 +43,13 @@ namespace kx {
         float barWidth,
         float healthPercent,
         unsigned int entityColor,
-        float fadeAlpha) {
+        float fadeAlpha,
+        const Settings& settings) {
         float hpWidth = barWidth * Clamp01(healthPercent);
         ImVec2 hMin = barMin;
         ImVec2 hMax(barMin.x + hpWidth, barMax.y);
 
         // Apply global opacity to health bar fill
-        const auto& settings = AppState::Get().GetSettings();
         unsigned int healthAlpha =
 	        static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_HEALTH_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f);
         unsigned int baseColorNoA = (entityColor & 0x00FFFFFF);
@@ -59,7 +59,7 @@ namespace kx {
     }
 
     void ESPHealthBarRenderer::DrawHealOverlay(ImDrawList* dl, const EntityRenderContext& context, const ImVec2& barMin, float barWidth, float barHeight,
-	    float fadeAlpha)
+	    float fadeAlpha, const Settings& settings)
     {
         const auto& anim = context.healthBarAnim;
         if (anim.healOverlayAlpha <= 0.0f) return;
@@ -72,7 +72,6 @@ namespace kx {
         ImVec2 oMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
 
         // Apply global opacity to heal overlay
-        const auto& settings = AppState::Get().GetSettings();
         ImU32 color = ApplyAlphaToColor(ESPBarColors::HEAL_OVERLAY, anim.healOverlayAlpha * fadeAlpha * settings.appearance.globalOpacity);
         DrawFilledRect(dl, oMin, oMax, color, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
@@ -82,7 +81,8 @@ namespace kx {
         const ImVec2& barMin,
         float barWidth,
         float barHeight,
-        float fadeAlpha) {
+        float fadeAlpha,
+        const Settings& settings) {
         const auto& anim = context.healthBarAnim;
         if (anim.healFlashAlpha <= 0.0f) return;
 
@@ -94,7 +94,6 @@ namespace kx {
         ImVec2 fMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
 
         // Apply global opacity to heal flash
-        const auto& settings = AppState::Get().GetSettings();
         ImU32 flashColor = IM_COL32( // keep runtime alpha because it varies per frame
             255, 255, 255, static_cast<int>(anim.healFlashAlpha * 255 * fadeAlpha * settings.appearance.globalOpacity));
         flashColor = (ESPBarColors::HEAL_FLASH & 0x00FFFFFF) | (flashColor & 0xFF000000);
@@ -106,7 +105,8 @@ namespace kx {
         const ImVec2& barMin,
         float barWidth,
         float barHeight,
-        float fadeAlpha) {
+        float fadeAlpha,
+        const Settings& settings) {
         const auto& anim = context.healthBarAnim;
         // Exit if there's nothing to draw OR if the fade animation is complete
         if (anim.damageAccumulatorPercent <= 0.0f || anim.damageAccumulatorAlpha <= 0.0f) return;
@@ -123,7 +123,6 @@ namespace kx {
         unsigned int a = (base >> 24) & 0xFF;
         // --- THIS IS THE FIX ---
         // Multiply by the overall bar fade AND the specific accumulator fade animation alpha AND global opacity
-        const auto& settings = AppState::Get().GetSettings();
         unsigned int finalA = static_cast<unsigned int>(a * fadeAlpha * anim.damageAccumulatorAlpha * settings.appearance.globalOpacity + 0.5f);
         base = (base & 0x00FFFFFF) | (ClampAlpha(finalA) << 24);
         DrawFilledRect(dl, oMin, oMax, base, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
@@ -134,7 +133,8 @@ namespace kx {
         const ImVec2& barMin,
         float barWidth,
         float barHeight,
-        float fadeAlpha) {
+        float fadeAlpha,
+        const Settings& settings) {
         const auto& anim = context.healthBarAnim;
         if (anim.damageFlashAlpha <= 0.0f) return;
 
@@ -148,7 +148,6 @@ namespace kx {
 
         ImU32 flashColor = ESPBarColors::DAMAGE_FLASH;
         // Apply global opacity to damage flash
-        const auto& settings = AppState::Get().GetSettings();
         unsigned int a = static_cast<unsigned int>(255 * anim.damageFlashAlpha * fadeAlpha * settings.appearance.globalOpacity);
         flashColor = (flashColor & 0x00FFFFFF) | (ClampAlpha(a) << 24);
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
@@ -162,7 +161,8 @@ namespace kx {
         const ImVec2& barMax,
         float barWidth,
         float barHeight,
-        float fadeAlpha)
+        float fadeAlpha,
+        const Settings& settings)
     {
         const RenderableEntity* entity = context.entity;
         if (!entity || entity->maxHealth <= 0) return;
@@ -174,7 +174,6 @@ namespace kx {
         const float barrierPercent = animatedBarrier / entity->maxHealth;
 
         // Apply global opacity to barrier overlay
-        const auto& settings = AppState::Get().GetSettings();
         const ImU32 barrierColor = ApplyAlphaToColor(ESPBarColors::BARRIER_FILL, fadeAlpha * settings.appearance.globalOpacity);
         const ImU32 overflowOutlineColor = ApplyAlphaToColor(ESPBarColors::BARRIER_SEPARATOR, fadeAlpha * settings.appearance.globalOpacity);
 
@@ -222,7 +221,8 @@ namespace kx {
         unsigned int entityColor,
         float barWidth,
         float barHeight,
-        float fontSize) { 
+        float fontSize,
+        const Settings& settings) { 
         
         const auto& anim = context.healthBarAnim;
         float fadeAlpha = ((entityColor >> 24) & 0xFF) / 255.0f;
@@ -235,7 +235,6 @@ namespace kx {
         ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
 
         // Background
-        const auto& settings = AppState::Get().GetSettings();
         unsigned int bgAlpha =
             static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f);
         drawList->AddRectFilled(barMin,
@@ -245,7 +244,7 @@ namespace kx {
 
         // Alive vs Dead specialized rendering
         if (context.entity->currentHealth > 0) {
-            RenderAliveState(drawList, context, barMin, barMax, barWidth, entityColor, fadeAlpha, fontSize);
+            RenderAliveState(drawList, context, barMin, barMax, barWidth, entityColor, fadeAlpha, fontSize, settings);
         }
         else {
             RenderDeadState(drawList, context, barMin, barMax, barWidth, fadeAlpha);
@@ -292,7 +291,8 @@ namespace kx {
         float barWidth,
         unsigned int entityColor,
         float fadeAlpha,
-        float fontSize) {
+        float fontSize,
+        const Settings& settings) {
         const RenderableEntity* entity = context.entity;
         if (!entity || entity->maxHealth <= 0) return;
 
@@ -302,23 +302,22 @@ namespace kx {
         // 1. Base health fill
         DrawHealthBase(drawList, barMin, barMax, barWidth, 
             context.entity->maxHealth > 0 ? (context.entity->currentHealth / context.entity->maxHealth) : 0.0f, 
-            entityColor, fadeAlpha);
+            entityColor, fadeAlpha, settings);
 
         // 2. Healing overlays
-        DrawHealOverlay(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
-        DrawHealFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
+        DrawHealOverlay(drawList, context, barMin, barWidth, barHeight, fadeAlpha, settings);
+        DrawHealFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha, settings);
 
         // 3. Accumulated damage
-        DrawAccumulatedDamage(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
+        DrawAccumulatedDamage(drawList, context, barMin, barWidth, barHeight, fadeAlpha, settings);
 
         // 4. Damage flash
-        DrawDamageFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha);
+        DrawDamageFlash(drawList, context, barMin, barWidth, barHeight, fadeAlpha, settings);
 
         // 5. Barrier overlay (drawn last, on top of everything)
-        DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha);
+        DrawBarrierOverlay(drawList, context, barMin, barMax, barWidth, barHeight, fadeAlpha, settings);
 
         // 6. Health Percentage Text (drawn last, on top of everything)
-        const auto& settings = AppState::Get().GetSettings();
         bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(settings, context.entityType);
         if (shouldRenderHealthPercentage && context.entity->maxHealth > 0) {
             float healthPercent = context.entity->currentHealth / context.entity->maxHealth;
@@ -391,14 +390,14 @@ namespace kx {
         float fadeAlpha,
         float barWidth,
         float barHeight,
-        float healthBarHeight) {
+        float healthBarHeight,
+        const Settings& settings) {
         if (energyPercent < 0.0f || energyPercent > 1.0f) return;
 
         ImVec2 barMin(barTopLeftPosition.x, barTopLeftPosition.y);
         ImVec2 barMax(barTopLeftPosition.x + barWidth, barTopLeftPosition.y + barHeight);
 
         // Background
-        const auto& settings = AppState::Get().GetSettings();
         unsigned int bgAlpha =
             ClampAlpha(static_cast<unsigned int>(RenderingLayout::STANDALONE_HEALTH_BAR_BG_ALPHA * fadeAlpha * settings.appearance.globalOpacity + 0.5f));
         drawList->AddRectFilled(barMin,

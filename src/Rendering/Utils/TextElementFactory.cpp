@@ -7,7 +7,7 @@
 #include "../Utils/ESPStyling.h"
 #include "../Utils/ESPFormatting.h"
 #include "../Utils/ColorConstants.h"
-#include "../../Core/AppState.h"
+#include "../../Core/Settings.h"
 #include "../../Utils/UnitConversion.h"
 #include <sstream>
 #include <iomanip>
@@ -18,10 +18,10 @@ namespace {
     /**
      * @brief Format distance based on user's display mode preference
      * @param meters Distance in meters
+     * @param settings Settings reference for display mode
      * @return Formatted distance string
      */
-    std::string FormatDistance(float meters) {
-        const auto& settings = AppState::Get().GetSettings();
+    std::string FormatDistance(float meters, const Settings& settings) {
         float units = UnitConversion::MetersToGW2Units(meters);
         
         std::ostringstream oss;
@@ -44,23 +44,23 @@ namespace {
 }
 
 TextElement TextElementFactory::CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
-    unsigned int entityColor, float fadeAlpha, float fontSize) {
+    unsigned int entityColor, float fadeAlpha, float fontSize, const Settings& settings) {
     TextElement element(playerName, {0,0});
-    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize));
+    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize, settings));
     return element;
 }
 
-TextElement TextElementFactory::CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize) {
-    std::string formattedDistance = FormatDistance(distance);
+TextElement TextElementFactory::CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize, const Settings& settings) {
+    std::string formattedDistance = FormatDistance(distance, settings);
     
     TextElement element(formattedDistance, position, TextAnchor::AbsoluteTopLeft);
-    element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize));
+    element.SetStyle(GetDistanceStyle(fadeAlpha, fontSize, settings));
     element.SetAlignment(TextAlignment::Center);
     return element;
 }
 
 TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetail>& details,
-                                                  const glm::vec2& anchorPos, float fadeAlpha, float fontSize) {
+                                                  const glm::vec2& anchorPos, float fadeAlpha, float fontSize, const Settings& settings) {
     if (details.empty()) {
         return TextElement("", {0,0});
     }
@@ -74,7 +74,7 @@ TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetai
     
     TextElement element(lines, {0,0});
     
-    TextStyle style = GetDetailsStyle(fadeAlpha, fontSize);
+    TextStyle style = GetDetailsStyle(fadeAlpha, fontSize, settings);
     element.SetStyle(style);
     element.SetLineSpacing(RenderingLayout::DETAILS_TEXT_LINE_SPACING);
     
@@ -82,7 +82,7 @@ TextElement TextElementFactory::CreateDetailsText(const std::vector<ColoredDetai
 }
 
 TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatInfo>& summary,
-                                                  const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
+                                                  const glm::vec2& feetPos, float fadeAlpha, float fontSize, const Settings& settings) {
     if (summary.empty()) {
         return TextElement("", {0,0});
     }
@@ -112,7 +112,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
     
     TextElement element(segments, {0,0});
     
-    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize, settings);
     style.useCustomTextColor = true;  // Enable per-segment colors
     element.SetStyle(style);
     
@@ -121,7 +121,7 @@ TextElement TextElementFactory::CreateGearSummary(const std::vector<CompactStatI
 
 TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantStat>& stats,
                                                     Game::ItemRarity topRarity, // topRarity is no longer used for coloring, but kept for signature compatibility
-                                                    const glm::vec2& feetPos, float fadeAlpha, float fontSize) {
+                                                    const glm::vec2& feetPos, float fadeAlpha, float fontSize, const Settings& settings) {
     if (stats.empty()) {
         return TextElement("", {0,0});
     }
@@ -150,14 +150,14 @@ TextElement TextElementFactory::CreateDominantStats(const std::vector<DominantSt
     
     TextElement element(segments, {0,0});
 
-    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize, settings);
     style.useCustomTextColor = true; // IMPORTANT: Enable per-segment coloring
     element.SetStyle(style);
     
     return element;
 }
 
-TextElement TextElementFactory::CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize)
+TextElement TextElementFactory::CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize, const Settings& settings)
 {
     // Anchor above the health bar with a small gap
     TextElement element(number, anchorPos, glm::vec2(0.0f, -5.0f)); 
@@ -168,7 +168,6 @@ TextElement TextElementFactory::CreateDamageNumber(const std::string& number, co
     style.fadeAlpha = fadeAlpha;
     style.textColor = IM_COL32(255, 255, 255, 255); // Full white
     // Shadow (respect global setting)
-    const auto& settings = AppState::Get().GetSettings();
     style.enableShadow = settings.appearance.enableTextShadows;
     style.shadowAlpha = RenderingLayout::TEXT_SHADOW_ALPHA;
     style.enableBackground = false; // No background, just the number
@@ -178,15 +177,15 @@ TextElement TextElementFactory::CreateDamageNumber(const std::string& number, co
 }
 
 TextElement TextElementFactory::CreatePlayerNameAt(const std::string& playerName, const glm::vec2& position, 
-    unsigned int entityColor, float fadeAlpha, float fontSize) {
+    unsigned int entityColor, float fadeAlpha, float fontSize, const Settings& settings) {
     TextElement element(playerName, position, TextAnchor::AbsoluteTopLeft);
-    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize));
+    element.SetStyle(GetPlayerNameStyle(fadeAlpha, entityColor, fontSize, settings));
     element.SetAlignment(TextAlignment::Center);
     return element;
 }
 
 TextElement TextElementFactory::CreateDetailsTextAt(const std::vector<ColoredDetail>& details, const glm::vec2& position, 
-                                                  float fadeAlpha, float fontSize) {
+                                                  float fadeAlpha, float fontSize, const Settings& settings) {
     if (details.empty()) {
         return TextElement("", position, TextAnchor::AbsoluteTopLeft);
     }
@@ -198,7 +197,7 @@ TextElement TextElementFactory::CreateDetailsTextAt(const std::vector<ColoredDet
     
     TextElement element(lines, position, TextAnchor::AbsoluteTopLeft);
     
-    TextStyle style = GetDetailsStyle(fadeAlpha, fontSize);
+    TextStyle style = GetDetailsStyle(fadeAlpha, fontSize, settings);
     element.SetStyle(style);
     element.SetLineSpacing(RenderingLayout::DETAILS_TEXT_LINE_SPACING);
     element.SetAlignment(TextAlignment::Center);
@@ -207,7 +206,7 @@ TextElement TextElementFactory::CreateDetailsTextAt(const std::vector<ColoredDet
 }
 
 TextElement TextElementFactory::CreateGearSummaryAt(const std::vector<CompactStatInfo>& summary, const glm::vec2& position, 
-                                                  float fadeAlpha, float fontSize) {
+                                                  float fadeAlpha, float fontSize, const Settings& settings) {
     if (summary.empty()) {
         return TextElement("", position, TextAnchor::AbsoluteTopLeft);
     }
@@ -232,7 +231,7 @@ TextElement TextElementFactory::CreateGearSummaryAt(const std::vector<CompactSta
     
     TextElement element(segments, position, TextAnchor::AbsoluteTopLeft);
     
-    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize, settings);
     style.useCustomTextColor = true;
     element.SetStyle(style);
     element.SetAlignment(TextAlignment::Center);
@@ -241,7 +240,7 @@ TextElement TextElementFactory::CreateGearSummaryAt(const std::vector<CompactSta
 }
 
 TextElement TextElementFactory::CreateDominantStatsAt(const std::vector<DominantStat>& stats, Game::ItemRarity topRarity, 
-                                                    const glm::vec2& position, float fadeAlpha, float fontSize) {
+                                                    const glm::vec2& position, float fadeAlpha, float fontSize, const Settings& settings) {
     if (stats.empty()) {
         return TextElement("", position, TextAnchor::AbsoluteTopLeft);
     }
@@ -266,7 +265,7 @@ TextElement TextElementFactory::CreateDominantStatsAt(const std::vector<Dominant
     
     TextElement element(segments, position, TextAnchor::AbsoluteTopLeft);
 
-    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize);
+    TextStyle style = GetSummaryStyle(fadeAlpha, fontSize, settings);
     style.useCustomTextColor = true;
     element.SetStyle(style);
     element.SetAlignment(TextAlignment::Center);
@@ -274,13 +273,10 @@ TextElement TextElementFactory::CreateDominantStatsAt(const std::vector<Dominant
     return element;
 }
 
-TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor, float fontSize) { // Add fontSize
+TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor, float fontSize, const Settings& settings) {
     TextStyle style;
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
-    
-    // Get settings once for both shadow and background
-    const auto& settings = AppState::Get().GetSettings();
     
     // Text - use entityColor directly (already has proper RGB values from ESPColors constants)
     // Just replace the alpha component with our text alpha
@@ -304,13 +300,10 @@ TextStyle TextElementFactory::GetPlayerNameStyle(float fadeAlpha, unsigned int e
     return style;
 }
 
-TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha, float fontSize) {
+TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha, float fontSize, const Settings& settings) {
     TextStyle style;
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
-    
-    // Get settings once for both shadow and background
-    const auto& settings = AppState::Get().GetSettings();
     
     // Text
     style.textColor = IM_COL32(255, 255, 255, static_cast<unsigned int>(RenderingLayout::DISTANCE_TEXT_TEXT_ALPHA));
@@ -332,14 +325,11 @@ TextStyle TextElementFactory::GetDistanceStyle(float fadeAlpha, float fontSize) 
     return style;
 }
 
-TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha, float fontSize) {
+TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha, float fontSize, const Settings& settings) {
     TextStyle style;
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
     style.useCustomTextColor = true;  // Details have per-line colors
-    
-    // Get settings once for both shadow and background
-    const auto& settings = AppState::Get().GetSettings();
     
     // Shadow (respect global setting)
     style.enableShadow = settings.appearance.enableTextShadows;
@@ -358,13 +348,10 @@ TextStyle TextElementFactory::GetDetailsStyle(float fadeAlpha, float fontSize) {
     return style;
 }
 
-TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha, float fontSize) {
+TextStyle TextElementFactory::GetSummaryStyle(float fadeAlpha, float fontSize, const Settings& settings) {
     TextStyle style;
     style.fontSize = fontSize;
     style.fadeAlpha = fadeAlpha;
-    
-    // Get settings once for both shadow and background
-    const auto& settings = AppState::Get().GetSettings();
     
     // Text - use SUMMARY_TEXT_RGB base color with custom alpha
     style.textColor = (ESPColors::SUMMARY_TEXT_RGB & 0x00FFFFFF) | (static_cast<unsigned int>(RenderingLayout::SUMMARY_TEXT_ALPHA) << 24);
@@ -415,13 +402,13 @@ TextElement TextElementFactory::CreateIdentityLine(const LayoutRequest& request,
         if (includeName) {
             segments.push_back({ " • ", ESPColors::DEFAULT_TEXT });
         }
-        std::string formattedDistance = FormatDistance(entityContext.gameplayDistance);
+        std::string formattedDistance = FormatDistance(entityContext.gameplayDistance, request.frameContext.settings);
         segments.push_back({ formattedDistance, ESPColors::DEFAULT_TEXT });
     }
     
     // Create and Style the TextElement
     TextElement element(segments, {0,0});
-    TextStyle style = GetPlayerNameStyle(props.finalAlpha, props.fadedEntityColor, props.finalFontSize);
+    TextStyle style = GetPlayerNameStyle(props.finalAlpha, props.fadedEntityColor, props.finalFontSize, request.frameContext.settings);
     style.useCustomTextColor = true;
     element.SetStyle(style);
 

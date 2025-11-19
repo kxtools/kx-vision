@@ -15,6 +15,7 @@ struct DominantStat;
 struct EntityRenderContext;
 struct VisualProperties;
 struct FrameContext;
+struct Settings;
 
 // LayoutRequest structure (used by CreateIdentityLine)
 struct LayoutRequest {
@@ -41,8 +42,8 @@ public:
      * @return Styled text element
      */
     static TextElement CreatePlayerName(const std::string& playerName, const glm::vec2& feetPos,
-        unsigned int entityColor, float fadeAlpha, float fontSize);
-    static TextElement CreatePlayerNameAt(const std::string& playerName, const glm::vec2& position, unsigned int entityColor, float fadeAlpha, float fontSize);
+        unsigned int entityColor, float fadeAlpha, float fontSize, const Settings& settings);
+    static TextElement CreatePlayerNameAt(const std::string& playerName, const glm::vec2& position, unsigned int entityColor, float fadeAlpha, float fontSize, const Settings& settings);
     
     /**
      * @brief Create a distance text element (shown above entity)
@@ -52,7 +53,7 @@ public:
      * @param fontSize Font size to use
      * @return Styled text element
      */
-    static TextElement CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize);
+    static TextElement CreateDistanceTextAt(float distance, const glm::vec2& position, float fadeAlpha, float fontSize, const Settings& settings);
     
     /**
      * @brief Create a details text element (multi-line colored details)
@@ -63,8 +64,8 @@ public:
      * @return Styled text element
      */
     static TextElement CreateDetailsText(const std::vector<ColoredDetail>& details,
-                                        const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
-    static TextElement CreateDetailsTextAt(const std::vector<ColoredDetail>& details, const glm::vec2& position, float fadeAlpha, float fontSize);
+                                        const glm::vec2& anchorPos, float fadeAlpha, float fontSize, const Settings& settings);
+    static TextElement CreateDetailsTextAt(const std::vector<ColoredDetail>& details, const glm::vec2& position, float fadeAlpha, float fontSize, const Settings& settings);
     
     /**
      * @brief Create a gear summary text element (multi-colored stat summary)
@@ -75,8 +76,8 @@ public:
      * @return Styled text element
      */
     static TextElement CreateGearSummary(const std::vector<CompactStatInfo>& summary,
-                                        const glm::vec2& feetPos, float fadeAlpha, float fontSize);
-    static TextElement CreateGearSummaryAt(const std::vector<CompactStatInfo>& summary, const glm::vec2& position, float fadeAlpha, float fontSize);
+                                        const glm::vec2& feetPos, float fadeAlpha, float fontSize, const Settings& settings);
+    static TextElement CreateGearSummaryAt(const std::vector<CompactStatInfo>& summary, const glm::vec2& position, float fadeAlpha, float fontSize, const Settings& settings);
     
     /**
      * @brief Create a dominant stats text element
@@ -88,10 +89,10 @@ public:
      */
     static TextElement CreateDominantStats(const std::vector<DominantStat>& stats,
                                           Game::ItemRarity topRarity,
-                                          const glm::vec2& feetPos, float fadeAlpha, float fontSize);
-    static TextElement CreateDominantStatsAt(const std::vector<DominantStat>& stats, Game::ItemRarity topRarity, const glm::vec2& position, float fadeAlpha, float fontSize);
+                                          const glm::vec2& feetPos, float fadeAlpha, float fontSize, const Settings& settings);
+    static TextElement CreateDominantStatsAt(const std::vector<DominantStat>& stats, Game::ItemRarity topRarity, const glm::vec2& position, float fadeAlpha, float fontSize, const Settings& settings);
     
-    static TextElement CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize);
+    static TextElement CreateDamageNumber(const std::string& number, const glm::vec2& anchorPos, float fadeAlpha, float fontSize, const Settings& settings);
 
     /**
      * @brief Create a merged identity line (name + distance) text element
@@ -105,22 +106,22 @@ public:
     /**
      * @brief Get default style for player names
      */
-    static TextStyle GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor, float fontSize);
+    static TextStyle GetPlayerNameStyle(float fadeAlpha, unsigned int entityColor, float fontSize, const Settings& settings);
     
     /**
      * @brief Get default style for distance text
      */
-    static TextStyle GetDistanceStyle(float fadeAlpha, float fontSize);
+    static TextStyle GetDistanceStyle(float fadeAlpha, float fontSize, const Settings& settings);
     
     /**
      * @brief Get default style for details text
      */
-    static TextStyle GetDetailsStyle(float fadeAlpha, float fontSize);
+    static TextStyle GetDetailsStyle(float fadeAlpha, float fontSize, const Settings& settings);
     
     /**
      * @brief Get default style for gear summary
      */
-    static TextStyle GetSummaryStyle(float fadeAlpha, float fontSize);
+    static TextStyle GetSummaryStyle(float fadeAlpha, float fontSize, const Settings& settings);
 };
 
 } // namespace kx
