@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "RenderableData.h"
-#include "ESPEntityTypes.h"
+#include "EntityTypes.h"
 #include "../../Game/GameEnums.h"
 
 namespace kx {
@@ -103,7 +103,7 @@ struct EntityRenderContext {
     bool renderEnergyBar;
     
     /** Entity type classification for rendering logic */
-    ESPEntityType entityType;
+    EntityTypes entityType;
     
     /** Attitude/relationship for NPCs and players (used for health bar coloring) */
     Game::Attitude attitude;

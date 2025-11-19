@@ -5,7 +5,7 @@
 #include "../../Utils/StringHelpers.h"
 #include <vector>
 
-#include "Shared/ESPFormatting.h"
+#include "Shared/Formatting.h"
 
 namespace kx {
 
@@ -34,7 +34,7 @@ namespace PhysicsValidation {
         // --- Populate Core Data ---
         outPlayer.position = TransformGamePositionToMumble(gamePos);
         outPlayer.isValid = true;
-        outPlayer.entityType = ESPEntityType::Player;
+        outPlayer.entityType = EntityTypes::Player;
         outPlayer.address = inCharacter.data();
         outPlayer.isLocalPlayer = (outPlayer.address == localPlayerPtr);
         if (playerName) {
@@ -97,7 +97,7 @@ namespace PhysicsValidation {
         // --- Populate Core Data ---
         outNpc.position = TransformGamePositionToMumble(gamePos);
         outNpc.isValid = true;
-        outNpc.entityType = ESPEntityType::NPC;
+        outNpc.entityType = EntityTypes::NPC;
         outNpc.address = inCharacter.data();
 
         // --- Agent Info ---
@@ -134,7 +134,7 @@ namespace PhysicsValidation {
         // --- Populate Core Data ---
         outGadget.position = TransformGamePositionToMumble(gamePos);
         outGadget.isValid = true;
-        outGadget.entityType = ESPEntityType::Gadget;
+        outGadget.entityType = EntityTypes::Gadget;
         outGadget.address = inGadget.data();
         outGadget.type = inGadget.GetGadgetType();
         outGadget.isGatherable = inGadget.IsGatherable();
@@ -177,7 +177,7 @@ namespace PhysicsValidation {
         // --- Populate Core Data ---
         outAttackTarget.position = TransformGamePositionToMumble(gamePos);
         outAttackTarget.isValid = true;
-        outAttackTarget.entityType = ESPEntityType::AttackTarget;
+        outAttackTarget.entityType = EntityTypes::AttackTarget;
         outAttackTarget.address = inAgentInl.data();
         outAttackTarget.agentType = agKeyframed.GetType();
         outAttackTarget.agentId = agKeyframed.GetId();
@@ -219,7 +219,7 @@ namespace PhysicsValidation {
             slotInfo.itemId = itemDef.GetId();
             slotInfo.rarity = itemDef.GetRarity();
 
-            if (ESPFormatting::IsWeaponSlot(slotEnum)) {
+            if (Formatting::IsWeaponSlot(slotEnum)) {
                 ReClass::Stat stat = slot.GetStatWeapon();
                 if (stat) slotInfo.statId = stat.GetId();
             }

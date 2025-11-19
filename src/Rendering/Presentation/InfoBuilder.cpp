@@ -10,7 +10,7 @@
 
 #include "Styling.h"
 #include "Shared/ColorConstants.h"
-#include "Shared/ESPFormatting.h"
+#include "Shared/Formatting.h"
 
 namespace kx {
 
@@ -49,7 +49,7 @@ std::vector<ColoredDetail> InfoBuilder::BuildPlayerDetails(const RenderablePlaye
     }
 
     if (settings.showDetailProfession && player->profession != Game::Profession::None) {
-        const char* profName = ESPFormatting::GetProfessionName(player->profession);
+        const char* profName = Formatting::GetProfessionName(player->profession);
         if (profName) {
             details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Prof: {}", profName));
         } else {
@@ -58,12 +58,12 @@ std::vector<ColoredDetail> InfoBuilder::BuildPlayerDetails(const RenderablePlaye
     }
 
     if (settings.showDetailAttitude) {
-        const char* attitudeName = ESPFormatting::GetAttitudeName(player->attitude);
+        const char* attitudeName = Formatting::GetAttitudeName(player->attitude);
         details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Attitude: {}", attitudeName ? attitudeName : "Unknown"));
     }
 
     if (settings.showDetailRace && player->race != Game::Race::None) {
-        const char* raceName = ESPFormatting::GetRaceName(player->race);
+        const char* raceName = Formatting::GetRaceName(player->race);
         if (raceName) {
             details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Race: {}", raceName));
         } else {
@@ -106,7 +106,7 @@ std::vector<ColoredDetail> InfoBuilder::BuildGearDetails(const RenderablePlayer*
 
     for (const auto& slotEnum : displayOrder) {
         if (auto gearIt = player->gear.find(slotEnum); gearIt != player->gear.end()) {
-            const char* slotName = ESPFormatting::EquipmentSlotToString(gearIt->first);
+            const char* slotName = Formatting::EquipmentSlotToString(gearIt->first);
             const GearSlotInfo& info = gearIt->second;
             ImU32 rarityColor = Styling::GetRarityColor(info.rarity);
 
@@ -193,7 +193,7 @@ std::vector<DominantStat> InfoBuilder::BuildDominantStats(const RenderablePlayer
     allStats.reserve(attributeCounts.size());
 
     for (const auto& [attr, count] : attributeCounts) {
-        const char* name = ESPFormatting::GetAttributeShortName(attr);
+        const char* name = Formatting::GetAttributeShortName(attr);
         
         allStats.push_back({ name, (count / totalAttributes) * 100.0f, Styling::GetTacticalColor(attr) });
     }
@@ -247,7 +247,7 @@ std::vector<ColoredDetail> InfoBuilder::BuildNpcDetails(const RenderableNpc* npc
     }
 
     if (settings.showDetailAttitude) {
-        const char* attitudeName = ESPFormatting::GetAttitudeName(npc->attitude);
+        const char* attitudeName = Formatting::GetAttitudeName(npc->attitude);
         if (attitudeName) {
             details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Attitude: {}", attitudeName));
         } else {
@@ -256,7 +256,7 @@ std::vector<ColoredDetail> InfoBuilder::BuildNpcDetails(const RenderableNpc* npc
     }
 
     if (settings.showDetailRank) {
-        const char* rankName = ESPFormatting::GetRankName(npc->rank);
+        const char* rankName = Formatting::GetRankName(npc->rank);
         if (rankName && rankName[0] != '\0') {
             details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Rank: {}", rankName));
         }
@@ -285,7 +285,7 @@ std::vector<ColoredDetail> InfoBuilder::BuildGadgetDetails(const RenderableGadge
     details.reserve(5);
 
     if (settings.showDetailGadgetType) {
-        const char* gadgetName = ESPFormatting::GetGadgetTypeName(gadget->type);
+        const char* gadgetName = Formatting::GetGadgetTypeName(gadget->type);
         if (gadgetName) {
             details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Type: {}", gadgetName));
         } else {
@@ -298,7 +298,7 @@ std::vector<ColoredDetail> InfoBuilder::BuildGadgetDetails(const RenderableGadge
     }
 
     if (settings.showDetailResourceInfo && gadget->type == Game::GadgetType::ResourceNode) {
-        details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Node: {}", ESPFormatting::ResourceNodeTypeToString(gadget->resourceType)));
+        details.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Node: {}", Formatting::ResourceNodeTypeToString(gadget->resourceType)));
     }
 
     if (settings.showDetailGatherableStatus && gadget->isGatherable) {

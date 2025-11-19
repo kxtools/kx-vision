@@ -4,7 +4,7 @@
 #include "../../libs/ImGui/imgui.h"
 #include "Generated/EnumsAndStructs.h"
 #include "../Data/RenderableData.h" // Need this for RenderableEntity, RenderablePlayer, RenderableNpc
-#include "../Data/ESPEntityTypes.h"
+#include "../Data/EntityTypes.h"
 #include <algorithm>
 
 #include "Shared/ColorConstants.h"
@@ -82,7 +82,7 @@ namespace Styling {
 
     inline ImU32 GetEntityColor(const RenderableEntity& entity) {
         switch (entity.entityType) {
-            case ESPEntityType::Player: {
+            case EntityTypes::Player: {
                 const auto* p = static_cast<const RenderablePlayer*>(&entity);
                 switch (p->attitude) {
                     case Game::Attitude::Hostile:     return ESPColors::NPC_HOSTILE;
@@ -92,7 +92,7 @@ namespace Styling {
                     default:                          return ESPColors::NPC_UNKNOWN;
                 }
             }
-            case ESPEntityType::NPC: {
+            case EntityTypes::NPC: {
                 const auto* n = static_cast<const RenderableNpc*>(&entity);
                  switch (n->attitude) {
                     case Game::Attitude::Hostile:     return ESPColors::NPC_HOSTILE;
@@ -102,9 +102,9 @@ namespace Styling {
                     default:                          return ESPColors::NPC_UNKNOWN;
                 }
             }
-            case ESPEntityType::Gadget:
+            case EntityTypes::Gadget:
                 return ESPColors::GADGET;
-            case ESPEntityType::AttackTarget:
+            case EntityTypes::AttackTarget:
                 return ESPColors::GADGET; // Use same color as gadgets
         }
         return ESPColors::NPC_UNKNOWN; // Fallback

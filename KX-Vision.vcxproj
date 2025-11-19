@@ -222,7 +222,7 @@
     <ClInclude Include="src\Rendering\Renderers\TrailRenderer.h" />
     <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\FrameData.h" />
-    <ClInclude Include="src\Rendering\Data\ESPEntityTypes.h" />
+    <ClInclude Include="src\Rendering\Data\EntityTypes.h" />
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />
     <ClInclude Include="src\Rendering\Extraction\EntityExtractor.h" />
@@ -241,7 +241,7 @@
     <ClInclude Include="src\Rendering\Shared\CombatConstants.h" />
     <ClInclude Include="src\Rendering\Shared\D3DState.h" />
     <ClInclude Include="src\Rendering\Shared\Constants.h" />
-    <ClInclude Include="src\Rendering\Shared\ESPFormatting.h" />
+    <ClInclude Include="src\Rendering\Shared\Formatting.h" />
     <ClInclude Include="src\Rendering\Shared\MathUtils.h" />
     <ClInclude Include="src\Rendering\Shared\LayoutConstants.h" />
     <ClInclude Include="src\Rendering\Shared\RenderSettingsHelper.h" />

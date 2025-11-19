@@ -80,7 +80,7 @@ std::optional<VisualProperties> StageRenderer::CalculateLiveVisuals(const Finali
     );
     
     // 6. Calculate gadget circle radius if needed (scale-based, so can be calculated here)
-    if (item.entity->entityType == ESPEntityType::Gadget || item.entity->entityType == ESPEntityType::AttackTarget) {
+    if (item.entity->entityType == EntityTypes::Gadget || item.entity->entityType == EntityTypes::AttackTarget) {
         const auto& settings = AppState::Get().GetSettings();
         float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
         liveVisuals.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * liveVisuals.scale);
@@ -107,7 +107,7 @@ void StageRenderer::RenderFrameData(const FrameContext& context, const PooledFra
             RenderEntityComponents(context, entityContext, *liveVisualsOpt);
             
             // Render movement trail for players
-            if (entityContext.entityType == ESPEntityType::Player) {
+            if (entityContext.entityType == EntityTypes::Player) {
                 TrailRenderer::RenderPlayerTrail(context, entityContext, *liveVisualsOpt);
             }
         }
@@ -120,7 +120,7 @@ void StageRenderer::RenderEntityComponents(const FrameContext& context, EntityRe
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entityContext.entityType);
     LayoutCursor bottomStack({props.center.x, props.boxMax.y}, 1.0f);
     
-    if (entityContext.entityType == ESPEntityType::Gadget && !shouldRenderBox) {
+    if (entityContext.entityType == EntityTypes::Gadget && !shouldRenderBox) {
         bottomStack = LayoutCursor(glm::vec2(props.screenPos.x, props.screenPos.y), 1.0f);
     }
 

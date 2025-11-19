@@ -11,7 +11,7 @@
 #include <format>
 
 #include "Styling.h"
-#include "Shared/ESPFormatting.h"
+#include "Shared/Formatting.h"
 
 namespace kx {
 
@@ -277,11 +277,11 @@ TextElement TextElementFactory::CreateIdentityLine(const LayoutRequest& request,
     // Add the Name segment
     if (includeName) {
         std::string entityName = "";
-        if (entityContext.entityType == ESPEntityType::Player) {
+        if (entityContext.entityType == EntityTypes::Player) {
             entityName = entityContext.playerName;
             if (entityName.empty()) {
                 const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
-                const char* profName = ESPFormatting::GetProfessionName(player->profession);
+                const char* profName = Formatting::GetProfessionName(player->profession);
                 if (profName) entityName = profName;
             }
         }

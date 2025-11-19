@@ -3,7 +3,7 @@
 #include <optional>
 #include "glm.hpp"
 #include "../Data/FrameData.h"
-#include "../Data/ESPEntityTypes.h"
+#include "../Data/EntityTypes.h"
 
 // Forward declarations
 namespace kx {
@@ -81,7 +81,7 @@ public:
      * @brief Get world-space bounds for entity type
      */
     static void GetWorldBoundsForEntity(
-        ESPEntityType entityType,
+        EntityTypes entityType,
         float& outWidth,
         float& outDepth,
         float& outHeight);
@@ -94,7 +94,7 @@ private:
      * @param context Frame context containing settings and game state
      * @return Clamped scale factor (between espMinScale and espMaxScale)
      */
-    static float CalculateEntityScale(float visualDistance, ESPEntityType entityType, const FrameContext& context);
+    static float CalculateEntityScale(float visualDistance, EntityTypes entityType, const FrameContext& context);
 
     /**
      * @brief Calculate box dimensions for entity based on type and scale
@@ -103,7 +103,7 @@ private:
      * @param outBoxWidth Output box width
      * @param outBoxHeight Output box height
      */
-    static void CalculateEntityBoxDimensions(ESPEntityType entityType, float scale,
+    static void CalculateEntityBoxDimensions(EntityTypes entityType, float scale,
                                             float& outBoxWidth, float& outBoxHeight);
 
     /**
@@ -147,7 +147,7 @@ private:
      * @return Final alpha value with atmospheric fading applied
      */
     static float CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
-                                       bool useDistanceLimit, ESPEntityType entityType,
+                                       bool useDistanceLimit, EntityTypes entityType,
                                        float& outNormalizedDistance);
 
     // Helper methods for internal calculations

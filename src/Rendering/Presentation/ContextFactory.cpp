@@ -6,7 +6,7 @@
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
 #include "../Logic/Animations/HealthBarAnimations.h"
-#include "../Data/ESPEntityTypes.h"
+#include "../Data/EntityTypes.h"
 #include "Settings/ESPSettings.h"
 #include "InfoBuilder.h"
 #include "Styling.h"
@@ -95,7 +95,7 @@ EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlaye
         .renderDetails = !details.empty(),
         .renderHealthBar = renderHealthBar,
         .renderEnergyBar = context.settings.playerESP.renderEnergyBar,
-        .entityType = ESPEntityType::Player,
+        .entityType = EntityTypes::Player,
         .attitude = player->attitude,
         .entity = player,
         .playerName = player->playerName,
@@ -129,7 +129,7 @@ EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc
         .renderDetails = context.settings.npcESP.renderDetails,
         .renderHealthBar = renderHealthBar,
         .renderEnergyBar = false, // No energy bar for NPCs
-        .entityType = ESPEntityType::NPC,
+        .entityType = EntityTypes::NPC,
         .attitude = npc->attitude,
         .entity = npc,
         .playerName = emptyPlayerName,
@@ -166,7 +166,7 @@ EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadge
         .renderDetails = context.settings.objectESP.renderDetails,
         .renderHealthBar = renderHealthBar,
         .renderEnergyBar = false, // No energy bar for gadgets
-        .entityType = ESPEntityType::Gadget,
+        .entityType = EntityTypes::Gadget,
         .attitude = Game::Attitude::Neutral,
         .entity = gadget,
         .playerName = emptyPlayerName,
@@ -200,7 +200,7 @@ EntityRenderContext ContextFactory::CreateContextForAttackTarget(const Renderabl
         .renderDetails = context.settings.objectESP.renderDetails,
         .renderHealthBar = renderHealthBar,
         .renderEnergyBar = false,
-        .entityType = ESPEntityType::AttackTarget,
+        .entityType = EntityTypes::AttackTarget,
         .attitude = Game::Attitude::Neutral,
         .entity = attackTarget,
         .playerName = emptyPlayerName,
@@ -213,7 +213,7 @@ EntityRenderContext ContextFactory::CreateEntityRenderContextForRendering(const 
     std::vector<ColoredDetail> details;
     // Use a switch on entity->entityType to call the correct details builder
     switch(entity->entityType) {
-        case ESPEntityType::Player:
+        case EntityTypes::Player:
         {
             const auto* player = static_cast<const RenderablePlayer*>(entity);
             details = InfoBuilder::BuildPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses);
@@ -228,19 +228,19 @@ EntityRenderContext ContextFactory::CreateEntityRenderContextForRendering(const 
             }
             break;
         }
-        case ESPEntityType::NPC:
+        case EntityTypes::NPC:
         {
             const auto* npc = static_cast<const RenderableNpc*>(entity);
             details = InfoBuilder::BuildNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses);
             break;
         }
-        case ESPEntityType::Gadget:
+        case EntityTypes::Gadget:
         {
             const auto* gadget = static_cast<const RenderableGadget*>(entity);
             details = InfoBuilder::BuildGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses);
             break;
         }
-        case ESPEntityType::AttackTarget:
+        case EntityTypes::AttackTarget:
         {
             const auto* attackTarget = static_cast<const RenderableAttackTarget*>(entity);
             details = InfoBuilder::BuildAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses);
@@ -251,13 +251,13 @@ EntityRenderContext ContextFactory::CreateEntityRenderContextForRendering(const 
     // Now, create the context using the ESPContextFactory, just like before.
     // We pass the main 'context' directly.
     switch(entity->entityType) {
-        case ESPEntityType::Player:
+        case EntityTypes::Player:
             return CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), details, context);
-        case ESPEntityType::NPC:
+        case EntityTypes::NPC:
             return CreateContextForNpc(static_cast<const RenderableNpc*>(entity), details, context);
-        case ESPEntityType::Gadget:
+        case EntityTypes::Gadget:
             return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), details, context);
-        case ESPEntityType::AttackTarget:
+        case EntityTypes::AttackTarget:
             return CreateContextForAttackTarget(static_cast<const RenderableAttackTarget*>(entity), details, context);
     }
     // This should not be reached, but we need to return something.

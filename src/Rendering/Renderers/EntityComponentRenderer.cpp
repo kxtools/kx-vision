@@ -57,7 +57,7 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Enti
         ShapeRenderer::RenderWireframeBox(ctx.drawList, props, props.fadedEntityColor, props.finalBoxThickness, globalOpacity);
     }
 
-    if (eCtx.entityType == ESPEntityType::Gadget || eCtx.entityType == ESPEntityType::AttackTarget) {
+    if (eCtx.entityType == EntityTypes::Gadget || eCtx.entityType == EntityTypes::AttackTarget) {
         if (RenderSettingsHelper::ShouldRenderGadgetSphere(ctx.settings, eCtx.entityType)) {
             ShapeRenderer::RenderGyroscopicOverlay(
                 ctx.drawList, 
@@ -78,7 +78,7 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Enti
     }
 
     if (RenderSettingsHelper::ShouldRenderDot(ctx.settings, eCtx.entityType)) {
-        if (eCtx.entityType == ESPEntityType::Gadget || eCtx.entityType == ESPEntityType::AttackTarget) {
+        if (eCtx.entityType == EntityTypes::Gadget || eCtx.entityType == EntityTypes::AttackTarget) {
             ShapeRenderer::RenderNaturalWhiteDot(ctx.drawList, props.screenPos, props.finalAlpha, props.finalDotRadius, globalOpacity);
         } else {
             ShapeRenderer::RenderColoredDot(ctx.drawList, props.screenPos, props.fadedEntityColor, props.finalDotRadius, globalOpacity);
@@ -179,8 +179,8 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
 }
 
 void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
-    bool isLiving = (eCtx.entityType == ESPEntityType::Player || eCtx.entityType == ESPEntityType::NPC);
-    bool isGadget = (eCtx.entityType == ESPEntityType::Gadget || eCtx.entityType == ESPEntityType::AttackTarget);
+    bool isLiving = (eCtx.entityType == EntityTypes::Player || eCtx.entityType == EntityTypes::NPC);
+    bool isGadget = (eCtx.entityType == EntityTypes::Gadget || eCtx.entityType == EntityTypes::AttackTarget);
     
     if ((isLiving || isGadget) && eCtx.renderHealthBar) {
         float healthPercent = eCtx.entity->maxHealth > 0 ? (eCtx.entity->currentHealth / eCtx.entity->maxHealth) : -1.0f;
@@ -202,7 +202,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const En
         RenderBurstDps(ctx, eCtx, props, centerPos);
     }
 
-    if (eCtx.entityType == ESPEntityType::Player) {
+    if (eCtx.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(eCtx.entity);
         EnergyDisplayType energyDisplayType = RenderSettingsHelper::GetPlayerEnergyDisplayType(ctx.settings);
         float energyPercent = CalculateEnergyPercent(player, energyDisplayType);
@@ -216,7 +216,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const En
 }
 
 void EntityComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
-    if (eCtx.entityType == ESPEntityType::Player) {
+    if (eCtx.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(eCtx.entity);
         if (player != nullptr) {
             GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(ctx.settings);

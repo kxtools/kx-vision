@@ -7,7 +7,7 @@
 #include "../../Game/Generated/EnumsAndStructs.h"
 
 namespace kx {
-namespace ESPFormatting {
+namespace Formatting {
 
     // --- From former EnumHelpers ---
     inline const char* GetProfessionName(Game::Profession prof) {

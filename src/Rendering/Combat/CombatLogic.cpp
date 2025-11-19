@@ -73,7 +73,7 @@ namespace kx {
         }
 
         // Case 2: Instant destruction from full health (gadget-only behavior)
-        if (entity->entityType == ESPEntityType::Gadget)
+        if (entity->entityType == EntityTypes::Gadget)
         {
             if (state.lastKnownMaxHealth > 0 &&
                 state.lastKnownHealth >= state.lastKnownMaxHealth && // Was at full health

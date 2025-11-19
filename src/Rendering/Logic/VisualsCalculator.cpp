@@ -66,7 +66,7 @@ std::optional<VisualProperties> VisualsCalculator::Calculate(const RenderableEnt
     return props;
 }
 
-float VisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityType entityType, const FrameContext& context) {
+float VisualsCalculator::CalculateEntityScale(float visualDistance, EntityTypes entityType, const FrameContext& context) {
     const auto& settings = context.settings;
     
     // Calculate the effective distance, which only starts counting after the "dead zone"
@@ -84,7 +84,7 @@ float VisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityTyp
         scalingExponent = settings.scaling.limitScalingExponent;
     } else {
         // --- NO LIMIT MODE ---
-        if (entityType == ESPEntityType::Gadget || entityType == ESPEntityType::AttackTarget) {
+        if (entityType == EntityTypes::Gadget || entityType == EntityTypes::AttackTarget) {
             // GADGETS/ATTACK TARGETS: Use fully adaptive system (these can be 1000m+ away)
             // The Distance Factor is calculated dynamically based on the adaptive far plane.
             // We set the 50% scale point to be halfway to the furthest visible group of objects.
@@ -110,12 +110,12 @@ float VisualsCalculator::CalculateEntityScale(float visualDistance, ESPEntityTyp
     return (std::max)(settings.scaling.minScale, (std::min)(rawScale, settings.scaling.maxScale));
 }
 
-void VisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityType, float scale,
+void VisualsCalculator::CalculateEntityBoxDimensions(EntityTypes entityType, float scale,
                                                           float& outBoxWidth, float& outBoxHeight) {
     const auto& settings = AppState::Get().GetSettings();
     
     switch (entityType) {
-    case ESPEntityType::Player:
+    case EntityTypes::Player:
         outBoxHeight = settings.sizes.baseBoxHeight * scale;
         outBoxWidth = settings.sizes.baseBoxWidth * scale;
         if (outBoxHeight < MinimumSizes::PLAYER_MIN_HEIGHT) {
@@ -124,7 +124,7 @@ void VisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityType, f
         }
         break;
         
-    case ESPEntityType::NPC:
+    case EntityTypes::NPC:
         // NPCs use square boxes - same width as players for visual consistency
         outBoxHeight = settings.sizes.baseBoxWidth * scale;  // Use baseBoxWidth directly (45px)
         outBoxWidth = settings.sizes.baseBoxWidth * scale;   // Square = width x width
@@ -134,8 +134,8 @@ void VisualsCalculator::CalculateEntityBoxDimensions(ESPEntityType entityType, f
         }
         break;
         
-    case ESPEntityType::Gadget:
-    case ESPEntityType::AttackTarget:
+    case EntityTypes::Gadget:
+    case EntityTypes::AttackTarget:
         // Gadgets/Attack Targets always use circle rendering (see CalculateGadgetDimensions)
         // This case should never be reached - fallback to base box dimensions
         outBoxHeight = settings.sizes.baseBoxHeight * scale;
@@ -211,26 +211,26 @@ void VisualsCalculator::Calculate3DBoundingBox(
 }
 
 void VisualsCalculator::GetWorldBoundsForEntity(
-    ESPEntityType entityType,
+    EntityTypes entityType,
     float& outWidth,
     float& outDepth,
     float& outHeight)
 {
     switch (entityType) {
-        case ESPEntityType::Player:
+        case EntityTypes::Player:
             outWidth = EntityWorldBounds::PLAYER_WORLD_WIDTH;
             outDepth = EntityWorldBounds::PLAYER_WORLD_DEPTH;
             outHeight = EntityWorldBounds::PLAYER_WORLD_HEIGHT;
             break;
         
-        case ESPEntityType::AttackTarget:
-        case ESPEntityType::Gadget:
+        case EntityTypes::AttackTarget:
+        case EntityTypes::Gadget:
             outWidth = EntityWorldBounds::GADGET_WORLD_WIDTH;
             outDepth = EntityWorldBounds::GADGET_WORLD_DEPTH;
             outHeight = EntityWorldBounds::GADGET_WORLD_HEIGHT;
             break;
         
-        case ESPEntityType::NPC:
+        case EntityTypes::NPC:
         default:
             outWidth = EntityWorldBounds::NPC_WORLD_WIDTH;
             outDepth = EntityWorldBounds::NPC_WORLD_DEPTH;
@@ -351,7 +351,7 @@ void VisualsCalculator::CalculatePlayerNPCDimensions(
 }
 
 float VisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
-                                                      bool useDistanceLimit, ESPEntityType entityType,
+                                                      bool useDistanceLimit, EntityTypes entityType,
                                                       float& outNormalizedDistance) {
     const auto& settings = AppState::Get().GetSettings();
     outNormalizedDistance = 0.0f; // Initialize output
@@ -365,7 +365,7 @@ float VisualsCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float di
 
     // --- "NO LIMIT" MODE LOGIC (THREE-TIERED SYSTEM) ---
     
-    if (entityType == ESPEntityType::Gadget || entityType == ESPEntityType::AttackTarget) {
+    if (entityType == EntityTypes::Gadget || entityType == EntityTypes::AttackTarget) {
         // --- TIER 2: GADGETS/ATTACK TARGETS (Fully Adaptive Fade) ---
         // Goal: Maximum Information Clarity - handle extreme distances (1000m+)
         float finalAlpha = 1.0f; // Default to fully visible
@@ -444,7 +444,7 @@ EntityMultipliers VisualsCalculator::CalculateEntityMultipliers(const Renderable
     EntityMultipliers multipliers;
     
     // Calculate hostile multiplier
-    if (entity.entityType == ESPEntityType::Player) {
+    if (entity.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(&entity);
         const auto& settings = AppState::Get().GetSettings();
         if (player->attitude == Game::Attitude::Hostile) {
@@ -453,13 +453,13 @@ EntityMultipliers VisualsCalculator::CalculateEntityMultipliers(const Renderable
     }
     
     // Calculate rank multiplier
-    if (entity.entityType == ESPEntityType::NPC) {
+    if (entity.entityType == EntityTypes::NPC) {
         const auto* npc = static_cast<const RenderableNpc*>(&entity);
         multipliers.rank = Styling::GetRankMultiplier(npc->rank);
     }
     
     // Calculate gadget health multiplier
-    if (entity.entityType == ESPEntityType::Gadget || entity.entityType == ESPEntityType::AttackTarget) {
+    if (entity.entityType == EntityTypes::Gadget || entity.entityType == EntityTypes::AttackTarget) {
         multipliers.gadgetHealth = Styling::GetGadgetHealthMultiplier(entity.maxHealth);
     }
     
