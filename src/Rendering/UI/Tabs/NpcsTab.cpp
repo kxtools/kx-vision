@@ -1,7 +1,7 @@
 #include "NpcsTab.h"
 
 #include "AppState.h"
-#include "GUI/GuiHelpers.h"
+#include "UI/GuiHelpers.h"
 #include "ImGui/imgui.h"
 
 namespace kx {

@@ -12,7 +12,7 @@
 #include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"
-#include "GUI/Backend/OverlayWindow.h"
+#include "UI/Backend/OverlayWindow.h"
 
 namespace kx::Hooking {
 

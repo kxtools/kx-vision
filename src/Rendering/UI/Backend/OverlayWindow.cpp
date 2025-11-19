@@ -16,13 +16,13 @@
 #include "../Utils/DebugLogger.h"
 #include "Core/MasterRenderer.h"
 
-#include "GUI/Tabs/AppearanceTab.h"
-#include "GUI/Tabs/InfoTab.h"
-#include "GUI/Tabs/NpcsTab.h"
-#include "GUI/Tabs/ObjectsTab.h"
-#include "GUI/Tabs/PlayersTab.h"
-#include "GUI/Tabs/SettingsTab.h"
-#include "GUI/Tabs/ValidationTab.h"
+#include "UI/Tabs/AppearanceTab.h"
+#include "UI/Tabs/InfoTab.h"
+#include "UI/Tabs/NpcsTab.h"
+#include "UI/Tabs/ObjectsTab.h"
+#include "UI/Tabs/PlayersTab.h"
+#include "UI/Tabs/SettingsTab.h"
+#include "UI/Tabs/ValidationTab.h"
 
 // Define static members
 bool OverlayWindow::m_isInitialized = false;

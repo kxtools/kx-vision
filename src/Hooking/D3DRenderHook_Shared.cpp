@@ -9,7 +9,7 @@
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
 #include "HookManager.h"
-#include "GUI/Backend/OverlayWindow.h"
+#include "UI/Backend/OverlayWindow.h"
 
 namespace kx::Hooking {
 

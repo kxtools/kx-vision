@@ -5,7 +5,7 @@
 #include "../Rendering/Shared/D3DState.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
-#include "GUI/Backend/OverlayWindow.h"
+#include "UI/Backend/OverlayWindow.h"
 
 void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
                                HWND windowHandle, 

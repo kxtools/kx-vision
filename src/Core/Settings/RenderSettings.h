@@ -2,7 +2,7 @@
 
 #include "../../libs/nlohmann/json.hpp"
 #include "../../Rendering/Data/EntityTypes.h"
-#include "../../Rendering/GUI/UIConstants.h"
+#include "../../Rendering/UI/UIConstants.h"
 
 namespace kx {
 
