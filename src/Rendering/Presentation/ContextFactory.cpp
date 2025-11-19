@@ -5,7 +5,7 @@
 #include "../Data/ESPData.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../Game/GameEnums.h"
-#include "../Animations/HealthBarAnimations.h"
+#include "../Logic/Animations/HealthBarAnimations.h"
 #include "../Data/ESPEntityTypes.h"
 #include "Settings/ESPSettings.h"
 #include "InfoBuilder.h"

@@ -1,10 +1,10 @@
 #include "HealthBarAnimations.h"
 
-#include "../Data/RenderableData.h"
-#include "../Combat/CombatState.h"
-#include "../Data/EntityRenderContext.h"
-#include "../Shared/ESPConstants.h"
-#include "../Shared/AnimationHelpers.h"
+#include "../../Data/RenderableData.h"
+#include "../../Combat/CombatState.h"
+#include "../../Data/EntityRenderContext.h"
+#include "../../Shared/ESPConstants.h"
+#include "../../Shared/AnimationHelpers.h"
 
 namespace kx {
 

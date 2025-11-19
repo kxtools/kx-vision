@@ -111,10 +111,10 @@
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_WndProc.cpp" />
-    <ClCompile Include="src\Rendering\Animations\HealthBarAnimations.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatLogic.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Rendering\Extraction\ESPDataExtractor.cpp" />
+    <ClCompile Include="src\Rendering\Logic\Animations\HealthBarAnimations.cpp" />
     <ClCompile Include="src\Rendering\Logic\EntityFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
@@ -197,11 +197,11 @@
     <ClInclude Include="src\Game\ReClass\StatStructs.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
-    <ClInclude Include="src\Rendering\Animations\HealthBarAnimations.h" />
     <ClInclude Include="src\Rendering\Combat\CombatLogic.h" />
     <ClInclude Include="src\Rendering\Combat\CombatState.h" />
     <ClInclude Include="src\Rendering\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Rendering\Extraction\ESPDataExtractor.h" />
+    <ClInclude Include="src\Rendering\Logic\Animations\HealthBarAnimations.h" />
     <ClInclude Include="src\Rendering\Logic\EntityFilter.h" />
     <ClInclude Include="src\Rendering\Core\ESPRenderer.h" />
     <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
