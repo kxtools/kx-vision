@@ -5,7 +5,7 @@
 #include "../Shared/LayoutConstants.h"
 #include "../Renderers/ESPShapeRenderer.h"
 #include "../Renderers/ESPTrailRenderer.h"
-#include "../Renderers/ComponentRenderers.h"
+#include "../Renderers/EntityComponentRenderer.h"
 #include "../Data/EntityRenderContext.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <optional>
@@ -115,7 +115,7 @@ void ESPStageRenderer::RenderFrameData(const FrameContext& context, const Pooled
 }
 
 void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, EntityRenderContext& entityContext, const VisualProperties& props) {
-    ComponentRenderer::RenderGeometry(context, entityContext, props);
+    EntityComponentRenderer::RenderGeometry(context, entityContext, props);
 
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entityContext.entityType);
     LayoutCursor bottomStack({props.center.x, props.boxMax.y}, 1.0f);
@@ -124,9 +124,9 @@ void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, Entit
         bottomStack = LayoutCursor(glm::vec2(props.screenPos.x, props.screenPos.y), 1.0f);
     }
 
-    ComponentRenderer::RenderIdentity(context, entityContext, props, bottomStack);
-    ComponentRenderer::RenderStatusBars(context, entityContext, props, bottomStack);
-    ComponentRenderer::RenderDetails(context, entityContext, props, bottomStack);
+    EntityComponentRenderer::RenderIdentity(context, entityContext, props, bottomStack);
+    EntityComponentRenderer::RenderStatusBars(context, entityContext, props, bottomStack);
+    EntityComponentRenderer::RenderDetails(context, entityContext, props, bottomStack);
 }
 
 

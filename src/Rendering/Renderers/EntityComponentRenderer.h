@@ -5,7 +5,7 @@
 
 namespace kx {
 
-class ComponentRenderer {
+class EntityComponentRenderer {
 public:
     static void RenderGeometry(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props);
 

@@ -1,4 +1,4 @@
-#include "ComponentRenderers.h"
+#include "EntityComponentRenderer.h"
 #include "ESPShapeRenderer.h"
 #include "ESPHealthBarRenderer.h"
 #include "ESPEnergyBarRenderer.h"
@@ -41,7 +41,7 @@ namespace {
     }
 }
 
-void ComponentRenderer::RenderGeometry(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props) {
+void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props) {
     float globalOpacity = GetGlobalOpacity(ctx);
 
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(ctx.settings, eCtx.entityType);
@@ -86,7 +86,7 @@ void ComponentRenderer::RenderGeometry(const FrameContext& ctx, const EntityRend
     }
 }
 
-void ComponentRenderer::RenderIdentity(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
+void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
     bool showName = RenderSettingsHelper::ShouldRenderName(ctx.settings, eCtx.entityType);
     bool showDistance = RenderSettingsHelper::ShouldRenderDistance(ctx.settings, eCtx.entityType);
 
@@ -178,7 +178,7 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
     TextRenderer::Render(context.drawList, element);
 }
 
-void ComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
+void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
     bool isLiving = (eCtx.entityType == ESPEntityType::Player || eCtx.entityType == ESPEntityType::NPC);
     bool isGadget = (eCtx.entityType == ESPEntityType::Gadget || eCtx.entityType == ESPEntityType::AttackTarget);
     
@@ -215,7 +215,7 @@ void ComponentRenderer::RenderStatusBars(const FrameContext& ctx, const EntityRe
     }
 }
 
-void ComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
+void EntityComponentRenderer::RenderDetails(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor) {
     if (eCtx.entityType == ESPEntityType::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(eCtx.entity);
         if (player != nullptr) {
