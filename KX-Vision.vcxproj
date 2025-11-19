@@ -126,7 +126,7 @@
     <ClCompile Include="src\Rendering\Logic\Animations\HealthBarAnimations.cpp" />
     <ClCompile Include="src\Rendering\Logic\EntityFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\MasterRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Core\ESPStageRenderer.cpp" />
+    <ClCompile Include="src\Rendering\Core\StageRenderer.cpp" />
     <ClCompile Include="src\Rendering\Logic\FrameDataProcessor.cpp" />
     <ClCompile Include="src\Rendering\Presentation\ContextFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\EntityComponentRenderer.cpp" />
@@ -213,7 +213,7 @@
     <ClInclude Include="src\Rendering\Logic\Animations\HealthBarAnimations.h" />
     <ClInclude Include="src\Rendering\Logic\EntityFilter.h" />
     <ClInclude Include="src\Rendering\Core\MasterRenderer.h" />
-    <ClInclude Include="src\Rendering\Core\ESPStageRenderer.h" />
+    <ClInclude Include="src\Rendering\Core\StageRenderer.h" />
     <ClInclude Include="src\Rendering\Logic\FrameDataProcessor.h" />
     <ClInclude Include="src\Rendering\GUI\UIConstants.h" />
     <ClInclude Include="src\Rendering\Renderers\LayoutCursor.h" />

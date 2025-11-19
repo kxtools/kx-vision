@@ -1,4 +1,4 @@
-#include "ESPStageRenderer.h"
+#include "StageRenderer.h"
 #include "../../Core/AppState.h"
 #include "../../Game/Camera.h"
 #include "../Shared/ESPMath.h"
@@ -21,7 +21,7 @@ namespace {
     }
 }
 
-std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context) {
+std::optional<VisualProperties> StageRenderer::CalculateLiveVisuals(const FinalizedRenderable& item, const FrameContext& context) {
     // 1. Start with the pre-calculated, non-geometric properties from the low-frequency update.
     VisualProperties liveVisuals = item.visuals;
 
@@ -92,7 +92,7 @@ std::optional<VisualProperties> ESPStageRenderer::CalculateLiveVisuals(const Fin
     return liveVisuals;
 }
 
-void ESPStageRenderer::RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData) {
+void StageRenderer::RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData) {
     for (const auto& item : frameData.finalizedEntities) {
         
         // First, perform the high-frequency update to get live visual properties for this frame.
@@ -114,7 +114,7 @@ void ESPStageRenderer::RenderFrameData(const FrameContext& context, const Pooled
     }
 }
 
-void ESPStageRenderer::RenderEntityComponents(const FrameContext& context, EntityRenderContext& entityContext, const VisualProperties& props) {
+void StageRenderer::RenderEntityComponents(const FrameContext& context, EntityRenderContext& entityContext, const VisualProperties& props) {
     EntityComponentRenderer::RenderGeometry(context, entityContext, props);
 
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entityContext.entityType);

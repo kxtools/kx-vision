@@ -12,7 +12,7 @@
 #include "../../Utils/ObjectPool.h"
 #include "../Data/RenderableData.h"
 #include "../Extraction/ESPDataExtractor.h"
-#include "ESPStageRenderer.h"
+#include "StageRenderer.h"
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "Logic/EntityFilter.h"
@@ -119,7 +119,7 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
     UpdateESPData(frameContext, currentTimeSeconds);
 
     // 3. Render the final, processed data every frame
-    ESPStageRenderer::RenderFrameData(frameContext, s_processedRenderData);
+    StageRenderer::RenderFrameData(frameContext, s_processedRenderData);
 }
 
 bool MasterRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

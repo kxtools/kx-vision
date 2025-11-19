@@ -17,7 +17,7 @@ struct LayoutCursor;
 class CombatStateManager;
 
 
-class ESPStageRenderer {
+class StageRenderer {
 public:
     static void RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData);
 
