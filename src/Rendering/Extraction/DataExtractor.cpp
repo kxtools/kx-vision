@@ -1,4 +1,5 @@
 #include "DataExtractor.h"
+#include <ankerl/unordered_dense.h>
 #include "../../Game/AddressManager.h"
 #include "../../Game/ReClassStructs.h"
 #include "../../Utils/SafeIterators.h"
@@ -20,7 +21,8 @@ namespace kx {
         }
 
         // Build the map of character pointers to player names
-        std::unordered_map<void*, const wchar_t*> characterToPlayerNameMap;
+        ankerl::unordered_dense::map<void*, const wchar_t*> characterToPlayerNameMap;
+        characterToPlayerNameMap.reserve(150);
         {
             ReClass::ContextCollection ctxCollection(pContextCollection);
             ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
@@ -44,7 +46,7 @@ namespace kx {
         ObjectPool<RenderableNpc>& npcPool,
         std::vector<RenderablePlayer*>& players,
         std::vector<RenderableNpc*>& npcs,
-        const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap) {
+        const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap) {
         players.clear();
         npcs.clear();
         players.reserve(ExtractionCapacity::PLAYERS_RESERVE);

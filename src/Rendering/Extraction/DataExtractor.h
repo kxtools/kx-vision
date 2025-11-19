@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include "../Data/RenderableData.h"
 #include "../Data/FrameData.h"
 #include "../../Utils/ObjectPool.h"
@@ -43,7 +43,7 @@ namespace kx {
             ObjectPool<RenderableNpc>& npcPool,
             std::vector<RenderablePlayer*>& players,
             std::vector<RenderableNpc*>& npcs,
-            const std::unordered_map<void*, const wchar_t*>& characterToPlayerNameMap);
+            const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap);
 
         static void ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
             std::vector<RenderableGadget*>& gadgets);

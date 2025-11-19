@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <unordered_set>
 #include <vector>
 #include "CombatState.h"
@@ -43,7 +43,7 @@ namespace kx
 
 	private:
 		EntityCombatState* GetStateNonConst(CombatStateKey key);
-		std::unordered_map<CombatStateKey, EntityCombatState, CombatStateKeyHash> m_entityStates;
+		ankerl::unordered_dense::map<CombatStateKey, EntityCombatState> m_entityStates;
 
 		EntityCombatState& AcquireState(CombatStateKey key);
 	};

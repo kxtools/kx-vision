@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <functional>
+#include <ankerl/unordered_dense.h>
 
 namespace kx {
 
@@ -29,3 +30,14 @@ struct CombatStateKeyHash {
 
 } // namespace kx
 
+template <>
+struct ankerl::unordered_dense::hash<kx::CombatStateKey> {
+    using is_avalanching = void;
+
+    [[nodiscard]] auto operator()(kx::CombatStateKey const& k) const noexcept -> uint64_t {
+        if (k.agentId != 0) {
+            return ankerl::unordered_dense::detail::wyhash::hash(k.agentId);
+        }
+        return ankerl::unordered_dense::detail::wyhash::hash(&k.address, sizeof(void*));
+    }
+};
