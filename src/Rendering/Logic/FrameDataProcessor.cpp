@@ -1,4 +1,4 @@
-#include "ESPVisualsProcessor.h"
+#include "FrameDataProcessor.h"
 #include <vector>
 
 #include "Logic/VisualsCalculator.h"
@@ -6,7 +6,7 @@
 
 namespace kx {
 
-void ESPVisualsProcessor::Process(const FrameContext& context, 
+void FrameDataProcessor::Process(const FrameContext& context, 
                                   const PooledFrameRenderData& filteredData,
                                   PooledFrameRenderData& outData) {
     // This processor acts as a Data Preparer, not a Culler.

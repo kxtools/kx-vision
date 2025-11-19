@@ -3,7 +3,7 @@
 #include "../Data/ESPData.h"
 
 namespace kx {
-    class ESPVisualsProcessor {
+    class FrameDataProcessor {
     public:
         static void Process(const FrameContext& context, 
                             const PooledFrameRenderData& filteredData,

@@ -16,7 +16,7 @@
 #include "../Combat/CombatStateManager.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "Logic/EntityFilter.h"
-#include "Logic/ESPVisualsProcessor.h"
+#include "Logic/FrameDataProcessor.h"
 
 namespace kx {
 
@@ -77,7 +77,7 @@ void ESPRenderer::UpdateESPData(const FrameContext& frameContext, float currentT
         EntityFilter::FilterPooledData(extractedData, frameContext, filteredData);
         
         // Stage 2.5: Calculate Visuals
-        ESPVisualsProcessor::Process(frameContext, filteredData, s_processedRenderData);
+        FrameDataProcessor::Process(frameContext, filteredData, s_processedRenderData);
 
         // Stage 2.8: Update adaptive far plane (use extracted data for true scene depth)
         AppState::Get().UpdateAdaptiveFarPlane(extractedData);
