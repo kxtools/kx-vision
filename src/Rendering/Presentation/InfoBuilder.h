@@ -1,7 +1,7 @@
 #pragma once
 
-#include <map>
-#include <vector>
+#include <utility>
+#include <cstddef>
 #include "../Data/RenderableData.h"
 #include "../../Core/Settings.h"
 #include "Generated/EnumsAndStructs.h"
@@ -47,16 +47,20 @@ public:
     /**
      * @brief Build compact gear summary showing stat names and counts
      * @param player The player entity to analyze
-     * @return Vector of compact stat info (stat name, count, highest rarity)
+     * @param outBuffer Output buffer to write results to
+     * @param bufferSize Size of the output buffer (typically 3)
+     * @return Number of stats written (0-3, max 3 after sorting)
      */
-    static std::vector<CompactStatInfo> BuildCompactGearSummary(const RenderablePlayer* player);
+    static size_t BuildCompactGearSummary(const RenderablePlayer* player, CompactStatInfo* outBuffer, size_t bufferSize);
 
     /**
      * @brief Build top 3 dominant stats with percentages
      * @param player The player entity to analyze
-     * @return Vector of dominant stats (name and percentage)
+     * @param outBuffer Output buffer to write results to
+     * @param bufferSize Size of the output buffer (typically 3)
+     * @return Number of stats written (0-3, max 3 after sorting)
      */
-    static std::vector<DominantStat> BuildDominantStats(const RenderablePlayer* player);
+    static size_t BuildDominantStats(const RenderablePlayer* player, DominantStat* outBuffer, size_t bufferSize);
 
     /**
      * @brief Get the highest rarity of all equipped items for a player
@@ -106,9 +110,11 @@ private:
     /**
      * @brief Build attribute summary counting occurrences of each attribute
      * @param player The player entity to analyze
-     * @return Map of attributes to their occurrence counts
+     * @param outBuffer Output buffer to write results to
+     * @param bufferSize Size of the output buffer
+     * @return Number of unique attributes found
      */
-    static std::map<data::ApiAttribute, int> BuildAttributeSummary(const RenderablePlayer* player);
+    static size_t BuildAttributeSummary(const RenderablePlayer* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize);
 };
 
 } // namespace kx

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 #include "../../Game/GameEnums.h"
 #include "../../../libs/ImGui/imgui.h"
 
@@ -17,14 +17,14 @@ struct GearSlotInfo {
 };
 
 struct CompactStatInfo {
-    std::string statName;
+    std::string_view statName;
     int count = 0;
     float percentage = 0.0f;
     Game::ItemRarity highestRarity = Game::ItemRarity::None;
 };
 
 struct DominantStat {
-    std::string name;
+    std::string_view name;
     float percentage;
     ImU32 color;
 };

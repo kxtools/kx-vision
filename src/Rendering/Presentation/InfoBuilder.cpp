@@ -4,8 +4,10 @@
 #include "../../../libs/ImGui/imgui.h"
 
 #include <algorithm>
+#include <array>
 #include <string_view>
 #include <cstdio>
+#include <climits>
 
 #include "Styling.h"
 #include "Shared/ColorConstants.h"
@@ -180,12 +182,13 @@ void InfoBuilder::RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, 
     }
 }
 
-std::vector<CompactStatInfo> InfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player) {
-    if (!player || player->gear.empty()) {
-        return {};
+size_t InfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player, CompactStatInfo* outBuffer, size_t bufferSize) {
+    if (!player || player->gear.empty() || bufferSize == 0) {
+        return 0;
     }
 
-    std::map<std::string_view, CompactStatInfo> statSummary;
+    std::array<CompactStatInfo, 32> workingBuffer;
+    size_t uniqueStatsCount = 0;
     int totalItems = 0;
 
     for (const auto& [slot, info] : player->gear) {
@@ -194,76 +197,104 @@ std::vector<CompactStatInfo> InfoBuilder::BuildCompactGearSummary(const Renderab
             if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
                 std::string_view statName = statIt->second.name;
 
-                auto& entry = statSummary[statName];
-                entry.statName = statName;
-                entry.count++;
+                // Linear search for existing stat entry
+                size_t foundIndex = SIZE_MAX;
+                for (size_t i = 0; i < uniqueStatsCount; ++i) {
+                    if (workingBuffer[i].statName == statName) {
+                        foundIndex = i;
+                        break;
+                    }
+                }
 
-                if (info.rarity > entry.highestRarity) {
-                    entry.highestRarity = info.rarity;
+                if (foundIndex != SIZE_MAX) {
+                    // Found existing entry, update it
+                    workingBuffer[foundIndex].count++;
+                    if (info.rarity > workingBuffer[foundIndex].highestRarity) {
+                        workingBuffer[foundIndex].highestRarity = info.rarity;
+                    }
+                } else if (uniqueStatsCount < workingBuffer.size()) {
+                    // New entry, add it
+                    workingBuffer[uniqueStatsCount].statName = statName;
+                    workingBuffer[uniqueStatsCount].count = 1;
+                    workingBuffer[uniqueStatsCount].percentage = 0.0f;
+                    workingBuffer[uniqueStatsCount].highestRarity = info.rarity;
+                    uniqueStatsCount++;
                 }
             }
         }
     }
 
-    if (statSummary.empty()) {
-        return {};
+    if (uniqueStatsCount == 0 || totalItems == 0) {
+        return 0;
     }
 
-    std::vector<CompactStatInfo> result;
-    result.reserve(statSummary.size());
-    
-    if (totalItems > 0) {
-        for (const auto& [name, info] : statSummary) {
-            auto& item = result.emplace_back(info);
-            item.percentage = (static_cast<float>(info.count) / totalItems) * 100.0f;
-        }
+    // Calculate percentages
+    for (size_t i = 0; i < uniqueStatsCount; ++i) {
+        workingBuffer[i].percentage = (static_cast<float>(workingBuffer[i].count) / totalItems) * 100.0f;
     }
 
-    std::sort(result.begin(), result.end(), [](const CompactStatInfo& a, const CompactStatInfo& b) {
-        return a.percentage > b.percentage;
-    });
+    // Sort by percentage (descending)
+    std::sort(workingBuffer.begin(), workingBuffer.begin() + uniqueStatsCount, 
+              [](const CompactStatInfo& a, const CompactStatInfo& b) {
+                  return a.percentage > b.percentage;
+              });
 
-    if (result.size() > 3) {
-        result.resize(3);
+    // Copy top results to output buffer
+    size_t resultCount = std::min(uniqueStatsCount, bufferSize);
+    for (size_t i = 0; i < resultCount; ++i) {
+        outBuffer[i] = workingBuffer[i];
     }
-    
-    return result;
+
+    return resultCount;
 }
 
-std::vector<DominantStat> InfoBuilder::BuildDominantStats(const RenderablePlayer* player) {
-    std::vector<DominantStat> result;
-    auto attributeCounts = BuildAttributeSummary(player);
+size_t InfoBuilder::BuildDominantStats(const RenderablePlayer* player, DominantStat* outBuffer, size_t bufferSize) {
+    if (!player || bufferSize == 0) {
+        return 0;
+    }
+
+    std::array<std::pair<kx::data::ApiAttribute, int>, 32> attributeBuffer;
+    size_t attributeCount = BuildAttributeSummary(player, attributeBuffer.data(), attributeBuffer.size());
     
-    if (attributeCounts.empty()) {
-        return result;
+    if (attributeCount == 0) {
+        return 0;
     }
 
     float totalAttributes = 0.0f;
-    for (const auto& [attr, count] : attributeCounts) {
-        totalAttributes += count;
+    for (size_t i = 0; i < attributeCount; ++i) {
+        totalAttributes += static_cast<float>(attributeBuffer[i].second);
     }
 
-    if (totalAttributes == 0) return result;
+    if (totalAttributes == 0.0f) {
+        return 0;
+    }
 
-    std::vector<DominantStat> allStats;
-    allStats.reserve(attributeCounts.size());
+    std::array<DominantStat, 16> workingBuffer;
+    size_t statsCount = 0;
 
-    for (const auto& [attr, count] : attributeCounts) {
+    for (size_t i = 0; i < attributeCount && statsCount < workingBuffer.size(); ++i) {
+        const auto& [attr, count] = attributeBuffer[i];
         const char* name = Formatting::GetAttributeShortName(attr);
         
-        allStats.push_back({ name, (count / totalAttributes) * 100.0f, Styling::GetTacticalColor(attr) });
+        workingBuffer[statsCount].name = name;
+        workingBuffer[statsCount].percentage = (static_cast<float>(count) / totalAttributes) * 100.0f;
+        workingBuffer[statsCount].color = Styling::GetTacticalColor(attr);
+        statsCount++;
     }
 
-    std::sort(allStats.begin(), allStats.end(), [](const DominantStat& a, const DominantStat& b) {
-        return a.percentage > b.percentage;
-    });
+    // Sort by percentage (descending)
+    std::sort(workingBuffer.begin(), workingBuffer.begin() + statsCount, 
+              [](const DominantStat& a, const DominantStat& b) {
+                  return a.percentage > b.percentage;
+              });
 
-    size_t count = std::min(allStats.size(), size_t(3));
-    for (size_t i = 0; i < count; ++i) {
-        result.push_back(allStats[i]);
+    // Copy top results to output buffer
+    size_t resultCount = std::min(statsCount, bufferSize);
+    for (size_t i = 0; i < resultCount; ++i) {
+        outBuffer[i] = workingBuffer[i];
     }
 
-    return result;
+    return resultCount;
 }
 
 Game::ItemRarity InfoBuilder::GetHighestRarity(const RenderablePlayer* player) {
@@ -517,22 +548,43 @@ void InfoBuilder::RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& 
 
 // ===== Private Helper Methods =====
 
-std::map<data::ApiAttribute, int> InfoBuilder::BuildAttributeSummary(const RenderablePlayer* player) {
-    std::map<data::ApiAttribute, int> attributeCounts;
-    if (!player || player->gear.empty()) {
-        return attributeCounts;
+size_t InfoBuilder::BuildAttributeSummary(const RenderablePlayer* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize) {
+    if (!player || player->gear.empty() || bufferSize == 0) {
+        return 0;
     }
+
+    size_t uniqueAttributesCount = 0;
 
     for (const auto& [slot, info] : player->gear) {
         if (info.statId > 0) {
             if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
                 for (const auto& attr : statIt->second.attributes) {
-                    attributeCounts[attr.attribute]++;
+                    kx::data::ApiAttribute attrType = attr.attribute;
+
+                    // Linear search for existing attribute entry
+                    size_t foundIndex = SIZE_MAX;
+                    for (size_t i = 0; i < uniqueAttributesCount; ++i) {
+                        if (outBuffer[i].first == attrType) {
+                            foundIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (foundIndex != SIZE_MAX) {
+                        // Found existing entry, increment count
+                        outBuffer[foundIndex].second++;
+                    } else if (uniqueAttributesCount < bufferSize) {
+                        // New entry, add it
+                        outBuffer[uniqueAttributesCount].first = attrType;
+                        outBuffer[uniqueAttributesCount].second = 1;
+                        uniqueAttributesCount++;
+                    }
                 }
             }
         }
     }
-    return attributeCounts;
+
+    return uniqueAttributesCount;
 }
 
 } // namespace kx

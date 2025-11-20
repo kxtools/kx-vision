@@ -355,8 +355,9 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
 
             switch (gearDisplayMode) {
                 case GearDisplayMode::Compact: {
-                    auto summary = InfoBuilder::BuildCompactGearSummary(player);
-                    if (!summary.empty()) {
+                    CompactStatInfo summaryBuffer[3];
+                    size_t summaryCount = InfoBuilder::BuildCompactGearSummary(player, summaryBuffer, 3);
+                    if (summaryCount > 0) {
                         char buffer[RenderingLayout::GEAR_BUFFER_SIZE];
                         char* current = buffer;
                         size_t remaining = sizeof(buffer);
@@ -379,10 +380,10 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                         };
 
                         append("Stats: ", ESPColors::SUMMARY_TEXT_RGB);
-                        for (size_t i = 0; i < summary.size() && count < 32; ++i) {
-                            const auto& info = summary[i];
+                        for (size_t i = 0; i < summaryCount && count < 32; ++i) {
+                            const auto& info = summaryBuffer[i];
                             char statBuffer[64];
-                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%.0f%% %s", info.percentage, info.statName.c_str());
+                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%.0f%% %.*s", info.percentage, static_cast<int>(info.statName.size()), info.statName.data());
                             if (statLen < 0) statLen = 0;
                             if (static_cast<size_t>(statLen) >= std::size(statBuffer)) statLen = static_cast<int>(std::size(statBuffer) - 1);
                             std::string_view statText(statBuffer, static_cast<size_t>(statLen));
@@ -390,7 +391,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                             ImU32 rarityColor = Styling::GetRarityColor(info.highestRarity);
                             append(statText, rarityColor);
                             
-                            if (i < summary.size() - 1) {
+                            if (i < summaryCount - 1) {
                                 append(", ", ESPColors::SUMMARY_TEXT_RGB);
                             }
                         }
@@ -403,8 +404,9 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                     break;
                 }
                 case GearDisplayMode::Attributes: {
-                    auto stats = InfoBuilder::BuildDominantStats(player);
-                    if (!stats.empty()) {
+                    DominantStat statsBuffer[3];
+                    size_t statsCount = InfoBuilder::BuildDominantStats(player, statsBuffer, 3);
+                    if (statsCount > 0) {
                         char buffer[RenderingLayout::GEAR_BUFFER_SIZE];
                         char* current = buffer;
                         size_t remaining = sizeof(buffer);
@@ -427,17 +429,17 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                         };
 
                         append("[", ESPColors::SUMMARY_TEXT_RGB);
-                        for (size_t i = 0; i < stats.size() && count < 32; ++i) {
-                            const auto& stat = stats[i];
+                        for (size_t i = 0; i < statsCount && count < 32; ++i) {
+                            const auto& stat = statsBuffer[i];
                             char statBuffer[64];
-                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%s %.0f%%", stat.name.c_str(), stat.percentage);
+                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%.*s %.0f%%", static_cast<int>(stat.name.size()), stat.name.data(), stat.percentage);
                             if (statLen < 0) statLen = 0;
                             if (static_cast<size_t>(statLen) >= std::size(statBuffer)) statLen = static_cast<int>(std::size(statBuffer) - 1);
                             std::string_view statText(statBuffer, static_cast<size_t>(statLen));
                             
                             append(statText, stat.color);
                             
-                            if (i < stats.size() - 1) {
+                            if (i < statsCount - 1) {
                                 append(" | ", ESPColors::SUMMARY_TEXT_RGB);
                             }
                         }
