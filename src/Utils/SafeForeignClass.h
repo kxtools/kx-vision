@@ -101,6 +101,19 @@ namespace kx {
         }
 
         /**
+         * @brief FAST read. No VirtualQuery check. Use only after validating base pointer and inside guarded (__try/__except) regions.
+         */
+        template<typename T>
+        [[nodiscard]] T ReadMemberFast(uintptr_t offset, const T& defaultValue = T{}) const {
+            if (!m_ptr) {
+                return defaultValue;
+            }
+
+            auto* address = reinterpret_cast<const T*>(reinterpret_cast<uintptr_t>(m_ptr) + offset);
+            return *address;
+        }
+
+        /**
          * @brief Read a pointer from foreign memory and return wrapped in specified ReClass type
          * @tparam WrapperType The ReClass wrapper type to construct
          * @param offset Offset from base pointer
@@ -117,6 +130,19 @@ namespace kx {
                 return WrapperType(nullptr);
             }
             
+            return WrapperType(ptr);
+        }
+
+        /**
+         * @brief FAST pointer read without validation. Use only after validating base pointer and inside guarded regions.
+         */
+        template<typename WrapperType>
+        [[nodiscard]] WrapperType ReadPointerFast(uintptr_t offset) const {
+            if (!m_ptr) {
+                return WrapperType(nullptr);
+            }
+
+            void* ptr = *reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(m_ptr) + offset);
             return WrapperType(ptr);
         }
 

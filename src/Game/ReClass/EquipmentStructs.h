@@ -20,15 +20,15 @@ namespace kx {
             ItCliItem(void* ptr) : SafeForeignClass(ptr) {}
 
             ItemDef GetItemDefinition() const {
-                return ReadPointer<ItemDef>(Offsets::ItCliItem::ITEM_DEF);
+                return ReadPointerFast<ItemDef>(Offsets::ItCliItem::ITEM_DEF);
             }
 
             Stat GetStatGear() const {
-                return ReadPointer<Stat>(Offsets::ItCliItem::STAT_GEAR);
+                return ReadPointerFast<Stat>(Offsets::ItCliItem::STAT_GEAR);
             }
 
             Stat GetStatWeapon() const {
-                return ReadPointer<Stat>(Offsets::ItCliItem::STAT_WEAPON);
+                return ReadPointerFast<Stat>(Offsets::ItCliItem::STAT_WEAPON);
             }
         };
 
@@ -45,16 +45,9 @@ namespace kx {
                     return ItCliItem(nullptr);
                 }
 
-                // Calculate the base address of the embedded equipment array
                 uintptr_t arrayBaseAddress = reinterpret_cast<uintptr_t>(data()) + Offsets::ChCliInventory::EQUIPMENT_ARRAY;
-
-                // Now, safely read the pointer for the specific slot FROM the array
-                void* slotPtr = nullptr;
-                if (!kx::Debug::SafeRead<void*>(reinterpret_cast<void*>(arrayBaseAddress), slotIndex * sizeof(void*), slotPtr)) {
-                    return ItCliItem(nullptr);
-                }
-
-                return ItCliItem(slotPtr);
+                auto slotArray = reinterpret_cast<void**>(arrayBaseAddress);
+                return ItCliItem(slotArray[slotIndex]);
             }
         };
 

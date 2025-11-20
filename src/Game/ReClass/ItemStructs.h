@@ -18,11 +18,11 @@ namespace kx {
             uint32_t GetId() const {
                 // Reads the unique item ID (e.g., 49371 for Quiver of Swift Flight).
                 // Returns 0 if the read fails.
-                return ReadMember<uint32_t>(Offsets::ItemDef::ID, 0);
+                return ReadMemberFast<uint32_t>(Offsets::ItemDef::ID, 0);
             }
 
             Game::ItemRarity GetRarity() const {
-                return ReadMember<Game::ItemRarity>(Offsets::ItemDef::RARITY, Game::ItemRarity::None);
+                return ReadMemberFast<Game::ItemRarity>(Offsets::ItemDef::RARITY, Game::ItemRarity::None);
             }
         };
 

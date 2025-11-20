@@ -17,7 +17,7 @@ namespace kx {
             uint32_t GetId() const {
                 // Reads the stat combination ID (e.g., 599 for Berserker's).
                 // Returns 0 if the read fails.
-                return ReadMember<uint32_t>(Offsets::Stat::ID, 0);
+                return ReadMemberFast<uint32_t>(Offsets::Stat::ID, 0);
             }
         };
 

@@ -36,35 +36,35 @@ namespace kx {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
+                return ReadMemberFast<float>(HavokOffsets::HkpBoxShape::HEIGHT_HALF, 0.0f);
             }
 
             float GetWidthHalf() const {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::WIDTH_HALF, 0.0f);
+                return ReadMemberFast<float>(HavokOffsets::HkpBoxShape::WIDTH_HALF, 0.0f);
             }
 
             float GetDepthHalf() const {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::DEPTH_HALF, 0.0f);
+                return ReadMemberFast<float>(HavokOffsets::HkpBoxShape::DEPTH_HALF, 0.0f);
             }
 
             float GetCollisionRadius() const {
                 if (!data()) {
                     return 0.0f;
                 }
-                return ReadMember<float>(HavokOffsets::HkpBoxShape::COLLISION_RADIUS, 0.0f);
+                return ReadMemberFast<float>(HavokOffsets::HkpBoxShape::COLLISION_RADIUS, 0.0f);
             }
 
             glm::vec3 GetHalfExtents() const {
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(HavokOffsets::HkpBoxShape::HALF_EXTENTS, { 0.0f, 0.0f, 0.0f });
+                return ReadMemberFast<glm::vec3>(HavokOffsets::HkpBoxShape::HALF_EXTENTS, { 0.0f, 0.0f, 0.0f });
             }
 
             // Get full dimensions (half-extents * 2)
@@ -106,7 +106,7 @@ namespace kx {
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(HavokOffsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
+                return ReadMemberFast<glm::vec3>(HavokOffsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
             }
         };
 
@@ -134,7 +134,7 @@ namespace kx {
                 if (!data()) {
                     return nullptr;
                 }
-                return ReadMember<void*>(HavokOffsets::HkpMoppBvTreeShape::CHILD_SHAPE_POINTER, nullptr);
+                return ReadMemberFast<void*>(HavokOffsets::HkpMoppBvTreeShape::CHILD_SHAPE_POINTER, nullptr);
             }
         };
 
@@ -163,9 +163,9 @@ namespace kx {
                 }
                 
                 // Read individual components from AABB structure
-                float widthHalf = ReadMember<float>(HavokOffsets::HkpExtendedMeshShape::AABB_WIDTH_HALF, 0.0f);
-                float depthHalf = ReadMember<float>(HavokOffsets::HkpExtendedMeshShape::AABB_DEPTH_HALF, 0.0f);
-                float heightHalf = ReadMember<float>(HavokOffsets::HkpExtendedMeshShape::AABB_HEIGHT_HALF, 0.0f);
+                float widthHalf = ReadMemberFast<float>(HavokOffsets::HkpExtendedMeshShape::AABB_WIDTH_HALF, 0.0f);
+                float depthHalf = ReadMemberFast<float>(HavokOffsets::HkpExtendedMeshShape::AABB_DEPTH_HALF, 0.0f);
+                float heightHalf = ReadMemberFast<float>(HavokOffsets::HkpExtendedMeshShape::AABB_HEIGHT_HALF, 0.0f);
                 
                 // Return in game coordinate system: (width, depth, height) = (X, Y, Z)
                 return glm::vec3(widthHalf, depthHalf, heightHalf);
@@ -191,7 +191,7 @@ namespace kx {
                 if (!data()) {
                     return Havok::HkcdShapeType::INVALID;
                 }
-                uint8_t typeValue = ReadMember<uint8_t>(HavokOffsets::HkpRigidBody::SHAPE_TYPE_WRAPPER, 0xFF);
+                uint8_t typeValue = ReadMemberFast<uint8_t>(HavokOffsets::HkpRigidBody::SHAPE_TYPE_WRAPPER, 0xFF);
                 return static_cast<Havok::HkcdShapeType>(typeValue);
             }
 

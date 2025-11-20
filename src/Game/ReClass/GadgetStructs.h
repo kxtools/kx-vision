@@ -26,14 +26,14 @@ namespace kx {
             glm::vec3 GetPosition() const {
                 LOG_MEMORY("CoKeyFramed", "GetPosition", data(), Offsets::CoKeyframed::POSITION);
                 
-                glm::vec3 position = ReadMember<glm::vec3>(Offsets::CoKeyframed::POSITION, glm::vec3{0.0f, 0.0f, 0.0f});
+                glm::vec3 position = ReadMemberFast<glm::vec3>(Offsets::CoKeyframed::POSITION, glm::vec3{0.0f, 0.0f, 0.0f});
                 
                 LOG_DEBUG("CoKeyFramed::GetPosition - Position: (%.2f, %.2f, %.2f)", position.x, position.y, position.z);
                 return position;
             }
 
             HkpRigidBody GetRigidBody() const {
-                return ReadPointer<HkpRigidBody>(Offsets::CoKeyframed::RIGID_BODY);
+                return ReadPointerFast<HkpRigidBody>(Offsets::CoKeyframed::RIGID_BODY);
             }
         };
 
@@ -47,7 +47,7 @@ namespace kx {
             CoKeyFramed GetCoKeyFramed() const {
                 LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), Offsets::AgKeyframed::CO_KEYFRAMED);
                 
-                CoKeyFramed result = ReadPointer<CoKeyFramed>(Offsets::AgKeyframed::CO_KEYFRAMED);
+                CoKeyFramed result = ReadPointerFast<CoKeyFramed>(Offsets::AgKeyframed::CO_KEYFRAMED);
                 
                 LOG_PTR("CoKeyFramed", result.data());
                 return result;
@@ -56,7 +56,7 @@ namespace kx {
             Game::AgentType GetType() const {
                 LOG_MEMORY("AgKeyFramed", "GetType", data(), Offsets::AgKeyframed::TYPE);
                 
-                uint32_t type = ReadMember<uint32_t>(Offsets::AgKeyframed::TYPE, 0);
+                uint32_t type = ReadMemberFast<uint32_t>(Offsets::AgKeyframed::TYPE, 0);
                 
                 LOG_DEBUG("AgKeyFramed::GetType - Type: %u", type);
                 return static_cast<Game::AgentType>(type);
@@ -65,7 +65,7 @@ namespace kx {
             int32_t GetId() const {
                 LOG_MEMORY("AgKeyFramed", "GetId", data(), Offsets::AgKeyframed::ID);
                 
-                int32_t id = ReadMember<int32_t>(Offsets::AgKeyframed::ID, 0);
+                int32_t id = ReadMemberFast<int32_t>(Offsets::AgKeyframed::ID, 0);
                 
                 LOG_DEBUG("AgKeyFramed::GetId - ID: %d", id);
                 return id;
@@ -82,7 +82,7 @@ namespace kx {
             float GetCurrent() const { 
                 LOG_MEMORY("GdCliHealth", "GetCurrent", data(), Offsets::GdCliHealth::CURRENT);
                 
-                float current = ReadMember<float>(Offsets::GdCliHealth::CURRENT, 0.0f);
+                float current = ReadMemberFast<float>(Offsets::GdCliHealth::CURRENT, 0.0f);
                 
                 LOG_DEBUG("GdCliHealth::GetCurrent - Current: %.2f", current);
                 return current;
@@ -91,7 +91,7 @@ namespace kx {
             float GetMax() const { 
                 LOG_MEMORY("GdCliHealth", "GetMax", data(), Offsets::GdCliHealth::MAX);
                 
-                float max = ReadMember<float>(Offsets::GdCliHealth::MAX, 0.0f);
+                float max = ReadMemberFast<float>(Offsets::GdCliHealth::MAX, 0.0f);
                 
                 LOG_DEBUG("GdCliHealth::GetMax - Max: %.2f", max);
                 return max;
@@ -108,7 +108,7 @@ namespace kx {
             Game::GadgetType GetGadgetType() const {
                 LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), Offsets::GdCliGadget::TYPE);
                 
-                uint32_t typeValue = ReadMember<uint32_t>(Offsets::GdCliGadget::TYPE, 0);
+                uint32_t typeValue = ReadMemberFast<uint32_t>(Offsets::GdCliGadget::TYPE, 0);
                 Game::GadgetType gadgetType = static_cast<Game::GadgetType>(typeValue);
                 
                 LOG_DEBUG("GdCliGadget::GetGadgetType - Type: %u", static_cast<uint32_t>(gadgetType));
@@ -118,7 +118,7 @@ namespace kx {
             GdCliHealth GetHealth() const {
                 LOG_MEMORY("GdCliGadget", "GetHealth", data(), Offsets::GdCliGadget::HEALTH);
 
-                GdCliHealth result = ReadPointer<GdCliHealth>(Offsets::GdCliGadget::HEALTH);
+                GdCliHealth result = ReadPointerFast<GdCliHealth>(Offsets::GdCliGadget::HEALTH);
 
                 LOG_PTR("Health", result.data());
                 return result;
@@ -127,13 +127,13 @@ namespace kx {
             Game::ResourceNodeType GetResourceNodeType() const {
                 LOG_MEMORY("GdCliGadget", "GetResourceNodeType", data(), Offsets::GdCliGadget::RESOURCE_NODE_TYPE);
 
-                return ReadMember<Game::ResourceNodeType>(Offsets::GdCliGadget::RESOURCE_NODE_TYPE, Game::ResourceNodeType::None);
+                return ReadMemberFast<Game::ResourceNodeType>(Offsets::GdCliGadget::RESOURCE_NODE_TYPE, Game::ResourceNodeType::None);
             }
 
             bool IsGatherable() const {
                 LOG_MEMORY("GdCliGadget", "IsGatherable", data(), Offsets::GdCliGadget::FLAGS);
                 
-                uint32_t flags = ReadMember<uint32_t>(Offsets::GdCliGadget::FLAGS, 0);
+                uint32_t flags = ReadMemberFast<uint32_t>(Offsets::GdCliGadget::FLAGS, 0);
                 bool gatherable = (flags & Offsets::GdCliGadget::FLAG_GATHERABLE) != 0;
                 
                 LOG_DEBUG("GdCliGadget::IsGatherable - Flags: 0x%X, Gatherable: %s", flags, gatherable ? "true" : "false");
@@ -143,7 +143,7 @@ namespace kx {
             AgKeyFramed GetAgKeyFramed() const {
                 LOG_MEMORY("GdCliGadget", "GetAgKeyFramed", data(), Offsets::GdCliGadget::AG_KEYFRAMED);
                 
-                AgKeyFramed result = ReadPointer<AgKeyFramed>(Offsets::GdCliGadget::AG_KEYFRAMED);
+                AgKeyFramed result = ReadPointerFast<AgKeyFramed>(Offsets::GdCliGadget::AG_KEYFRAMED);
                 
                 LOG_PTR("AgKeyFramed", result.data());
                 return result;
@@ -164,7 +164,7 @@ namespace kx {
             AgKeyFramed GetAgKeyFramed() const {
                 LOG_MEMORY("AgentInl", "GetAgKeyFramed", data(), Offsets::AgentInl::AG_KEYFRAMED);
                 
-                AgKeyFramed result = ReadPointer<AgKeyFramed>(Offsets::AgentInl::AG_KEYFRAMED);
+                AgKeyFramed result = ReadPointerFast<AgKeyFramed>(Offsets::AgentInl::AG_KEYFRAMED);
                 
                 LOG_PTR("AgKeyFramed", result.data());
                 return result;
@@ -173,7 +173,7 @@ namespace kx {
             Game::AttackTargetCombatState GetCombatState() const {
                 LOG_MEMORY("AgentInl", "GetCombatState", data(), Offsets::AgentInl::COMBAT_STATE);
                 
-                int32_t state = ReadMember<int32_t>(Offsets::AgentInl::COMBAT_STATE, 0);
+                int32_t state = ReadMemberFast<int32_t>(Offsets::AgentInl::COMBAT_STATE, 0);
                 
                 LOG_DEBUG("AgentInl::GetCombatState - State: %d", state);
                 return static_cast<Game::AttackTargetCombatState>(state);

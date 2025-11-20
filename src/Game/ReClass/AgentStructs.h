@@ -34,7 +34,7 @@ namespace kx {
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(Offsets::CoCharSimpleCliWrapper::POSITION_ALT1, { 0.0f, 0.0f, 0.0f });
+                return ReadMemberFast<glm::vec3>(Offsets::CoCharSimpleCliWrapper::POSITION_ALT1, { 0.0f, 0.0f, 0.0f });
             }
 
             glm::vec3 GetPositionAlt2() const {
@@ -43,15 +43,15 @@ namespace kx {
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
-                return ReadMember<glm::vec3>(Offsets::CoCharSimpleCliWrapper::POSITION_ALT2, { 0.0f, 0.0f, 0.0f });
+                return ReadMemberFast<glm::vec3>(Offsets::CoCharSimpleCliWrapper::POSITION_ALT2, { 0.0f, 0.0f, 0.0f });
             }
 
             HkpSimpleShapePhantom GetPhysicsPhantom() const {
-                return ReadPointer<HkpSimpleShapePhantom>(Offsets::CoCharSimpleCliWrapper::PHYSICS_PHANTOM_PLAYER);
+                return ReadPointerFast<HkpSimpleShapePhantom>(Offsets::CoCharSimpleCliWrapper::PHYSICS_PHANTOM_PLAYER);
             }
 
             HkpBoxShape GetBoxShapeNpc() const {
-                return ReadPointer<HkpBoxShape>(Offsets::CoCharSimpleCliWrapper::BOX_SHAPE_NPC);
+                return ReadPointerFast<HkpBoxShape>(Offsets::CoCharSimpleCliWrapper::BOX_SHAPE_NPC);
             }
         };
 
@@ -69,17 +69,17 @@ namespace kx {
                     return { 0.0f, 0.0f, 0.0f };
                 }
                 
-                glm::vec3 result = ReadMember<glm::vec3>(Offsets::CoChar::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
+                glm::vec3 result = ReadMemberFast<glm::vec3>(Offsets::CoChar::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
                 
                 return result;
             }
 
             HkpRigidBody GetRigidBodyPlayer() const {
-                return ReadPointer<HkpRigidBody>(Offsets::CoChar::RIGID_BODY_PLAYER);
+                return ReadPointerFast<HkpRigidBody>(Offsets::CoChar::RIGID_BODY_PLAYER);
             }
 
             CoCharSimpleCliWrapper GetSimpleCliWrapper() const {
-                return ReadPointer<CoCharSimpleCliWrapper>(Offsets::CoChar::SIMPLE_CLI_WRAPPER);
+                return ReadPointerFast<CoCharSimpleCliWrapper>(Offsets::CoChar::SIMPLE_CLI_WRAPPER);
             }
         };
 
@@ -93,7 +93,7 @@ namespace kx {
             CoChar GetCoChar() const {
                 LOG_MEMORY("AgChar", "GetCoChar", data(), Offsets::AgChar::CO_CHAR);
                 
-                CoChar result = ReadPointer<CoChar>(Offsets::AgChar::CO_CHAR);
+                CoChar result = ReadPointerFast<CoChar>(Offsets::AgChar::CO_CHAR);
                 
                 LOG_PTR("CoChar", result.data());
                 return result;
@@ -102,7 +102,7 @@ namespace kx {
             Game::AgentType GetType() const {
                 LOG_MEMORY("AgChar", "GetType", data(), Offsets::AgChar::TYPE);
                 
-                uint32_t type = ReadMember<uint32_t>(Offsets::AgChar::TYPE, 0);
+                uint32_t type = ReadMemberFast<uint32_t>(Offsets::AgChar::TYPE, 0);
                 
                 LOG_DEBUG("AgChar::GetType - Type: %u", type);
                 return static_cast<Game::AgentType>(type);
@@ -111,7 +111,7 @@ namespace kx {
             int32_t GetId() const {
                 LOG_MEMORY("AgChar", "GetId", data(), Offsets::AgChar::ID);
                 
-                int32_t id = ReadMember<int32_t>(Offsets::AgChar::ID, 0);
+                int32_t id = ReadMemberFast<int32_t>(Offsets::AgChar::ID, 0);
                 
                 LOG_DEBUG("AgChar::GetId - ID: %d", id);
                 return id;
@@ -130,7 +130,7 @@ namespace kx {
                 }
                 
                 // Read the 32-bit scaled grounded position (last known ground/navmesh contact)
-                glm::vec3 rawPos = ReadMember<glm::vec3>(Offsets::AgChar::GROUNDED_POSITION32, { 0.0f, 0.0f, 0.0f });
+                glm::vec3 rawPos = ReadMemberFast<glm::vec3>(Offsets::AgChar::GROUNDED_POSITION32, { 0.0f, 0.0f, 0.0f });
                 
                 // Convert from scaled coordinates to world coordinates
                 // x and y are divided by 32, z is divided by -32 (inverted)

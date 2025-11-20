@@ -28,7 +28,7 @@ namespace kx {
             uint32_t GetCharacterListCapacity() const {
                 LOG_MEMORY("ChCliContext", "GetCharacterListCapacity", data(), Offsets::ChCliContext::CHARACTER_LIST_CAPACITY);
                 
-                uint32_t capacity = ReadMember<uint32_t>(Offsets::ChCliContext::CHARACTER_LIST_CAPACITY, 0);
+                uint32_t capacity = ReadMemberFast<uint32_t>(Offsets::ChCliContext::CHARACTER_LIST_CAPACITY, 0);
                 
                 LOG_DEBUG("ChCliContext::GetCharacterListCapacity - Capacity: %u", capacity);
                 return capacity;
@@ -37,7 +37,7 @@ namespace kx {
             uint32_t GetCharacterListCount() const {
                 LOG_MEMORY("ChCliContext", "GetCharacterListCount", data(), Offsets::ChCliContext::CHARACTER_LIST_COUNT);
                 
-                uint32_t count = ReadMember<uint32_t>(Offsets::ChCliContext::CHARACTER_LIST_COUNT, 0);
+                uint32_t count = ReadMemberFast<uint32_t>(Offsets::ChCliContext::CHARACTER_LIST_COUNT, 0);
                 
                 LOG_DEBUG("ChCliContext::GetCharacterListCount - Count: %u", count);
                 return count;
@@ -55,7 +55,7 @@ namespace kx {
             uint32_t GetPlayerListCapacity() const {
                 LOG_MEMORY("ChCliContext", "GetPlayerListCapacity", data(), Offsets::ChCliContext::PLAYER_LIST_CAPACITY);
                 
-                uint32_t capacity = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_CAPACITY, 0);
+                uint32_t capacity = ReadMemberFast<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_CAPACITY, 0);
                 
                 LOG_DEBUG("ChCliContext::GetPlayerListCapacity - Capacity: %u", capacity);
                 return capacity;
@@ -64,7 +64,7 @@ namespace kx {
             uint32_t GetPlayerListCount() const {
                 LOG_MEMORY("ChCliContext", "GetPlayerListCount", data(), Offsets::ChCliContext::PLAYER_LIST_COUNT);
                 
-                uint32_t count = ReadMember<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_COUNT, 0);
+                uint32_t count = ReadMemberFast<uint32_t>(Offsets::ChCliContext::PLAYER_LIST_COUNT, 0);
                 
                 LOG_DEBUG("ChCliContext::GetPlayerListCount - Count: %u", count);
                 return count;
@@ -73,7 +73,7 @@ namespace kx {
             ChCliCharacter* GetLocalPlayer() const {
                 LOG_MEMORY("ChCliContext", "GetLocalPlayer", data(), Offsets::ChCliContext::LOCAL_PLAYER);
                 
-                ChCliCharacter* result = ReadMember<ChCliCharacter*>(Offsets::ChCliContext::LOCAL_PLAYER, nullptr);
+                ChCliCharacter* result = ReadMemberFast<ChCliCharacter*>(Offsets::ChCliContext::LOCAL_PLAYER, nullptr);
                 
                 LOG_PTR("LocalPlayer", result);
                 return result;
@@ -99,7 +99,7 @@ namespace kx {
             uint32_t GetGadgetListCapacity() const {
                 LOG_MEMORY("GdCliContext", "GetGadgetListCapacity", data(), Offsets::GdCliContext::GADGET_LIST_CAPACITY);
                 
-                uint32_t capacity = ReadMember<uint32_t>(Offsets::GdCliContext::GADGET_LIST_CAPACITY, 0);
+                uint32_t capacity = ReadMemberFast<uint32_t>(Offsets::GdCliContext::GADGET_LIST_CAPACITY, 0);
                 
                 LOG_DEBUG("GdCliContext::GetGadgetListCapacity - Capacity: %u", capacity);
                 return capacity;
@@ -108,7 +108,7 @@ namespace kx {
             uint32_t GetGadgetListCount() const {
                 LOG_MEMORY("GdCliContext", "GetGadgetListCount", data(), Offsets::GdCliContext::GADGET_LIST_COUNT);
                 
-                uint32_t count = ReadMember<uint32_t>(Offsets::GdCliContext::GADGET_LIST_COUNT, 0);
+                uint32_t count = ReadMemberFast<uint32_t>(Offsets::GdCliContext::GADGET_LIST_COUNT, 0);
                 
                 LOG_DEBUG("GdCliContext::GetGadgetListCount - Count: %u", count);
                 return count;
@@ -126,7 +126,7 @@ namespace kx {
             uint32_t GetAttackTargetListCapacity() const {
                 LOG_MEMORY("GdCliContext", "GetAttackTargetListCapacity", data(), Offsets::GdCliContext::ATTACK_TARGET_LIST_CAPACITY);
                 
-                uint32_t capacity = ReadMember<uint32_t>(Offsets::GdCliContext::ATTACK_TARGET_LIST_CAPACITY, 0);
+                uint32_t capacity = ReadMemberFast<uint32_t>(Offsets::GdCliContext::ATTACK_TARGET_LIST_CAPACITY, 0);
                 
                 LOG_DEBUG("GdCliContext::GetAttackTargetListCapacity - Capacity: %u", capacity);
                 return capacity;
@@ -135,7 +135,7 @@ namespace kx {
             uint32_t GetAttackTargetListCount() const {
                 LOG_MEMORY("GdCliContext", "GetAttackTargetListCount", data(), Offsets::GdCliContext::ATTACK_TARGET_LIST_COUNT);
                 
-                uint32_t count = ReadMember<uint32_t>(Offsets::GdCliContext::ATTACK_TARGET_LIST_COUNT, 0);
+                uint32_t count = ReadMemberFast<uint32_t>(Offsets::GdCliContext::ATTACK_TARGET_LIST_COUNT, 0);
                 
                 LOG_DEBUG("GdCliContext::GetAttackTargetListCount - Count: %u", count);
                 return count;
@@ -157,7 +157,7 @@ namespace kx {
             ChCliContext GetChCliContext() const {
                 LOG_MEMORY("ContextCollection", "GetChCliContext", data(), Offsets::ContextCollection::CH_CLI_CONTEXT);
                 
-                ChCliContext result = ReadPointer<ChCliContext>(Offsets::ContextCollection::CH_CLI_CONTEXT);
+                ChCliContext result = ReadPointerFast<ChCliContext>(Offsets::ContextCollection::CH_CLI_CONTEXT);
                 
                 LOG_PTR("ChCliContext", result.data());
                 return result;
@@ -166,7 +166,7 @@ namespace kx {
             GdCliContext GetGdCliContext() const {
                 LOG_MEMORY("ContextCollection", "GetGdCliContext", data(), Offsets::ContextCollection::GD_CLI_CONTEXT);
                 
-                GdCliContext result = ReadPointer<GdCliContext>(Offsets::ContextCollection::GD_CLI_CONTEXT);
+                GdCliContext result = ReadPointerFast<GdCliContext>(Offsets::ContextCollection::GD_CLI_CONTEXT);
                 
                 LOG_PTR("GdCliContext", result.data());
                 return result;
