@@ -251,12 +251,17 @@ static void RenderBurstDps(const FrameContext& context,
 
         float barCenterY = healthBarPos.y + props.style.finalHealthBarHeight / 2.0f;
         
+        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(context.settings, entityType);
+        
+        float spacingFromBar = shouldRenderHealthPercentage 
+            ? RenderingLayout::BURST_DPS_HORIZONTAL_PADDING 
+            : RenderingLayout::BURST_DPS_MIN_SPACING_FROM_BAR;
+        
         anchorPos = { 
-            healthBarPos.x + props.style.finalHealthBarWidth + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING, 
+            healthBarPos.x + props.style.finalHealthBarWidth + spacingFromBar, 
             barCenterY - (dpsTextSize.y / 2.0f)
         };
 
-        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(context.settings, entityType);
         if (shouldRenderHealthPercentage && healthPercent >= 0.0f) {
             char hpBuffer[16];
             int hpLen = snprintf(hpBuffer, std::size(hpBuffer), "%d%%", static_cast<int>(healthPercent * 100.0f));

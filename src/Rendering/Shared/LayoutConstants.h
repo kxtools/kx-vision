@@ -179,6 +179,7 @@ namespace RenderingLayout {
 
     // Burst DPS Display
     constexpr float BURST_DPS_HORIZONTAL_PADDING = 5.0f;     // Padding between elements
+    constexpr float BURST_DPS_MIN_SPACING_FROM_BAR = 10.0f; // Minimum spacing from health bar when HP percentage is disabled
     constexpr float BURST_DPS_FALLBACK_Y_OFFSET = 20.0f;     // Y-offset when HP bar is off
     
     // Status Text (HP% and DPS) - Unified font size for visual consistency
