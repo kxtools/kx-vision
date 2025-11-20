@@ -52,6 +52,13 @@ float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showB
     return durationSeconds > 0.0f ? (state->accumulatedDamage / durationSeconds) : 0.0f;
 }
 
+bool IsDeathAnimating(const EntityCombatState* state, uint64_t now) {
+    if (!state || state->deathTimestamp == 0) {
+        return false;
+    }
+    return (now - state->deathTimestamp) <= CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
+}
+
 bool ShouldRenderPlayerHealthBar(const RenderablePlayer& player, const PlayerEspSettings& settings) {
     if (!settings.renderHealthBar) {
         return false;
@@ -62,14 +69,26 @@ bool ShouldRenderPlayerHealthBar(const RenderablePlayer& player, const PlayerEsp
     return true;
 }
 
-bool ShouldRenderNpcHealthBar(const RenderableNpc& npc, const NpcEspSettings& settings) {
+bool ShouldRenderNpcHealthBar(const RenderableNpc& npc,
+                              const NpcEspSettings& settings,
+                              const EntityCombatState* state,
+                              uint64_t now) {
     if (!settings.renderHealthBar) {
         return false;
     }
-    if (settings.showOnlyDamaged && npc.maxHealth > 0 && npc.currentHealth >= npc.maxHealth) {
+
+    const bool deathAnimating = IsDeathAnimating(state, now);
+
+    if (settings.showOnlyDamaged &&
+        npc.maxHealth > 0 &&
+        npc.currentHealth >= npc.maxHealth &&
+        !deathAnimating) {
         return false;
     }
-    if (!settings.showDeadNpcs && npc.currentHealth <= 0.0f) {
+
+    if (!settings.showDeadNpcs &&
+        npc.currentHealth <= 0.0f &&
+        !deathAnimating) {
         return false;
     }
     return true;
@@ -85,21 +104,18 @@ bool ShouldRenderGadgetHealthBar(const RenderableGadget& gadget,
     if (Styling::ShouldHideCombatUIForGadget(gadget.type)) {
         return false;
     }
-    if (gadget.maxHealth <= 0.0f) {
+    const bool deathAnimating = IsDeathAnimating(state, now);
+
+    if (gadget.maxHealth <= 0.0f && !deathAnimating) {
         return false;
     }
-    if (settings.showOnlyDamaged && gadget.currentHealth >= gadget.maxHealth) {
+    if (settings.showOnlyDamaged &&
+        gadget.currentHealth >= gadget.maxHealth &&
+        !deathAnimating) {
         return false;
     }
-    if (gadget.currentHealth <= 0.0f) {
+    if (gadget.currentHealth <= 0.0f && !deathAnimating) {
         if (!settings.showDeadGadgets) {
-            return false;
-        }
-        if (!state || state->deathTimestamp == 0) {
-            return false;
-        }
-        uint64_t sinceDeath = now - state->deathTimestamp;
-        if (sinceDeath > CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS) {
             return false;
         }
     }
@@ -178,7 +194,7 @@ EntityRenderState BuildRenderStateForEntity(const RenderableEntity& entity,
         case EntityTypes::NPC: {
             const auto& npc = static_cast<const RenderableNpc&>(entity);
             state.attitude = npc.attitude;
-            state.renderHealthBar = ShouldRenderNpcHealthBar(npc, context.settings.npcESP);
+            state.renderHealthBar = ShouldRenderNpcHealthBar(npc, context.settings.npcESP, combatState, context.now);
             state.renderDetails = context.settings.npcESP.renderDetails;
             state.showCombatUI = true;
             state.burstDps = CalculateBurstDps(combatState, context.now, context.settings.npcESP.showBurstDps);
