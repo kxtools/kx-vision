@@ -15,6 +15,9 @@ namespace kx {
             return;
         }
 
+        // Capture the current game window (Foreground) before creating the console
+        HWND hGameWindow = GetForegroundWindow();
+
         // 2. Try to allocate a new console.
         if (!AllocConsole()) {
             // Log the failure using Windows' GetLastError() for a specific reason.
@@ -30,7 +33,6 @@ namespace kx {
         SetConsoleTitle(L"KX Vision - Debug Console");
 
         // 4. Redirect standard C++ streams to the new console.
-        //    Using FILE* streams is fine, but this is the idiomatic C++ way.
         FILE* dummyFile;
         freopen_s(&dummyFile, "CONIN$", "r", stdin);
         freopen_s(&dummyFile, "CONOUT$", "w", stderr);
@@ -46,6 +48,12 @@ namespace kx {
             if (hMenu != NULL) {
                 DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
             }
+        }
+
+        // Force focus back to the game window immediately
+        if (hGameWindow) {
+            SetForegroundWindow(hGameWindow);
+            SetFocus(hGameWindow);
         }
 
         LOG_INFO("[Console] Debug console initialized successfully!");
