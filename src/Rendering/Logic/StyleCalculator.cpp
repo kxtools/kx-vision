@@ -11,35 +11,34 @@
 
 namespace kx::Logic {
 
-std::optional<VisualStyle> StyleCalculator::Calculate(const RenderableEntity& entity,
-                                                         const FrameContext& context) {
-    VisualStyle style;
-
+bool StyleCalculator::Calculate(const RenderableEntity& entity,
+                                 const FrameContext& context,
+                                 VisualStyle& outStyle) {
     float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
     bool useLimitMode = activeLimit > 0.0f;
-    style.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance, useLimitMode, activeLimit);
+    outStyle.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance, useLimitMode, activeLimit);
 
-    if (style.distanceFadeAlpha <= 0.0f) {
-        return std::nullopt;
+    if (outStyle.distanceFadeAlpha <= 0.0f) {
+        return false;
     }
 
     unsigned int color = Styling::GetEntityColor(entity);
 
-    style.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(color, style.distanceFadeAlpha);
+    outStyle.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(color, outStyle.distanceFadeAlpha);
 
-    style.scale = CalculateEntityScale(entity.visualDistance, entity.entityType, context);
+    outStyle.scale = CalculateEntityScale(entity.visualDistance, entity.entityType, context);
 
     float normalizedDistance = 0.0f;
-    style.finalAlpha = CalculateAdaptiveAlpha(entity.gameplayDistance, style.distanceFadeAlpha,
+    outStyle.finalAlpha = CalculateAdaptiveAlpha(entity.gameplayDistance, outStyle.distanceFadeAlpha,
                                              useLimitMode, entity.entityType,
                                              normalizedDistance);
 
-    style.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(style.fadedEntityColor, style.finalAlpha);
+    outStyle.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(outStyle.fadedEntityColor, outStyle.finalAlpha);
 
     EntityMultipliers multipliers = CalculateEntityMultipliers(entity);
-    CalculateFinalSizes(style, style.scale, multipliers);
+    CalculateFinalSizes(outStyle, outStyle.scale, multipliers);
 
-    return style;
+    return true;
 }
 
 float StyleCalculator::CalculateEntityScale(float visualDistance, EntityTypes entityType, const FrameContext& context) {

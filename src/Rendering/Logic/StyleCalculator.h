@@ -1,6 +1,5 @@
 #pragma once
 
-#include <optional>
 #include "../Data/FrameData.h"
 #include "../Data/EntityTypes.h"
 
@@ -27,11 +26,13 @@ public:
      * @brief Calculates abstract visual properties (Color, Alpha, Sizes).
      * @param entity The entity to process
      * @param context Frame context containing settings and game state
-     * @return VisualStyle if entity should be rendered (distance-based), nullopt if fully transparent
+     * @param outStyle Output parameter for the calculated visual style
+     * @return true if entity should be rendered, false if fully transparent (distanceFadeAlpha <= 0)
      */
-    static std::optional<VisualStyle> Calculate(
+    static bool Calculate(
         const RenderableEntity& entity, 
-        const FrameContext& context
+        const FrameContext& context,
+        VisualStyle& outStyle
     );
 
 private:

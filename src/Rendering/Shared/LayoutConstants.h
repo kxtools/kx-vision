@@ -172,6 +172,10 @@ namespace RenderingLayout {
     constexpr float TEXT_DEFAULT_BORDER_THICKNESS = 1.0f;     // 1px crisp border
     constexpr float TEXT_DEFAULT_LINE_SPACING = 2.0f;
 
+    // Text Buffer Sizes
+    constexpr size_t TEXT_BUFFER_SIZE = 128;                  // Safe size for formatted strings (HP, Dist, etc)
+    constexpr size_t GEAR_BUFFER_SIZE = 256;                  // Larger buffer for gear summary text
+
     // Burst DPS Display
     constexpr float BURST_DPS_HORIZONTAL_PADDING = 5.0f;     // Padding between elements
     constexpr float BURST_DPS_FALLBACK_Y_OFFSET = 20.0f;     // Y-offset when HP bar is off

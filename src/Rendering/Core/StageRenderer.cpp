@@ -130,13 +130,10 @@ void ProcessAndRender(const FrameContext& context, const RenderableEntity* entit
         return;
     }
 
-    auto styleOpt = Logic::StyleCalculator::Calculate(*entity, context);
-    if (!styleOpt) {
+    VisualProperties visuals;
+    if (!Logic::StyleCalculator::Calculate(*entity, context, visuals.style)) {
         return;
     }
-
-    VisualProperties visuals;
-    visuals.style = *styleOpt;
 
     bool isOnScreen = Renderers::ScreenProjector::Project(
         *entity,

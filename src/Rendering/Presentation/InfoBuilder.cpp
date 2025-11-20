@@ -31,7 +31,7 @@ void InfoBuilder::RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
-    char buffer[128];
+    char buffer[RenderingLayout::TEXT_BUFFER_SIZE];
     glm::vec2 pos = cursor.GetPosition();
 
     if (settings.showDetailLevel && player->level > 0) {
@@ -149,7 +149,7 @@ void InfoBuilder::RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, 
     style.background = true;
     style.fadeAlpha = props.style.finalAlpha;
 
-    char buffer[128];
+    char buffer[RenderingLayout::TEXT_BUFFER_SIZE];
     glm::vec2 pos = cursor.GetPosition();
 
     for (const auto& slotEnum : displayOrder) {
@@ -294,7 +294,7 @@ void InfoBuilder::RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, c
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
-    char buffer[128];
+    char buffer[RenderingLayout::TEXT_BUFFER_SIZE];
     glm::vec2 pos = cursor.GetPosition();
 
     if (!npc->name.empty()) {
@@ -390,7 +390,7 @@ void InfoBuilder::RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
-    char buffer[128];
+    char buffer[RenderingLayout::TEXT_BUFFER_SIZE];
     glm::vec2 pos = cursor.GetPosition();
 
     if (settings.showDetailGadgetType) {
@@ -469,7 +469,7 @@ void InfoBuilder::RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& 
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
-    char buffer[128];
+    char buffer[RenderingLayout::TEXT_BUFFER_SIZE];
     glm::vec2 pos = cursor.GetPosition();
 
     std::string_view typeText("Type: Attack Target");

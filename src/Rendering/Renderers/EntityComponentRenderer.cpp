@@ -9,8 +9,6 @@
 #include "../Shared/LayoutConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Data/RenderableData.h"
-#include <format>
-#include <string>
 #include <string_view>
 #include <cstring>
 #include <cstdio>
@@ -123,7 +121,7 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
     glm::vec2 pos = cursor.GetPosition();
     pos.y += RenderingLayout::TEXT_ANCHOR_GAP;
 
-    char distanceBuffer[64];
+    char distanceBuffer[RenderingLayout::TEXT_BUFFER_SIZE];
     char separatorBuffer[8] = " • ";
 
     std::string_view nameText = displayName;
@@ -359,7 +357,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                 case GearDisplayMode::Compact: {
                     auto summary = InfoBuilder::BuildCompactGearSummary(player);
                     if (!summary.empty()) {
-                        char buffer[256];
+                        char buffer[RenderingLayout::GEAR_BUFFER_SIZE];
                         char* current = buffer;
                         size_t remaining = sizeof(buffer);
                         
@@ -407,7 +405,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                 case GearDisplayMode::Attributes: {
                     auto stats = InfoBuilder::BuildDominantStats(player);
                     if (!stats.empty()) {
-                        char buffer[256];
+                        char buffer[RenderingLayout::GEAR_BUFFER_SIZE];
                         char* current = buffer;
                         size_t remaining = sizeof(buffer);
                         
