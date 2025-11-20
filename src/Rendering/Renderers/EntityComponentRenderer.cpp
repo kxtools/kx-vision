@@ -272,7 +272,7 @@ static void RenderBurstDps(const FrameContext& context,
             float hpFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
             ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.data(), hpText.data() + hpText.size());
 
-            anchorPos.x += hpTextSize.x + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING;
+            anchorPos.x += hpTextSize.x + RenderingLayout::BURST_DPS_SPACING_FROM_HP_PERCENT;
         }
 
     }
