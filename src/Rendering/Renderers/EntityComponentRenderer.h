@@ -2,18 +2,43 @@
 
 #include "LayoutCursor.h"
 #include "../Data/FrameData.h"
+#include "../Data/HealthBarAnimationState.h"
+#include "../../Game/GameEnums.h"
+#include <string_view>
+#include <vector>
 
 namespace kx {
 
+struct RenderableEntity;
+struct ColoredDetail;
+
 class EntityComponentRenderer {
 public:
-    static void RenderGeometry(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props);
+    static void RenderGeometry(const FrameContext& ctx, const RenderableEntity& entity, const VisualProperties& props);
 
-    static void RenderIdentity(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor);
+    static void RenderIdentity(const FrameContext& ctx,
+                               const RenderableEntity& entity,
+                               std::string_view displayName,
+                               const VisualProperties& props,
+                               LayoutCursor& cursor);
 
-    static void RenderStatusBars(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor);
+    static void RenderStatusBars(const FrameContext& ctx,
+                                 const RenderableEntity& entity,
+                                 bool showCombatUI,
+                                 bool renderHealthBar,
+                                 bool renderEnergyBar,
+                                 float burstDps,
+                                 Game::Attitude attitude,
+                                 const HealthBarAnimationState& animState,
+                                 const VisualProperties& props,
+                                 LayoutCursor& cursor);
 
-    static void RenderDetails(const FrameContext& ctx, const EntityRenderContext& eCtx, const VisualProperties& props, LayoutCursor& cursor);
+    static void RenderDetails(const FrameContext& ctx,
+                              const RenderableEntity& entity,
+                              bool renderDetails,
+                              const std::vector<ColoredDetail>& details,
+                              const VisualProperties& props,
+                              LayoutCursor& cursor);
 };
 
 } // namespace kx

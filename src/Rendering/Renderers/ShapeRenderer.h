@@ -19,7 +19,7 @@ class ShapeRenderer {
 public:
     /**
      * @brief Render a 3D gyroscope sphere effect.
-     * REFACTOR: Decoupled from EntityRenderContext. Now takes raw position/distance.
+     * REFACTOR: Decoupled from the old entity context objects. Now takes raw position/distance.
      * This makes the renderer "dumb" (pure drawing) and reusable.
      * 
      * @param worldPos The 3D center of the sphere

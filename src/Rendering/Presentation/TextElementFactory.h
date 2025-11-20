@@ -3,6 +3,7 @@
 #include "../Data/TextElement.h"
 #include <vector>
 #include <string>
+#include <string_view>
 
 #include "../../Game/GameEnums.h"
 
@@ -12,14 +13,16 @@ namespace kx {
 struct ColoredDetail;
 struct CompactStatInfo;
 struct DominantStat;
-struct EntityRenderContext;
+struct RenderableEntity;
 struct VisualProperties;
 struct FrameContext;
 struct Settings;
 
 // LayoutRequest structure (used by CreateIdentityLine)
 struct LayoutRequest {
-    const EntityRenderContext& entityContext;
+    const RenderableEntity& entity;
+    std::string_view displayName;
+    float gameplayDistance;
     const VisualProperties& visualProps;
     const FrameContext& frameContext;
 };

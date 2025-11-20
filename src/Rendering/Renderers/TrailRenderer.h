@@ -3,11 +3,12 @@
 #include <vector>
 #include "../../../libs/ImGui/imgui.h"
 #include "../Combat/CombatState.h"
+#include "../../Game/GameEnums.h"
 
 namespace kx {
 
 struct FrameContext;
-struct EntityRenderContext;
+struct RenderablePlayer;
 struct VisualProperties;
 
 struct TrailSegmentData {
@@ -19,13 +20,14 @@ class TrailRenderer {
 public:
     static void RenderPlayerTrail(
         const FrameContext& context,
-        const EntityRenderContext& entityContext,
+        const RenderablePlayer& player,
+        Game::Attitude attitude,
         const VisualProperties& props);
 
 private:
     static std::vector<PositionHistoryPoint> CollectTrailPoints(
         const FrameContext& context,
-        const EntityRenderContext& entityContext,
+        const RenderablePlayer& player,
         uint64_t now);
 
     static TrailSegmentData GenerateSmoothTrail(

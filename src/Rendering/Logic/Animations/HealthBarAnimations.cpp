@@ -2,7 +2,7 @@
 
 #include "../../Data/RenderableData.h"
 #include "../../Combat/CombatState.h"
-#include "../../Data/EntityRenderContext.h"
+#include "../../Data/HealthBarAnimationState.h"
 #include "../../Shared/AnimationHelpers.h"
 #include "Combat/CombatConstants.h"
 

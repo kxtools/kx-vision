@@ -5,7 +5,6 @@
 #include <array>
 
 #include "../../libs/ImGui/imgui.h" // For ImU32, ImVec2
-#include "EntityRenderContext.h"
 
 // Forward declarations
 struct ImDrawList;
@@ -79,11 +78,12 @@ struct ScreenGeometry {
  *
  * This struct contains all the pre-calculated visual properties needed
  * to render an entity. It separates calculation from drawing.
- * The style is populated by FrameDataProcessor (Low Freq), geometry by StageRenderer (High Freq).
+ * The style is populated by Logic::StyleCalculator (low frequency update),
+ * geometry is refreshed every frame by StageRenderer (render thread).
  */
 struct VisualProperties {
-    VisualStyle style;       // Populated by FrameDataProcessor (Low Freq)
-    ScreenGeometry geometry; // Populated by StageRenderer (High Freq)
+    VisualStyle style;
+    ScreenGeometry geometry;
 
     VisualProperties() : style(), geometry() {
     }
@@ -103,32 +103,17 @@ struct FrameContext {
     const bool isInWvW; // Game context: true if player is on a WvW map
 };
 
-// NEW: FinalizedRenderable struct
-// This pairs a renderable entity with its calculated visual properties and render context for the frame.
-struct FinalizedRenderable {
-    const RenderableEntity* entity;
-    VisualProperties visuals;
-    EntityRenderContext context;
-};
-
-// MODIFIED: PooledFrameRenderData
-// This struct is now simplified. The "filtered" data will still use the old structure,
-// but we will introduce a new container for the finalized data.
 struct PooledFrameRenderData {
     std::vector<RenderablePlayer*> players;
     std::vector<RenderableNpc*> npcs;
     std::vector<RenderableGadget*> gadgets;
     std::vector<RenderableAttackTarget*> attackTargets;
 
-    // NEW: A single vector to hold all entities after visuals have been calculated.
-    std::vector<FinalizedRenderable> finalizedEntities;
-
     void Reset() {
         players.clear();
         npcs.clear();
         gadgets.clear();
         attackTargets.clear();
-        finalizedEntities.clear();
     }
 };
 

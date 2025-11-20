@@ -127,9 +127,7 @@
     <ClCompile Include="src\Rendering\Logic\EntityFilter.cpp" />
     <ClCompile Include="src\Rendering\Core\MasterRenderer.cpp" />
     <ClCompile Include="src\Rendering\Core\StageRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Logic\FrameDataProcessor.cpp" />
     <ClCompile Include="src\Rendering\Logic\StyleCalculator.cpp" />
-    <ClCompile Include="src\Rendering\Presentation\ContextFactory.cpp" />
     <ClCompile Include="src\Rendering\Presentation\Formatting.cpp" />
     <ClCompile Include="src\Rendering\Presentation\Styling.cpp" />
     <ClCompile Include="src\Rendering\Renderers\EntityComponentRenderer.cpp" />
@@ -223,7 +221,6 @@
     <ClInclude Include="src\Rendering\Logic\EntityFilter.h" />
     <ClInclude Include="src\Rendering\Core\MasterRenderer.h" />
     <ClInclude Include="src\Rendering\Core\StageRenderer.h" />
-    <ClInclude Include="src\Rendering\Logic\FrameDataProcessor.h" />
     <ClInclude Include="src\Rendering\UI\UIConstants.h" />
     <ClInclude Include="src\Rendering\Logic\StyleCalculator.h" />
     <ClInclude Include="src\Rendering\Presentation\Formatting.h" />
@@ -232,14 +229,13 @@
     <ClInclude Include="src\Rendering\Renderers\EnergyBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ScreenProjector.h" />
     <ClInclude Include="src\Rendering\Renderers\TrailRenderer.h" />
-    <ClInclude Include="src\Rendering\Data\EntityRenderContext.h" />
     <ClInclude Include="src\Rendering\Data\FrameData.h" />
+    <ClInclude Include="src\Rendering\Data\HealthBarAnimationState.h" />
     <ClInclude Include="src\Rendering\Data\EntityTypes.h" />
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />
     <ClInclude Include="src\Rendering\Extraction\EntityExtractor.h" />
     <ClInclude Include="src\Rendering\UI\GuiHelpers.h" />
-    <ClInclude Include="src\Rendering\Presentation\ContextFactory.h" />
     <ClInclude Include="src\Rendering\Renderers\HealthBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ShapeRenderer.h" />
     <ClInclude Include="src\Rendering\Data\TextElement.h" />

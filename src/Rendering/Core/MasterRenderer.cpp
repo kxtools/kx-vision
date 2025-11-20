@@ -17,7 +17,6 @@
 #include "../Combat/CombatStateKey.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "Logic/EntityFilter.h"
-#include "Logic/FrameDataProcessor.h"
 
 namespace kx {
 
@@ -63,10 +62,7 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         allEntities.insert(allEntities.end(), extractedData.attackTargets.begin(), extractedData.attackTargets.end());
         m_combatStateManager.Update(allEntities, frameContext.now);
         
-        PooledFrameRenderData filteredData;
-        EntityFilter::FilterPooledData(extractedData, frameContext, filteredData);
-        
-        FrameDataProcessor::Process(frameContext, filteredData, m_processedRenderData);
+        EntityFilter::FilterPooledData(extractedData, frameContext, m_processedRenderData);
 
         AppState::Get().UpdateAdaptiveFarPlane(extractedData);
         

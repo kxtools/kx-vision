@@ -1,6 +1,6 @@
 #include "TrailRenderer.h"
 #include "../Data/FrameData.h"
-#include "../Data/EntityRenderContext.h"
+#include "../Data/RenderableData.h"
 #include "../Combat/CombatStateManager.h"
 #include "../Combat/CombatState.h"
 #include "../Shared/MathUtils.h"
@@ -22,7 +22,8 @@ namespace {
 
 void TrailRenderer::RenderPlayerTrail(
     const FrameContext& context,
-    const EntityRenderContext& entityContext,
+    const RenderablePlayer& player,
+    Game::Attitude attitude,
     const VisualProperties& props)
 {
     const auto& settings = AppState::Get().GetSettings();
@@ -33,13 +34,13 @@ void TrailRenderer::RenderPlayerTrail(
     }
     
     if (trailSettings.displayMode == TrailDisplayMode::Hostile) {
-        if (entityContext.attitude != Game::Attitude::Hostile) {
+        if (attitude != Game::Attitude::Hostile) {
             return;
         }
     }
     
     const uint64_t now = context.now;
-    std::vector<PositionHistoryPoint> worldPoints = CollectTrailPoints(context, entityContext, now);
+    std::vector<PositionHistoryPoint> worldPoints = CollectTrailPoints(context, player, now);
     
     if (worldPoints.size() < 2) {
         return;
@@ -60,10 +61,10 @@ void TrailRenderer::RenderPlayerTrail(
 
 std::vector<PositionHistoryPoint> TrailRenderer::CollectTrailPoints(
     const FrameContext& context,
-    const EntityRenderContext& entityContext,
+    const RenderablePlayer& player,
     uint64_t now)
 {
-    const EntityCombatState* state = context.stateManager.GetState(entityContext.entity->GetCombatKey());
+    const EntityCombatState* state = context.stateManager.GetState(player.GetCombatKey());
     if (!state || state->positionHistory.empty()) {
         return {};
     }
@@ -82,7 +83,7 @@ std::vector<PositionHistoryPoint> TrailRenderer::CollectTrailPoints(
     const auto& P0 = state->positionHistory.back();
     if ((now - P0.timestamp) < 150) {
         PositionHistoryPoint interpolatedHeadPoint;
-        interpolatedHeadPoint.position = entityContext.entity->position;
+        interpolatedHeadPoint.position = player.position;
         interpolatedHeadPoint.timestamp = now;
         
         if (state->positionHistory.size() >= 2) {
@@ -95,7 +96,7 @@ std::vector<PositionHistoryPoint> TrailRenderer::CollectTrailPoints(
                     float t = static_cast<float>(timeSinceP0) / static_cast<float>(timeDiff);
                     t = glm::clamp(t, 0.0f, 1.0f);
                     
-                    interpolatedHeadPoint.position = glm::mix(P0.position, entityContext.entity->position, t);
+                    interpolatedHeadPoint.position = glm::mix(P0.position, player.position, t);
                     
                     uint64_t headTimeRange = now - P0.timestamp;
                     interpolatedHeadPoint.timestamp = P0.timestamp + static_cast<uint64_t>(static_cast<float>(headTimeRange) * t);

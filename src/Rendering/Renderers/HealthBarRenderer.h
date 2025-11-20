@@ -3,12 +3,15 @@
 #include "glm.hpp"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Data/FrameData.h"
+#include "../Data/HealthBarAnimationState.h"
+#include "../Data/EntityTypes.h"
+#include "../../Game/GameEnums.h"
 
 namespace kx {
 
     // Forward declarations
     class CombatStateManager;
-    struct EntityRenderContext;
+    struct RenderableEntity;
     struct EntityCombatState;
     struct Settings;
 
@@ -19,25 +22,30 @@ namespace kx {
     public:
         static void RenderStandaloneHealthBar(ImDrawList* drawList,
             const glm::vec2& barTopLeftPosition,
-            const EntityRenderContext& context,
+            const RenderableEntity& entity,
+            EntityTypes entityType,
+            Game::Attitude attitude,
             const VisualProperties& props,
+            const HealthBarAnimationState& animState,
             const Settings& settings);
 
     private:
         // --- Internal Specializations ---
         static void RenderAliveState(ImDrawList* drawList,
-            const EntityRenderContext& context,
+            const RenderableEntity& entity,
+            EntityTypes entityType,
             const ImVec2& barMin,
             const ImVec2& barMax,
             const VisualProperties& props,
             float fadeAlpha,
+            const HealthBarAnimationState& animState,
             const Settings& settings);
 
         // Add new helper for drawing text
         static void DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha);
 
         static void RenderDeadState(ImDrawList* drawList,
-            const EntityRenderContext& context,
+            const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             const ImVec2& barMax,
             float barWidth,
@@ -64,10 +72,10 @@ namespace kx {
             float fadeAlpha,
             const Settings& settings);
 
-        static void DrawHealOverlay(ImDrawList* dl, const EntityRenderContext& context, const ImVec2& barMin, float barWidth, float barHeight, float fadeAlpha, const Settings& settings);
+        static void DrawHealOverlay(ImDrawList* dl, const HealthBarAnimationState& animState, const ImVec2& barMin, float barWidth, float barHeight, float fadeAlpha, const Settings& settings);
 
         static void DrawHealFlash(ImDrawList* dl,
-            const EntityRenderContext& context,
+            const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             float barWidth,
             float barHeight,
@@ -75,7 +83,8 @@ namespace kx {
             const Settings& settings);
 
         static void DrawAccumulatedDamage(ImDrawList* dl,
-			const EntityRenderContext& context,
+			const RenderableEntity& entity,
+            const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             float barWidth,
             float barHeight,
@@ -83,7 +92,8 @@ namespace kx {
             const Settings& settings);
 
         static void DrawDamageFlash(ImDrawList* dl,
-            const EntityRenderContext& context,
+            const RenderableEntity& entity,
+            const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             float barWidth,
             float barHeight,
@@ -91,7 +101,8 @@ namespace kx {
             const Settings& settings);
 
         static void DrawBarrierOverlay(ImDrawList* dl,
-            const EntityRenderContext& context,
+            const RenderableEntity& entity,
+            const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             const ImVec2& barMax,
             float barWidth,

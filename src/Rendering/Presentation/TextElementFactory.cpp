@@ -1,7 +1,6 @@
 #include "TextElementFactory.h"
 #include "../Data/RenderableData.h"
 #include "../Data/PlayerRenderData.h"
-#include "../Data/EntityRenderContext.h"
 #include "../Data/FrameData.h"
 #include "../../Core/Settings.h"
 #include "../../Utils/UnitConversion.h"
@@ -247,18 +246,17 @@ TextElement TextElementFactory::CreateIdentityLine(const LayoutRequest& request,
         return TextElement("", {0,0});
     }
 
-    const auto& entityContext = request.entityContext;
+    const auto& entity = request.entity;
     const auto& props = request.visualProps;
 
     std::vector<TextSegment> segments;
 
     // Add the Name segment
     if (includeName) {
-        std::string entityName = "";
-        if (entityContext.entityType == EntityTypes::Player) {
-            entityName = entityContext.playerName;
-            if (entityName.empty()) {
-                const auto* player = static_cast<const RenderablePlayer*>(entityContext.entity);
+        std::string entityName = std::string(request.displayName);
+        if (entityName.empty() && entity.entityType == EntityTypes::Player) {
+            const auto* player = static_cast<const RenderablePlayer*>(&entity);
+            if (player) {
                 const char* profName = Formatting::GetProfessionName(player->profession);
                 if (profName) entityName = profName;
             }
@@ -271,7 +269,7 @@ TextElement TextElementFactory::CreateIdentityLine(const LayoutRequest& request,
         if (includeName) {
             segments.push_back({ " • ", ESPColors::DEFAULT_TEXT });
         }
-        std::string formattedDistance = FormatDistance(entityContext.gameplayDistance, request.frameContext.settings);
+        std::string formattedDistance = FormatDistance(request.gameplayDistance, request.frameContext.settings);
         segments.push_back({ formattedDistance, ESPColors::DEFAULT_TEXT });
     }
     
