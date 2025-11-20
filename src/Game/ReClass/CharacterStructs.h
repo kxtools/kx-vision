@@ -6,6 +6,7 @@
 #include "../offsets.h"
 #include "AgentStructs.h"
 #include "EquipmentStructs.h"
+#include "SkillStructs.h"
 
 namespace kx {
     namespace ReClass {
@@ -103,6 +104,21 @@ namespace kx {
                 
                 LOG_DEBUG("ChCliEndurance::GetMax - Max: %.2f", max);
                 return max;
+            }
+        };
+
+        /**
+         * @brief Character skillbar management wrapper
+         */
+        class ChCliSkillbar : public SafeForeignClass {
+        public:
+            ChCliSkillbar(void* ptr) : SafeForeignClass(ptr) {}
+
+            CharSkillbar GetCharSkillbar() const {
+                LOG_MEMORY("ChCliSkillbar", "GetCharSkillbar", data(), Offsets::ChCliSkillbar::CHAR_SKILLBAR);
+                CharSkillbar result = ReadPointer<CharSkillbar>(Offsets::ChCliSkillbar::CHAR_SKILLBAR);
+                LOG_PTR("CharSkillbar", result.data());
+                return result;
             }
         };
 
@@ -240,6 +256,13 @@ namespace kx {
 
             ChCliInventory GetInventory() const {
                 return ReadPointer<ChCliInventory>(Offsets::ChCliCharacter::INVENTORY);
+            }
+
+            ChCliSkillbar GetSkillbar() const {
+                LOG_MEMORY("ChCliCharacter", "GetSkillbar", data(), Offsets::ChCliCharacter::SKILLBAR);
+                ChCliSkillbar result = ReadPointer<ChCliSkillbar>(Offsets::ChCliCharacter::SKILLBAR);
+                LOG_PTR("Skillbar", result.data());
+                return result;
             }
         };
 

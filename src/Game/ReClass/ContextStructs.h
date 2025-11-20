@@ -143,6 +143,34 @@ namespace kx {
         };
 
         /**
+         * @brief World context wrapper - contains global world time
+         */
+        class AgWorld : public SafeForeignClass {
+        public:
+            AgWorld(void* ptr) : SafeForeignClass(ptr) {}
+
+            uint32_t GetWorldTime() const {
+                LOG_MEMORY("AgWorld", "GetWorldTime", data(), Offsets::AgWorld::WORLD_TIME);
+                return ReadMember<uint32_t>(Offsets::AgWorld::WORLD_TIME, 0);
+            }
+        };
+
+        /**
+         * @brief Global API context wrapper - provides access to world context
+         */
+        class AgApi : public SafeForeignClass {
+        public:
+            AgApi(void* ptr) : SafeForeignClass(ptr) {}
+
+            AgWorld GetAgWorld() const {
+                LOG_MEMORY("AgApi", "GetAgWorld", data(), Offsets::AgApi::AG_WORLD);
+                AgWorld result = ReadPointer<AgWorld>(Offsets::AgApi::AG_WORLD);
+                LOG_PTR("AgWorld", result.data());
+                return result;
+            }
+        };
+
+        /**
          * @brief Root context collection - entry point for all game context access
          */
         class ContextCollection : public SafeForeignClass {
@@ -152,6 +180,13 @@ namespace kx {
                 if (ptr) {
                     LOG_DEBUG("ContextCollection base = 0x" + std::to_string(reinterpret_cast<uintptr_t>(ptr)));
                 }
+            }
+
+            AgApi GetAgApi() const {
+                LOG_MEMORY("ContextCollection", "GetAgApi", data(), Offsets::ContextCollection::AG_API);
+                AgApi result = ReadPointer<AgApi>(Offsets::ContextCollection::AG_API);
+                LOG_PTR("AgApi", result.data());
+                return result;
             }
 
             ChCliContext GetChCliContext() const {

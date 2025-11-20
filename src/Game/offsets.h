@@ -92,6 +92,24 @@ namespace Offsets {
     };
 
     // ============================================================================
+    // GLOBAL CONTEXT AND TIME
+    // ============================================================================
+
+    /**
+     * @brief AgApi - Global API context
+     */
+    struct AgApi {
+        static constexpr uintptr_t AG_WORLD = 0x28; // AgWorld*
+    };
+
+    /**
+     * @brief AgWorld - World context containing time
+     */
+    struct AgWorld {
+        static constexpr uintptr_t WORLD_TIME = 0x1D4; // uint32_t
+    };
+
+    // ============================================================================
     // CHARACTER SUBSYSTEMS
     // ============================================================================
 
@@ -127,7 +145,44 @@ namespace Offsets {
      */
     struct ChCliSkillbar {
         static constexpr uintptr_t SKILL_TRIGGER_BIT = 0xB0;  // uint32_t momentary indicator for which skill was just activated (always holds exactly one bit or zero)
+        static constexpr uintptr_t CHAR_SKILLBAR = 0x150;     // CharSkillbar* underlying skillbar mechanics
         static constexpr uintptr_t SKILLS_ARRAY = 0x1D0;      // array of skills
+    };
+
+    // ============================================================================
+    // SKILL STRUCTURES
+    // ============================================================================
+
+    /**
+     * @brief SkillDef - Static definition of a skill
+     */
+    struct SkillDef {
+        static constexpr uintptr_t ID = 0x28;           // uint32_t Skill ID
+        static constexpr uintptr_t TYPE = 0x58;         // int32_t ESkillType
+        static constexpr uintptr_t ABILITY_PTR = 0x60;  // Pointer to Ability data
+    };
+
+    /**
+     * @brief CharSkill - Represents a specific skill instance (often used in lists)
+     */
+    struct CharSkill {
+        // Link pointers (prev/next) are usually at 0x00 for this struct size
+        static constexpr uintptr_t RECHARGE_TIME_MS = 0x10; // uint32_t
+        static constexpr uintptr_t SKILL_DEF = 0x18;        // SkillDef*
+    };
+
+    /**
+     * @brief CharSkillbar - The underlying mechanics of the skillbar
+     */
+    struct CharSkillbar {
+        static constexpr uintptr_t LAST_CAST_TIME = 0x24;      // uint32_t
+        static constexpr uintptr_t RECHARGE_RATE_SCALE = 0x30; // float
+        static constexpr uintptr_t RECHARGE_LIST = 0x38;       // Gw2::List<CharSkill>
+        static constexpr uintptr_t SLOT_RECHARGE_LIST = 0x58;  // Gw2::List<CharSkill>
+        
+        // List specific offsets (Internal to Gw2::List)
+        static constexpr uintptr_t LIST_TERMINATOR_PREV = 0x8; // Offset from List Base
+        static constexpr uintptr_t LIST_TERMINATOR_NEXT = 0x10; // Offset from List Base (0x38 + 0x10 = 0x48)
     };
 
     /**
@@ -287,6 +342,7 @@ namespace Offsets {
      * @brief ContextCollection - Root collection containing all context managers
      */
     struct ContextCollection {
+        static constexpr uintptr_t AG_API = 0x0028;         // AgApi* global API context
         static constexpr uintptr_t CH_CLI_CONTEXT = 0x98;   // ChCliContext* character context
         static constexpr uintptr_t GD_CLI_CONTEXT = 0x0138; // GdCliContext* gadget context
     };
