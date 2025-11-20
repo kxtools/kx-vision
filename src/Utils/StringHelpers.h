@@ -1,46 +1,37 @@
 #pragma once
 
 #include <string>
-#include <windows.h> // For WideCharToMultiByte
+#include <cwchar>
+#include <windows.h>
 
-namespace kx {
-namespace StringHelpers {
+namespace kx::StringHelpers {
 
-// Helper to convert wide-character string to UTF-8 string with enhanced safety
 inline std::string WCharToUTF8String(const wchar_t* wstr) {
-    if (!wstr) return "";
-    
-    // Check for empty string
-    if (wstr[0] == L'\0') return "";
-    
-    // Add length limit to prevent malformed strings from causing issues
-    const size_t MAX_STRING_LENGTH = 8192; // Reasonable limit
-    size_t wstr_len = wcsnlen(wstr, MAX_STRING_LENGTH);
-    if (wstr_len == 0) return "";
-    if (wstr_len >= MAX_STRING_LENGTH) {
-        // String too long, might be corrupted
-        return "[STRING_TOO_LONG]";
+    if (!wstr || *wstr == L'\0') {
+        return {};
     }
 
-    const int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr, static_cast<int>(wstr_len), NULL, 0, NULL, NULL);
-    if (size_needed <= 0) return "";
-
-    std::string strTo(size_needed, 0);
-    
-    // Safe access to string data
-    char* data_ptr = strTo.empty() ? nullptr : &strTo[0];
-    if (!data_ptr) return "";
-    
-    const int result = WideCharToMultiByte(CP_UTF8, 0, wstr, static_cast<int>(wstr_len), data_ptr, size_needed, NULL, NULL);
-    
-    if (result <= 0) {
-        return "[CONVERSION_ERROR]";
+    constexpr size_t MAX_LEN = 4096;
+    const size_t length = wcsnlen(wstr, MAX_LEN);
+    if (length == 0 || length >= MAX_LEN) {
+        return {};
     }
-    
-    // Resize to actual converted length (no null terminator to remove since we didn't include it)
-    strTo.resize(result);
-    return strTo;
+
+    const int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr, static_cast<int>(length), nullptr, 0, nullptr, nullptr);
+    if (sizeNeeded <= 0) {
+        return {};
+    }
+
+    std::string result(sizeNeeded, '\0');
+    const int written = WideCharToMultiByte(CP_UTF8, 0, wstr, static_cast<int>(length), result.data(), sizeNeeded, nullptr, nullptr);
+    if (written <= 0) {
+        return {};
+    }
+
+    if (written < sizeNeeded) {
+        result.resize(written);
+    }
+    return result;
 }
 
-} // namespace StringHelpers
-} // namespace kx
+} // namespace kx::StringHelpers

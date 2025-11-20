@@ -106,7 +106,7 @@ void MumbleLinkManager::ParseIdentity() {
     std::string identityUtf8 = StringHelpers::WCharToUTF8String(m_mumbleLink->identity);
     
     // Check for conversion errors
-    if (identityUtf8.empty() || identityUtf8 == "[STRING_TOO_LONG]" || identityUtf8 == "[CONVERSION_ERROR]") {
+    if (identityUtf8.empty()) {
         return;
     }
     
