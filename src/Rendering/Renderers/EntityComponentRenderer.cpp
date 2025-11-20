@@ -145,6 +145,8 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
         distanceText = std::string_view(distanceBuffer, len);
     }
 
+    const float identityBottomPadding = 3.0f;
+
     FastTextStyle style;
     style.fontSize = props.style.finalFontSize;
     style.shadow = ctx.settings.appearance.enableTextShadows;
@@ -159,15 +161,15 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
             ESPColors::DEFAULT_TEXT 
         };
         float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, 3, texts, colors, style);
-        cursor.Advance(height);
+        cursor.Advance(height + identityBottomPadding);
     } else if (showName) {
         style.color = props.style.fadedEntityColor;
         float height = TextRenderer::DrawCentered(ctx.drawList, pos, nameText, style);
-        cursor.Advance(height);
+        cursor.Advance(height + identityBottomPadding);
     } else if (showDistance) {
         style.color = ESPColors::DEFAULT_TEXT;
         float height = TextRenderer::DrawCentered(ctx.drawList, pos, distanceText, style);
-        cursor.Advance(height);
+        cursor.Advance(height + identityBottomPadding);
     }
 }
 
@@ -345,7 +347,7 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
                                             LayoutCursor& cursor) {
     if (entity.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(&entity);
-        if (player != nullptr) {
+        if (player != nullptr && ctx.settings.playerESP.enableGearDisplay) {
             GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(ctx.settings);
             glm::vec2 pos = cursor.GetPosition();
             
@@ -452,7 +454,7 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
                     }
                     break;
                 }
-                default: break;
+                default: break; // Detailed mode is handled via the details vector below
             }
         }
     }

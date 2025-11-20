@@ -333,12 +333,15 @@ namespace kx {
 
         float finalFontSize = fontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
-        ImVec2 textSize = font->CalcTextSizeA(finalFontSize, FLT_MAX, 0.0f, text.data(), text.data() + text.size());
+        
+        const char* text_begin = text.data();
+        const char* text_end = text.data() + text.size();
+        ImVec2 textSize = font->CalcTextSizeA(finalFontSize, FLT_MAX, 0.0f, text_begin, text_end);
 
         const float padding = 5.0f;
         float barCenterY = barMin.y + (barMax.y - barMin.y) * 0.5f;
         glm::vec2 pos(
-            barMax.x + padding,
+            barMax.x + padding + (textSize.x * 0.5f),
             barCenterY - (textSize.y / 2.0f)
         );
 

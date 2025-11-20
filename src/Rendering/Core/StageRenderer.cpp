@@ -182,7 +182,11 @@ EntityRenderState BuildRenderStateForEntity(const RenderableEntity& entity,
             state.attitude = player.attitude;
             state.renderHealthBar = ShouldRenderPlayerHealthBar(player, context.settings.playerESP);
             state.renderEnergyBar = context.settings.playerESP.renderEnergyBar;
-            state.renderDetails = context.settings.playerESP.renderDetails;
+            
+            bool showDetailedGear = context.settings.playerESP.enableGearDisplay && 
+                                    context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed;
+            
+            state.renderDetails = context.settings.playerESP.renderDetails || showDetailedGear;
             state.showCombatUI = true;
             state.burstDps = CalculateBurstDps(combatState, context.now, context.settings.playerESP.showBurstDps);
             if (state.renderDetails) {
