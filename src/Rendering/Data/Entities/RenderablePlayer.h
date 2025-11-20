@@ -8,7 +8,6 @@
 namespace kx {
 
 struct RenderablePlayer : public RenderableEntity {
-    std::string characterName;
     std::string playerName;
     float currentEndurance;
     float maxEndurance;

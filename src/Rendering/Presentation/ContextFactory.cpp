@@ -14,8 +14,6 @@
 
 namespace kx {
 
-static thread_local std::vector<ColoredDetail> s_DetailsBuffer;
-
 namespace { // Anonymous namespace for helpers
 
 static bool DeterminePlayerHealthBarVisibility(const RenderablePlayer* player, const PlayerEspSettings& settings) {
@@ -74,7 +72,7 @@ float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showB
 
 } // anonymous namespace
 
-EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlayer* player, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlayer* player, std::vector<ColoredDetail> details, const FrameContext& context) {
     // Use attitude-based coloring for players (same as NPCs for semantic consistency)
     unsigned int color = Styling::GetEntityColor(*player);
 
@@ -89,13 +87,14 @@ EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlaye
     
     float burstDpsValue = CalculateBurstDps(state, context.now, context.settings.playerESP.showBurstDps);
     
+    bool renderDetails = !details.empty();
     return EntityRenderContext{
         .position = player->position,
         .gameplayDistance = player->gameplayDistance,
         .color = color,
         .details = std::move(details),
         .burstDPS = burstDpsValue,
-        .renderDetails = !details.empty(),
+        .renderDetails = renderDetails,
         .renderHealthBar = renderHealthBar,
         .renderEnergyBar = context.settings.playerESP.renderEnergyBar,
         .entityType = EntityTypes::Player,
@@ -107,7 +106,7 @@ EntityRenderContext ContextFactory::CreateContextForPlayer(const RenderablePlaye
     };
 }
 
-EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc, std::vector<ColoredDetail> details, const FrameContext& context) {
     // Use attitude-based coloring for NPCs
     unsigned int color = Styling::GetEntityColor(*npc);
 
@@ -131,7 +130,7 @@ EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc
         .burstDPS = burstDpsValue,
         .renderDetails = context.settings.npcESP.renderDetails,
         .renderHealthBar = renderHealthBar,
-        .renderEnergyBar = false, // No energy bar for NPCs
+        .renderEnergyBar = false,
         .entityType = EntityTypes::NPC,
         .attitude = npc->attitude,
         .entity = npc,
@@ -141,7 +140,7 @@ EntityRenderContext ContextFactory::CreateContextForNpc(const RenderableNpc* npc
     };
 }
 
-EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadget* gadget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadget* gadget, std::vector<ColoredDetail> details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
     const EntityCombatState* state = context.stateManager.GetState(gadget->GetCombatKey());
@@ -168,7 +167,7 @@ EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadge
         .burstDPS = burstDpsValue,
         .renderDetails = context.settings.objectESP.renderDetails,
         .renderHealthBar = renderHealthBar,
-        .renderEnergyBar = false, // No energy bar for gadgets
+        .renderEnergyBar = false,
         .entityType = EntityTypes::Gadget,
         .attitude = Game::Attitude::Neutral,
         .entity = gadget,
@@ -178,7 +177,7 @@ EntityRenderContext ContextFactory::CreateContextForGadget(const RenderableGadge
     };
 }
 
-EntityRenderContext ContextFactory::CreateContextForAttackTarget(const RenderableAttackTarget* attackTarget, const std::vector<ColoredDetail>& details, const FrameContext& context) {
+EntityRenderContext ContextFactory::CreateContextForAttackTarget(const RenderableAttackTarget* attackTarget, std::vector<ColoredDetail> details, const FrameContext& context) {
     static const std::string emptyPlayerName = "";
 
     const EntityCombatState* state = context.stateManager.GetState(attackTarget->GetCombatKey());
@@ -194,7 +193,7 @@ EntityRenderContext ContextFactory::CreateContextForAttackTarget(const Renderabl
 
     unsigned int color = Styling::GetEntityColor(*attackTarget);
 
-    return EntityRenderContext {
+    return EntityRenderContext{
         .position = attackTarget->position,
         .gameplayDistance = attackTarget->gameplayDistance,
         .color = color,
@@ -213,56 +212,53 @@ EntityRenderContext ContextFactory::CreateContextForAttackTarget(const Renderabl
 }
 
 EntityRenderContext ContextFactory::CreateEntityRenderContextForRendering(const RenderableEntity* entity, const FrameContext& context) {
-    s_DetailsBuffer.clear();
-    
-    // Most entities have < 10 lines of text. 16 covers almost everything including gear.
-    // This prevents resizing/copying during the frame.
-    s_DetailsBuffer.reserve(16);
+    std::vector<ColoredDetail> details;
+    details.reserve(16);
     
     switch(entity->entityType) {
         case EntityTypes::Player:
         {
             const auto* player = static_cast<const RenderablePlayer*>(entity);
-            InfoBuilder::AppendPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses, s_DetailsBuffer);
+            InfoBuilder::AppendPlayerDetails(player, context.settings.playerESP, context.settings.showDebugAddresses, details);
             if (context.settings.playerESP.enableGearDisplay && context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
-                if (!s_DetailsBuffer.empty()) {
-                    s_DetailsBuffer.emplace_back("--- Gear Stats ---", ESPColors::DEFAULT_TEXT);
+                if (!details.empty()) {
+                    details.emplace_back("--- Gear Stats ---", ESPColors::DEFAULT_TEXT);
                 }
-                InfoBuilder::AppendGearDetails(player, s_DetailsBuffer);
+                InfoBuilder::AppendGearDetails(player, details);
             }
             break;
         }
         case EntityTypes::NPC:
         {
             const auto* npc = static_cast<const RenderableNpc*>(entity);
-            InfoBuilder::AppendNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses, s_DetailsBuffer);
+            InfoBuilder::AppendNpcDetails(npc, context.settings.npcESP, context.settings.showDebugAddresses, details);
             break;
         }
         case EntityTypes::Gadget:
         {
             const auto* gadget = static_cast<const RenderableGadget*>(entity);
-            InfoBuilder::AppendGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses, s_DetailsBuffer);
+            InfoBuilder::AppendGadgetDetails(gadget, context.settings.objectESP, context.settings.showDebugAddresses, details);
             break;
         }
         case EntityTypes::AttackTarget:
         {
             const auto* attackTarget = static_cast<const RenderableAttackTarget*>(entity);
-            InfoBuilder::AppendAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses, s_DetailsBuffer);
+            InfoBuilder::AppendAttackTargetDetails(attackTarget, context.settings.objectESP, context.settings.showDebugAddresses, details);
             break;
         }
     }
 
     switch(entity->entityType) {
         case EntityTypes::Player:
-            return CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), s_DetailsBuffer, context);
+            return CreateContextForPlayer(static_cast<const RenderablePlayer*>(entity), std::move(details), context);
         case EntityTypes::NPC:
-            return CreateContextForNpc(static_cast<const RenderableNpc*>(entity), s_DetailsBuffer, context);
+            return CreateContextForNpc(static_cast<const RenderableNpc*>(entity), std::move(details), context);
         case EntityTypes::Gadget:
-            return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), s_DetailsBuffer, context);
+            return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), std::move(details), context);
         case EntityTypes::AttackTarget:
-            return CreateContextForAttackTarget(static_cast<const RenderableAttackTarget*>(entity), s_DetailsBuffer, context);
+            return CreateContextForAttackTarget(static_cast<const RenderableAttackTarget*>(entity), std::move(details), context);
     }
-    return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), s_DetailsBuffer, context);
+    return CreateContextForGadget(static_cast<const RenderableGadget*>(entity), std::move(details), context);
 }
 
 } // namespace kx
