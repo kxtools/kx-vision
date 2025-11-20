@@ -17,6 +17,7 @@
 #include "../../../libs/ImGui/imgui.h"
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Renderers/ScreenProjector.h"
@@ -110,7 +111,7 @@ bool ShouldRenderGadgetHealthBar(const RenderableGadget& gadget,
     return true;
 }
 
-std::string BuildDisplayName(const RenderableEntity& entity) {
+std::string_view GetEntityName(const RenderableEntity& entity) {
     switch (entity.entityType) {
         case EntityTypes::Player:
             return static_cast<const RenderablePlayer&>(entity).playerName;
@@ -123,39 +124,6 @@ std::string BuildDisplayName(const RenderableEntity& entity) {
     }
 }
 
-
-void RenderSingleEntity(const FrameContext& context,
-                        const RenderableEntity& entity,
-                        const HealthBarAnimationState& animState,
-                        const VisualProperties& visuals,
-                        bool showCombatUI,
-                        bool renderHealthBar,
-                        bool renderEnergyBar,
-                        float burstDps,
-                        Game::Attitude attitude) {
-    EntityComponentRenderer::RenderGeometry(context, entity, visuals);
-
-    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entity.entityType);
-    LayoutCursor bottomStack({visuals.geometry.center.x, visuals.geometry.boxMax.y}, 1.0f);
-
-    if (entity.entityType == EntityTypes::Gadget && !shouldRenderBox) {
-        bottomStack = LayoutCursor(glm::vec2(visuals.geometry.screenPos.x, visuals.geometry.screenPos.y), 1.0f);
-    }
-
-    std::string displayName = BuildDisplayName(entity);
-    EntityComponentRenderer::RenderIdentity(context, entity, displayName, visuals, bottomStack);
-    EntityComponentRenderer::RenderStatusBars(context,
-                                              entity,
-                                              showCombatUI,
-                                              renderHealthBar,
-                                              renderEnergyBar,
-                                              burstDps,
-                                              attitude,
-                                              animState,
-                                              visuals,
-                                              bottomStack);
-    EntityComponentRenderer::RenderEntityDetails(context, entity, visuals, bottomStack);
-}
 
 void ProcessAndRender(const FrameContext& context, const RenderableEntity* entity) {
     if (!entity) {
@@ -228,8 +196,39 @@ void ProcessAndRender(const FrameContext& context, const RenderableEntity* entit
         PopulateHealthBarAnimations(entity, combatState, animState, context.now);
     }
 
-    RenderSingleEntity(context, *entity, animState, visuals, showCombatUI, renderHealthBar, renderEnergyBar, burstDps, attitude);
+    // RENDER PHASE (Immediate Mode)
+    // Initialize cursor at top of entity
+    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entity->entityType);
+    LayoutCursor cursor({visuals.geometry.center.x, visuals.geometry.boxMax.y}, 1.0f);
 
+    // Special case for gadgets without boxes
+    if (entity->entityType == EntityTypes::Gadget && !shouldRenderBox) {
+        cursor = LayoutCursor(glm::vec2(visuals.geometry.screenPos.x, visuals.geometry.screenPos.y), 1.0f);
+    }
+
+    // A. Geometry
+    EntityComponentRenderer::RenderGeometry(context, *entity, visuals);
+
+    // B. Identity
+    std::string_view name = GetEntityName(*entity);
+    EntityComponentRenderer::RenderIdentity(context, *entity, name, visuals, cursor);
+
+    // C. Bars
+    EntityComponentRenderer::RenderStatusBars(context,
+                                              *entity,
+                                              showCombatUI,
+                                              renderHealthBar,
+                                              renderEnergyBar,
+                                              burstDps,
+                                              attitude,
+                                              animState,
+                                              visuals,
+                                              cursor);
+
+    // D. Details
+    EntityComponentRenderer::RenderEntityDetails(context, *entity, visuals, cursor);
+
+    // E. Trails (Player specific)
     if (entity->entityType == EntityTypes::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entity);
         if (player) {
