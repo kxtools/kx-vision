@@ -18,21 +18,6 @@ namespace kx {
 
 namespace {
     /**
-     * @brief Format to a temporary string without streams
-     * @param fmt Format string
-     * @param args Format arguments
-     * @return Formatted string
-     */
-    template<typename... Args>
-    std::string FormatTemp(std::format_string<Args...> fmt, Args&&... args) {
-        char buffer[kMaxTextBufferSize];
-        // Write to buffer - 1 to guarantee space for null terminator
-        auto result = std::format_to_n(buffer, kMaxTextBufferSize - 1, fmt, std::forward<Args>(args)...);
-        *result.out = '\0';
-        return std::string(buffer);
-    }
-
-    /**
      * @brief Format distance based on user's display mode preference
      * @param meters Distance in meters
      * @param settings Settings reference for display mode
@@ -68,7 +53,7 @@ TextElement TextElementFactory::CreateDetailsTextAt(const std::vector<ColoredDet
     
     std::vector<std::vector<TextSegment>> lines;
     for (const auto& detail : details) {
-        lines.push_back({TextSegment(detail.text.c_str(), detail.color)});
+        lines.push_back({TextSegment(detail.text, detail.color)});
     }
     
     TextElement element(lines, position, TextAnchor::AbsoluteTopLeft);
@@ -93,7 +78,7 @@ TextElement TextElementFactory::CreateGearSummaryAt(const std::vector<CompactSta
     for (size_t i = 0; i < summary.size(); ++i) {
         const auto& info = summary[i];
         
-        std::string segment = FormatTemp("{:.0f}% {}", info.percentage, info.statName);
+        std::string segment = std::format("{:.0f}% {}", info.percentage, info.statName);
 
         ImU32 rarityColor = Styling::GetRarityColor(info.highestRarity);
         segments.push_back(TextSegment(segment, rarityColor));
@@ -125,7 +110,7 @@ TextElement TextElementFactory::CreateDominantStatsAt(const std::vector<Dominant
     for (size_t i = 0; i < stats.size(); ++i) {
         const auto& stat = stats[i];
 
-        std::string segment = FormatTemp("{} {:.0f}%", stat.name, stat.percentage);
+        std::string segment = std::format("{} {:.0f}%", stat.name, stat.percentage);
         
         segments.push_back(TextSegment(segment, stat.color));
 

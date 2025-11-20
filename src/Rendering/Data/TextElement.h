@@ -1,9 +1,10 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <vector>
-#include <cstring>
 #include <cstdint>
+#include <utility>
 #include <glm.hpp>
 #include "../../../libs/ImGui/imgui.h"
 #include "Shared/LayoutConstants.h"
@@ -61,47 +62,19 @@ struct TextStyle {
 };
 
 /**
- * @brief Fixed-size text buffer for TextSegment (64 bytes fits one cache line)
- */
-struct SegmentText {
-    static constexpr size_t CAPACITY = 64;
-    char buffer[CAPACITY];
-
-    SegmentText() { buffer[0] = '\0'; }
-
-    SegmentText(const char* str) {
-        if (!str) {
-            buffer[0] = '\0';
-            return;
-        }
-        size_t len = 0;
-        while (str[len] != '\0' && len < CAPACITY - 1) {
-            buffer[len] = str[len];
-            len++;
-        }
-        buffer[len] = '\0';
-    }
-
-    SegmentText(const std::string& str) : SegmentText(str.c_str()) {}
-    
-    const char* c_str() const { return buffer; }
-    bool empty() const { return buffer[0] == '\0'; }
-};
-
-/**
  * @brief A single colored text segment (for multi-colored text)
  */
 struct TextSegment {
-    SegmentText text;
+    std::string text;
     ImU32 color = IM_COL32(255, 255, 255, 255);
     
-    TextSegment() : text(), color(IM_COL32(255, 255, 255, 255)) {}
-    
-    TextSegment(const std::string& txt, ImU32 col = IM_COL32(255, 255, 255, 255))
+    TextSegment() = default;
+    TextSegment(std::string txt, ImU32 col = IM_COL32(255, 255, 255, 255))
+        : text(std::move(txt)), color(col) {}
+    TextSegment(std::string_view txt, ImU32 col = IM_COL32(255, 255, 255, 255))
         : text(txt), color(col) {}
-        
     TextSegment(const char* txt, ImU32 col = IM_COL32(255, 255, 255, 255))
-        : text(txt), color(col) {}
+        : text(txt ? txt : ""), color(col) {}
 };
 
 /**

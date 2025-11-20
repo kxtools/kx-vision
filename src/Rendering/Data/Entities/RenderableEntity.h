@@ -1,9 +1,10 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <vector>
 #include <algorithm>
-#include <cstring>
+#include <utility>
 #include <vec3.hpp>
 #include <vec2.hpp>
 
@@ -15,30 +16,14 @@
 
 namespace kx {
 
-constexpr size_t kMaxTextBufferSize = 128;
-
-struct FixedText {
-    char buffer[kMaxTextBufferSize];
-
-    FixedText() { buffer[0] = '\0'; }
-    
-    FixedText(std::string_view sv) {
-        size_t length = std::min(sv.length(), kMaxTextBufferSize - 1);
-        if (length > 0) {
-            std::memcpy(buffer, sv.data(), length);
-        }
-        buffer[length] = '\0';
-    }
-
-    const char* c_str() const { return buffer; }
-};
-
 struct ColoredDetail {
-    FixedText text;
+    std::string text;
     ImU32 color = 0;
-    
-    template <typename T>
-    ColoredDetail(const T& t, ImU32 c) : text(t), color(c) {}
+
+    ColoredDetail() = default;
+    ColoredDetail(std::string t, ImU32 c) : text(std::move(t)), color(c) {}
+    ColoredDetail(std::string_view t, ImU32 c) : text(t), color(c) {}
+    ColoredDetail(const char* t, ImU32 c) : text(t ? t : ""), color(c) {}
 };
 
 struct RenderableEntity {
