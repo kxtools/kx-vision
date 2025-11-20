@@ -18,7 +18,6 @@
 #include "../../../libs/ImGui/imgui.h"
 #include <optional>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include "Renderers/ScreenProjector.h"
@@ -250,45 +249,45 @@ void RenderSingleEntity(const FrameContext& context,
                                            bottomStack);
 }
 
-template <typename TCollection>
-void RenderCollection(const FrameContext& context, const TCollection& collection) {
-    for (const auto* entity : collection) {
-        if (!entity) {
-            continue;
-        }
+void ProcessAndRender(const FrameContext& context, const RenderableEntity* entity) {
+    if (!entity) {
+        return;
+    }
 
-        auto styleOpt = Logic::StyleCalculator::Calculate(*entity, context);
-        if (!styleOpt) {
-            continue;
-        }
+    auto styleOpt = Logic::StyleCalculator::Calculate(*entity, context);
+    if (!styleOpt) {
+        return;
+    }
 
-        VisualProperties visuals;
-        visuals.style = *styleOpt;
+    VisualProperties visuals;
+    visuals.style = *styleOpt;
 
-        bool isOnScreen = Renderers::ScreenProjector::Project(
-            *entity,
-            context.camera,
-            context.screenWidth,
-            context.screenHeight,
-            visuals.style,
-            visuals.geometry);
+    bool isOnScreen = Renderers::ScreenProjector::Project(
+        *entity,
+        context.camera,
+        context.screenWidth,
+        context.screenHeight,
+        visuals.style,
+        visuals.geometry);
 
-        if (!isOnScreen) {
-            continue;
-        }
+    if (!isOnScreen) {
+        return;
+    }
 
-        const EntityCombatState* combatState = context.stateManager.GetState(entity->GetCombatKey());
-        EntityRenderState renderState = BuildRenderStateForEntity(*entity, context, combatState);
+    const EntityCombatState* combatState = context.stateManager.GetState(entity->GetCombatKey());
+    EntityRenderState renderState = BuildRenderStateForEntity(*entity, context, combatState);
 
-        HealthBarAnimationState animState;
-        if (renderState.renderHealthBar && combatState) {
-            PopulateHealthBarAnimations(entity, combatState, animState, context.now);
-        }
+    HealthBarAnimationState animState;
+    if (renderState.renderHealthBar && combatState) {
+        PopulateHealthBarAnimations(entity, combatState, animState, context.now);
+    }
 
-        RenderSingleEntity(context, *entity, renderState, animState, visuals);
+    RenderSingleEntity(context, *entity, renderState, animState, visuals);
 
-        if constexpr (std::is_same_v<typename TCollection::value_type, RenderablePlayer*>) {
-            TrailRenderer::RenderPlayerTrail(context, *entity, renderState.attitude, visuals);
+    if (entity->entityType == EntityTypes::Player) {
+        const auto* player = static_cast<const RenderablePlayer*>(entity);
+        if (player) {
+            TrailRenderer::RenderPlayerTrail(context, *player, renderState.attitude, visuals);
         }
     }
 }
@@ -296,10 +295,21 @@ void RenderCollection(const FrameContext& context, const TCollection& collection
 } // namespace
 
 void StageRenderer::RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData) {
-    RenderCollection(context, frameData.players);
-    RenderCollection(context, frameData.npcs);
-    RenderCollection(context, frameData.gadgets);
-    RenderCollection(context, frameData.attackTargets);
+    for (const auto* player : frameData.players) {
+        ProcessAndRender(context, player);
+    }
+
+    for (const auto* npc : frameData.npcs) {
+        ProcessAndRender(context, npc);
+    }
+
+    for (const auto* gadget : frameData.gadgets) {
+        ProcessAndRender(context, gadget);
+    }
+
+    for (const auto* target : frameData.attackTargets) {
+        ProcessAndRender(context, target);
+    }
 }
 
 } // namespace kx
