@@ -79,10 +79,10 @@ namespace kx {
                 float timeSinceCastScaled = (float)(currentWorldTime - lastCast) * scale;
 
                 uintptr_t listBase = reinterpret_cast<uintptr_t>(data()) + Offsets::CharSkillbar::RECHARGE_LIST;
-                uintptr_t terminatorAddr = listBase + 0x8;
+                uintptr_t terminatorAddr = listBase + Offsets::CharSkillbar::LIST_TERMINATOR_PREV;
                 
                 void* currentNodePtr = nullptr;
-                kx::Debug::SafeRead<void*>(data(), Offsets::CharSkillbar::RECHARGE_LIST + 0x10, currentNodePtr);
+                kx::Debug::SafeRead<void*>(data(), Offsets::CharSkillbar::RECHARGE_LIST + Offsets::CharSkillbar::LIST_TERMINATOR_NEXT, currentNodePtr);
 
                 int safetyLimit = 50; 
                 while (currentNodePtr != nullptr && 
