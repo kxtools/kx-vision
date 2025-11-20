@@ -36,7 +36,7 @@ namespace kx
 		return (it != m_entityStates.end()) ? &it->second : nullptr;
 	}
 
-	void CombatStateManager::Prune(const ankerl::unordered_dense::set<CombatStateKey>& activeKeys)
+	void CombatStateManager::Prune(const ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash>& activeKeys)
 	{
 		for (auto it = m_entityStates.begin(); it != m_entityStates.end();)
 		{

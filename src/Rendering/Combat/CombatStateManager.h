@@ -34,7 +34,7 @@ namespace kx
 		 * @brief Remove combat state for entities that are no longer present in the game.
 		 * @param activeKeys Set of entity keys that are currently active in the game.
 		 */
-		void Prune(const ankerl::unordered_dense::set<CombatStateKey>& activeKeys);
+		void Prune(const ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash>& activeKeys);
 
 		/**
 		 * @brief Get immutable pointer to stored entity combat state (nullptr if missing).
@@ -43,7 +43,7 @@ namespace kx
 
 	private:
 		EntityCombatState* GetStateNonConst(CombatStateKey key);
-		ankerl::unordered_dense::map<CombatStateKey, EntityCombatState> m_entityStates;
+		ankerl::unordered_dense::map<CombatStateKey, EntityCombatState, CombatStateKeyHash> m_entityStates;
 
 		EntityCombatState& AcquireState(CombatStateKey key);
 	};

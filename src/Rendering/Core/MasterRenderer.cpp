@@ -36,7 +36,7 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         PooledFrameRenderData extractedData;
         DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, extractedData);
         
-        ankerl::unordered_dense::set<CombatStateKey> activeKeys;
+        ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> activeKeys;
         size_t totalCount = extractedData.players.size() + extractedData.npcs.size() + 
                             extractedData.gadgets.size() + extractedData.attackTargets.size();
         activeKeys.reserve(totalCount);
