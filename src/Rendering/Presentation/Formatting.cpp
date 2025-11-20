@@ -1,5 +1,4 @@
 #include "Formatting.h"
-#include <format>
 
 namespace kx::Formatting {
 
@@ -75,14 +74,14 @@ namespace kx::Formatting {
         }
     }
 
-    std::string GetAgentTypeName(Game::AgentType type) {
+    const char* GetAgentTypeName(Game::AgentType type) {
         switch (type) {
             case Game::AgentType::Character: return "Character";
             case Game::AgentType::Gadget: return "Gadget";
             case Game::AgentType::GadgetAttackTarget: return "Gadget Attack Target";
             case Game::AgentType::Item: return "Item";
             case Game::AgentType::Error: return "Error";
-            default: return std::to_string(static_cast<int>(type));
+            default: return nullptr;
         }
     }
 
@@ -93,14 +92,13 @@ namespace kx::Formatting {
                slot == Game::EquipmentSlot::OffhandWeapon2;
     }
 
-    std::string ResourceNodeTypeToString(Game::ResourceNodeType type) {
+    const char* ResourceNodeTypeToString(Game::ResourceNodeType type) {
         switch (type) {
             case Game::ResourceNodeType::Plant: return "Plant";
             case Game::ResourceNodeType::Tree: return "Tree";
             case Game::ResourceNodeType::Rock: return "Rock";
             case Game::ResourceNodeType::Quest: return "Quest Node";
-            default:
-                return "Node ID: " + std::to_string(static_cast<int>(type));
+            default: return nullptr;
         }
     }
 
@@ -126,7 +124,7 @@ namespace kx::Formatting {
         }
     }
 
-    std::string GetShapeTypeName(Havok::HkcdShapeType type) {
+    const char* GetShapeTypeName(Havok::HkcdShapeType type) {
         switch (type) {
             case Havok::HkcdShapeType::SPHERE: return "SPHERE";
             case Havok::HkcdShapeType::CYLINDER: return "CYLINDER";
@@ -160,8 +158,7 @@ namespace kx::Formatting {
             case Havok::HkcdShapeType::PHANTOM_CALLBACK: return "PHANTOM_CALLBACK";
             case Havok::HkcdShapeType::MULTI_RAY: return "MULTI_RAY";
             case Havok::HkcdShapeType::INVALID: return "INVALID";
-            default:
-                return std::format("Unknown (0x{:02X})", static_cast<uint8_t>(type));
+            default: return nullptr;
         }
     }
 

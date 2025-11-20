@@ -342,8 +342,12 @@ void InfoBuilder::RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor
     }
 
     if (settings.showDetailResourceInfo && gadget->type == Game::GadgetType::ResourceNode) {
-        std::string nodeTypeStr = Formatting::ResourceNodeTypeToString(gadget->resourceType);
-        DrawLine(drawList, cursor, style, "Node: %s", nodeTypeStr.c_str());
+        const char* nodeName = Formatting::ResourceNodeTypeToString(gadget->resourceType);
+        if (nodeName) {
+            DrawLine(drawList, cursor, style, "Node: %s", nodeName);
+        } else {
+            DrawLine(drawList, cursor, style, "Node: ID %d", static_cast<int>(gadget->resourceType));
+        }
     }
 
     if (settings.showDetailGatherableStatus && gadget->isGatherable) {
