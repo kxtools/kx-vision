@@ -168,6 +168,7 @@ namespace RenderingLayout {
     constexpr float TEXT_DEFAULT_BG_PADDING_X = 4.0f;         // 4px horizontal padding
     constexpr float TEXT_DEFAULT_BG_PADDING_Y = 2.0f;         // 2px vertical padding
     constexpr float TEXT_DEFAULT_BG_ALPHA = 180.0f;           // ~71% opacity (visible background)
+    constexpr float TEXT_BG_ALPHA = 60.0f;                    // ~24% opacity (subtle background for identity text)
     constexpr float TEXT_DEFAULT_BG_ROUNDING = 3.0f;          // 3px rounded corners
     constexpr float TEXT_DEFAULT_BORDER_THICKNESS = 1.0f;     // 1px crisp border
     constexpr float TEXT_DEFAULT_LINE_SPACING = 2.0f;

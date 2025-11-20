@@ -31,7 +31,7 @@ namespace kx {
         if (style.background) {
             float paddingX = RenderingLayout::TEXT_DEFAULT_BG_PADDING_X;
             float paddingY = RenderingLayout::TEXT_DEFAULT_BG_PADDING_Y;
-            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(96 * combinedOpacity));
+            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(RenderingLayout::TEXT_BG_ALPHA * combinedOpacity));
             
             dl->AddRectFilled(
                 ImVec2(x - paddingX, y - paddingY),
@@ -82,7 +82,7 @@ namespace kx {
         if (style.background) {
             float paddingX = RenderingLayout::TEXT_DEFAULT_BG_PADDING_X;
             float paddingY = RenderingLayout::TEXT_DEFAULT_BG_PADDING_Y;
-            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(96 * combinedOpacity));
+            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(RenderingLayout::TEXT_BG_ALPHA * combinedOpacity));
             
             dl->AddRectFilled(
                 ImVec2(x - paddingX, y - paddingY),
