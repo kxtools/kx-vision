@@ -14,17 +14,6 @@
 
 namespace kx {
 
-namespace {
-    template<typename... Args>
-    ColoredDetail MakeDetail(ImU32 color, std::format_string<Args...> fmt, Args&&... args) {
-        try {
-            return ColoredDetail(std::format(fmt, std::forward<Args>(args)...), color);
-        } catch (...) {
-            return ColoredDetail(std::string{}, color);
-        }
-    }
-}
-
 // ===== Player Methods =====
 
 void InfoBuilder::AppendPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out) {
@@ -34,50 +23,54 @@ void InfoBuilder::AppendPlayerDetails(const RenderablePlayer* player, const Play
 
     if (settings.showDetailLevel && player->level > 0) {
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Level: {} ({})", player->level, player->scaledLevel));
+            out.emplace_back(std::format("Level: {} ({})", player->level, player->scaledLevel), ESPColors::DEFAULT_TEXT);
         } else {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Level: {}", player->level));
+            out.emplace_back(std::format("Level: {}", player->level), ESPColors::DEFAULT_TEXT);
         }
     }
 
     if (settings.showDetailProfession && player->profession != Game::Profession::None) {
         const char* profName = Formatting::GetProfessionName(player->profession);
         if (profName) {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Prof: {}", profName));
+            out.emplace_back(std::format("Prof: {}", profName), ESPColors::DEFAULT_TEXT);
         } else {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Prof: ID: {}", static_cast<int>(player->profession)));
+            out.emplace_back(std::format("Prof: ID: {}", static_cast<int>(player->profession)), ESPColors::DEFAULT_TEXT);
         }
     }
 
     if (settings.showDetailAttitude) {
         const char* attitudeName = Formatting::GetAttitudeName(player->attitude);
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Attitude: {}", attitudeName ? attitudeName : "Unknown"));
+        out.emplace_back(std::format("Attitude: {}", attitudeName ? attitudeName : "Unknown"), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailRace && player->race != Game::Race::None) {
         const char* raceName = Formatting::GetRaceName(player->race);
         if (raceName) {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Race: {}", raceName));
+            out.emplace_back(std::format("Race: {}", raceName), ESPColors::DEFAULT_TEXT);
         } else {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Race: ID: {}", static_cast<int>(player->race)));
+            out.emplace_back(std::format("Race: ID: {}", static_cast<int>(player->race)), ESPColors::DEFAULT_TEXT);
         }
     }
 
     if (settings.showDetailHp && player->maxHealth > 0) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "HP: {:.0f}/{:.0f}", player->currentHealth, player->maxHealth));
+        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", player->currentHealth, player->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailEnergy && player->maxEndurance > 0) {
         const int energyPercent = static_cast<int>((player->currentEndurance / player->maxEndurance) * 100.0f);
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Energy: {:.0f}/{:.0f} ({}%)", player->currentEndurance, player->maxEndurance, energyPercent));
+        out.emplace_back(
+            std::format("Energy: {:.0f}/{:.0f} ({}%)", player->currentEndurance, player->maxEndurance, energyPercent),
+            ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Pos: ({:.1f}, {:.1f}, {:.1f})", player->position.x, player->position.y, player->position.z));
+        out.emplace_back(
+            std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", player->position.x, player->position.y, player->position.z),
+            ESPColors::DEFAULT_TEXT);
     }
 
     if (showDebugAddresses) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Addr: {:#x}", reinterpret_cast<uintptr_t>(player->address)));
+        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(player->address)), ESPColors::DEFAULT_TEXT);
     }
 }
 
@@ -99,12 +92,12 @@ void InfoBuilder::AppendGearDetails(const RenderablePlayer* player, std::vector<
 
             if (info.statId > 0) {
                 if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
-                    out.emplace_back(MakeDetail(rarityColor, "{}: {}", slotName, statIt->second.name));
+                    out.emplace_back(std::format("{}: {}", slotName, statIt->second.name), rarityColor);
                 } else {
-                    out.emplace_back(MakeDetail(rarityColor, "{}: stat({})", slotName, info.statId));
+                    out.emplace_back(std::format("{}: stat({})", slotName, info.statId), rarityColor);
                 }
             } else {
-                out.emplace_back(MakeDetail(rarityColor, "{}: {}", slotName, "No Stats"));
+                out.emplace_back(std::format("{}: {}", slotName, "No Stats"), rarityColor);
             }
         }
     }
@@ -217,39 +210,39 @@ void InfoBuilder::AppendNpcDetails(const RenderableNpc* npc, const NpcEspSetting
     }
 
     if (!npc->name.empty()) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "NPC: {}", npc->name.c_str()));
+        out.emplace_back(std::format("NPC: {}", npc->name.c_str()), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailLevel && npc->level > 0) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Level: {}", npc->level));
+        out.emplace_back(std::format("Level: {}", npc->level), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailHp && npc->maxHealth > 0) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "HP: {:.0f}/{:.0f}", npc->currentHealth, npc->maxHealth));
+        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", npc->currentHealth, npc->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailAttitude) {
         const char* attitudeName = Formatting::GetAttitudeName(npc->attitude);
         if (attitudeName) {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Attitude: {}", attitudeName));
+            out.emplace_back(std::format("Attitude: {}", attitudeName), ESPColors::DEFAULT_TEXT);
         } else {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Attitude: ID: {}", static_cast<int>(npc->attitude)));
+            out.emplace_back(std::format("Attitude: ID: {}", static_cast<int>(npc->attitude)), ESPColors::DEFAULT_TEXT);
         }
     }
 
     if (settings.showDetailRank) {
         const char* rankName = Formatting::GetRankName(npc->rank);
         if (rankName && rankName[0] != '\0') {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Rank: {}", rankName));
+            out.emplace_back(std::format("Rank: {}", rankName), ESPColors::DEFAULT_TEXT);
         }
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Pos: ({:.1f}, {:.1f}, {:.1f})", npc->position.x, npc->position.y, npc->position.z));
+        out.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", npc->position.x, npc->position.y, npc->position.z), ESPColors::DEFAULT_TEXT);
     }
 
     if (showDebugAddresses) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Addr: {:#x}", reinterpret_cast<uintptr_t>(npc->address)));
+        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(npc->address)), ESPColors::DEFAULT_TEXT);
     }
 }
 
@@ -263,18 +256,18 @@ void InfoBuilder::AppendGadgetDetails(const RenderableGadget* gadget, const Obje
     if (settings.showDetailGadgetType) {
         const char* gadgetName = Formatting::GetGadgetTypeName(gadget->type);
         if (gadgetName) {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Type: {}", gadgetName));
+            out.emplace_back(std::format("Type: {}", gadgetName), ESPColors::DEFAULT_TEXT);
         } else {
-            out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Type: ID: {}", static_cast<int>(gadget->type)));
+            out.emplace_back(std::format("Type: ID: {}", static_cast<int>(gadget->type)), ESPColors::DEFAULT_TEXT);
         }
     }
 
     if (settings.showDetailHealth && gadget->maxHealth > 0) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "HP: {:.0f}/{:.0f}", gadget->currentHealth, gadget->maxHealth));
+        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", gadget->currentHealth, gadget->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailResourceInfo && gadget->type == Game::GadgetType::ResourceNode) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Node: {}", Formatting::ResourceNodeTypeToString(gadget->resourceType)));
+        out.emplace_back(std::format("Node: {}", Formatting::ResourceNodeTypeToString(gadget->resourceType)), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailGatherableStatus && gadget->isGatherable) {
@@ -282,11 +275,11 @@ void InfoBuilder::AppendGadgetDetails(const RenderableGadget* gadget, const Obje
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Pos: ({:.1f}, {:.1f}, {:.1f})", gadget->position.x, gadget->position.y, gadget->position.z));
+        out.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", gadget->position.x, gadget->position.y, gadget->position.z), ESPColors::DEFAULT_TEXT);
     }
 
     if (showDebugAddresses) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Addr: {:#x}", reinterpret_cast<uintptr_t>(gadget->address)));
+        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(gadget->address)), ESPColors::DEFAULT_TEXT);
     }
 }
 
@@ -298,17 +291,18 @@ void InfoBuilder::AppendAttackTargetDetails(const RenderableAttackTarget* attack
     out.emplace_back("Type: Attack Target", ESPColors::DEFAULT_TEXT);
 
     if (settings.showDetailHealth && attackTarget->maxHealth > 0) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "HP: {:.0f}/{:.0f}", attackTarget->currentHealth, attackTarget->maxHealth));
+        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", attackTarget->currentHealth, attackTarget->maxHealth), ESPColors::DEFAULT_TEXT);
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Pos: ({:.1f}, {:.1f}, {:.1f})", attackTarget->position.x, attackTarget->position.y, attackTarget->position.z));
+        out.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", attackTarget->position.x, attackTarget->position.y, attackTarget->position.z),
+            ESPColors::DEFAULT_TEXT);
     }
 
-    out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "AgentID: {}", attackTarget->agentId));
+    out.emplace_back(std::format("AgentID: {}", attackTarget->agentId), ESPColors::DEFAULT_TEXT);
 
     if (showDebugAddresses) {
-        out.emplace_back(MakeDetail(ESPColors::DEFAULT_TEXT, "Addr: {:#x}", reinterpret_cast<uintptr_t>(attackTarget->address)));
+        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(attackTarget->address)), ESPColors::DEFAULT_TEXT);
     }
 }
 
