@@ -78,8 +78,9 @@ struct ScreenGeometry {
  *
  * This struct contains all the pre-calculated visual properties needed
  * to render an entity. It separates calculation from drawing.
- * The style is populated by Logic::StyleCalculator (low frequency update),
- * geometry is refreshed every frame by StageRenderer (render thread).
+ *
+ * In the direct render pipeline, it is typically created on the stack
+ * inside the StageRenderer loop, populated, used, and discarded each frame.
  */
 struct VisualProperties {
     VisualStyle style;
