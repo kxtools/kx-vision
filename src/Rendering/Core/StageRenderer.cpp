@@ -7,7 +7,6 @@
 #include "../Renderers/TrailRenderer.h"
 #include "../Data/RenderableData.h"
 #include "../Data/HealthBarAnimationState.h"
-#include "../Presentation/InfoBuilder.h"
 #include "../Presentation/Styling.h"
 #include "../Shared/ColorConstants.h"
 #include "../Logic/StyleCalculator.h"
@@ -26,17 +25,6 @@
 namespace kx {
 
 namespace {
-
-struct EntityRenderState {
-    std::string displayName;
-    std::vector<ColoredDetail> details;
-    bool showCombatUI = true;
-    bool renderHealthBar = false;
-    bool renderEnergyBar = false;
-    bool renderDetails = false;
-    float burstDps = 0.0f;
-    Game::Attitude attitude = Game::Attitude::Neutral;
-};
 
 float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showBurstDpsSetting) {
     if (!showBurstDpsSetting || !state || state->burstStartTime == 0 || state->accumulatedDamage <= 0.0f) {
@@ -135,112 +123,16 @@ std::string BuildDisplayName(const RenderableEntity& entity) {
     }
 }
 
-void BuildDetailsForEntity(const RenderableEntity& entity,
-                           const FrameContext& context,
-                           std::vector<ColoredDetail>& out) {
-    switch (entity.entityType) {
-        case EntityTypes::Player: {
-            const auto& player = static_cast<const RenderablePlayer&>(entity);
-            InfoBuilder::AppendPlayerDetails(&player, context.settings.playerESP, context.settings.showDebugAddresses, out);
-            if (context.settings.playerESP.enableGearDisplay &&
-                context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed) {
-                if (!out.empty()) {
-                    out.emplace_back("--- Gear Stats ---", ESPColors::DEFAULT_TEXT);
-                }
-                InfoBuilder::AppendGearDetails(&player, out);
-            }
-            break;
-        }
-        case EntityTypes::NPC: {
-            const auto& npc = static_cast<const RenderableNpc&>(entity);
-            InfoBuilder::AppendNpcDetails(&npc, context.settings.npcESP, context.settings.showDebugAddresses, out);
-            break;
-        }
-        case EntityTypes::Gadget: {
-            const auto& gadget = static_cast<const RenderableGadget&>(entity);
-            InfoBuilder::AppendGadgetDetails(&gadget, context.settings.objectESP, context.settings.showDebugAddresses, out);
-            break;
-        }
-        case EntityTypes::AttackTarget: {
-            const auto& attackTarget = static_cast<const RenderableAttackTarget&>(entity);
-            InfoBuilder::AppendAttackTargetDetails(&attackTarget, context.settings.objectESP, context.settings.showDebugAddresses, out);
-            break;
-        }
-    }
-}
-
-EntityRenderState BuildRenderStateForEntity(const RenderableEntity& entity,
-                                            const FrameContext& context,
-                                            const EntityCombatState* combatState) {
-    EntityRenderState state;
-    state.displayName = BuildDisplayName(entity);
-    state.attitude = Game::Attitude::Neutral;
-
-    switch (entity.entityType) {
-        case EntityTypes::Player: {
-            const auto& player = static_cast<const RenderablePlayer&>(entity);
-            state.attitude = player.attitude;
-            state.renderHealthBar = ShouldRenderPlayerHealthBar(player, context.settings.playerESP);
-            state.renderEnergyBar = context.settings.playerESP.renderEnergyBar;
-            
-            bool showDetailedGear = context.settings.playerESP.enableGearDisplay && 
-                                    context.settings.playerESP.gearDisplayMode == GearDisplayMode::Detailed;
-            
-            state.renderDetails = context.settings.playerESP.renderDetails || showDetailedGear;
-            state.showCombatUI = true;
-            state.burstDps = CalculateBurstDps(combatState, context.now, context.settings.playerESP.showBurstDps);
-            if (state.renderDetails) {
-                BuildDetailsForEntity(entity, context, state.details);
-                state.renderDetails = !state.details.empty();
-            }
-            break;
-        }
-        case EntityTypes::NPC: {
-            const auto& npc = static_cast<const RenderableNpc&>(entity);
-            state.attitude = npc.attitude;
-            state.renderHealthBar = ShouldRenderNpcHealthBar(npc, context.settings.npcESP, combatState, context.now);
-            state.renderDetails = context.settings.npcESP.renderDetails;
-            state.showCombatUI = true;
-            state.burstDps = CalculateBurstDps(combatState, context.now, context.settings.npcESP.showBurstDps);
-            if (state.renderDetails) {
-                BuildDetailsForEntity(entity, context, state.details);
-                state.renderDetails = !state.details.empty();
-            }
-            break;
-        }
-        case EntityTypes::Gadget: {
-            const auto& gadget = static_cast<const RenderableGadget&>(entity);
-            state.renderHealthBar = ShouldRenderGadgetHealthBar(gadget, context.settings.objectESP, combatState, context.now);
-            state.renderDetails = context.settings.objectESP.renderDetails;
-            state.showCombatUI = !Styling::ShouldHideCombatUIForGadget(gadget.type);
-            state.burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);
-            if (state.renderDetails) {
-                BuildDetailsForEntity(entity, context, state.details);
-                state.renderDetails = !state.details.empty();
-            }
-            break;
-        }
-        case EntityTypes::AttackTarget: {
-            state.renderHealthBar = false;
-            state.renderDetails = context.settings.objectESP.renderDetails;
-            state.showCombatUI = true;
-            state.burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);
-            if (state.renderDetails) {
-                BuildDetailsForEntity(entity, context, state.details);
-                state.renderDetails = !state.details.empty();
-            }
-            break;
-        }
-    }
-
-    return state;
-}
 
 void RenderSingleEntity(const FrameContext& context,
                         const RenderableEntity& entity,
-                        const EntityRenderState& renderState,
                         const HealthBarAnimationState& animState,
-                        const VisualProperties& visuals) {
+                        const VisualProperties& visuals,
+                        bool showCombatUI,
+                        bool renderHealthBar,
+                        bool renderEnergyBar,
+                        float burstDps,
+                        Game::Attitude attitude) {
     EntityComponentRenderer::RenderGeometry(context, entity, visuals);
 
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entity.entityType);
@@ -250,23 +142,19 @@ void RenderSingleEntity(const FrameContext& context,
         bottomStack = LayoutCursor(glm::vec2(visuals.geometry.screenPos.x, visuals.geometry.screenPos.y), 1.0f);
     }
 
-    EntityComponentRenderer::RenderIdentity(context, entity, renderState.displayName, visuals, bottomStack);
+    std::string displayName = BuildDisplayName(entity);
+    EntityComponentRenderer::RenderIdentity(context, entity, displayName, visuals, bottomStack);
     EntityComponentRenderer::RenderStatusBars(context,
                                               entity,
-                                              renderState.showCombatUI,
-                                              renderState.renderHealthBar,
-                                              renderState.renderEnergyBar,
-                                              renderState.burstDps,
-                                              renderState.attitude,
+                                              showCombatUI,
+                                              renderHealthBar,
+                                              renderEnergyBar,
+                                              burstDps,
+                                              attitude,
                                               animState,
                                               visuals,
                                               bottomStack);
-    EntityComponentRenderer::RenderDetails(context,
-                                           entity,
-                                           renderState.renderDetails,
-                                           renderState.details,
-                                           visuals,
-                                           bottomStack);
+    EntityComponentRenderer::RenderEntityDetails(context, entity, visuals, bottomStack);
 }
 
 void ProcessAndRender(const FrameContext& context, const RenderableEntity* entity) {
@@ -295,19 +183,57 @@ void ProcessAndRender(const FrameContext& context, const RenderableEntity* entit
     }
 
     const EntityCombatState* combatState = context.stateManager.GetState(entity->GetCombatKey());
-    EntityRenderState renderState = BuildRenderStateForEntity(*entity, context, combatState);
+    
+    bool showCombatUI = true;
+    bool renderHealthBar = false;
+    bool renderEnergyBar = false;
+    float burstDps = 0.0f;
+    Game::Attitude attitude = Game::Attitude::Neutral;
+
+    switch (entity->entityType) {
+        case EntityTypes::Player: {
+            const auto& player = static_cast<const RenderablePlayer&>(*entity);
+            attitude = player.attitude;
+            renderHealthBar = ShouldRenderPlayerHealthBar(player, context.settings.playerESP);
+            renderEnergyBar = context.settings.playerESP.renderEnergyBar;
+            showCombatUI = true;
+            burstDps = CalculateBurstDps(combatState, context.now, context.settings.playerESP.showBurstDps);
+            break;
+        }
+        case EntityTypes::NPC: {
+            const auto& npc = static_cast<const RenderableNpc&>(*entity);
+            attitude = npc.attitude;
+            renderHealthBar = ShouldRenderNpcHealthBar(npc, context.settings.npcESP, combatState, context.now);
+            showCombatUI = true;
+            burstDps = CalculateBurstDps(combatState, context.now, context.settings.npcESP.showBurstDps);
+            break;
+        }
+        case EntityTypes::Gadget: {
+            const auto& gadget = static_cast<const RenderableGadget&>(*entity);
+            renderHealthBar = ShouldRenderGadgetHealthBar(gadget, context.settings.objectESP, combatState, context.now);
+            showCombatUI = !Styling::ShouldHideCombatUIForGadget(gadget.type);
+            burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);
+            break;
+        }
+        case EntityTypes::AttackTarget: {
+            renderHealthBar = false;
+            showCombatUI = true;
+            burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);
+            break;
+        }
+    }
 
     HealthBarAnimationState animState;
-    if (renderState.renderHealthBar && combatState) {
+    if (renderHealthBar && combatState) {
         PopulateHealthBarAnimations(entity, combatState, animState, context.now);
     }
 
-    RenderSingleEntity(context, *entity, renderState, animState, visuals);
+    RenderSingleEntity(context, *entity, animState, visuals, showCombatUI, renderHealthBar, renderEnergyBar, burstDps, attitude);
 
     if (entity->entityType == EntityTypes::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(entity);
         if (player) {
-            TrailRenderer::RenderPlayerTrail(context, *player, renderState.attitude, visuals);
+            TrailRenderer::RenderPlayerTrail(context, *player, attitude, visuals);
         }
     }
 }

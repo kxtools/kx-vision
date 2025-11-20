@@ -4,77 +4,136 @@
 #include "../../../libs/ImGui/imgui.h"
 
 #include <algorithm>
-#include <format>
-#include <ranges>
 #include <string_view>
+#include <cstdio>
 
 #include "Styling.h"
 #include "Shared/ColorConstants.h"
 #include "Formatting.h"
+#include "../Renderers/TextRenderer.h"
+#include "../Renderers/LayoutCursor.h"
+#include "../Data/FrameData.h"
+#include "../Shared/LayoutConstants.h"
 
 namespace kx {
 
 // ===== Player Methods =====
 
-void InfoBuilder::AppendPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out) {
+void InfoBuilder::RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize;
+    style.shadow = true;
+    style.background = true;
+    style.fadeAlpha = props.style.finalAlpha;
+    style.color = ESPColors::DEFAULT_TEXT;
+
+    char buffer[128];
+    glm::vec2 pos = cursor.GetPosition();
+
     if (settings.showDetailLevel && player->level > 0) {
+        int len;
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {
-            out.emplace_back(std::format("Level: {} ({})", player->level, player->scaledLevel), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Level: %u (%u)", player->level, player->scaledLevel);
         } else {
-            out.emplace_back(std::format("Level: {}", player->level), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Level: %u", player->level);
+        }
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
         }
     }
 
     if (settings.showDetailProfession && player->profession != Game::Profession::None) {
         const char* profName = Formatting::GetProfessionName(player->profession);
+        int len;
         if (profName) {
-            out.emplace_back(std::format("Prof: {}", profName), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Prof: %s", profName);
         } else {
-            out.emplace_back(std::format("Prof: ID: {}", static_cast<int>(player->profession)), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Prof: ID: %d", static_cast<int>(player->profession));
+        }
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
         }
     }
 
     if (settings.showDetailAttitude) {
         const char* attitudeName = Formatting::GetAttitudeName(player->attitude);
-        out.emplace_back(std::format("Attitude: {}", attitudeName ? attitudeName : "Unknown"), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Attitude: %s", attitudeName ? attitudeName : "Unknown");
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailRace && player->race != Game::Race::None) {
         const char* raceName = Formatting::GetRaceName(player->race);
+        int len;
         if (raceName) {
-            out.emplace_back(std::format("Race: {}", raceName), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Race: %s", raceName);
         } else {
-            out.emplace_back(std::format("Race: ID: {}", static_cast<int>(player->race)), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Race: ID: %d", static_cast<int>(player->race));
+        }
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
         }
     }
 
     if (settings.showDetailHp && player->maxHealth > 0) {
-        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", player->currentHealth, player->maxHealth), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "HP: %.0f/%.0f", player->currentHealth, player->maxHealth);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailEnergy && player->maxEndurance > 0) {
         const int energyPercent = static_cast<int>((player->currentEndurance / player->maxEndurance) * 100.0f);
-        out.emplace_back(
-            std::format("Energy: {:.0f}/{:.0f} ({}%)", player->currentEndurance, player->maxEndurance, energyPercent),
-            ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Energy: %.0f/%.0f (%d%%)", player->currentEndurance, player->maxEndurance, energyPercent);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(
-            std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", player->position.x, player->position.y, player->position.z),
-            ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Pos: (%.1f, %.1f, %.1f)", player->position.x, player->position.y, player->position.z);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (showDebugAddresses) {
-        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(player->address)), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Addr: %#llx", reinterpret_cast<unsigned long long>(player->address));
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+        }
     }
 }
 
-void InfoBuilder::AppendGearDetails(const RenderablePlayer* player, std::vector<ColoredDetail>& out) {
+void InfoBuilder::RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player) {
     const std::vector<Game::EquipmentSlot> displayOrder = {
         Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
         Game::EquipmentSlot::Gloves, Game::EquipmentSlot::Pants, Game::EquipmentSlot::Boots,
@@ -84,20 +143,38 @@ void InfoBuilder::AppendGearDetails(const RenderablePlayer* player, std::vector<
         Game::EquipmentSlot::MainhandWeapon2, Game::EquipmentSlot::OffhandWeapon2,
     };
 
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize;
+    style.shadow = true;
+    style.background = true;
+    style.fadeAlpha = props.style.finalAlpha;
+
+    char buffer[128];
+    glm::vec2 pos = cursor.GetPosition();
+
     for (const auto& slotEnum : displayOrder) {
         if (auto gearIt = player->gear.find(slotEnum); gearIt != player->gear.end()) {
             const char* slotName = Formatting::EquipmentSlotToString(gearIt->first);
             const GearSlotInfo& info = gearIt->second;
             ImU32 rarityColor = Styling::GetRarityColor(info.rarity);
+            style.color = rarityColor;
 
+            int len;
             if (info.statId > 0) {
                 if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
-                    out.emplace_back(std::format("{}: {}", slotName, statIt->second.name), rarityColor);
+                    len = snprintf(buffer, sizeof(buffer), "%s: %s", slotName, statIt->second.name);
                 } else {
-                    out.emplace_back(std::format("{}: stat({})", slotName, info.statId), rarityColor);
+                    len = snprintf(buffer, sizeof(buffer), "%s: stat(%d)", slotName, info.statId);
                 }
             } else {
-                out.emplace_back(std::format("{}: {}", slotName, "No Stats"), rarityColor);
+                len = snprintf(buffer, sizeof(buffer), "%s: No Stats", slotName);
+            }
+
+            if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+                std::string_view text(buffer, static_cast<size_t>(len));
+                float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+                cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+                pos = cursor.GetPosition();
             }
         }
     }
@@ -142,7 +219,7 @@ std::vector<CompactStatInfo> InfoBuilder::BuildCompactGearSummary(const Renderab
         }
     }
 
-    std::ranges::sort(result, [](const CompactStatInfo& a, const CompactStatInfo& b) {
+    std::sort(result.begin(), result.end(), [](const CompactStatInfo& a, const CompactStatInfo& b) {
         return a.percentage > b.percentage;
     });
 
@@ -177,12 +254,13 @@ std::vector<DominantStat> InfoBuilder::BuildDominantStats(const RenderablePlayer
         allStats.push_back({ name, (count / totalAttributes) * 100.0f, Styling::GetTacticalColor(attr) });
     }
 
-    std::ranges::sort(allStats, [](const DominantStat& a, const DominantStat& b) {
+    std::sort(allStats.begin(), allStats.end(), [](const DominantStat& a, const DominantStat& b) {
         return a.percentage > b.percentage;
     });
 
-    for (const auto& stat : allStats | std::views::take(3)) {
-        result.push_back(stat);
+    size_t count = std::min(allStats.size(), size_t(3));
+    for (size_t i = 0; i < count; ++i) {
+        result.push_back(allStats[i]);
     }
 
     return result;
@@ -204,105 +282,236 @@ Game::ItemRarity InfoBuilder::GetHighestRarity(const RenderablePlayer* player) {
 
 // ===== NPC Methods =====
 
-void InfoBuilder::AppendNpcDetails(const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out) {
+void InfoBuilder::RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize;
+    style.shadow = true;
+    style.background = true;
+    style.fadeAlpha = props.style.finalAlpha;
+    style.color = ESPColors::DEFAULT_TEXT;
+
+    char buffer[128];
+    glm::vec2 pos = cursor.GetPosition();
+
     if (!npc->name.empty()) {
-        out.emplace_back(std::format("NPC: {}", npc->name.c_str()), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "NPC: %s", npc->name.c_str());
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailLevel && npc->level > 0) {
-        out.emplace_back(std::format("Level: {}", npc->level), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Level: %u", npc->level);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailHp && npc->maxHealth > 0) {
-        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", npc->currentHealth, npc->maxHealth), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "HP: %.0f/%.0f", npc->currentHealth, npc->maxHealth);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailAttitude) {
         const char* attitudeName = Formatting::GetAttitudeName(npc->attitude);
+        int len;
         if (attitudeName) {
-            out.emplace_back(std::format("Attitude: {}", attitudeName), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Attitude: %s", attitudeName);
         } else {
-            out.emplace_back(std::format("Attitude: ID: {}", static_cast<int>(npc->attitude)), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Attitude: ID: %d", static_cast<int>(npc->attitude));
+        }
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
         }
     }
 
     if (settings.showDetailRank) {
         const char* rankName = Formatting::GetRankName(npc->rank);
         if (rankName && rankName[0] != '\0') {
-            out.emplace_back(std::format("Rank: {}", rankName), ESPColors::DEFAULT_TEXT);
+            int len = snprintf(buffer, sizeof(buffer), "Rank: %s", rankName);
+            if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+                std::string_view text(buffer, static_cast<size_t>(len));
+                float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+                cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+                pos = cursor.GetPosition();
+            }
         }
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", npc->position.x, npc->position.y, npc->position.z), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Pos: (%.1f, %.1f, %.1f)", npc->position.x, npc->position.y, npc->position.z);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (showDebugAddresses) {
-        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(npc->address)), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Addr: %#llx", reinterpret_cast<unsigned long long>(npc->address));
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+        }
     }
 }
 
 // ===== Gadget Methods =====
 
-void InfoBuilder::AppendGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out) {
+void InfoBuilder::RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize;
+    style.shadow = true;
+    style.background = true;
+    style.fadeAlpha = props.style.finalAlpha;
+    style.color = ESPColors::DEFAULT_TEXT;
+
+    char buffer[128];
+    glm::vec2 pos = cursor.GetPosition();
+
     if (settings.showDetailGadgetType) {
         const char* gadgetName = Formatting::GetGadgetTypeName(gadget->type);
+        int len;
         if (gadgetName) {
-            out.emplace_back(std::format("Type: {}", gadgetName), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Type: %s", gadgetName);
         } else {
-            out.emplace_back(std::format("Type: ID: {}", static_cast<int>(gadget->type)), ESPColors::DEFAULT_TEXT);
+            len = snprintf(buffer, sizeof(buffer), "Type: ID: %d", static_cast<int>(gadget->type));
+        }
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
         }
     }
 
     if (settings.showDetailHealth && gadget->maxHealth > 0) {
-        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", gadget->currentHealth, gadget->maxHealth), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "HP: %.0f/%.0f", gadget->currentHealth, gadget->maxHealth);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailResourceInfo && gadget->type == Game::GadgetType::ResourceNode) {
-        out.emplace_back(std::format("Node: {}", Formatting::ResourceNodeTypeToString(gadget->resourceType)), ESPColors::DEFAULT_TEXT);
+        std::string nodeTypeStr = Formatting::ResourceNodeTypeToString(gadget->resourceType);
+        int len = snprintf(buffer, sizeof(buffer), "Node: %s", nodeTypeStr.c_str());
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailGatherableStatus && gadget->isGatherable) {
-        out.emplace_back("Status: Gatherable", ESPColors::DEFAULT_TEXT);
+        std::string_view text("Status: Gatherable");
+        float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+        cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+        pos = cursor.GetPosition();
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", gadget->position.x, gadget->position.y, gadget->position.z), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Pos: (%.1f, %.1f, %.1f)", gadget->position.x, gadget->position.y, gadget->position.z);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (showDebugAddresses) {
-        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(gadget->address)), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Addr: %#llx", reinterpret_cast<unsigned long long>(gadget->address));
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            float height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+        }
     }
 }
 
-void InfoBuilder::AppendAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out) {
+void InfoBuilder::RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
-    out.emplace_back("Type: Attack Target", ESPColors::DEFAULT_TEXT);
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize;
+    style.shadow = true;
+    style.background = true;
+    style.fadeAlpha = props.style.finalAlpha;
+    style.color = ESPColors::DEFAULT_TEXT;
+
+    char buffer[128];
+    glm::vec2 pos = cursor.GetPosition();
+
+    std::string_view typeText("Type: Attack Target");
+    float height = TextRenderer::DrawCentered(drawList, pos, typeText, style);
+    cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+    pos = cursor.GetPosition();
 
     if (settings.showDetailHealth && attackTarget->maxHealth > 0) {
-        out.emplace_back(std::format("HP: {:.0f}/{:.0f}", attackTarget->currentHealth, attackTarget->maxHealth), ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "HP: %.0f/%.0f", attackTarget->currentHealth, attackTarget->maxHealth);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
     if (settings.showDetailPosition) {
-        out.emplace_back(std::format("Pos: ({:.1f}, {:.1f}, {:.1f})", attackTarget->position.x, attackTarget->position.y, attackTarget->position.z),
-            ESPColors::DEFAULT_TEXT);
+        int len = snprintf(buffer, sizeof(buffer), "Pos: (%.1f, %.1f, %.1f)", attackTarget->position.x, attackTarget->position.y, attackTarget->position.z);
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            height = TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+            pos = cursor.GetPosition();
+        }
     }
 
-    out.emplace_back(std::format("AgentID: {}", attackTarget->agentId), ESPColors::DEFAULT_TEXT);
+    int len = snprintf(buffer, sizeof(buffer), "AgentID: %d", attackTarget->agentId);
+    if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+        std::string_view text(buffer, static_cast<size_t>(len));
+        height = TextRenderer::DrawCentered(drawList, pos, text, style);
+        cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+        pos = cursor.GetPosition();
+    }
 
     if (showDebugAddresses) {
-        out.emplace_back(std::format("Addr: {:#x}", reinterpret_cast<uintptr_t>(attackTarget->address)), ESPColors::DEFAULT_TEXT);
+        len = snprintf(buffer, sizeof(buffer), "Addr: %#llx", reinterpret_cast<unsigned long long>(attackTarget->address));
+        if (len > 0 && static_cast<size_t>(len) < sizeof(buffer)) {
+            std::string_view text(buffer, static_cast<size_t>(len));
+            TextRenderer::DrawCentered(drawList, pos, text, style);
+            cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+        }
     }
 }
 

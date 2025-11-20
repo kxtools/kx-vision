@@ -6,6 +6,12 @@
 #include "../../Core/Settings.h"
 #include "Generated/EnumsAndStructs.h"
 
+struct ImDrawList;
+namespace kx {
+    struct LayoutCursor;
+    struct VisualProperties;
+}
+
 namespace kx {
 
 /**
@@ -19,20 +25,24 @@ public:
     // ===== Player Methods =====
     
     /**
-     * @brief Append basic player information details (name, level, profession, etc.)
-     * @param player The player entity to build details for
+     * @brief Render basic player information details (name, level, profession, etc.)
+     * @param drawList The ImGui draw list to render to
+     * @param cursor Layout cursor for positioning
+     * @param props Visual properties for styling
+     * @param player The player entity to render details for
      * @param settings Player ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @param out Output vector to append details to
      */
-    static void AppendPlayerDetails(const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
+    static void RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses);
 
     /**
-     * @brief Append detailed gear information showing each equipment slot and stat
+     * @brief Render detailed gear information showing each equipment slot and stat
+     * @param drawList The ImGui draw list to render to
+     * @param cursor Layout cursor for positioning
+     * @param props Visual properties for styling
      * @param player The player entity to analyze
-     * @param out Output vector to append details to
      */
-    static void AppendGearDetails(const RenderablePlayer* player, std::vector<ColoredDetail>& out);
+    static void RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player);
 
     /**
      * @brief Build compact gear summary showing stat names and counts
@@ -58,33 +68,39 @@ public:
     // ===== NPC Methods =====
     
     /**
-     * @brief Append NPC information details (name, level, health, attitude, rank)
-     * @param npc The NPC entity to build details for
+     * @brief Render NPC information details (name, level, health, attitude, rank)
+     * @param drawList The ImGui draw list to render to
+     * @param cursor Layout cursor for positioning
+     * @param props Visual properties for styling
+     * @param npc The NPC entity to render details for
      * @param settings NPC ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @param out Output vector to append details to
      */
-    static void AppendNpcDetails(const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
+    static void RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses);
 
     // ===== Gadget Methods =====
     
     /**
-     * @brief Append Gadget information details (type, resource node info, gatherable status)
-     * @param gadget The gadget entity to build details for
+     * @brief Render Gadget information details (type, resource node info, gatherable status)
+     * @param drawList The ImGui draw list to render to
+     * @param cursor Layout cursor for positioning
+     * @param props Visual properties for styling
+     * @param gadget The gadget entity to render details for
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @param out Output vector to append details to
      */
-    static void AppendGadgetDetails(const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
+    static void RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses);
 
     /**
-     * @brief Append Attack Target information details (position, agent ID, type)
-     * @param attackTarget The attack target entity to build details for
+     * @brief Render Attack Target information details (position, agent ID, type)
+     * @param drawList The ImGui draw list to render to
+     * @param cursor Layout cursor for positioning
+     * @param props Visual properties for styling
+     * @param attackTarget The attack target entity to render details for
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
-     * @param out Output vector to append details to
      */
-    static void AppendAttackTargetDetails(const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses, std::vector<ColoredDetail>& out);
+    static void RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses);
 
 private:
     /**

@@ -16,16 +16,6 @@
 
 namespace kx {
 
-struct ColoredDetail {
-    std::string text;
-    ImU32 color = 0;
-
-    ColoredDetail() = default;
-    ColoredDetail(std::string t, ImU32 c) : text(std::move(t)), color(c) {}
-    ColoredDetail(std::string_view t, ImU32 c) : text(t), color(c) {}
-    ColoredDetail(const char* t, ImU32 c) : text(t ? t : ""), color(c) {}
-};
-
 struct RenderableEntity {
     glm::vec3 position;
     float visualDistance;

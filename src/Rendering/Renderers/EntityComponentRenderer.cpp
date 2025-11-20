@@ -339,12 +339,10 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
     }
 }
 
-void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
-                                            const RenderableEntity& entity,
-                                            bool renderDetails,
-                                            const std::vector<ColoredDetail>& details,
-                                            const VisualProperties& props,
-                                            LayoutCursor& cursor) {
+void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
+                                                  const RenderableEntity& entity,
+                                                  const VisualProperties& props,
+                                                  LayoutCursor& cursor) {
     if (entity.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const RenderablePlayer*>(&entity);
         if (player != nullptr && ctx.settings.playerESP.enableGearDisplay) {
@@ -454,32 +452,34 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
                     }
                     break;
                 }
-                default: break; // Detailed mode is handled via the details vector below
+                case GearDisplayMode::Detailed: {
+                    InfoBuilder::RenderGearDetails(ctx.drawList, cursor, props, player);
+                    break;
+                }
             }
         }
     }
 
-    if (renderDetails && !details.empty()) {
-        glm::vec2 pos = cursor.GetPosition();
-        float lineSpacing = RenderingLayout::DETAILS_TEXT_LINE_SPACING;
-        float totalHeight = 0.0f;
-
-        FastTextStyle style;
-        style.fontSize = props.style.finalFontSize;
-        style.shadow = ctx.settings.appearance.enableTextShadows;
-        style.background = ctx.settings.appearance.enableTextBackgrounds;
-        style.fadeAlpha = props.style.finalAlpha;
-
-        for (const auto& detail : details) {
-            std::string_view detailText = detail.text;
-            style.color = detail.color;
-            float height = TextRenderer::DrawCentered(ctx.drawList, pos, detailText, style);
-            pos.y += height + lineSpacing;
-            totalHeight += height + lineSpacing;
+    switch (entity.entityType) {
+        case EntityTypes::Player: {
+            const auto* player = static_cast<const RenderablePlayer*>(&entity);
+            InfoBuilder::RenderPlayerDetails(ctx.drawList, cursor, props, player, ctx.settings.playerESP, ctx.settings.showDebugAddresses);
+            break;
         }
-
-        if (totalHeight > 0.0f) {
-            cursor.Advance(totalHeight);
+        case EntityTypes::NPC: {
+            const auto* npc = static_cast<const RenderableNpc*>(&entity);
+            InfoBuilder::RenderNpcDetails(ctx.drawList, cursor, props, npc, ctx.settings.npcESP, ctx.settings.showDebugAddresses);
+            break;
+        }
+        case EntityTypes::Gadget: {
+            const auto* gadget = static_cast<const RenderableGadget*>(&entity);
+            InfoBuilder::RenderGadgetDetails(ctx.drawList, cursor, props, gadget, ctx.settings.objectESP, ctx.settings.showDebugAddresses);
+            break;
+        }
+        case EntityTypes::AttackTarget: {
+            const auto* attackTarget = static_cast<const RenderableAttackTarget*>(&entity);
+            InfoBuilder::RenderAttackTargetDetails(ctx.drawList, cursor, props, attackTarget, ctx.settings.objectESP, ctx.settings.showDebugAddresses);
+            break;
         }
     }
 }

@@ -10,7 +10,6 @@
 namespace kx {
 
 struct RenderableEntity;
-struct ColoredDetail;
 
 class EntityComponentRenderer {
 public:
@@ -33,12 +32,10 @@ public:
                                  const VisualProperties& props,
                                  LayoutCursor& cursor);
 
-    static void RenderDetails(const FrameContext& ctx,
-                              const RenderableEntity& entity,
-                              bool renderDetails,
-                              const std::vector<ColoredDetail>& details,
-                              const VisualProperties& props,
-                              LayoutCursor& cursor);
+    static void RenderEntityDetails(const FrameContext& ctx,
+                                    const RenderableEntity& entity,
+                                    const VisualProperties& props,
+                                    LayoutCursor& cursor);
 };
 
 } // namespace kx
