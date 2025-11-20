@@ -97,9 +97,11 @@ namespace Offsets {
 
     /**
      * @brief AgApi - Global API context
+     * 
+     * Note: AgWorld is embedded at offset 0x28, not a pointer. Use address math, not ReadPointer<>().
      */
     struct AgApi {
-        static constexpr uintptr_t AG_WORLD = 0x28; // AgWorld*
+        static constexpr uintptr_t AG_WORLD = 0x28; // AgWorld embedded object (not a pointer)
     };
 
     /**

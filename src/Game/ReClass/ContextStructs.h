@@ -162,9 +162,17 @@ namespace kx {
         public:
             AgApi(void* ptr) : SafeForeignClass(ptr) {}
 
+            /**
+             * @brief Get the embedded AgWorld object
+             * 
+             * Note: AgWorld is embedded at offset 0x28, not a pointer. Must use address math, not ReadPointer<>().
+             */
             AgWorld GetAgWorld() const {
                 LOG_MEMORY("AgApi", "GetAgWorld", data(), Offsets::AgApi::AG_WORLD);
-                AgWorld result = ReadPointer<AgWorld>(Offsets::AgApi::AG_WORLD);
+                if (!data()) return AgWorld(nullptr);
+                
+                uintptr_t agWorldAddress = reinterpret_cast<uintptr_t>(data()) + Offsets::AgApi::AG_WORLD;
+                AgWorld result(reinterpret_cast<void*>(agWorldAddress));
                 LOG_PTR("AgWorld", result.data());
                 return result;
             }
