@@ -83,12 +83,8 @@ namespace kx {
                     return Havok::HkcdShapeType::INVALID;
                 }
 
-                // Read primitive shape type from shape + 0x10 (single byte)
-                uint8_t typeValue = 0xFF;
-                if (!kx::Debug::SafeRead<uint8_t>(data(), HavokOffsets::HkpShapeBase::SHAPE_TYPE_PRIMITIVE, typeValue)) {
-                    return Havok::HkcdShapeType::INVALID;
-                }
-
+                // Read primitive shape type from shape + 0x10 (single byte) - fast read
+                uint8_t typeValue = ReadMemberFast<uint8_t>(HavokOffsets::HkpShapeBase::SHAPE_TYPE_PRIMITIVE, 0xFF);
                 return static_cast<Havok::HkcdShapeType>(typeValue);
             }
         };
@@ -205,33 +201,25 @@ namespace kx {
                     return Havok::HkcdShapeType::INVALID;
                 }
 
-                // Read shape pointer at +0x20
-                void* shapePtr = nullptr;
-                if (!kx::Debug::SafeRead<void*>(data(), HavokOffsets::HkpRigidBody::SHAPE, shapePtr)) {
-                    return Havok::HkcdShapeType::INVALID;
-                }
-
-                // Validate shape pointer (null check only - SafeRead handles memory safety)
+                // Read shape pointer at +0x20 - fast read
+                void* shapePtr = ReadMemberFast<void*>(HavokOffsets::HkpRigidBody::SHAPE, nullptr);
                 if (!shapePtr) {
                     return Havok::HkcdShapeType::INVALID;
                 }
 
-                // Read primitive shape type from shape + 0x10 (single byte)
-                uint8_t typeValue = 0xFF;
-                if (!kx::Debug::SafeRead<uint8_t>(shapePtr, HavokOffsets::HkpShapeBase::SHAPE_TYPE_PRIMITIVE, typeValue)) {
-                    return Havok::HkcdShapeType::INVALID;
-                }
-
+                // Read primitive shape type from shape + 0x10 (single byte) - direct pointer arithmetic
+                uint8_t typeValue = *reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(shapePtr) + HavokOffsets::HkpShapeBase::SHAPE_TYPE_PRIMITIVE);
                 return static_cast<Havok::HkcdShapeType>(typeValue);
             }
 
         private:
             // Helper: Read int32 height in centimeters, convert to meters
             float ReadInt32HeightCm(void* shapePtr, uintptr_t offset, int32_t minCm, int32_t maxCm) const {
-                int32_t heightCm = 0;
-                if (!kx::Debug::SafeRead<int32_t>(shapePtr, offset, heightCm)) {
+                if (!shapePtr) {
                     return -1.0f;
                 }
+                
+                int32_t heightCm = *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(shapePtr) + offset);
                 
                 if (heightCm < minCm || heightCm > maxCm) {
                     return -1.0f;
@@ -242,10 +230,11 @@ namespace kx {
 
             // Helper: Read float half-extent in game coordinates, convert to full height in meters
             float ReadFloatHeightHalfExtent(void* shapePtr, uintptr_t offset) const {
-                float heightHalf = 0.0f;
-                if (!kx::Debug::SafeRead<float>(shapePtr, offset, heightHalf)) {
+                if (!shapePtr) {
                     return -1.0f;
                 }
+                
+                float heightHalf = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(shapePtr) + offset);
                 
                 if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > HavokValidation::MAX_HALF_EXTENT_GAME_UNITS) {
                     return -1.0f;
@@ -262,10 +251,11 @@ namespace kx {
 
             // Helper: Read float half-height in meters, convert to full height (no coordinate conversion)
             float ReadFloatHeightHalfMeters(void* shapePtr, uintptr_t offset) const {
-                float heightHalf = 0.0f;
-                if (!kx::Debug::SafeRead<float>(shapePtr, offset, heightHalf)) {
+                if (!shapePtr) {
                     return -1.0f;
                 }
+                
+                float heightHalf = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(shapePtr) + offset);
                 
                 if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > HavokValidation::MAX_DIMENSION_METERS / 2.0f) {
                     return -1.0f;
@@ -282,10 +272,11 @@ namespace kx {
 
             // Helper: Read int32 height directly (no conversion)
             float ReadInt32HeightDirect(void* shapePtr, uintptr_t offset, int32_t min, int32_t max) const {
-                int32_t height = 0;
-                if (!kx::Debug::SafeRead<int32_t>(shapePtr, offset, height)) {
+                if (!shapePtr) {
                     return -1.0f;
                 }
+                
+                int32_t height = *reinterpret_cast<int32_t*>(reinterpret_cast<uintptr_t>(shapePtr) + offset);
                 
                 if (height < min || height > max) {
                     return -1.0f;
@@ -296,10 +287,11 @@ namespace kx {
 
             // Helper: Read vec3 half-extents, validate, and return full extents
             glm::vec3 ReadBoxHalfExtents(void* shapePtr, uintptr_t offset) const {
-                glm::vec3 halfExtents(0.0f);
-                if (!kx::Debug::SafeRead<glm::vec3>(shapePtr, offset, halfExtents)) {
+                if (!shapePtr) {
                     return glm::vec3(0.0f);
                 }
+                
+                glm::vec3 halfExtents = *reinterpret_cast<glm::vec3*>(reinterpret_cast<uintptr_t>(shapePtr) + offset);
                 
                 if (!std::isfinite(halfExtents.x) || !std::isfinite(halfExtents.y) || !std::isfinite(halfExtents.z)) {
                     return glm::vec3(0.0f);
@@ -331,10 +323,11 @@ namespace kx {
             // Note: GW2 uses the same generic cylinder object everywhere, so all cylinders will be the same size.
             // This means only height information is available from the shape, and width/depth must be derived proportionally.
             glm::vec3 ReadCylinderDimensions(void* shapePtr, uintptr_t heightOffset) const {
-                float halfHeight = 0.0f;
-                if (!kx::Debug::SafeRead<float>(shapePtr, heightOffset, halfHeight)) {
+                if (!shapePtr) {
                     return glm::vec3(0.0f);
                 }
+                
+                float halfHeight = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(shapePtr) + heightOffset);
                 
                 if (!std::isfinite(halfHeight) || halfHeight <= 0.0f || halfHeight > HavokValidation::MAX_DIMENSION_METERS / 2.0f) {
                     return glm::vec3(0.0f);
@@ -403,23 +396,20 @@ namespace kx {
 
             // Helper: Read list shape dimensions from its cached bounding box half-extents
             glm::vec3 ReadListShapeDimensions(void* shapePtr) const {
-                // Read width and depth from vec3 at 0x50
-                float widthHalf = 0.0f;
-                float depthHalf = 0.0f;
-                if (!kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::WIDTH_HALF, widthHalf) ||
-                    !kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::DEPTH_HALF, depthHalf)) {
+                if (!shapePtr) {
                     return glm::vec3(0.0f);
                 }
                 
+                // Read width and depth from vec3 at 0x50 - direct pointer arithmetic
+                float widthHalf = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(shapePtr) + HavokOffsets::HkpListShape::WIDTH_HALF);
+                float depthHalf = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(shapePtr) + HavokOffsets::HkpListShape::DEPTH_HALF);
+                
                 // Read primary height from 0x58
-                float heightHalf = 0.0f;
-                bool heightValid = kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::HEIGHT_HALF, heightHalf);
+                float heightHalf = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(shapePtr) + HavokOffsets::HkpListShape::HEIGHT_HALF);
                 
                 // If primary height is invalid, try backup height from 0x68
-                if (!heightValid || !std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > 10000.0f) {
-                    if (!kx::Debug::SafeRead<float>(shapePtr, HavokOffsets::HkpListShape::HEIGHT_HALF_BACKUP, heightHalf)) {
-                        return glm::vec3(0.0f);
-                    }
+                if (!std::isfinite(heightHalf) || heightHalf <= 0.0f || heightHalf > 10000.0f) {
+                    heightHalf = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(shapePtr) + HavokOffsets::HkpListShape::HEIGHT_HALF_BACKUP);
                 }
                 
                 // Validate all components
@@ -475,13 +465,8 @@ namespace kx {
                     return glm::vec3(0.0f);
                 }
 
-                // Read shape pointer at +0x20
-                void* shapePtr = nullptr;
-                if (!kx::Debug::SafeRead<void*>(data(), HavokOffsets::HkpRigidBody::SHAPE, shapePtr)) {
-                    return glm::vec3(0.0f);
-                }
-
-                // Validate shape pointer (null check only - SafeRead handles memory safety)
+                // Read shape pointer at +0x20 - fast read
+                void* shapePtr = ReadMemberFast<void*>(HavokOffsets::HkpRigidBody::SHAPE, nullptr);
                 if (!shapePtr) {
                     return glm::vec3(0.0f);
                 }
