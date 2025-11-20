@@ -85,13 +85,6 @@ namespace kx::Formatting {
         }
     }
 
-    bool IsWeaponSlot(Game::EquipmentSlot slot) {
-        return slot == Game::EquipmentSlot::MainhandWeapon1 ||
-               slot == Game::EquipmentSlot::OffhandWeapon1 ||
-               slot == Game::EquipmentSlot::MainhandWeapon2 ||
-               slot == Game::EquipmentSlot::OffhandWeapon2;
-    }
-
     const char* ResourceNodeTypeToString(Game::ResourceNodeType type) {
         switch (type) {
             case Game::ResourceNodeType::Plant: return "Plant";

@@ -182,6 +182,13 @@ enum class EquipmentSlot : int {
     End = 69
 };
 
+constexpr bool IsWeaponSlot(EquipmentSlot slot) {
+    return slot == EquipmentSlot::MainhandWeapon1 ||
+           slot == EquipmentSlot::OffhandWeapon1 ||
+           slot == EquipmentSlot::MainhandWeapon2 ||
+           slot == EquipmentSlot::OffhandWeapon2;
+}
+
 // Weapon Types
 enum class WeaponType : int {
     None = -1,

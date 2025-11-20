@@ -232,7 +232,7 @@ namespace {
             slotInfo.itemId = itemDef.GetId();
             slotInfo.rarity = itemDef.GetRarity();
 
-            if (Formatting::IsWeaponSlot(slotEnum)) {
+            if (Game::IsWeaponSlot(slotEnum)) {
                 ReClass::Stat stat = slot.GetStatWeapon();
                 if (stat) slotInfo.statId = stat.GetId();
             }

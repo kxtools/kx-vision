@@ -13,8 +13,6 @@ namespace kx::Formatting {
     const char* GetAttitudeName(Game::Attitude attitude);
     const char* GetAgentTypeName(Game::AgentType type);
     
-    bool IsWeaponSlot(Game::EquipmentSlot slot);
-    
     const char* ResourceNodeTypeToString(Game::ResourceNodeType type);
     const char* EquipmentSlotToString(Game::EquipmentSlot slot);
     
