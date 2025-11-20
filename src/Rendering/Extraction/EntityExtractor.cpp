@@ -3,6 +3,8 @@
 #include "../../Game/ReClass/HavokStructs.h"
 #include "../../Utils/StringHelpers.h"
 #include <vector>
+#include <cstring>
+#include <algorithm>
 
 #include "Presentation/Formatting.h"
 
@@ -21,6 +23,15 @@ namespace PhysicsValidation {
     constexpr float WIDTH_TO_HEIGHT_RATIO = 0.35f;  // 35% - typical humanoid/object proportions
 }
 
+namespace {
+    void CopyString(char* dest, size_t destSize, const std::string& source) {
+        if (destSize == 0) return;
+        size_t length = std::min(source.length(), destSize - 1);
+        std::memcpy(dest, source.data(), length);
+        dest[length] = '\0';
+    }
+}
+
     bool EntityExtractor::ExtractPlayer(RenderablePlayer& outPlayer,
         const ReClass::ChCliCharacter& inCharacter,
         const wchar_t* playerName,
@@ -37,7 +48,10 @@ namespace PhysicsValidation {
         outPlayer.address = inCharacter.data();
         outPlayer.isLocalPlayer = (outPlayer.address == localPlayerPtr);
         if (playerName) {
-            outPlayer.playerName = StringHelpers::WCharToUTF8String(playerName);
+            std::string temp = StringHelpers::WCharToUTF8String(playerName);
+            CopyString(outPlayer.playerName, sizeof(outPlayer.playerName), temp);
+        } else {
+            outPlayer.playerName[0] = '\0';
         }
 
         // --- Agent Info ---

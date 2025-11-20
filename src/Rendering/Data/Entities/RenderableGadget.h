@@ -1,12 +1,11 @@
 #pragma once
 
 #include "RenderableEntity.h"
-#include <string>
 
 namespace kx {
 
 struct RenderableGadget : public RenderableEntity {
-    std::string name;
+    char name[64] = { 0 };
     Game::GadgetType type;
     Game::ResourceNodeType resourceType;
     bool isGatherable;

@@ -1,12 +1,11 @@
 #pragma once
 
 #include "RenderableEntity.h"
-#include <string>
 
 namespace kx {
 
 struct RenderableNpc : public RenderableEntity {
-    std::string name;
+    char name[64] = { 0 };
     uint32_t level;
     Game::Attitude attitude;
     Game::CharacterRank rank;

@@ -277,8 +277,8 @@ void InfoBuilder::RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, c
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
-    if (!npc->name.empty()) {
-        DrawLine(drawList, cursor, style, "NPC: %s", npc->name.c_str());
+    if (npc->name[0] != '\0') {
+        DrawLine(drawList, cursor, style, "NPC: %s", npc->name);
     }
 
     if (settings.showDetailLevel && npc->level > 0) {

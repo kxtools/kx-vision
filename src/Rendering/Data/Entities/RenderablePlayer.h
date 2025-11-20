@@ -2,13 +2,12 @@
 
 #include "RenderableEntity.h"
 #include "../PlayerRenderData.h"
-#include <string>
 #include <ankerl/unordered_dense.h>
 
 namespace kx {
 
 struct RenderablePlayer : public RenderableEntity {
-    std::string playerName;
+    char playerName[64] = { 0 };
     float currentEndurance;
     float maxEndurance;
     float currentEnergy;
