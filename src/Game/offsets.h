@@ -108,7 +108,7 @@ namespace Offsets {
      * @brief AgWorld - World context containing time
      */
     struct AgWorld {
-        static constexpr uintptr_t WORLD_TIME = 0x1FC; // uint32_t
+        static constexpr uintptr_t WORLD_TIME = 0x1D4; // uint32_t (relative to embedded AgWorld base, absolute from AgApi: 0x1FC)
     };
 
     // ============================================================================
