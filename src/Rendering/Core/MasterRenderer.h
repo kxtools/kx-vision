@@ -37,6 +37,8 @@ private:
     CombatStateManager m_combatStateManager;
     PooledFrameRenderData m_processedRenderData;
     
+    PooledFrameRenderData m_extractionData;
+    
     float m_lastUpdateTime = 0.0f;
 };
 

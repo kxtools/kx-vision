@@ -33,12 +33,12 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         m_attackTargetPool.Reset();
         m_processedRenderData.Reset();
         
-        PooledFrameRenderData extractedData;
-        DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, extractedData);
+        m_extractionData.Reset();
+        DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, m_extractionData);
         
         ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> activeKeys;
-        size_t totalCount = extractedData.players.size() + extractedData.npcs.size() + 
-                            extractedData.gadgets.size() + extractedData.attackTargets.size();
+        size_t totalCount = m_extractionData.players.size() + m_extractionData.npcs.size() + 
+                            m_extractionData.gadgets.size() + m_extractionData.attackTargets.size();
         activeKeys.reserve(totalCount);
         
         auto collectKeys = [&](const auto& collection) {
@@ -47,24 +47,24 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
             }
         };
 
-        collectKeys(extractedData.players);
-        collectKeys(extractedData.npcs);
-        collectKeys(extractedData.gadgets);
-        collectKeys(extractedData.attackTargets);
+        collectKeys(m_extractionData.players);
+        collectKeys(m_extractionData.npcs);
+        collectKeys(m_extractionData.gadgets);
+        collectKeys(m_extractionData.attackTargets);
 
         m_combatStateManager.Prune(activeKeys);
         
         std::vector<RenderableEntity*> allEntities;
-        allEntities.reserve(extractedData.players.size() + extractedData.npcs.size() + extractedData.gadgets.size() + extractedData.attackTargets.size());
-        allEntities.insert(allEntities.end(), extractedData.players.begin(), extractedData.players.end());
-        allEntities.insert(allEntities.end(), extractedData.npcs.begin(), extractedData.npcs.end());
-        allEntities.insert(allEntities.end(), extractedData.gadgets.begin(), extractedData.gadgets.end());
-        allEntities.insert(allEntities.end(), extractedData.attackTargets.begin(), extractedData.attackTargets.end());
+        allEntities.reserve(totalCount);
+        allEntities.insert(allEntities.end(), m_extractionData.players.begin(), m_extractionData.players.end());
+        allEntities.insert(allEntities.end(), m_extractionData.npcs.begin(), m_extractionData.npcs.end());
+        allEntities.insert(allEntities.end(), m_extractionData.gadgets.begin(), m_extractionData.gadgets.end());
+        allEntities.insert(allEntities.end(), m_extractionData.attackTargets.begin(), m_extractionData.attackTargets.end());
         m_combatStateManager.Update(allEntities, frameContext.now);
         
-        EntityFilter::FilterPooledData(extractedData, frameContext, m_processedRenderData);
+        EntityFilter::FilterPooledData(m_extractionData, frameContext, m_processedRenderData);
 
-        AppState::Get().UpdateAdaptiveFarPlane(extractedData);
+        AppState::Get().UpdateAdaptiveFarPlane(m_extractionData);
         
         m_lastUpdateTime = currentTimeSeconds;
     }
@@ -107,6 +107,7 @@ void MasterRenderer::Reset() {
     m_gadgetPool.Reset();
     m_attackTargetPool.Reset();
     m_processedRenderData.Reset();
+    m_extractionData.Reset();
 }
 
 bool MasterRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {
