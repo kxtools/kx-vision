@@ -144,7 +144,7 @@ namespace RenderingLayout {
     constexpr float DETAILS_TEXT_BG_PADDING_X = 4.0f;         // 4px horizontal padding (increased from 3px)
     constexpr float DETAILS_TEXT_BG_PADDING_Y = 2.0f;         // 2px vertical padding (increased from 1px)
     constexpr float DETAILS_TEXT_BG_ROUNDING = 2.0f;          // 2px rounded corners (increased from 1px)
-    constexpr float DETAILS_TEXT_LINE_SPACING = 2.0f;         // 2px between lines (reduced from 3px)
+    constexpr float DETAILS_TEXT_LINE_SPACING = 1.0f;         // 1px between lines (reduced from 2px)
     constexpr float DETAILS_TEXT_BG_ALPHA = 60.0f;            // ~24% opacity (very subtle)
     constexpr float DETAILS_TEXT_SHADOW_ALPHA = 180.0f;       // ~71% opacity (strong shadow)
 
