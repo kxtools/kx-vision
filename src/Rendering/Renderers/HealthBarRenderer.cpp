@@ -6,7 +6,8 @@
 #include <Windows.h>
 
 #include <algorithm>
-#include "../Data/TextElement.h"
+#include <format>
+#include <string_view>
 #include "TextRenderer.h"
 #include "../Shared/LayoutConstants.h"
 #include "../../Core/Settings.h"
@@ -323,40 +324,30 @@ namespace kx {
 
     void HealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha)
     {
-        // 1. Format the percentage string
         int percent = static_cast<int>(healthPercent * 100.0f);
-        std::string text = std::to_string(percent) + "%";
+        char buffer[16];
+        int len = snprintf(buffer, std::size(buffer), "%d%%", percent);
+        std::string_view text(buffer, len > 0 ? static_cast<size_t>(len) : 0);
 
-        // 2. Calculate the text height for proper vertical centering
         float finalFontSize = fontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
-        ImVec2 textSize = font->CalcTextSizeA(finalFontSize, FLT_MAX, 0.0f, text.c_str());
+        ImVec2 textSize = font->CalcTextSizeA(finalFontSize, FLT_MAX, 0.0f, text.data(), text.data() + text.size());
 
-        // 3. Define the anchor point: to the right of the bar, vertically centered
-        const float padding = 5.0f; // 5px gap between the bar and the text
+        const float padding = 5.0f;
         float barCenterY = barMin.y + (barMax.y - barMin.y) * 0.5f;
-        glm::vec2 anchor(
+        glm::vec2 pos(
             barMax.x + padding,
-            barCenterY - (textSize.y / 2.0f) // Adjust for text height to achieve perfect centering
+            barCenterY - (textSize.y / 2.0f)
         );
 
-        // 4. Create the TextElement. We must align it to the left.
-        TextElement element(text, anchor, TextAnchor::Custom);
-        element.SetAlignment(TextAlignment::Left);
-
-        // 5. Define a style for high-contrast text
-        TextStyle style;
+        FastTextStyle style;
         style.fontSize = finalFontSize;
-        style.textColor = IM_COL32(255, 255, 255, 255); // Pure white
-        style.enableBackground = false; // No background box
-        style.enableShadow = true;
-        style.shadowAlpha = 0.9f; // Strong shadow for readability
-        style.fadeAlpha = fadeAlpha; // Respect the overall bar fade
+        style.color = IM_COL32(255, 255, 255, 255);
+        style.shadow = true;
+        style.background = false;
+        style.fadeAlpha = fadeAlpha;
 
-        element.SetStyle(style);
-
-        // 6. Render using the global TextRenderer
-        TextRenderer::Render(dl, element);
+        TextRenderer::DrawCentered(dl, pos, text, style);
     }
 
     void HealthBarRenderer::RenderDeadState(ImDrawList* drawList,

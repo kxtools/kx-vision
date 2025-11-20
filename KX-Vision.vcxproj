@@ -137,7 +137,6 @@
     <ClCompile Include="src\Rendering\Renderers\ShapeRenderer.cpp" />
     <ClCompile Include="src\Rendering\Renderers\TrailRenderer.cpp" />
     <ClCompile Include="src\Rendering\Presentation\InfoBuilder.cpp" />
-    <ClCompile Include="src\Rendering\Presentation\TextElementFactory.cpp" />
     <ClCompile Include="src\Rendering\Renderers\TextRenderer.cpp" />
     <ClCompile Include="src\Core\AppLifecycleManager.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
@@ -238,9 +237,7 @@
     <ClInclude Include="src\Rendering\UI\GuiHelpers.h" />
     <ClInclude Include="src\Rendering\Renderers\HealthBarRenderer.h" />
     <ClInclude Include="src\Rendering\Renderers\ShapeRenderer.h" />
-    <ClInclude Include="src\Rendering\Data\TextElement.h" />
     <ClInclude Include="src\Rendering\Presentation\InfoBuilder.h" />
-    <ClInclude Include="src\Rendering\Presentation\TextElementFactory.h" />
     <ClInclude Include="src\Rendering\Renderers\TextRenderer.h" />
     <ClInclude Include="src\Rendering\Presentation\Styling.h" />
     <ClInclude Include="src\Rendering\Shared\AnimationHelpers.h" />

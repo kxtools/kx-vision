@@ -11,12 +11,17 @@
 #include "../Data/RenderableData.h"
 #include <format>
 #include <string>
+#include <string_view>
+#include <cstring>
+#include <cstdio>
 
 #include "Presentation/Styling.h"
 #include "Presentation/InfoBuilder.h"
-#include "Presentation/TextElementFactory.h"
+#include "Presentation/Formatting.h"
 #include "Combat/CombatConstants.h"
 #include "Shared/RenderSettingsHelper.h"
+#include "../../Utils/UnitConversion.h"
+#include "../Shared/ColorConstants.h"
 
 namespace kx {
 
@@ -36,6 +41,20 @@ namespace {
             }
         }
         return -1.0f;
+    }
+
+    size_t FormatDistance(char* buffer, size_t bufferSize, float meters, const Settings& settings) {
+        float units = UnitConversion::MetersToGW2Units(meters);
+        
+        switch (settings.distance.displayMode) {
+            case DistanceDisplayMode::Meters:
+                return static_cast<size_t>(snprintf(buffer, bufferSize, "%.1fm", meters));
+            case DistanceDisplayMode::GW2Units:
+                return static_cast<size_t>(snprintf(buffer, bufferSize, "%.0f", units));
+            case DistanceDisplayMode::Both:
+                return static_cast<size_t>(snprintf(buffer, bufferSize, "%.0f (%.1fm)", units, meters));
+        }
+        return 0;
     }
 }
 
@@ -92,16 +111,66 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
     bool showName = RenderSettingsHelper::ShouldRenderName(ctx.settings, entity.entityType);
     bool showDistance = RenderSettingsHelper::ShouldRenderDistance(ctx.settings, entity.entityType);
 
-    if (showName || showDistance) {
-        LayoutRequest tempRequest = { entity, displayName, entity.gameplayDistance, props, ctx };
-        TextElement identity = TextElementFactory::CreateIdentityLine(tempRequest, showName, showDistance);
-        
-        identity.SetAnchor(cursor.GetPosition());
-        identity.SetPositioning(TextAnchor::Below);
-        identity.SetAlignment(TextAlignment::Center);
-        
-        ImVec2 size = TextRenderer::Render(ctx.drawList, identity);
-        cursor.Advance(size.y);
+    if (!showName && !showDistance) return;
+
+    glm::vec2 pos = cursor.GetPosition();
+    pos.y += RenderingLayout::TEXT_ANCHOR_GAP;
+
+    char nameBuffer[128];
+    char distanceBuffer[64];
+    char separatorBuffer[8] = " • ";
+
+    std::string_view nameText;
+    if (showName) {
+        std::string entityName = std::string(displayName);
+        if (entityName.empty() && entity.entityType == EntityTypes::Player) {
+            const auto* player = static_cast<const RenderablePlayer*>(&entity);
+            if (player) {
+                const char* profName = Formatting::GetProfessionName(player->profession);
+                if (profName) entityName = profName;
+            }
+        }
+        if (!entityName.empty()) {
+            size_t len = entityName.length();
+            if (len < sizeof(nameBuffer)) {
+                std::copy(entityName.begin(), entityName.end(), nameBuffer);
+                nameBuffer[len] = '\0';
+                nameText = std::string_view(nameBuffer, len);
+            } else {
+                nameText = entityName;
+            }
+        }
+    }
+
+    std::string_view distanceText;
+    if (showDistance) {
+        size_t len = FormatDistance(distanceBuffer, sizeof(distanceBuffer), entity.gameplayDistance, ctx.settings);
+        distanceText = std::string_view(distanceBuffer, len);
+    }
+
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize;
+    style.shadow = ctx.settings.appearance.enableTextShadows;
+    style.background = ctx.settings.appearance.enableTextBackgrounds;
+    style.fadeAlpha = props.style.finalAlpha;
+
+    if (showName && showDistance) {
+        std::string_view texts[] = { nameText, separatorBuffer, distanceText };
+        ImU32 colors[] = { 
+            props.style.fadedEntityColor, 
+            ESPColors::DEFAULT_TEXT, 
+            ESPColors::DEFAULT_TEXT 
+        };
+        float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, 3, texts, colors, style);
+        cursor.Advance(height);
+    } else if (showName) {
+        style.color = props.style.fadedEntityColor;
+        float height = TextRenderer::DrawCentered(ctx.drawList, pos, nameText, style);
+        cursor.Advance(height);
+    } else if (showDistance) {
+        style.color = ESPColors::DEFAULT_TEXT;
+        float height = TextRenderer::DrawCentered(ctx.drawList, pos, distanceText, style);
+        cursor.Advance(height);
     }
 }
 
@@ -125,10 +194,20 @@ static void RenderDamageNumbers(const FrameContext& context,
         anchorPos = { props.geometry.center.x, props.geometry.center.y - animState.damageNumberYOffset };
     }
 
-    std::string damageText = std::format("{:.0f}", animState.damageNumberToDisplay);
+    char damageBuffer[32];
+    int len = snprintf(damageBuffer, std::size(damageBuffer), "%.0f", animState.damageNumberToDisplay);
+    std::string_view damageText(damageBuffer, len > 0 ? static_cast<size_t>(len) : 0);
+
     float finalFontSize = props.style.finalFontSize * Styling::GetDamageNumberFontSizeMultiplier(animState.damageNumberToDisplay);
-    TextElement element = TextElementFactory::CreateDamageNumber(damageText, anchorPos, animState.damageNumberAlpha, finalFontSize, context.settings);
-    TextRenderer::Render(context.drawList, element);
+    
+    FastTextStyle style;
+    style.fontSize = finalFontSize;
+    style.color = IM_COL32(255, 255, 255, 255);
+    style.shadow = context.settings.appearance.enableTextShadows;
+    style.background = false;
+    style.fadeAlpha = animState.damageNumberAlpha;
+
+    TextRenderer::DrawCentered(context.drawList, anchorPos, damageText, style);
 }
 
 static void RenderBurstDps(const FrameContext& context,
@@ -149,19 +228,23 @@ static void RenderBurstDps(const FrameContext& context,
 
     float healthPercent = entity.maxHealth > 0 ? (entity.currentHealth / entity.maxHealth) : -1.0f;
 
-    std::string burstText;
+    char burstBuffer[32];
+    std::string_view burstText;
+    int len;
     if (burstDps >= CombatEffects::DPS_FORMATTING_THRESHOLD) {
-        burstText = std::format("{:.1f}k", burstDps / CombatEffects::DPS_FORMATTING_THRESHOLD);
+        len = snprintf(burstBuffer, std::size(burstBuffer), "%.1fk", burstDps / CombatEffects::DPS_FORMATTING_THRESHOLD);
+        burstText = std::string_view(burstBuffer, len > 0 ? static_cast<size_t>(len) : 0);
     }
     else {
-        burstText = std::format("{:.0f}", burstDps);
+        len = snprintf(burstBuffer, std::size(burstBuffer), "%.0f", burstDps);
+        burstText = std::string_view(burstBuffer, len > 0 ? static_cast<size_t>(len) : 0);
     }
 
     glm::vec2 anchorPos;
     if (renderHealthBar && healthBarPos.x != 0.0f && healthBarPos.y != 0.0f) {
         float dpsFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
-        ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, burstText.c_str());
+        ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, burstText.data(), burstText.data() + burstText.size());
 
         float barCenterY = healthBarPos.y + props.style.finalHealthBarHeight / 2.0f;
         
@@ -172,10 +255,12 @@ static void RenderBurstDps(const FrameContext& context,
 
         bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(context.settings, entityType);
         if (shouldRenderHealthPercentage && healthPercent >= 0.0f) {
-            std::string hpText = std::to_string(static_cast<int>(healthPercent * 100.0f)) + "%";
+            char hpBuffer[16];
+            int hpLen = snprintf(hpBuffer, std::size(hpBuffer), "%d%%", static_cast<int>(healthPercent * 100.0f));
+            std::string_view hpText(hpBuffer, hpLen > 0 ? static_cast<size_t>(hpLen) : 0);
 
             float hpFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
-            ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.c_str());
+            ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.data(), hpText.data() + hpText.size());
 
             anchorPos.x += hpTextSize.x + RenderingLayout::BURST_DPS_HORIZONTAL_PADDING;
         }
@@ -185,13 +270,14 @@ static void RenderBurstDps(const FrameContext& context,
         anchorPos = { props.geometry.screenPos.x, props.geometry.screenPos.y + RenderingLayout::BURST_DPS_FALLBACK_Y_OFFSET };
     }
 
-    TextElement element(burstText, anchorPos, TextAnchor::Custom);
-    element.SetAlignment(TextAlignment::Left);
-    TextStyle style = TextElementFactory::GetDistanceStyle(animState.healthBarFadeAlpha, props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER, context.settings);
-    style.enableBackground = false;
-    style.textColor = ESPBarColors::BURST_DPS_TEXT;
-    element.SetStyle(style);
-    TextRenderer::Render(context.drawList, element);
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
+    style.color = ESPBarColors::BURST_DPS_TEXT;
+    style.shadow = context.settings.appearance.enableTextShadows;
+    style.background = false;
+    style.fadeAlpha = animState.healthBarFadeAlpha;
+
+    TextRenderer::DrawCentered(context.drawList, anchorPos, burstText, style);
 }
 
 void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
@@ -256,23 +342,104 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
         const auto* player = static_cast<const RenderablePlayer*>(&entity);
         if (player != nullptr) {
             GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(ctx.settings);
+            glm::vec2 pos = cursor.GetPosition();
+            
+            FastTextStyle style;
+            style.fontSize = props.style.finalFontSize;
+            style.shadow = ctx.settings.appearance.enableTextShadows;
+            style.background = ctx.settings.appearance.enableTextBackgrounds;
+            style.fadeAlpha = props.style.finalAlpha;
+
             switch (gearDisplayMode) {
                 case GearDisplayMode::Compact: {
                     auto summary = InfoBuilder::BuildCompactGearSummary(player);
                     if (!summary.empty()) {
-                        TextElement gearElement = TextElementFactory::CreateGearSummaryAt(summary, cursor.GetPosition(), props.style.finalAlpha, props.style.finalFontSize, ctx.settings);
-                        ImVec2 size = TextRenderer::Render(ctx.drawList, gearElement);
-                        cursor.Advance(size.y);
+                        char buffer[256];
+                        char* current = buffer;
+                        size_t remaining = sizeof(buffer);
+                        
+                        std::string_view texts[32];
+                        ImU32 colors[32];
+                        int count = 0;
+
+                        auto append = [&](std::string_view text, ImU32 color) {
+                            if (count >= 32 || remaining < text.size() + 1) return false;
+                            texts[count] = std::string_view(current, text.size());
+                            colors[count] = color;
+                            std::copy(text.begin(), text.end(), current);
+                            current += text.size();
+                            *current = '\0';
+                            current++;
+                            remaining -= text.size() + 1;
+                            count++;
+                            return true;
+                        };
+
+                        append("Stats: ", ESPColors::SUMMARY_TEXT_RGB);
+                        for (size_t i = 0; i < summary.size() && count < 32; ++i) {
+                            const auto& info = summary[i];
+                            char statBuffer[64];
+                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%.0f%% %s", info.percentage, info.statName.c_str());
+                            std::string_view statText(statBuffer, statLen > 0 ? static_cast<size_t>(statLen) : 0);
+                            
+                            ImU32 rarityColor = Styling::GetRarityColor(info.highestRarity);
+                            append(statText, rarityColor);
+                            
+                            if (i < summary.size() - 1) {
+                                append(", ", ESPColors::SUMMARY_TEXT_RGB);
+                            }
+                        }
+
+                        if (count > 0) {
+                            float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, count, texts, colors, style);
+                            cursor.Advance(height);
+                        }
                     }
                     break;
                 }
                 case GearDisplayMode::Attributes: {
                     auto stats = InfoBuilder::BuildDominantStats(player);
-                    auto rarity = InfoBuilder::GetHighestRarity(player);
                     if (!stats.empty()) {
-                        TextElement statsElement = TextElementFactory::CreateDominantStatsAt(stats, rarity, cursor.GetPosition(), props.style.finalAlpha, props.style.finalFontSize, ctx.settings);
-                        ImVec2 size = TextRenderer::Render(ctx.drawList, statsElement);
-                        cursor.Advance(size.y);
+                        char buffer[256];
+                        char* current = buffer;
+                        size_t remaining = sizeof(buffer);
+                        
+                        std::string_view texts[32];
+                        ImU32 colors[32];
+                        int count = 0;
+
+                        auto append = [&](std::string_view text, ImU32 color) {
+                            if (count >= 32 || remaining < text.size() + 1) return false;
+                            texts[count] = std::string_view(current, text.size());
+                            colors[count] = color;
+                            std::copy(text.begin(), text.end(), current);
+                            current += text.size();
+                            *current = '\0';
+                            current++;
+                            remaining -= text.size() + 1;
+                            count++;
+                            return true;
+                        };
+
+                        append("[", ESPColors::SUMMARY_TEXT_RGB);
+                        for (size_t i = 0; i < stats.size() && count < 32; ++i) {
+                            const auto& stat = stats[i];
+                            char statBuffer[64];
+                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%s %.0f%%", stat.name.c_str(), stat.percentage);
+                            std::string_view statText(statBuffer, statLen > 0 ? static_cast<size_t>(statLen) : 0);
+                            
+                            append(statText, stat.color);
+                            
+                            if (i < stats.size() - 1) {
+                                append(" | ", ESPColors::SUMMARY_TEXT_RGB);
+                            }
+                        }
+                        append("]", ESPColors::SUMMARY_TEXT_RGB);
+
+                        if (count > 0) {
+                            float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, count, texts, colors, style);
+                            cursor.Advance(height);
+                        }
                     }
                     break;
                 }
@@ -282,9 +449,27 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
     }
 
     if (renderDetails && !details.empty()) {
-        TextElement detailsElement = TextElementFactory::CreateDetailsTextAt(details, cursor.GetPosition(), props.style.finalAlpha, props.style.finalFontSize, ctx.settings);
-        ImVec2 size = TextRenderer::Render(ctx.drawList, detailsElement);
-        cursor.Advance(size.y);
+        glm::vec2 pos = cursor.GetPosition();
+        float lineSpacing = RenderingLayout::DETAILS_TEXT_LINE_SPACING;
+        float totalHeight = 0.0f;
+
+        FastTextStyle style;
+        style.fontSize = props.style.finalFontSize;
+        style.shadow = ctx.settings.appearance.enableTextShadows;
+        style.background = ctx.settings.appearance.enableTextBackgrounds;
+        style.fadeAlpha = props.style.finalAlpha;
+
+        for (const auto& detail : details) {
+            std::string_view detailText = detail.text;
+            style.color = detail.color;
+            float height = TextRenderer::DrawCentered(ctx.drawList, pos, detailText, style);
+            pos.y += height + lineSpacing;
+            totalHeight += height + lineSpacing;
+        }
+
+        if (totalHeight > 0.0f) {
+            cursor.Advance(totalHeight);
+        }
     }
 }
 

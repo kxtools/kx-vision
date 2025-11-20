@@ -1,280 +1,113 @@
 #include "TextRenderer.h"
-#include "../../../libs/ImGui/imgui.h"
 #include "../../Core/AppState.h"
-
-using namespace kx::RenderingLayout;
+#include "../Shared/LayoutConstants.h"
+#include "../../../libs/ImGui/imgui.h"
 
 namespace kx {
 
-ImVec2 TextRenderer::Render(ImDrawList* drawList, const TextElement& element) {
-    if (!drawList) {
-        return ImVec2(0, 0);
+    static inline ImU32 FadeColor(ImU32 color, float opacity) {
+        int a = (color >> 24) & 0xFF;
+        int newA = static_cast<int>(a * opacity);
+        newA = (newA > 255) ? 255 : newA;
+        return (color & 0x00FFFFFF) | (newA << 24);
     }
-    
-    // Critical: Check if ImGui context is still valid before any ImGui operations
-    if (!ImGui::GetCurrentContext()) {
-        return ImVec2(0, 0);
-    }
-    
-    const auto& lineSpans = element.GetLines();
-    const auto& allSegments = element.GetSegments();
-    
-    if (lineSpans.empty()) {
-        return ImVec2(0, 0);
-    }
-    
-    // Calculate size first (reuse existing logic)
-    ImVec2 totalSize = CalculateSize(element);
-    
-    const auto& style = element.GetStyle();
-    ImFont* font = ImGui::GetFont();
-    
-    // Calculate dimensions for rendering
-    float totalHeight = 0.0f;
-    std::vector<float> lineWidths;
-    std::vector<float> lineHeights;
-    lineWidths.reserve(lineSpans.size());
-    lineHeights.reserve(lineSpans.size());
-    
-    for (const auto& span : lineSpans) {
-        float lineWidth = CalculateLineWidth(allSegments, span, style.fontSize);
-        float lineHeight = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, " ").y;
+
+    float TextRenderer::DrawCentered(ImDrawList* dl, const glm::vec2& pos, std::string_view text, const FastTextStyle& style) {
+        if (text.empty()) return 0.0f;
+
+        ImFont* font = ImGui::GetFont();
         
-        lineWidths.push_back(lineWidth);
-        lineHeights.push_back(lineHeight);
-        totalHeight += lineHeight;
-    }
-    
-    // Add spacing between lines
-    if (lineSpans.size() > 1) {
-        totalHeight += element.GetLineSpacing() * (lineSpans.size() - 1);
-    }
-    
-    // Render each line
-    for (size_t i = 0; i < lineSpans.size(); ++i) {
-        const auto& span = lineSpans[i];
-        float lineWidth = lineWidths[i];
-        float lineHeight = lineHeights[i];
+        const char* text_begin = text.data();
+        const char* text_end = text.data() + text.size();
+
+        ImVec2 textSize = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, text_begin, text_end);
         
-        // Calculate position for this line
-        ImVec2 linePos = CalculateLinePosition(
-            element.GetAnchor(),
-            lineWidth,
-            totalHeight,
-            static_cast<int>(i),
-            lineHeight,
-            element.GetPositioning(),
-            element.GetCustomOffset(),
-            element.GetAlignment(),
-            style
-        );
-        
-        ImVec2 textSize(lineWidth, lineHeight);
-        
-        // Render background
-        if (style.enableBackground) {
-            RenderBackground(drawList, linePos, textSize, style);
+        float x = pos.x - (textSize.x * 0.5f);
+        float y = pos.y;
+
+        float globalOpacity = AppState::Get().GetSettings().appearance.globalOpacity;
+        float combinedOpacity = style.fadeAlpha * globalOpacity;
+
+        if (style.background) {
+            float paddingX = RenderingLayout::TEXT_DEFAULT_BG_PADDING_X;
+            float paddingY = RenderingLayout::TEXT_DEFAULT_BG_PADDING_Y;
+            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(128 * combinedOpacity));
+            
+            dl->AddRectFilled(
+                ImVec2(x - paddingX, y - paddingY),
+                ImVec2(x + textSize.x + paddingX, y + textSize.y + paddingY),
+                bgCol,
+                RenderingLayout::TEXT_DEFAULT_BG_ROUNDING
+            );
         }
-        
-        // Render border
-        if (style.enableBorder) {
-            RenderBorder(drawList, linePos, textSize, style);
+
+        if (style.shadow) {
+            ImU32 shadowCol = IM_COL32(0, 0, 0, static_cast<int>(255 * combinedOpacity));
+            dl->AddText(font, style.fontSize, ImVec2(x + 1, y + 1), shadowCol, text_begin, text_end);
         }
+
+        ImU32 textCol = FadeColor(style.color, combinedOpacity);
+        dl->AddText(font, style.fontSize, ImVec2(x, y), textCol, text_begin, text_end);
+
+        return textSize.y;
+    }
+
+    float TextRenderer::DrawMultiColored(ImDrawList* dl, const glm::vec2& pos, 
+                                         int count, const std::string_view* texts, 
+                                         const ImU32* colors, const FastTextStyle& style) {
+        if (count <= 0) return 0.0f;
+
+        ImFont* font = ImGui::GetFont();
         
-        // Render text
-        RenderTextLine(drawList, allSegments, span, linePos, style);
-    }
-    
-    return totalSize;
-}
+        float totalWidth = 0.0f;
+        float maxHeight = 0.0f;
+        
+        float segmentWidths[16]; 
+        int safeCount = (count > 16) ? 16 : count;
 
-void TextRenderer::RenderBatch(ImDrawList* drawList, const std::vector<TextElement>& elements) {
-    for (const auto& element : elements) {
-        Render(drawList, element);
-    }
-}
-
-ImVec2 TextRenderer::CalculateSize(const TextElement& element) {
-    const auto& lineSpans = element.GetLines();
-    const auto& allSegments = element.GetSegments();
-    
-    if (lineSpans.empty()) {
-        return ImVec2(0, 0);
-    }
-
-    const auto& style = element.GetStyle();
-    ImFont* font = ImGui::GetFont();
-
-    float maxWidth = 0.0f;
-    float totalHeight = 0.0f;
-
-    for (const auto& span : lineSpans) {
-        float lineWidth = CalculateLineWidth(allSegments, span, style.fontSize);
-        if (lineWidth > maxWidth) {
-            maxWidth = lineWidth;
+        for (int i = 0; i < safeCount; i++) {
+            const char* text_begin = texts[i].data();
+            const char* text_end = texts[i].data() + texts[i].size();
+            ImVec2 size = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, text_begin, text_end);
+            segmentWidths[i] = size.x;
+            totalWidth += size.x;
+            if (size.y > maxHeight) maxHeight = size.y;
         }
-        float lineHeight = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, " ").y;
-        totalHeight += lineHeight;
-    }
 
-    if (lineSpans.size() > 1) {
-        totalHeight += element.GetLineSpacing() * (lineSpans.size() - 1);
-    }
+        float x = pos.x - (totalWidth * 0.5f);
+        float y = pos.y;
+        float globalOpacity = AppState::Get().GetSettings().appearance.globalOpacity;
+        float combinedOpacity = style.fadeAlpha * globalOpacity;
 
-    if (style.enableBackground) {
-        maxWidth += style.backgroundPadding.x * 2;
-        totalHeight += style.backgroundPadding.y * 2;
-    }
-
-    return ImVec2(maxWidth, totalHeight);
-}
-
-ImVec2 TextRenderer::CalculateLinePosition(const glm::vec2& anchor, float lineWidth, float totalHeight,
-                                           int lineIndex, float lineHeight, TextAnchor positioning,
-                                           const glm::vec2& customOffset, TextAlignment alignment,
-                                           const TextStyle& style) {
-    ImVec2 pos;
-    
-    // Calculate vertical position based on anchor
-    switch (positioning) {
-        case TextAnchor::Above:
-            pos.y = anchor.y - totalHeight - TEXT_ANCHOR_GAP;
-            break;
-        case TextAnchor::Below:
-            pos.y = anchor.y + TEXT_ANCHOR_GAP;
-            break;
-        case TextAnchor::Center:
-            pos.y = anchor.y - totalHeight / 2.0f;
-            break;
-        case TextAnchor::Custom:
-            pos.y = anchor.y + customOffset.y;
-            break;
-        case TextAnchor::AbsoluteTopLeft:
-            pos.y = anchor.y;
-            break;
-    }
-    
-    // Add offset for this specific line
-    ImFont* font = ImGui::GetFont();
-    float lineSpacing = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, " ").y + TEXT_LINE_SPACING_EXTRA;
-    pos.y += lineIndex * lineSpacing;
-    
-    // Calculate horizontal position based on alignment
-    switch (alignment) {
-        case TextAlignment::Left:
-            pos.x = anchor.x;
-            break;
-        case TextAlignment::Center:
-            pos.x = anchor.x - lineWidth / 2.0f;
-            break;
-        case TextAlignment::Right:
-            pos.x = anchor.x - lineWidth;
-            break;
-    }
-    
-    // Apply custom offset for horizontal if Custom positioning
-    if (positioning == TextAnchor::Custom) {
-        pos.x = anchor.x + customOffset.x;
-        if (alignment == TextAlignment::Center) {
-            pos.x -= lineWidth / 2.0f;
-        } else if (alignment == TextAlignment::Right) {
-            pos.x -= lineWidth;
+        if (style.background) {
+            float paddingX = RenderingLayout::TEXT_DEFAULT_BG_PADDING_X;
+            float paddingY = RenderingLayout::TEXT_DEFAULT_BG_PADDING_Y;
+            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(128 * combinedOpacity));
+            
+            dl->AddRectFilled(
+                ImVec2(x - paddingX, y - paddingY),
+                ImVec2(x + totalWidth + paddingX, y + maxHeight + paddingY),
+                bgCol,
+                RenderingLayout::TEXT_DEFAULT_BG_ROUNDING
+            );
         }
-    }
-    
-    return pos;
-}
 
-void TextRenderer::RenderBackground(ImDrawList* drawList, const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style) {
-    ImVec2 bgMin(textPos.x - style.backgroundPadding.x, textPos.y - style.backgroundPadding.y);
-    ImVec2 bgMax(textPos.x + textSize.x + style.backgroundPadding.x, textPos.y + textSize.y + style.backgroundPadding.y);
-    
-    // Apply global opacity to text backgrounds
-    const auto& settings = AppState::Get().GetSettings();
-    float alphaf = style.backgroundAlpha * style.fadeAlpha * settings.appearance.globalOpacity * 255.0f;
-    unsigned int bgAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
-    bgAlpha = (bgAlpha > 255) ? 255 : bgAlpha; // Clamp
-    ImU32 bgColor = IM_COL32(0, 0, 0, bgAlpha);
-    
-    drawList->AddRectFilled(bgMin, bgMax, bgColor, style.backgroundRounding);
-}
+        float currentX = x;
+        for (int i = 0; i < safeCount; i++) {
+            const char* text_begin = texts[i].data();
+            const char* text_end = texts[i].data() + texts[i].size();
+            
+            if (style.shadow) {
+                ImU32 shadowCol = IM_COL32(0, 0, 0, static_cast<int>(255 * combinedOpacity));
+                dl->AddText(font, style.fontSize, ImVec2(currentX + 1, y + 1), shadowCol, text_begin, text_end);
+            }
 
-void TextRenderer::RenderBorder(ImDrawList* drawList, const ImVec2& textPos, const ImVec2& textSize, const TextStyle& style) {
-    ImVec2 borderMin(textPos.x - style.backgroundPadding.x, textPos.y - style.backgroundPadding.y);
-    ImVec2 borderMax(textPos.x + textSize.x + style.backgroundPadding.x, textPos.y + textSize.y + style.backgroundPadding.y);
-    
-    ImU32 borderColor = ApplyFade(style.borderColor, style.fadeAlpha);
-    
-    drawList->AddRect(borderMin, borderMax, borderColor, style.backgroundRounding, 0, style.borderThickness);
-}
+            ImU32 textCol = FadeColor(colors[i], combinedOpacity);
+            dl->AddText(font, style.fontSize, ImVec2(currentX, y), textCol, text_begin, text_end);
 
-void TextRenderer::RenderTextLine(ImDrawList* drawList, const std::vector<TextSegment>& allSegments, const LineSpan& span, const ImVec2& basePos, const TextStyle& style) {
-    // Critical: Check if ImGui context is still valid before any ImGui operations
-    if (!ImGui::GetCurrentContext()) return;
-    
-    ImFont* font = ImGui::GetFont();
-    ImVec2 currentPos = basePos;
-    
-    // Iterate only the segments belonging to this line
-    for (int i = 0; i < span.count; ++i) {
-        const auto& segment = allSegments[span.startIdx + i];
-        if (segment.text.empty()) continue;
-        
-        // Calculate segment size with proper scaling
-        ImVec2 segmentSize = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, segment.text.c_str());
-        
-        // Render shadow
-        if (style.enableShadow) {
-            // Apply global text alpha setting
-            const auto& settings = AppState::Get().GetSettings();
-            float alphaf = style.shadowAlpha * style.fadeAlpha * settings.appearance.globalOpacity * 255.0f;
-            unsigned int shadowAlpha = static_cast<unsigned int>(alphaf + 0.5f); // Round instead of truncate
-            shadowAlpha = (shadowAlpha > 255) ? 255 : shadowAlpha; // Clamp
-            ImVec2 shadowPos(currentPos.x + style.shadowOffset.x, currentPos.y + style.shadowOffset.y);
-            drawList->AddText(font, style.fontSize, shadowPos, IM_COL32(0, 0, 0, shadowAlpha), segment.text.c_str());
+            currentX += segmentWidths[i];
         }
-        
-        // Render main text
-        ImU32 textColor = style.useCustomTextColor ? segment.color : style.textColor;
-        // Apply global text alpha setting
-        const auto& settings = AppState::Get().GetSettings();
-        float combinedAlpha = style.fadeAlpha * settings.appearance.globalOpacity;
-        textColor = ApplyFade(textColor, combinedAlpha);
-        drawList->AddText(font, style.fontSize, currentPos, textColor, segment.text.c_str());
-        
-        // Move to next segment position
-        currentPos.x += segmentSize.x;
+
+        return maxHeight;
     }
 }
-
-ImU32 TextRenderer::ApplyFade(ImU32 color, float fadeAlpha) {
-    // Extract original alpha component
-    int a = (color >> IM_COL32_A_SHIFT) & 0xFF;
-    
-    // Use rounding for smoother alpha transitions
-    float alphaf = static_cast<float>(a) * fadeAlpha;
-    unsigned int newAlpha = static_cast<unsigned int>(alphaf + 0.5f);
-    newAlpha = (newAlpha > 255) ? 255 : newAlpha; // Clamp
-
-    // Preserve original RGB, only change alpha
-    return (color & 0x00FFFFFF) | (static_cast<ImU32>(newAlpha) << IM_COL32_A_SHIFT);
-}
-
-float TextRenderer::CalculateLineWidth(const std::vector<TextSegment>& allSegments, const LineSpan& span, float fontSize) {
-    // Critical: Check if ImGui context is still valid before any ImGui operations
-    if (!ImGui::GetCurrentContext()) return 0.0f;
-    
-    ImFont* font = ImGui::GetFont();
-    float totalWidth = 0.0f;
-    
-    // Iterate only the segments belonging to this line
-    for (int i = 0; i < span.count; ++i) {
-        const auto& segment = allSegments[span.startIdx + i];
-        ImVec2 segmentSize = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, segment.text.c_str());
-        totalWidth += segmentSize.x;
-    }
-    
-    return totalWidth;
-}
-
-} // namespace kx
