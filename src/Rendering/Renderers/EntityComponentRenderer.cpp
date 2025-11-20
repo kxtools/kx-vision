@@ -11,8 +11,7 @@
 #include "../Shared/LayoutConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "../Data/RenderableData.h"
-#include <sstream>
-#include <iomanip>
+#include <format>
 #include <string>
 
 #include "Presentation/Styling.h"
@@ -117,10 +116,9 @@ static void RenderDamageNumbers(const FrameContext& context, const EntityRenderC
         anchorPos = { props.geometry.center.x, props.geometry.center.y - entityContext.healthBarAnim.damageNumberYOffset };
     }
 
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(0) << entityContext.healthBarAnim.damageNumberToDisplay;
+    std::string damageText = std::format("{:.0f}", entityContext.healthBarAnim.damageNumberToDisplay);
     float finalFontSize = props.style.finalFontSize * Styling::GetDamageNumberFontSizeMultiplier(entityContext.healthBarAnim.damageNumberToDisplay);
-    TextElement element = TextElementFactory::CreateDamageNumber(ss.str(), anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize, context.settings);
+    TextElement element = TextElementFactory::CreateDamageNumber(damageText, anchorPos, entityContext.healthBarAnim.damageNumberAlpha, finalFontSize, context.settings);
     TextRenderer::Render(context.drawList, element);
 }
 
@@ -134,19 +132,19 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
 
     float healthPercent = entityContext.entity->maxHealth > 0 ? (entityContext.entity->currentHealth / entityContext.entity->maxHealth) : -1.0f;
 
-    std::stringstream ss;
+    std::string burstText;
     if (entityContext.burstDPS >= CombatEffects::DPS_FORMATTING_THRESHOLD) {
-        ss << std::fixed << std::setprecision(1) << (entityContext.burstDPS / CombatEffects::DPS_FORMATTING_THRESHOLD) << "k";
+        burstText = std::format("{:.1f}k", entityContext.burstDPS / CombatEffects::DPS_FORMATTING_THRESHOLD);
     }
     else {
-        ss << std::fixed << std::setprecision(0) << entityContext.burstDPS;
+        burstText = std::format("{:.0f}", entityContext.burstDPS);
     }
 
     glm::vec2 anchorPos;
     if (entityContext.renderHealthBar && healthBarPos.x != 0.0f && healthBarPos.y != 0.0f) {
         float dpsFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
-        ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, ss.str().c_str());
+        ImVec2 dpsTextSize = font->CalcTextSizeA(dpsFontSize, FLT_MAX, 0.0f, burstText.c_str());
 
         float barCenterY = healthBarPos.y + props.style.finalHealthBarHeight / 2.0f;
         
@@ -170,7 +168,7 @@ static void RenderBurstDps(const FrameContext& context, const EntityRenderContex
         anchorPos = { props.geometry.screenPos.x, props.geometry.screenPos.y + RenderingLayout::BURST_DPS_FALLBACK_Y_OFFSET };
     }
 
-    TextElement element(ss.str(), anchorPos, TextAnchor::Custom);
+    TextElement element(burstText, anchorPos, TextAnchor::Custom);
     element.SetAlignment(TextAlignment::Left);
     TextStyle style = TextElementFactory::GetDistanceStyle(entityContext.healthBarAnim.healthBarFadeAlpha, props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER, context.settings);
     style.enableBackground = false;

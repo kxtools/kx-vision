@@ -1,5 +1,5 @@
 #include "Formatting.h"
-#include <cstdio>
+#include <format>
 
 namespace kx::Formatting {
 
@@ -160,11 +160,8 @@ namespace kx::Formatting {
             case Havok::HkcdShapeType::PHANTOM_CALLBACK: return "PHANTOM_CALLBACK";
             case Havok::HkcdShapeType::MULTI_RAY: return "MULTI_RAY";
             case Havok::HkcdShapeType::INVALID: return "INVALID";
-            default: {
-                char buffer[32];
-                std::snprintf(buffer, sizeof(buffer), "Unknown (0x%02X)", static_cast<uint8_t>(type));
-                return std::string(buffer);
-            }
+            default:
+                return std::format("Unknown (0x{:02X})", static_cast<uint8_t>(type));
         }
     }
 

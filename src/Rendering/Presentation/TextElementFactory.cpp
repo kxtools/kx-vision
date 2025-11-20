@@ -5,8 +5,6 @@
 #include "../Data/FrameData.h"
 #include "../../Core/Settings.h"
 #include "../../Utils/UnitConversion.h"
-#include <sstream>
-#include <iomanip>
 #include <format>
 
 #include "Styling.h"
@@ -25,23 +23,17 @@ namespace {
      */
     std::string FormatDistance(float meters, const Settings& settings) {
         float units = UnitConversion::MetersToGW2Units(meters);
-        
-        std::ostringstream oss;
-        oss << std::fixed;
-        
+
         switch (settings.distance.displayMode) {
             case DistanceDisplayMode::Meters:
-                oss << std::setprecision(1) << meters << "m";
-                break;
+                return std::format("{:.1f}m", meters);
             case DistanceDisplayMode::GW2Units:
-                oss << std::setprecision(0) << units;
-                break;
+                return std::format("{:.0f}", units);
             case DistanceDisplayMode::Both:
-                oss << std::setprecision(0) << units << " (" << std::setprecision(1) << meters << "m)";
-                break;
+                return std::format("{:.0f} ({:.1f}m)", units, meters);
         }
-        
-        return oss.str();
+
+        return {};
     }
 }
 
