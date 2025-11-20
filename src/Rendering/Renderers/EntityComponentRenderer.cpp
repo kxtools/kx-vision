@@ -45,16 +45,23 @@ namespace {
 
     size_t FormatDistance(char* buffer, size_t bufferSize, float meters, const Settings& settings) {
         float units = UnitConversion::MetersToGW2Units(meters);
+        int ret = 0;
         
         switch (settings.distance.displayMode) {
             case DistanceDisplayMode::Meters:
-                return static_cast<size_t>(snprintf(buffer, bufferSize, "%.1fm", meters));
+                ret = snprintf(buffer, bufferSize, "%.1fm", meters);
+                break;
             case DistanceDisplayMode::GW2Units:
-                return static_cast<size_t>(snprintf(buffer, bufferSize, "%.0f", units));
+                ret = snprintf(buffer, bufferSize, "%.0f", units);
+                break;
             case DistanceDisplayMode::Both:
-                return static_cast<size_t>(snprintf(buffer, bufferSize, "%.0f (%.1fm)", units, meters));
+                ret = snprintf(buffer, bufferSize, "%.0f (%.1fm)", units, meters);
+                break;
         }
-        return 0;
+
+        if (ret < 0) return 0;
+        if (static_cast<size_t>(ret) >= bufferSize) return bufferSize - 1;
+        return static_cast<size_t>(ret);
     }
 }
 
@@ -116,28 +123,18 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
     glm::vec2 pos = cursor.GetPosition();
     pos.y += RenderingLayout::TEXT_ANCHOR_GAP;
 
-    char nameBuffer[128];
     char distanceBuffer[64];
     char separatorBuffer[8] = " • ";
 
-    std::string_view nameText;
+    std::string_view nameText = displayName;
     if (showName) {
-        std::string entityName = std::string(displayName);
-        if (entityName.empty() && entity.entityType == EntityTypes::Player) {
+        if (nameText.empty() && entity.entityType == EntityTypes::Player) {
             const auto* player = static_cast<const RenderablePlayer*>(&entity);
             if (player) {
                 const char* profName = Formatting::GetProfessionName(player->profession);
-                if (profName) entityName = profName;
-            }
-        }
-        if (!entityName.empty()) {
-            size_t len = entityName.length();
-            if (len < sizeof(nameBuffer)) {
-                std::copy(entityName.begin(), entityName.end(), nameBuffer);
-                nameBuffer[len] = '\0';
-                nameText = std::string_view(nameBuffer, len);
-            } else {
-                nameText = entityName;
+                if (profName) {
+                    nameText = profName;
+                }
             }
         }
     }
@@ -196,7 +193,9 @@ static void RenderDamageNumbers(const FrameContext& context,
 
     char damageBuffer[32];
     int len = snprintf(damageBuffer, std::size(damageBuffer), "%.0f", animState.damageNumberToDisplay);
-    std::string_view damageText(damageBuffer, len > 0 ? static_cast<size_t>(len) : 0);
+    if (len < 0) len = 0;
+    if (static_cast<size_t>(len) >= std::size(damageBuffer)) len = static_cast<int>(std::size(damageBuffer) - 1);
+    std::string_view damageText(damageBuffer, static_cast<size_t>(len));
 
     float finalFontSize = props.style.finalFontSize * Styling::GetDamageNumberFontSizeMultiplier(animState.damageNumberToDisplay);
     
@@ -233,11 +232,15 @@ static void RenderBurstDps(const FrameContext& context,
     int len;
     if (burstDps >= CombatEffects::DPS_FORMATTING_THRESHOLD) {
         len = snprintf(burstBuffer, std::size(burstBuffer), "%.1fk", burstDps / CombatEffects::DPS_FORMATTING_THRESHOLD);
-        burstText = std::string_view(burstBuffer, len > 0 ? static_cast<size_t>(len) : 0);
+        if (len < 0) len = 0;
+        if (static_cast<size_t>(len) >= std::size(burstBuffer)) len = static_cast<int>(std::size(burstBuffer) - 1);
+        burstText = std::string_view(burstBuffer, static_cast<size_t>(len));
     }
     else {
         len = snprintf(burstBuffer, std::size(burstBuffer), "%.0f", burstDps);
-        burstText = std::string_view(burstBuffer, len > 0 ? static_cast<size_t>(len) : 0);
+        if (len < 0) len = 0;
+        if (static_cast<size_t>(len) >= std::size(burstBuffer)) len = static_cast<int>(std::size(burstBuffer) - 1);
+        burstText = std::string_view(burstBuffer, static_cast<size_t>(len));
     }
 
     glm::vec2 anchorPos;
@@ -257,7 +260,9 @@ static void RenderBurstDps(const FrameContext& context,
         if (shouldRenderHealthPercentage && healthPercent >= 0.0f) {
             char hpBuffer[16];
             int hpLen = snprintf(hpBuffer, std::size(hpBuffer), "%d%%", static_cast<int>(healthPercent * 100.0f));
-            std::string_view hpText(hpBuffer, hpLen > 0 ? static_cast<size_t>(hpLen) : 0);
+            if (hpLen < 0) hpLen = 0;
+            if (static_cast<size_t>(hpLen) >= std::size(hpBuffer)) hpLen = static_cast<int>(std::size(hpBuffer) - 1);
+            std::string_view hpText(hpBuffer, static_cast<size_t>(hpLen));
 
             float hpFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
             ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.data(), hpText.data() + hpText.size());
@@ -380,7 +385,9 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
                             const auto& info = summary[i];
                             char statBuffer[64];
                             int statLen = snprintf(statBuffer, std::size(statBuffer), "%.0f%% %s", info.percentage, info.statName.c_str());
-                            std::string_view statText(statBuffer, statLen > 0 ? static_cast<size_t>(statLen) : 0);
+                            if (statLen < 0) statLen = 0;
+                            if (static_cast<size_t>(statLen) >= std::size(statBuffer)) statLen = static_cast<int>(std::size(statBuffer) - 1);
+                            std::string_view statText(statBuffer, static_cast<size_t>(statLen));
                             
                             ImU32 rarityColor = Styling::GetRarityColor(info.highestRarity);
                             append(statText, rarityColor);
@@ -426,7 +433,9 @@ void EntityComponentRenderer::RenderDetails(const FrameContext& ctx,
                             const auto& stat = stats[i];
                             char statBuffer[64];
                             int statLen = snprintf(statBuffer, std::size(statBuffer), "%s %.0f%%", stat.name.c_str(), stat.percentage);
-                            std::string_view statText(statBuffer, statLen > 0 ? static_cast<size_t>(statLen) : 0);
+                            if (statLen < 0) statLen = 0;
+                            if (static_cast<size_t>(statLen) >= std::size(statBuffer)) statLen = static_cast<int>(std::size(statBuffer) - 1);
+                            std::string_view statText(statBuffer, static_cast<size_t>(statLen));
                             
                             append(statText, stat.color);
                             

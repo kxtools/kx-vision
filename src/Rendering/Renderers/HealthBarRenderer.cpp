@@ -327,7 +327,9 @@ namespace kx {
         int percent = static_cast<int>(healthPercent * 100.0f);
         char buffer[16];
         int len = snprintf(buffer, std::size(buffer), "%d%%", percent);
-        std::string_view text(buffer, len > 0 ? static_cast<size_t>(len) : 0);
+        if (len < 0) len = 0;
+        if (static_cast<size_t>(len) >= std::size(buffer)) len = static_cast<int>(std::size(buffer) - 1);
+        std::string_view text(buffer, static_cast<size_t>(len));
 
         float finalFontSize = fontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
