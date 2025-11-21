@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <climits>
 #include <cstdarg>
+#include <format>
 
 #include "Styling.h"
 #include "Shared/ColorConstants.h"
@@ -22,15 +23,9 @@ namespace kx {
 
 // ===== Private Helper Functions =====
 
-static void DrawLine(ImDrawList* dl, LayoutCursor& cursor, const FastTextStyle& style, const char* fmt, ...) {
-    char buffer[RenderingLayout::TEXT_BUFFER_SIZE];
-    va_list args;
-    va_start(args, fmt);
-    int len = vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
-
-    if (len > 0) {
-        float h = TextRenderer::DrawCentered(dl, cursor.GetPosition(), {buffer, static_cast<size_t>(len)}, style);
+static void DrawLine(ImDrawList* dl, LayoutCursor& cursor, const FastTextStyle& style, std::string_view text) {
+    if (!text.empty()) {
+        float h = TextRenderer::DrawCentered(dl, cursor.GetPosition(), text, style);
         cursor.Advance(h + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
     }
 }
@@ -49,52 +44,65 @@ void InfoBuilder::RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
+    char buf[128];
+
     if (settings.showDetailLevel && player->level > 0) {
+        std::format_to_n_result<char*> res;
         if (player->scaledLevel != player->level && player->scaledLevel > 0) {
-            DrawLine(drawList, cursor, style, "Level: %u (%u)", player->level, player->scaledLevel);
+            res = std::format_to_n(buf, std::size(buf), "Level: {} ({})", player->level, player->scaledLevel);
         } else {
-            DrawLine(drawList, cursor, style, "Level: %u", player->level);
+            res = std::format_to_n(buf, std::size(buf), "Level: {}", player->level);
         }
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailProfession && player->profession != Game::Profession::None) {
         const char* profName = Formatting::GetProfessionName(player->profession);
+        std::format_to_n_result<char*> res;
         if (profName) {
-            DrawLine(drawList, cursor, style, "Prof: %s", profName);
+            res = std::format_to_n(buf, std::size(buf), "Prof: {}", profName);
         } else {
-            DrawLine(drawList, cursor, style, "Prof: ID: %d", static_cast<int>(player->profession));
+            res = std::format_to_n(buf, std::size(buf), "Prof: ID: {}", static_cast<int>(player->profession));
         }
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailAttitude) {
         const char* attitudeName = Formatting::GetAttitudeName(player->attitude);
-        DrawLine(drawList, cursor, style, "Attitude: %s", attitudeName ? attitudeName : "Unknown");
+        auto res = std::format_to_n(buf, std::size(buf), "Attitude: {}", attitudeName ? attitudeName : "Unknown");
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailRace && player->race != Game::Race::None) {
         const char* raceName = Formatting::GetRaceName(player->race);
+        std::format_to_n_result<char*> res;
         if (raceName) {
-            DrawLine(drawList, cursor, style, "Race: %s", raceName);
+            res = std::format_to_n(buf, std::size(buf), "Race: {}", raceName);
         } else {
-            DrawLine(drawList, cursor, style, "Race: ID: %d", static_cast<int>(player->race));
+            res = std::format_to_n(buf, std::size(buf), "Race: ID: {}", static_cast<int>(player->race));
         }
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailHp && player->maxHealth > 0) {
-        DrawLine(drawList, cursor, style, "HP: %.0f/%.0f", player->currentHealth, player->maxHealth);
+        auto res = std::format_to_n(buf, std::size(buf), "HP: {:.0f}/{:.0f}", player->currentHealth, player->maxHealth);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailEnergy && player->maxEndurance > 0) {
         const int energyPercent = static_cast<int>((player->currentEndurance / player->maxEndurance) * 100.0f);
-        DrawLine(drawList, cursor, style, "Energy: %.0f/%.0f (%d%%)", player->currentEndurance, player->maxEndurance, energyPercent);
+        auto res = std::format_to_n(buf, std::size(buf), "Energy: {:.0f}/{:.0f} ({}%)", player->currentEndurance, player->maxEndurance, energyPercent);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailPosition) {
-        DrawLine(drawList, cursor, style, "Pos: (%.1f, %.1f, %.1f)", player->position.x, player->position.y, player->position.z);
+        auto res = std::format_to_n(buf, std::size(buf), "Pos: ({:.1f}, {:.1f}, {:.1f})", player->position.x, player->position.y, player->position.z);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (showDebugAddresses) {
-        DrawLine(drawList, cursor, style, "Addr: %#llx", reinterpret_cast<unsigned long long>(player->address));
+        auto res = std::format_to_n(buf, std::size(buf), "Addr: {:#x}", reinterpret_cast<unsigned long long>(player->address));
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 }
 
@@ -114,6 +122,7 @@ void InfoBuilder::RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, 
     style.background = true;
     style.fadeAlpha = props.style.finalAlpha;
 
+    char buf[128];
     for (const auto& slotEnum : displayOrder) {
         if (auto gearIt = player->gear.find(slotEnum); gearIt != player->gear.end()) {
             const char* slotName = Formatting::EquipmentSlotToString(gearIt->first);
@@ -121,15 +130,17 @@ void InfoBuilder::RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, 
             ImU32 rarityColor = Styling::GetRarityColor(info.rarity);
             style.color = rarityColor;
 
+            std::format_to_n_result<char*> res;
             if (info.statId > 0) {
                 if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
-                    DrawLine(drawList, cursor, style, "%s: %s", slotName, statIt->second.name);
+                    res = std::format_to_n(buf, std::size(buf), "{}: {}", slotName, statIt->second.name);
                 } else {
-                    DrawLine(drawList, cursor, style, "%s: stat(%d)", slotName, info.statId);
+                    res = std::format_to_n(buf, std::size(buf), "{}: stat({})", slotName, info.statId);
                 }
             } else {
-                DrawLine(drawList, cursor, style, "%s: No Stats", slotName);
+                res = std::format_to_n(buf, std::size(buf), "{}: No Stats", slotName);
             }
+            DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
         }
     }
 }
@@ -277,40 +288,50 @@ void InfoBuilder::RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, c
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
+    char buf[128];
+
     if (npc->name[0] != '\0') {
-        DrawLine(drawList, cursor, style, "NPC: %s", npc->name);
+        auto res = std::format_to_n(buf, std::size(buf), "NPC: {}", npc->name);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailLevel && npc->level > 0) {
-        DrawLine(drawList, cursor, style, "Level: %u", npc->level);
+        auto res = std::format_to_n(buf, std::size(buf), "Level: {}", npc->level);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailHp && npc->maxHealth > 0) {
-        DrawLine(drawList, cursor, style, "HP: %.0f/%.0f", npc->currentHealth, npc->maxHealth);
+        auto res = std::format_to_n(buf, std::size(buf), "HP: {:.0f}/{:.0f}", npc->currentHealth, npc->maxHealth);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailAttitude) {
         const char* attitudeName = Formatting::GetAttitudeName(npc->attitude);
+        std::format_to_n_result<char*> res;
         if (attitudeName) {
-            DrawLine(drawList, cursor, style, "Attitude: %s", attitudeName);
+            res = std::format_to_n(buf, std::size(buf), "Attitude: {}", attitudeName);
         } else {
-            DrawLine(drawList, cursor, style, "Attitude: ID: %d", static_cast<int>(npc->attitude));
+            res = std::format_to_n(buf, std::size(buf), "Attitude: ID: {}", static_cast<int>(npc->attitude));
         }
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailRank) {
         const char* rankName = Formatting::GetRankName(npc->rank);
         if (rankName && rankName[0] != '\0') {
-            DrawLine(drawList, cursor, style, "Rank: %s", rankName);
+            auto res = std::format_to_n(buf, std::size(buf), "Rank: {}", rankName);
+            DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
         }
     }
 
     if (settings.showDetailPosition) {
-        DrawLine(drawList, cursor, style, "Pos: (%.1f, %.1f, %.1f)", npc->position.x, npc->position.y, npc->position.z);
+        auto res = std::format_to_n(buf, std::size(buf), "Pos: ({:.1f}, {:.1f}, {:.1f})", npc->position.x, npc->position.y, npc->position.z);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (showDebugAddresses) {
-        DrawLine(drawList, cursor, style, "Addr: %#llx", reinterpret_cast<unsigned long long>(npc->address));
+        auto res = std::format_to_n(buf, std::size(buf), "Addr: {:#x}", reinterpret_cast<unsigned long long>(npc->address));
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 }
 
@@ -328,26 +349,33 @@ void InfoBuilder::RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
+    char buf[128];
+
     if (settings.showDetailGadgetType) {
         const char* gadgetName = Formatting::GetGadgetTypeName(gadget->type);
+        std::format_to_n_result<char*> res;
         if (gadgetName) {
-            DrawLine(drawList, cursor, style, "Type: %s", gadgetName);
+            res = std::format_to_n(buf, std::size(buf), "Type: {}", gadgetName);
         } else {
-            DrawLine(drawList, cursor, style, "Type: ID: %d", static_cast<int>(gadget->type));
+            res = std::format_to_n(buf, std::size(buf), "Type: ID: {}", static_cast<int>(gadget->type));
         }
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailHealth && gadget->maxHealth > 0) {
-        DrawLine(drawList, cursor, style, "HP: %.0f/%.0f", gadget->currentHealth, gadget->maxHealth);
+        auto res = std::format_to_n(buf, std::size(buf), "HP: {:.0f}/{:.0f}", gadget->currentHealth, gadget->maxHealth);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailResourceInfo && gadget->type == Game::GadgetType::ResourceNode) {
         const char* nodeName = Formatting::ResourceNodeTypeToString(gadget->resourceType);
+        std::format_to_n_result<char*> res;
         if (nodeName) {
-            DrawLine(drawList, cursor, style, "Node: %s", nodeName);
+            res = std::format_to_n(buf, std::size(buf), "Node: {}", nodeName);
         } else {
-            DrawLine(drawList, cursor, style, "Node: ID %d", static_cast<int>(gadget->resourceType));
+            res = std::format_to_n(buf, std::size(buf), "Node: ID {}", static_cast<int>(gadget->resourceType));
         }
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailGatherableStatus && gadget->isGatherable) {
@@ -357,11 +385,13 @@ void InfoBuilder::RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor
     }
 
     if (settings.showDetailPosition) {
-        DrawLine(drawList, cursor, style, "Pos: (%.1f, %.1f, %.1f)", gadget->position.x, gadget->position.y, gadget->position.z);
+        auto res = std::format_to_n(buf, std::size(buf), "Pos: ({:.1f}, {:.1f}, {:.1f})", gadget->position.x, gadget->position.y, gadget->position.z);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (showDebugAddresses) {
-        DrawLine(drawList, cursor, style, "Addr: %#llx", reinterpret_cast<unsigned long long>(gadget->address));
+        auto res = std::format_to_n(buf, std::size(buf), "Addr: {:#x}", reinterpret_cast<unsigned long long>(gadget->address));
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 }
 
@@ -381,18 +411,24 @@ void InfoBuilder::RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& 
     float height = TextRenderer::DrawCentered(drawList, cursor.GetPosition(), typeText, style);
     cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
 
+    char buf[128];
+
     if (settings.showDetailHealth && attackTarget->maxHealth > 0) {
-        DrawLine(drawList, cursor, style, "HP: %.0f/%.0f", attackTarget->currentHealth, attackTarget->maxHealth);
+        auto res = std::format_to_n(buf, std::size(buf), "HP: {:.0f}/{:.0f}", attackTarget->currentHealth, attackTarget->maxHealth);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
     if (settings.showDetailPosition) {
-        DrawLine(drawList, cursor, style, "Pos: (%.1f, %.1f, %.1f)", attackTarget->position.x, attackTarget->position.y, attackTarget->position.z);
+        auto res = std::format_to_n(buf, std::size(buf), "Pos: ({:.1f}, {:.1f}, {:.1f})", attackTarget->position.x, attackTarget->position.y, attackTarget->position.z);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
-    DrawLine(drawList, cursor, style, "AgentID: %d", attackTarget->agentId);
+    auto res = std::format_to_n(buf, std::size(buf), "AgentID: {}", attackTarget->agentId);
+    DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
 
     if (showDebugAddresses) {
-        DrawLine(drawList, cursor, style, "Addr: %#llx", reinterpret_cast<unsigned long long>(attackTarget->address));
+        auto res2 = std::format_to_n(buf, std::size(buf), "Addr: {:#x}", reinterpret_cast<unsigned long long>(attackTarget->address));
+        DrawLine(drawList, cursor, style, std::string_view(buf, res2.size));
     }
 }
 

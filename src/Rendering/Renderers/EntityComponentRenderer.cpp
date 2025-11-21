@@ -13,6 +13,8 @@
 #include <span>
 #include <cstring>
 #include <cstdio>
+#include <format>
+#include <array>
 
 #include "Presentation/Styling.h"
 #include "Presentation/InfoBuilder.h"
@@ -44,23 +46,23 @@ namespace {
 
     size_t FormatDistance(char* buffer, size_t bufferSize, float meters, const Settings& settings) {
         float units = UnitConversion::MetersToGW2Units(meters);
-        int ret = 0;
+        std::format_to_n_result<char*> result;
         
         switch (settings.distance.displayMode) {
             case DistanceDisplayMode::Meters:
-                ret = snprintf(buffer, bufferSize, "%.1fm", meters);
+                result = std::format_to_n(buffer, bufferSize, "{:.1f}m", meters);
                 break;
             case DistanceDisplayMode::GW2Units:
-                ret = snprintf(buffer, bufferSize, "%.0f", units);
+                result = std::format_to_n(buffer, bufferSize, "{:.0f}", units);
                 break;
             case DistanceDisplayMode::Both:
-                ret = snprintf(buffer, bufferSize, "%.0f (%.1fm)", units, meters);
+                result = std::format_to_n(buffer, bufferSize, "{:.0f} ({:.1f}m)", units, meters);
                 break;
+            default:
+                return 0;
         }
 
-        if (ret < 0) return 0;
-        if (static_cast<size_t>(ret) >= bufferSize) return bufferSize - 1;
-        return static_cast<size_t>(ret);
+        return (std::min)(static_cast<size_t>(result.size), bufferSize);
     }
 }
 
@@ -193,10 +195,8 @@ static void RenderDamageNumbers(const FrameContext& context,
     }
 
     char damageBuffer[32];
-    int len = snprintf(damageBuffer, std::size(damageBuffer), "%.0f", animState.damageNumberToDisplay);
-    if (len < 0) len = 0;
-    if (static_cast<size_t>(len) >= std::size(damageBuffer)) len = static_cast<int>(std::size(damageBuffer) - 1);
-    std::string_view damageText(damageBuffer, static_cast<size_t>(len));
+    auto result = std::format_to_n(damageBuffer, std::size(damageBuffer), "{:.0f}", animState.damageNumberToDisplay);
+    std::string_view damageText(damageBuffer, result.size);
 
     float finalFontSize = props.style.finalFontSize * Styling::GetDamageNumberFontSizeMultiplier(animState.damageNumberToDisplay);
     
@@ -230,18 +230,14 @@ static void RenderBurstDps(const FrameContext& context,
 
     char burstBuffer[32];
     std::string_view burstText;
-    int len;
+    std::format_to_n_result<char*> result;
     if (burstDps >= CombatEffects::DPS_FORMATTING_THRESHOLD) {
-        len = snprintf(burstBuffer, std::size(burstBuffer), "%.1fk", burstDps / CombatEffects::DPS_FORMATTING_THRESHOLD);
-        if (len < 0) len = 0;
-        if (static_cast<size_t>(len) >= std::size(burstBuffer)) len = static_cast<int>(std::size(burstBuffer) - 1);
-        burstText = std::string_view(burstBuffer, static_cast<size_t>(len));
+        result = std::format_to_n(burstBuffer, std::size(burstBuffer), "{:.1f}k", burstDps / CombatEffects::DPS_FORMATTING_THRESHOLD);
+        burstText = std::string_view(burstBuffer, result.size);
     }
     else {
-        len = snprintf(burstBuffer, std::size(burstBuffer), "%.0f", burstDps);
-        if (len < 0) len = 0;
-        if (static_cast<size_t>(len) >= std::size(burstBuffer)) len = static_cast<int>(std::size(burstBuffer) - 1);
-        burstText = std::string_view(burstBuffer, static_cast<size_t>(len));
+        result = std::format_to_n(burstBuffer, std::size(burstBuffer), "{:.0f}", burstDps);
+        burstText = std::string_view(burstBuffer, result.size);
     }
 
     glm::vec2 anchorPos;
@@ -265,10 +261,8 @@ static void RenderBurstDps(const FrameContext& context,
 
         if (shouldRenderHealthPercentage && healthPercent >= 0.0f) {
             char hpBuffer[16];
-            int hpLen = snprintf(hpBuffer, std::size(hpBuffer), "%d%%", static_cast<int>(healthPercent * 100.0f));
-            if (hpLen < 0) hpLen = 0;
-            if (static_cast<size_t>(hpLen) >= std::size(hpBuffer)) hpLen = static_cast<int>(std::size(hpBuffer) - 1);
-            std::string_view hpText(hpBuffer, static_cast<size_t>(hpLen));
+            auto hpResult = std::format_to_n(hpBuffer, std::size(hpBuffer), "{:.0f}%", healthPercent * 100.0f);
+            std::string_view hpText(hpBuffer, hpResult.size);
 
             float hpFontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
             ImVec2 hpTextSize = font->CalcTextSizeA(hpFontSize, FLT_MAX, 0.0f, hpText.data(), hpText.data() + hpText.size());

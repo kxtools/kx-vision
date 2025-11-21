@@ -324,12 +324,9 @@ namespace kx {
 
     void HealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha)
     {
-        int percent = static_cast<int>(healthPercent * 100.0f);
         char buffer[16];
-        int len = snprintf(buffer, std::size(buffer), "%d%%", percent);
-        if (len < 0) len = 0;
-        if (static_cast<size_t>(len) >= std::size(buffer)) len = static_cast<int>(std::size(buffer) - 1);
-        std::string_view text(buffer, static_cast<size_t>(len));
+        auto result = std::format_to_n(buffer, std::size(buffer), "{:.0f}%", healthPercent * 100.0f);
+        std::string_view text(buffer, result.size);
 
         float finalFontSize = fontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
         ImFont* font = ImGui::GetFont();
