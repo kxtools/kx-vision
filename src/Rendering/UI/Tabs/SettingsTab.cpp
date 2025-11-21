@@ -276,6 +276,28 @@ namespace kx {
                             ImGui::InputText("##AttackTargetListAddr", attackTargetListAddrStr.data(), attackTargetListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();
                         }
+
+                        ImGui::Separator();
+
+                        // Item Context
+                        ReClass::ItCliContext itemCtx = ctxCollection.GetItCliContext();
+                        std::string itemCtxAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(itemCtx.data()));
+                        ImGui::Text("ItCliContext:");
+                        ImGui::PushItemWidth(-1.0f);
+                        ImGui::InputText("##ItemContextAddr", itemCtxAddrStr.data(), itemCtxAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
+                        ImGui::PopItemWidth();
+
+                        if (itemCtx) {
+                            // Item List
+                            ReClass::ItCliItem** itemList = itemCtx.GetItemList();
+                            uint32_t itemCapacity = itemCtx.GetCapacity();
+                            uint32_t itemCount = itemCtx.GetCount();
+                            std::string itemListAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(itemList));
+                            ImGui::Text("ItemList (Count: %u / Capacity: %u):", itemCount, itemCapacity);
+                            ImGui::PushItemWidth(-1.0f);
+                            ImGui::InputText("##ItemListAddr", itemListAddrStr.data(), itemListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
+                            ImGui::PopItemWidth();
+                        }
                     } else {
                         ImGui::Text("ContextCollection not available.");
                     }
