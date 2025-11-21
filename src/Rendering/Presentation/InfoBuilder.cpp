@@ -466,6 +466,68 @@ void InfoBuilder::RenderAttackTargetDetails(
     }
 }
 
+void InfoBuilder::RenderItemDetails(
+    ImDrawList* drawList,
+    LayoutCursor& cursor,
+    const VisualProperties& props,
+    const RenderableItem* item,
+    const ObjectEspSettings& settings,
+    const AppearanceSettings& appearance,
+    bool showDebugAddresses) {
+    if (!settings.renderDetails) {
+        return;
+    }
+
+    FastTextStyle style;
+    style.fontSize = props.style.finalFontSize;
+    style.shadow = appearance.enableTextShadows;
+    style.background = appearance.enableTextBackgrounds;
+    style.fadeAlpha = props.style.finalAlpha;
+    style.color = ESPColors::DEFAULT_TEXT;
+
+    std::string_view typeText("Type: Item");
+    float height = TextRenderer::DrawCentered(drawList, cursor.GetPosition(), typeText, style);
+    cursor.Advance(height + RenderingLayout::DETAILS_TEXT_LINE_SPACING);
+
+    char buf[128];
+
+    if (item->itemId > 0) {
+        auto res = std::format_to_n(buf, std::size(buf), "ItemID: {}", item->itemId);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
+    }
+
+    if (item->rarity != Game::ItemRarity::None) {
+        const char* rarityName = "Unknown";
+        switch (item->rarity) {
+            case Game::ItemRarity::Junk: rarityName = "Junk"; break;
+            case Game::ItemRarity::Common: rarityName = "Common"; break;
+            case Game::ItemRarity::Fine: rarityName = "Fine"; break;
+            case Game::ItemRarity::Masterwork: rarityName = "Masterwork"; break;
+            case Game::ItemRarity::Rare: rarityName = "Rare"; break;
+            case Game::ItemRarity::Exotic: rarityName = "Exotic"; break;
+            case Game::ItemRarity::Ascended: rarityName = "Ascended"; break;
+            case Game::ItemRarity::Legendary: rarityName = "Legendary"; break;
+            default: break;
+        }
+        
+        ImU32 rarityColor = Styling::GetRarityColor(item->rarity);
+        style.color = rarityColor;
+        auto res = std::format_to_n(buf, std::size(buf), "Rarity: {}", rarityName);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
+        style.color = ESPColors::DEFAULT_TEXT; // Reset color
+    }
+
+    if (settings.showDetailPosition) {
+        auto res = std::format_to_n(buf, std::size(buf), "Pos: ({:.1f}, {:.1f}, {:.1f})", item->position.x, item->position.y, item->position.z);
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
+    }
+
+    if (showDebugAddresses) {
+        auto res = std::format_to_n(buf, std::size(buf), "Addr: {:#x}", reinterpret_cast<unsigned long long>(item->address));
+        DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
+    }
+}
+
 // ===== Private Helper Methods =====
 
 size_t InfoBuilder::BuildAttributeSummary(const RenderablePlayer* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize) {

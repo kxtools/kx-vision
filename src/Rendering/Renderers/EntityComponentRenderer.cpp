@@ -476,6 +476,11 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
             InfoBuilder::RenderAttackTargetDetails(ctx.drawList, cursor, props, attackTarget, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }
+        case EntityTypes::Item: {
+            const auto* item = static_cast<const RenderableItem*>(&entity);
+            InfoBuilder::RenderItemDetails(ctx.drawList, cursor, props, item, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
+            break;
+        }
     }
 }
 

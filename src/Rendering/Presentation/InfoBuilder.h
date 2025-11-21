@@ -106,6 +106,17 @@ public:
      */
     static void RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
+    /**
+     * @brief Render Item information details (item ID, rarity, position)
+     * @param drawList The ImGui draw list to render to
+     * @param cursor Layout cursor for positioning
+     * @param props Visual properties for styling
+     * @param item The item entity to render details for
+     * @param settings Object ESP settings for filtering what to display
+     * @param showDebugAddresses Whether to include memory addresses for debugging
+     */
+    static void RenderItemDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableItem* item, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
+
 private:
     /**
      * @brief Build attribute summary counting occurrences of each attribute
