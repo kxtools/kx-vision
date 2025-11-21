@@ -453,7 +453,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                     break;
                 }
                 case GearDisplayMode::Detailed: {
-                    InfoBuilder::RenderGearDetails(ctx.drawList, cursor, props, player);
+                    InfoBuilder::RenderGearDetails(ctx.drawList, cursor, props, player, ctx.settings.appearance);
                     break;
                 }
             }
@@ -463,22 +463,22 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
     switch (entity.entityType) {
         case EntityTypes::Player: {
             const auto* player = static_cast<const RenderablePlayer*>(&entity);
-            InfoBuilder::RenderPlayerDetails(ctx.drawList, cursor, props, player, ctx.settings.playerESP, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderPlayerDetails(ctx.drawList, cursor, props, player, ctx.settings.playerESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }
         case EntityTypes::NPC: {
             const auto* npc = static_cast<const RenderableNpc*>(&entity);
-            InfoBuilder::RenderNpcDetails(ctx.drawList, cursor, props, npc, ctx.settings.npcESP, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderNpcDetails(ctx.drawList, cursor, props, npc, ctx.settings.npcESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }
         case EntityTypes::Gadget: {
             const auto* gadget = static_cast<const RenderableGadget*>(&entity);
-            InfoBuilder::RenderGadgetDetails(ctx.drawList, cursor, props, gadget, ctx.settings.objectESP, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderGadgetDetails(ctx.drawList, cursor, props, gadget, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }
         case EntityTypes::AttackTarget: {
             const auto* attackTarget = static_cast<const RenderableAttackTarget*>(&entity);
-            InfoBuilder::RenderAttackTargetDetails(ctx.drawList, cursor, props, attackTarget, ctx.settings.objectESP, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderAttackTargetDetails(ctx.drawList, cursor, props, attackTarget, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }
     }

@@ -32,15 +32,22 @@ static void DrawLine(ImDrawList* dl, LayoutCursor& cursor, const FastTextStyle& 
 
 // ===== Player Methods =====
 
-void InfoBuilder::RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses) {
+void InfoBuilder::RenderPlayerDetails(
+    ImDrawList* drawList,
+    LayoutCursor& cursor,
+    const VisualProperties& props,
+    const RenderablePlayer* player,
+    const PlayerEspSettings& settings,
+    const AppearanceSettings& appearance,
+    bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
     FastTextStyle style;
     style.fontSize = props.style.finalFontSize;
-    style.shadow = true;
-    style.background = true;
+    style.shadow = appearance.enableTextShadows;
+    style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
@@ -106,7 +113,12 @@ void InfoBuilder::RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor
     }
 }
 
-void InfoBuilder::RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player) {
+void InfoBuilder::RenderGearDetails(
+    ImDrawList* drawList,
+    LayoutCursor& cursor,
+    const VisualProperties& props,
+    const RenderablePlayer* player,
+    const AppearanceSettings& appearance) {
     const std::vector<Game::EquipmentSlot> displayOrder = {
         Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
         Game::EquipmentSlot::Gloves, Game::EquipmentSlot::Pants, Game::EquipmentSlot::Boots,
@@ -118,8 +130,8 @@ void InfoBuilder::RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, 
 
     FastTextStyle style;
     style.fontSize = props.style.finalFontSize;
-    style.shadow = true;
-    style.background = true;
+    style.shadow = appearance.enableTextShadows;
+    style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
 
     char buf[128];
@@ -276,15 +288,22 @@ Game::ItemRarity InfoBuilder::GetHighestRarity(const RenderablePlayer* player) {
 
 // ===== NPC Methods =====
 
-void InfoBuilder::RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses) {
+void InfoBuilder::RenderNpcDetails(
+    ImDrawList* drawList,
+    LayoutCursor& cursor,
+    const VisualProperties& props,
+    const RenderableNpc* npc,
+    const NpcEspSettings& settings,
+    const AppearanceSettings& appearance,
+    bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
     FastTextStyle style;
     style.fontSize = props.style.finalFontSize;
-    style.shadow = true;
-    style.background = true;
+    style.shadow = appearance.enableTextShadows;
+    style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
@@ -337,15 +356,22 @@ void InfoBuilder::RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, c
 
 // ===== Gadget Methods =====
 
-void InfoBuilder::RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses) {
+void InfoBuilder::RenderGadgetDetails(
+    ImDrawList* drawList,
+    LayoutCursor& cursor,
+    const VisualProperties& props,
+    const RenderableGadget* gadget,
+    const ObjectEspSettings& settings,
+    const AppearanceSettings& appearance,
+    bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
     FastTextStyle style;
     style.fontSize = props.style.finalFontSize;
-    style.shadow = true;
-    style.background = true;
+    style.shadow = appearance.enableTextShadows;
+    style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 
@@ -395,15 +421,22 @@ void InfoBuilder::RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor
     }
 }
 
-void InfoBuilder::RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses) {
+void InfoBuilder::RenderAttackTargetDetails(
+    ImDrawList* drawList,
+    LayoutCursor& cursor,
+    const VisualProperties& props,
+    const RenderableAttackTarget* attackTarget,
+    const ObjectEspSettings& settings,
+    const AppearanceSettings& appearance,
+    bool showDebugAddresses) {
     if (!settings.renderDetails) {
         return;
     }
 
     FastTextStyle style;
     style.fontSize = props.style.finalFontSize;
-    style.shadow = true;
-    style.background = true;
+    style.shadow = appearance.enableTextShadows;
+    style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
     style.color = ESPColors::DEFAULT_TEXT;
 

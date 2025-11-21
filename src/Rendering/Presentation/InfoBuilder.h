@@ -33,7 +33,7 @@ public:
      * @param settings Player ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const PlayerEspSettings& settings, bool showDebugAddresses);
+    static void RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const PlayerEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
     /**
      * @brief Render detailed gear information showing each equipment slot and stat
@@ -42,7 +42,7 @@ public:
      * @param props Visual properties for styling
      * @param player The player entity to analyze
      */
-    static void RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player);
+    static void RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const AppearanceSettings& appearance);
 
     /**
      * @brief Build compact gear summary showing stat names and counts
@@ -80,7 +80,7 @@ public:
      * @param settings NPC ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableNpc* npc, const NpcEspSettings& settings, bool showDebugAddresses);
+    static void RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableNpc* npc, const NpcEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
     // ===== Gadget Methods =====
     
@@ -93,7 +93,7 @@ public:
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableGadget* gadget, const ObjectEspSettings& settings, bool showDebugAddresses);
+    static void RenderGadgetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableGadget* gadget, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
     /**
      * @brief Render Attack Target information details (position, agent ID, type)
@@ -104,7 +104,7 @@ public:
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, bool showDebugAddresses);
+    static void RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
 private:
     /**
