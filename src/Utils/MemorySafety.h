@@ -19,7 +19,7 @@ namespace SafeAccess {
     constexpr uint32_t MAX_REASONABLE_CHARACTER_COUNT = 15000;   // Observed ~9728, allow for larger instances  
     constexpr uint32_t MAX_REASONABLE_GADGET_COUNT = 15000;      // Observed ~9216, allow for resource-rich areas
     constexpr uint32_t MAX_REASONABLE_ATTACK_TARGET_COUNT = 5000; // Reasonable limit for attack targets
-    constexpr uint32_t MAX_REASONABLE_ITEM_COUNT = 15000;         // Items lists can be large
+    constexpr uint32_t MAX_REASONABLE_ITEM_COUNT = 50000;         // Items lists can be large
 
     // --- Pointer Cache for Performance ---
     static constexpr uint64_t CACHE_TTL = 5000; // ms
