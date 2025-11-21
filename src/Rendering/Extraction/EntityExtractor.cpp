@@ -203,7 +203,10 @@ namespace PhysicsValidation {
         if (!inItem) return false;
 
         // --- Check Location Type ---
-        // Only render items with LocationType == Agent (world items)
+        // Only render items with LocationType == Agent (world items).
+        // Note: Testing confirmed that other location types (Equipment, Inventory, Lootable, etc.)
+        // do not have valid world positions - they either have null pointers or default (0,0,0) positions.
+        // Only Agent location type represents items actually dropped in the world.
         if (inItem.GetLocationType() != Game::ItemLocation::Agent) {
             return false;
         }
