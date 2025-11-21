@@ -76,6 +76,15 @@ namespace kx {
         }
 
         /**
+         * @brief Helper to check if an entity type is an object type (Gadget, AttackTarget, or Item)
+         */
+        static bool IsObjectType(EntityTypes type) {
+            return type == EntityTypes::Gadget || 
+                   type == EntityTypes::AttackTarget || 
+                   type == EntityTypes::Item;
+        }
+
+        /**
          * @brief Gets the active distance limit for a specific entity type, considering the current mode and game context.
          * This is the single source of truth for all distance culling logic.
          * @param entityType The type of the entity being checked.
@@ -89,7 +98,7 @@ namespace kx {
 
                 case DistanceCullingMode::CombatFocus:
                     // In Combat Focus, only Objects are limited. Players/NPCs are unlimited.
-                    if (entityType == EntityTypes::Gadget || entityType == EntityTypes::AttackTarget) {
+                    if (IsObjectType(entityType)) {
                         return renderDistanceLimit;
                     }
                     return -1.0f; // No limit for Players/NPCs
@@ -105,6 +114,7 @@ namespace kx {
                             return customLimitNpcs ? renderDistanceLimit : -1.0f;
                         case EntityTypes::Gadget:
                         case EntityTypes::AttackTarget:
+                        case EntityTypes::Item:
                             return customLimitObjects ? renderDistanceLimit : -1.0f;
                         default:
                             return -1.0f;

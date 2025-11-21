@@ -4,6 +4,7 @@
 #include "../../Core/AppState.h"
 #include "../Data/RenderableData.h"
 #include "../Renderers/ShapeRenderer.h"
+#include "../Shared/RenderSettingsHelper.h"
 #include "../Shared/ScalingConstants.h"
 #include "Presentation/Styling.h"
 #include <algorithm>
@@ -55,7 +56,7 @@ float StyleCalculator::CalculateEntityScale(float visualDistance, EntityTypes en
         distanceFactor = settings.scaling.limitDistanceFactor;
         scalingExponent = settings.scaling.limitScalingExponent;
     } else {
-        if (entityType == EntityTypes::Gadget || entityType == EntityTypes::AttackTarget) {
+        if (RenderSettingsHelper::IsObjectType(entityType)) {
             float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
             distanceFactor = (std::max)(AdaptiveScaling::GADGET_MIN_DISTANCE_FACTOR, adaptiveFarPlane / 2.0f);
             scalingExponent = settings.scaling.noLimitScalingExponent;
@@ -80,7 +81,7 @@ float StyleCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float dist
         return distanceFadeAlpha;
     }
 
-    if (entityType == EntityTypes::Gadget || entityType == EntityTypes::AttackTarget) {
+    if (RenderSettingsHelper::IsObjectType(entityType)) {
         float finalAlpha = 1.0f;
         
         const float farPlane = AppState::Get().GetAdaptiveFarPlane();
@@ -158,7 +159,7 @@ StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(c
         multipliers.rank = Styling::GetRankMultiplier(npc->rank);
     }
     
-    if (entity.entityType == EntityTypes::Gadget || entity.entityType == EntityTypes::AttackTarget) {
+    if (RenderSettingsHelper::IsObjectType(entity.entityType)) {
         multipliers.gadgetHealth = Styling::GetGadgetHealthMultiplier(entity.maxHealth);
     }
     

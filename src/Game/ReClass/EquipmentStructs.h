@@ -1,12 +1,16 @@
 #pragma once
 
 #include "../../Utils/SafeForeignClass.h"
+#include "../GameEnums.h"
 #include "../offsets.h"
 #include "ItemStructs.h"
 #include "StatStructs.h"
 
 namespace kx {
     namespace ReClass {
+
+        // Forward declaration
+        class ItemAgentWrapper;
 
         // The total number of equipment slots in the game's data structure.
         constexpr int NUM_EQUIPMENT_SLOTS = 69;
@@ -21,6 +25,15 @@ namespace kx {
 
             ItemDef GetItemDefinition() const {
                 return ReadPointerFast<ItemDef>(Offsets::ItCliItem::ITEM_DEF);
+            }
+
+            Game::ItemLocation GetLocationType() const {
+                uint16_t raw = ReadMemberFast<uint16_t>(Offsets::ItCliItem::LOCATION_TYPE, 0);
+                return static_cast<Game::ItemLocation>(raw & 0xF);
+            }
+
+            ItemAgentWrapper GetItemAgent() const {
+                return ReadPointerFast<ItemAgentWrapper>(Offsets::ItCliItem::ITEM_AGENT);
             }
 
             Stat GetStatGear() const {

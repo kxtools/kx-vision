@@ -18,5 +18,6 @@
 #include "ReClass/CharacterStructs.h" // Depends on AgentStructs
 #include "ReClass/HavokStructs.h"     // Havok physics wrappers (independent)
 #include "ReClass/GadgetStructs.h"    // Depends on HavokStructs
+#include "ReClass/ItemStructs.h"      // Depends on GadgetStructs (for AgKeyFramed)
 #include "ReClass/EquipmentStructs.h"
 #include "ReClass/ContextStructs.h"   // Depends on Character and Gadget structs

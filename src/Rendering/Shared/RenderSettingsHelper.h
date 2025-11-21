@@ -6,12 +6,19 @@ namespace kx {
 
 class RenderSettingsHelper {
 public:
+    static bool IsObjectType(EntityTypes type) {
+        return type == EntityTypes::Gadget || 
+               type == EntityTypes::AttackTarget || 
+               type == EntityTypes::Item;
+    }
+
     static bool ShouldRenderBox(const Settings& s, EntityTypes type) {
         switch (type) {
             case EntityTypes::Player: return s.playerESP.renderBox;
             case EntityTypes::NPC:    return s.npcESP.renderBox;
             case EntityTypes::Gadget: return s.objectESP.renderBox;
             case EntityTypes::AttackTarget: return s.objectESP.renderBox;
+            case EntityTypes::Item: return s.objectESP.renderBox;
             default: return false;
         }
     }
@@ -22,6 +29,7 @@ public:
             case EntityTypes::NPC:    return s.npcESP.renderWireframe;
             case EntityTypes::Gadget: return s.objectESP.renderWireframe;
             case EntityTypes::AttackTarget: return s.objectESP.renderWireframe;
+            case EntityTypes::Item: return s.objectESP.renderWireframe;
             default: return false;
         }
     }
@@ -32,6 +40,7 @@ public:
             case EntityTypes::NPC:    return s.npcESP.renderDistance;
             case EntityTypes::Gadget: return s.objectESP.renderDistance;
             case EntityTypes::AttackTarget: return s.objectESP.renderDistance;
+            case EntityTypes::Item: return s.objectESP.renderDistance;
             default: return false;
         }
     }
@@ -42,6 +51,7 @@ public:
             case EntityTypes::NPC:    return s.npcESP.renderDot;
             case EntityTypes::Gadget: return s.objectESP.renderDot;
             case EntityTypes::AttackTarget: return s.objectESP.renderDot;
+            case EntityTypes::Item: return s.objectESP.renderDot;
             default: return false;
         }
     }
@@ -57,19 +67,20 @@ public:
             case EntityTypes::NPC:    return s.npcESP.showHealthPercentage;
             case EntityTypes::Gadget: return s.objectESP.showHealthPercentage;
             case EntityTypes::AttackTarget: return s.objectESP.showHealthPercentage;
+            case EntityTypes::Item: return s.objectESP.showHealthPercentage;
             default: return false;
         }
     }
     
     static bool ShouldRenderGadgetSphere(const Settings& s, EntityTypes type) {
-        if (type == EntityTypes::Gadget || type == EntityTypes::AttackTarget) {
+        if (IsObjectType(type)) {
             return s.objectESP.renderSphere;
         }
         return false;
     }
 
     static bool ShouldRenderGadgetCircle(const Settings& s, EntityTypes type) {
-        if (type == EntityTypes::Gadget || type == EntityTypes::AttackTarget) {
+        if (IsObjectType(type)) {
             return s.objectESP.renderCircle;
         }
         return false;
@@ -81,6 +92,7 @@ public:
             case EntityTypes::NPC:    return s.npcESP.showDamageNumbers;
             case EntityTypes::Gadget: return s.objectESP.showDamageNumbers;
             case EntityTypes::AttackTarget: return s.objectESP.showDamageNumbers;
+            case EntityTypes::Item: return s.objectESP.showDamageNumbers;
             default: return false;
         }
     }
@@ -91,6 +103,7 @@ public:
             case EntityTypes::NPC:    return s.npcESP.showBurstDps;
             case EntityTypes::Gadget: return s.objectESP.showBurstDps;
             case EntityTypes::AttackTarget: return s.objectESP.showBurstDps;
+            case EntityTypes::Item: return s.objectESP.showBurstDps;
             default: return false;
         }
     }
@@ -104,8 +117,7 @@ public:
     }
     
     static bool IsBoxAllowedForSize(const Settings& s, EntityTypes type, float height) {
-        if ((type == EntityTypes::Gadget || type == EntityTypes::AttackTarget) && 
-             height > s.objectESP.maxBoxHeight) {
+        if (IsObjectType(type) && height > s.objectESP.maxBoxHeight) {
             return false;
         }
         return true;

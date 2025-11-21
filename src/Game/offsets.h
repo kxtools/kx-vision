@@ -173,13 +173,24 @@ namespace Offsets {
      */
     struct ItCliItem {
         static constexpr uintptr_t ITEM_DEF = 0x40;      // ItemDef* item definition
+        static constexpr uintptr_t LOCATION_TYPE = 0x48;  // uint16_t location type (mask with 0xF)
+        static constexpr uintptr_t ITEM_AGENT = 0x58;     // ItemAgentWrapper* pointer to item agent (for world items)
         static constexpr uintptr_t STAT_GEAR = 0xA0;     // Stat* for armor/trinkets
         static constexpr uintptr_t STAT_WEAPON = 0xA8;   // Stat* for weapons
+        static constexpr uintptr_t LOOTABLE = 0x88;      // Pointer to Lootable wrapper (future use)
         
         // Historical/Unverified offsets from old GearCheck - require verification
         // static constexpr uintptr_t RUNE = 0xC0;    // Rune* upgrade
         // static constexpr uintptr_t SIGIL1 = 0xC8;  // Sigil* first weapon sigil
         // static constexpr uintptr_t SIGIL2 = 0xD0;  // Sigil* second weapon sigil
+    };
+
+    /**
+     * @brief ItemAgentWrapper - Wrapper for item agent structure (N0000018D)
+     * Used when ItemLocation == Agent (world items)
+     */
+    struct ItemAgentWrapper {
+        static constexpr uintptr_t AG_KEYFRAMED = 0x18;  // AgKeyframed* agent wrapper
     };
 
     /**
@@ -284,11 +295,24 @@ namespace Offsets {
     };
 
     /**
+     * @brief ItCliContext - Item context managing all items
+     * 
+     * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
+     *       CAPACITY >= COUNT always. Arrays are sparse - use CAPACITY for iteration, validate pointers.
+     */
+    struct ItCliContext {
+        static constexpr uintptr_t ITEM_LIST = 0x30;          // ItCliItem** array
+        static constexpr uintptr_t ITEM_LIST_CAPACITY = 0x38; // uint32_t capacity (element count)
+        static constexpr uintptr_t ITEM_LIST_COUNT = 0x3C;    // uint32_t count (element count)
+    };
+
+    /**
      * @brief ContextCollection - Root collection containing all context managers
      */
     struct ContextCollection {
         static constexpr uintptr_t CH_CLI_CONTEXT = 0x98;   // ChCliContext* character context
         static constexpr uintptr_t GD_CLI_CONTEXT = 0x0138; // GdCliContext* gadget context
+        static constexpr uintptr_t IT_CLI_CONTEXT = 0x0178; // ItCliContext* item context
     };
 
 } // namespace Offsets

@@ -122,6 +122,22 @@ enum class ItemRarity : int {
     End = 8
 };
 
+enum class ItemLocation : int32_t {
+    None = 0,
+    Agent = 1,
+    Equipment = 2,
+    Inventory = 3,
+    InventoryAccount = 4,
+    InventoryBagSlot = 5,
+    InventoryOverflow = 6,
+    Lootable = 7,
+    Vendor = 8,
+    InventoryShared = 10,
+    InventoryArmory = 11,
+    InventoryLegendaryArmory = 12,
+    Count = 13
+};
+
 // Equipment Slots - Useful for equipment tracking
 enum class EquipmentSlot : int {
     None = -1,

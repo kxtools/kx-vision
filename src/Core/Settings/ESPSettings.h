@@ -141,6 +141,18 @@ namespace kx {
         bool showAttackTargetList = true; // Attack Target List (AgentType::GadgetAttackTarget, separate from GadgetType::AttackTarget)
         bool showAttackTargetListOnlyInCombat = true; // Only show attack targets that are in combat state
 
+        // Item Settings
+        bool showItems = true;             // Main toggle for items
+        // Rarity Filters
+        bool showItemJunk = false;
+        bool showItemCommon = false;
+        bool showItemFine = true;
+        bool showItemMasterwork = true;
+        bool showItemRare = true;
+        bool showItemExotic = true;
+        bool showItemAscended = true;
+        bool showItemLegendary = true;
+
         // Detail-field filters
         bool showDetailGadgetType = true;
         bool showDetailHealth = true;
@@ -156,7 +168,9 @@ namespace kx {
                                        showPlayerCreated, showInteractables, showDoors, showPortals, showDestructible,
                                        showPoints, showPlayerSpecific, showProps, showBuildSites, showBountyBoards,
                                        showRifts, showGeneric, showGeneric2, showUnknown, showAttackTargetList,
-                                       showAttackTargetListOnlyInCombat, showDetailGadgetType, showDetailHealth, showDetailPosition, showDetailResourceInfo,
+                                       showAttackTargetListOnlyInCombat, showItems, showItemJunk, showItemCommon, showItemFine, 
+                                       showItemMasterwork, showItemRare, showItemExotic, showItemAscended, showItemLegendary,
+                                       showDetailGadgetType, showDetailHealth, showDetailPosition, showDetailResourceInfo,
                                        showDetailGatherableStatus);
 
 } // namespace kx

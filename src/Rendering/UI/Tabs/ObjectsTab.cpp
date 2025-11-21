@@ -20,7 +20,7 @@ namespace kx {
                 }
             }
 
-            // The "Select All / Clear All" helper - excludes Attack Target List (has its own section)
+            // The "Select All / Clear All" helper - excludes Attack Target List and Items (have their own sections)
             void SetAllObjectFilters(ObjectEspSettings& settings, bool value) {
                 std::vector<bool*> filters = {
                     &settings.showResourceNodes, &settings.showWaypoints, &settings.showVistas,
@@ -60,7 +60,7 @@ namespace kx {
                 CheckboxWithTooltip("Rifts", "Objects", &settings.showRifts, "Show reality rifts from expansions."); ImGui::SameLine(column2);
                 CheckboxWithTooltip("Player Specific", "Objects", &settings.showPlayerSpecific, "Show objects created for a specific player.");
                 CheckboxWithTooltip("Generic", "Objects", &settings.showGeneric, "Show generic or invisible trigger objects (for debugging)."); ImGui::SameLine(column1);
-                CheckboxWithTooltip("Generic 2", "Objects", &settings.showGeneric2, "Show generic or invisible trigger objects (for debugging).");
+                CheckboxWithTooltip("Generic 2", "Objects", &settings.showGeneric2, "Show generic or invisible trigger objects (for debugging)."); ImGui::SameLine(column2);
                 CheckboxWithTooltip("Unknown", "Objects", &settings.showUnknown, "Show any object type not explicitly handled.");
 
                 ImGui::Separator();
@@ -92,6 +92,38 @@ namespace kx {
             }
         }
 
+        void RenderItemListSettings(ObjectEspSettings& settings) {
+            if (ImGui::CollapsingHeader("Dropped Items")) {
+                ImGui::Indent();
+                
+                // Main Toggle inside the header
+                CheckboxWithTooltip("Show Dropped Items", "Items", &settings.showItems, "Enable rendering of items dropped on the ground.");
+
+                // Rarity Filters (only show if main toggle is on)
+                if (settings.showItems) {
+                    ImGui::Spacing();
+                    ImGui::SeparatorText("Rarity Filters");
+
+                    const float column1 = 180.0f;
+
+                    // Layout rarities in two columns
+                    CheckboxWithTooltip("Legendary", "Rarity", &settings.showItemLegendary, "Purple/Purple"); ImGui::SameLine(column1);
+                    CheckboxWithTooltip("Ascended", "Rarity", &settings.showItemAscended, "Pink");
+                    
+                    CheckboxWithTooltip("Exotic", "Rarity", &settings.showItemExotic, "Orange"); ImGui::SameLine(column1);
+                    CheckboxWithTooltip("Rare", "Rarity", &settings.showItemRare, "Yellow");
+                    
+                    CheckboxWithTooltip("Masterwork", "Rarity", &settings.showItemMasterwork, "Green"); ImGui::SameLine(column1);
+                    CheckboxWithTooltip("Fine", "Rarity", &settings.showItemFine, "Blue");
+                    
+                    CheckboxWithTooltip("Common", "Rarity", &settings.showItemCommon, "White"); ImGui::SameLine(column1);
+                    CheckboxWithTooltip("Junk", "Rarity", &settings.showItemJunk, "Gray");
+                }
+
+                ImGui::Unindent();
+            }
+        }
+
         void RenderDetailedInformationSettings(ObjectEspSettings& settings) {
             if (ImGui::CollapsingHeader("Detailed Information")) {
                 ImGui::Checkbox("Show Details Panel##Object", &settings.renderDetails);
@@ -116,6 +148,7 @@ namespace kx {
                 if (settings.objectESP.enabled) {
                     RenderObjectTypeFilters(settings.objectESP);
                     RenderSpecialFilters(settings);
+                    RenderItemListSettings(settings.objectESP);
                     RenderAttackTargetListSettings(settings.objectESP);
 
                     ImGui::Separator();

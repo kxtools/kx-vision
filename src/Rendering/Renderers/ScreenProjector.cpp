@@ -5,6 +5,7 @@
 #include "../Data/RenderableData.h"
 #include "../Shared/LayoutConstants.h"
 #include "../Shared/MathUtils.h"
+#include "../Shared/RenderSettingsHelper.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
 #include <cmath>
@@ -64,7 +65,7 @@ bool ScreenProjector::Project(
     }
     
     // Project based on entity type
-    if (entity.entityType == EntityTypes::Gadget || entity.entityType == EntityTypes::AttackTarget) {
+    if (RenderSettingsHelper::IsObjectType(entity.entityType)) {
         ProjectGadget(entity, camera, screenW, screenH, outGeometry, style.scale, isOriginValid);
     } else {
         ProjectCharacter(entity, camera, screenW, screenH, outGeometry, style.scale, isOriginValid);

@@ -81,7 +81,7 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Rend
         ShapeRenderer::RenderWireframeBox(ctx.drawList, props, props.style.fadedEntityColor, props.style.finalBoxThickness, globalOpacity);
     }
 
-    if (entity.entityType == EntityTypes::Gadget || entity.entityType == EntityTypes::AttackTarget) {
+    if (RenderSettingsHelper::IsObjectType(entity.entityType)) {
         if (RenderSettingsHelper::ShouldRenderGadgetSphere(ctx.settings, entity.entityType)) {
             ShapeRenderer::RenderGyroscopicOverlay(
                 ctx.drawList, 
@@ -102,7 +102,7 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Rend
     }
 
     if (RenderSettingsHelper::ShouldRenderDot(ctx.settings, entity.entityType)) {
-        if (entity.entityType == EntityTypes::Gadget || entity.entityType == EntityTypes::AttackTarget) {
+        if (RenderSettingsHelper::IsObjectType(entity.entityType) && entity.entityType != EntityTypes::Item) {
             ShapeRenderer::RenderNaturalWhiteDot(ctx.drawList, props.geometry.screenPos, props.style.finalAlpha, props.style.finalDotRadius, globalOpacity);
         } else {
             ShapeRenderer::RenderColoredDot(ctx.drawList, props.geometry.screenPos, props.style.fadedEntityColor, props.style.finalDotRadius, globalOpacity);
@@ -295,7 +295,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
                                                const VisualProperties& props,
                                                LayoutCursor& cursor) {
     bool isLiving = (entity.entityType == EntityTypes::Player || entity.entityType == EntityTypes::NPC);
-    bool isGadget = (entity.entityType == EntityTypes::Gadget || entity.entityType == EntityTypes::AttackTarget);
+    bool isGadget = RenderSettingsHelper::IsObjectType(entity.entityType);
     
     if ((isLiving || isGadget) && renderHealthBar) {
         float healthPercent = entity.maxHealth > 0 ? (entity.currentHealth / entity.maxHealth) : -1.0f;

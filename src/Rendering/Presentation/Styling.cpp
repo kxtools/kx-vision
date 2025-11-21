@@ -84,6 +84,10 @@ namespace kx::Styling {
                 return ESPColors::GADGET;
             case EntityTypes::AttackTarget:
                 return ESPColors::GADGET;
+            case EntityTypes::Item: {
+                const auto* item = static_cast<const RenderableItem*>(&entity);
+                return GetRarityColor(item->rarity);
+            }
         }
         return ESPColors::NPC_UNKNOWN;
     }

@@ -35,6 +35,7 @@ private:
     ObjectPool<RenderableNpc> m_npcPool{2000};
     ObjectPool<RenderableGadget> m_gadgetPool{5000};
     ObjectPool<RenderableAttackTarget> m_attackTargetPool{1000};
+    ObjectPool<RenderableItem> m_itemPool{1000};
 
     CombatStateManager m_combatStateManager;
     PooledFrameRenderData m_processedRenderData;

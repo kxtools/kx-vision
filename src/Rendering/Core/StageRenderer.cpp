@@ -19,6 +19,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <cstdio>
 
 #include "Renderers/ScreenProjector.h"
 #include "Shared/RenderSettingsHelper.h"
@@ -119,6 +120,12 @@ std::string_view GetEntityName(const RenderableEntity& entity) {
             return static_cast<const RenderableNpc&>(entity).name;
         case EntityTypes::Gadget:
             return static_cast<const RenderableGadget&>(entity).name;
+        case EntityTypes::Item: {
+            static thread_local char itemNameBuffer[64];
+            const auto& item = static_cast<const RenderableItem&>(entity);
+            sprintf_s(itemNameBuffer, "Item [%u]", item.itemId);
+            return itemNameBuffer;
+        }
         default:
             return {};
     }
@@ -186,6 +193,11 @@ void ProcessAndRender(const FrameContext& context, const RenderableEntity* entit
             burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);
             break;
         }
+        case EntityTypes::Item: {
+            renderHealthBar = false;
+            showCombatUI = false;
+            break;
+        }
     }
 
     HealthBarAnimationState animState;
@@ -200,6 +212,11 @@ void ProcessAndRender(const FrameContext& context, const RenderableEntity* entit
 
     // Special case for gadgets without boxes
     if (entity->entityType == EntityTypes::Gadget && !shouldRenderBox) {
+        cursor = LayoutCursor(glm::vec2(visuals.geometry.screenPos.x, visuals.geometry.screenPos.y), 1.0f);
+    }
+    
+    // Special case for items without boxes
+    if (entity->entityType == EntityTypes::Item && !shouldRenderBox) {
         cursor = LayoutCursor(glm::vec2(visuals.geometry.screenPos.x, visuals.geometry.screenPos.y), 1.0f);
     }
 
@@ -251,6 +268,10 @@ void StageRenderer::RenderFrameData(const FrameContext& context, const PooledFra
 
     for (const auto* target : frameData.attackTargets) {
         ProcessAndRender(context, target);
+    }
+
+    for (const auto* item : frameData.items) {
+        ProcessAndRender(context, item);
     }
 }
 

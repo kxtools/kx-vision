@@ -143,6 +143,56 @@ void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, 
             filteredData.attackTargets.push_back(attackTarget);
         }
     }
+    
+    // Filter items
+    if (context.settings.objectESP.enabled && context.settings.objectESP.showItems) {
+        filteredData.items.reserve(extractedData.items.size());
+        for (RenderableItem* item : extractedData.items) {
+            // Call the common helper function first
+            if (!PassesCommonFilters(item, cameraPos, playerPos, context)) {
+                continue;
+            }
+            
+            // Filter by rarity
+            bool shouldShow = false;
+            switch (item->rarity) {
+                case Game::ItemRarity::Junk:
+                    shouldShow = context.settings.objectESP.showItemJunk;
+                    break;
+                case Game::ItemRarity::Common:
+                    shouldShow = context.settings.objectESP.showItemCommon;
+                    break;
+                case Game::ItemRarity::Fine:
+                    shouldShow = context.settings.objectESP.showItemFine;
+                    break;
+                case Game::ItemRarity::Masterwork:
+                    shouldShow = context.settings.objectESP.showItemMasterwork;
+                    break;
+                case Game::ItemRarity::Rare:
+                    shouldShow = context.settings.objectESP.showItemRare;
+                    break;
+                case Game::ItemRarity::Exotic:
+                    shouldShow = context.settings.objectESP.showItemExotic;
+                    break;
+                case Game::ItemRarity::Ascended:
+                    shouldShow = context.settings.objectESP.showItemAscended;
+                    break;
+                case Game::ItemRarity::Legendary:
+                    shouldShow = context.settings.objectESP.showItemLegendary;
+                    break;
+                case Game::ItemRarity::None:
+                default:
+                    shouldShow = true; // Show items with no rarity
+                    break;
+            }
+            
+            if (!shouldShow) {
+                continue;
+            }
+            
+            filteredData.items.push_back(item);
+        }
+    }
 }
 
 } // namespace kx
