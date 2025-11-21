@@ -124,15 +124,15 @@ enum class ItemRarity : int {
 
 enum class ItemLocation : int32_t {
     None = 0,
-    Agent = 1,
-    Equipment = 2,
-    Inventory = 3,
-    InventoryAccount = 4,
-    InventoryBagSlot = 5,
+    Agent = 1,                      // Items on ground
+    Equipment = 2,                  // All equipped items (players + NPCs) - usually the largest count
+    Inventory = 3,                 // Local player's items in bags
+    InventoryAccount = 4,         // Local player's items in bank
+    InventoryBagSlot = 5,          // Local player's bags
     InventoryOverflow = 6,
     Lootable = 7,
     Vendor = 8,
-    InventoryShared = 10,
+    InventoryShared = 10,          // Local player's items in shared inventory slots
     InventoryArmory = 11,
     InventoryLegendaryArmory = 12,
     Count = 13
