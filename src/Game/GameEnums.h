@@ -123,7 +123,7 @@ enum class ItemRarity : int {
 };
 
 enum class ItemLocation : int32_t {
-    None = 0,
+    None = 0,                       // Unclaimed loot after killing NPCs
     Agent = 1,                      // Items on ground
     Equipment = 2,                  // All equipped items (players + NPCs) - usually the largest count
     Inventory = 3,                 // Local player's items in bags
