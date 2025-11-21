@@ -24,6 +24,7 @@ void ShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList,
     const float PI = 3.14159265359f;
     const float VERTICAL_RADIUS = GadgetSphere::VERTICAL_RADIUS;
     const float HORIZONTAL_RADIUS = VERTICAL_RADIUS * GadgetSphere::HORIZONTAL_RADIUS_RATIO;
+    constexpr size_t RING_ARRAY_SIZE = GadgetSphere::NUM_RING_POINTS + 1;
 
     // --- Define vertices (precomputed and cached) ---
     static std::vector<glm::vec3> localRingXY, localRingXZ, localRingYZ;
@@ -53,29 +54,27 @@ void ShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList,
     if (gyroscopeAlpha > 0.0f) {
         const float finalLineThickness = std::clamp(GadgetSphere::BASE_THICKNESS * scale, GadgetSphere::MIN_THICKNESS, GadgetSphere::MAX_THICKNESS);
 
-        std::vector<ImVec2> screenRingXY, screenRingXZ, screenRingYZ;
-        std::vector<float> facingRingXY, facingRingXZ, facingRingYZ;
+        std::array<ImVec2, RING_ARRAY_SIZE> screenRingXY, screenRingXZ, screenRingYZ;
+        std::array<float, RING_ARRAY_SIZE> facingRingXY, facingRingXZ, facingRingYZ;
         bool projection_ok = true;
         glm::vec3 cameraPos = camera.GetCameraPosition();
         
-        auto project_ring_with_facing = [&](const std::vector<glm::vec3>& local_points, std::vector<ImVec2>& screen_points, std::vector<float>& facing_points) {
+        auto project_ring_with_facing = [&](const std::vector<glm::vec3>& local_points, std::array<ImVec2, RING_ARRAY_SIZE>& screen_points, std::array<float, RING_ARRAY_SIZE>& facing_points) {
             if (!projection_ok) return;
-            screen_points.reserve(local_points.size());
-            facing_points.reserve(local_points.size());
             
-            for (const auto& point : local_points) {
+            for (size_t i = 0; i < RING_ARRAY_SIZE; ++i) {
                 // Use the passed 'worldPos' directly
-                glm::vec3 currentWorldPoint = worldPos + point;
+                glm::vec3 currentWorldPoint = worldPos + local_points[i];
                 glm::vec2 sp;
                 
                 if (MathUtils::WorldToScreen(currentWorldPoint, camera, screenWidth, screenHeight, sp)) {
-                    screen_points.push_back(ImVec2(sp.x, sp.y));
+                    screen_points[i] = ImVec2(sp.x, sp.y);
                     
                     glm::vec3 viewDir = glm::normalize(currentWorldPoint - cameraPos);
-                    glm::vec3 outwardNormal = glm::normalize(point);
+                    glm::vec3 outwardNormal = glm::normalize(local_points[i]);
                     float facingFactor = glm::dot(outwardNormal, -viewDir);
                     
-                    facing_points.push_back(facingFactor);
+                    facing_points[i] = facingFactor;
                 }
                 else { 
                     projection_ok = false; 
@@ -96,12 +95,10 @@ void ShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList,
             ImU32 baseColor = (fadedEntityColor & 0x00FFFFFF) | (finalLODAlpha << 24);
 
             // Helper function to render ring with camera-facing segments
-            auto render_ring_with_facing = [&](const std::vector<ImVec2>& screen_points, const std::vector<float>& facing_points, const char* ring_name) {
-                if (screen_points.empty() || facing_points.empty()) return;
-                
+            auto render_ring_with_facing = [&](const std::array<ImVec2, RING_ARRAY_SIZE>& screen_points, const std::array<float, RING_ARRAY_SIZE>& facing_points, const char* ring_name) {
                 // Render each segment individually with facing-based modulation
-                for (size_t i = 0; i < screen_points.size(); ++i) {
-                    size_t next_i = (i + 1) % screen_points.size();
+                for (size_t i = 0; i < RING_ARRAY_SIZE; ++i) {
+                    size_t next_i = (i + 1) % RING_ARRAY_SIZE;
                     
                     // Calculate average facing factor for this segment
                     float avgFacing = (facing_points[i] + facing_points[next_i]) * 0.5f;
@@ -146,8 +143,8 @@ void ShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList,
             
             // Optional: Ring facing sorting for proper back-to-front rendering
             struct RingData {
-                const std::vector<ImVec2>* screenPoints;
-                const std::vector<float>* facingPoints;
+                const std::array<ImVec2, RING_ARRAY_SIZE>* screenPoints;
+                const std::array<float, RING_ARRAY_SIZE>* facingPoints;
                 const char* name;
                 float avgFacing;
             };
@@ -160,7 +157,7 @@ void ShapeRenderer::RenderGyroscopicOverlay(ImDrawList* drawList,
             
             // Calculate average facing for each ring
             for (auto& ring : rings) {
-                if (!ring.facingPoints->empty()) {
+                if (ring.facingPoints->size() > 0) {
                     float sum = 0.0f;
                     for (float facing : *ring.facingPoints) {
                         sum += facing;
