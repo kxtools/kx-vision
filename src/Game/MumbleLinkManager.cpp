@@ -102,16 +102,14 @@ void MumbleLinkManager::ParseIdentity() {
     // Reset identity
     m_identity = Identity{};
     
-    // Convert wchar_t identity to UTF-8
-    std::string identityUtf8 = StringHelpers::WCharToUTF8String(m_mumbleLink->identity);
+    char jsonBuffer[1024];
+    size_t len = StringHelpers::WriteWCharToUTF8(m_mumbleLink->identity, jsonBuffer);
     
-    // Check for conversion errors
-    if (identityUtf8.empty()) {
+    if (len == 0) {
         return;
     }
     
-    // Parse JSON
-    auto json = nlohmann::json::parse(identityUtf8, nullptr, false);
+    auto json = nlohmann::json::parse(jsonBuffer, jsonBuffer + len, nullptr, false);
     
     if (json.is_discarded()) {
         return; // Parsing failed

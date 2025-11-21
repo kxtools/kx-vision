@@ -3,35 +3,50 @@
 #include <string>
 #include <cwchar>
 #include <windows.h>
+#include <span>
 
 namespace kx::StringHelpers {
 
-inline std::string WCharToUTF8String(const wchar_t* wstr) {
-    if (!wstr || *wstr == L'\0') {
-        return {};
+/**
+ * @brief Converts WChar to UTF8 directly into a pre-allocated buffer.
+ * Zero allocations. Safe truncation if buffer is too small.
+ * @param wstr Source wide string.
+ * @param buffer Destination buffer (fixed array or span).
+ * @return Number of bytes written (excluding null terminator).
+ */
+inline size_t WriteWCharToUTF8(const wchar_t* wstr, std::span<char> buffer) {
+    if (buffer.empty()) {
+        return 0;
+    }
+    
+    if (!wstr) {
+        buffer[0] = '\0';
+        return 0;
     }
 
-    constexpr size_t MAX_LEN = 4096;
-    const size_t length = wcsnlen(wstr, MAX_LEN);
-    if (length == 0 || length >= MAX_LEN) {
-        return {};
-    }
+    int result = WideCharToMultiByte(
+        CP_UTF8, 
+        0, 
+        wstr, 
+        -1,
+        buffer.data(), 
+        static_cast<int>(buffer.size()), 
+        nullptr, 
+        nullptr
+    );
 
-    const int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr, static_cast<int>(length), nullptr, 0, nullptr, nullptr);
-    if (sizeNeeded <= 0) {
-        return {};
+    if (result > 0) {
+        return static_cast<size_t>(result) - 1;
     }
-
-    std::string result(sizeNeeded, '\0');
-    const int written = WideCharToMultiByte(CP_UTF8, 0, wstr, static_cast<int>(length), result.data(), sizeNeeded, nullptr, nullptr);
-    if (written <= 0) {
-        return {};
+    else {
+        if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+            buffer.back() = '\0';
+            return buffer.size() - 1;
+        }
+        
+        buffer[0] = '\0';
+        return 0;
     }
-
-    if (written < sizeNeeded) {
-        result.resize(written);
-    }
-    return result;
 }
 
 } // namespace kx::StringHelpers
