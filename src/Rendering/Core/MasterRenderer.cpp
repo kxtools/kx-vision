@@ -54,13 +54,15 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
 
         m_combatStateManager.Prune(m_activeKeys);
         
-        std::vector<RenderableEntity*> allEntities;
-        allEntities.reserve(totalCount);
-        allEntities.insert(allEntities.end(), m_extractionData.players.begin(), m_extractionData.players.end());
-        allEntities.insert(allEntities.end(), m_extractionData.npcs.begin(), m_extractionData.npcs.end());
-        allEntities.insert(allEntities.end(), m_extractionData.gadgets.begin(), m_extractionData.gadgets.end());
-        allEntities.insert(allEntities.end(), m_extractionData.attackTargets.begin(), m_extractionData.attackTargets.end());
-        m_combatStateManager.Update(allEntities, frameContext.now);
+        m_allEntitiesBuffer.clear();
+        if (m_allEntitiesBuffer.capacity() < totalCount) {
+            m_allEntitiesBuffer.reserve(totalCount);
+        }
+        m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.players.begin(), m_extractionData.players.end());
+        m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.npcs.begin(), m_extractionData.npcs.end());
+        m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.gadgets.begin(), m_extractionData.gadgets.end());
+        m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.attackTargets.begin(), m_extractionData.attackTargets.end());
+        m_combatStateManager.Update(m_allEntitiesBuffer, frameContext.now);
         
         EntityFilter::FilterPooledData(m_extractionData, frameContext, m_processedRenderData);
 
@@ -109,6 +111,7 @@ void MasterRenderer::Reset() {
     m_processedRenderData.Reset();
     m_extractionData.Reset();
     m_activeKeys.clear();
+    m_allEntitiesBuffer.clear();
 }
 
 bool MasterRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

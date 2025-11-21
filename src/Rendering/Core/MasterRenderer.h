@@ -7,6 +7,7 @@
 #include "../Combat/CombatStateManager.h"
 #include "Data/FrameData.h"
 #include <ankerl/unordered_dense.h>
+#include <vector>
 
 namespace kx {
 
@@ -42,6 +43,7 @@ private:
     
     float m_lastUpdateTime = 0.0f;
     ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeKeys;
+    std::vector<RenderableEntity*> m_allEntitiesBuffer;
 };
 
 } // namespace kx
