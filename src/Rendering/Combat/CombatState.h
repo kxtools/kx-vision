@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include <deque>
+#include <array>
 #include <glm/vec3.hpp>
 
 namespace kx
@@ -9,6 +9,8 @@ namespace kx
 		glm::vec3 position;
 		uint64_t timestamp;
 	};
+
+	constexpr size_t MAX_TRAIL_HISTORY_CAPACITY = 64;
 
 	// Holds the dynamic combat information for a single entity
 	struct EntityCombatState
@@ -43,8 +45,24 @@ namespace kx
         // Max health tracking for state change detection
         float lastKnownMaxHealth = 0.0f;
 
-		// Movement trail history
-		std::deque<PositionHistoryPoint> positionHistory;
+		// Movement trail history - fixed-size ring buffer
+		std::array<PositionHistoryPoint, MAX_TRAIL_HISTORY_CAPACITY> positionHistory;
+		size_t historyHead = 0;
+		size_t historySize = 0;
+
+		void PushHistory(const PositionHistoryPoint& p) {
+			positionHistory[historyHead] = p;
+			historyHead = (historyHead + 1) % MAX_TRAIL_HISTORY_CAPACITY;
+			if (historySize < MAX_TRAIL_HISTORY_CAPACITY) {
+				historySize++;
+			}
+		}
+
+		const PositionHistoryPoint& GetHistoryItem(size_t index) const {
+			size_t tail = (historyHead + MAX_TRAIL_HISTORY_CAPACITY - historySize) % MAX_TRAIL_HISTORY_CAPACITY;
+			size_t actualIndex = (tail + index) % MAX_TRAIL_HISTORY_CAPACITY;
+			return positionHistory[actualIndex];
+		}
 
 		// Utility helpers (optional future use)
 		bool IsDead() const { return deathTimestamp != 0; }

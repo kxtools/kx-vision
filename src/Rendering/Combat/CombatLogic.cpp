@@ -217,13 +217,13 @@ namespace kx {
 
     void CombatLogic::UpdatePositionHistory(EntityCombatState& state, const RenderableEntity* entity, uint64_t now)
     {
-        // Access settings singleton safely
         const auto& settings = AppState::Get().GetSettings();
-        const size_t MAX_HISTORY_POINTS = static_cast<size_t>(settings.playerESP.trails.maxPoints);
+        const size_t USER_SETTING_MAX = static_cast<size_t>(settings.playerESP.trails.maxPoints);
         
-        bool shouldRecordPosition = state.positionHistory.empty();
+        bool shouldRecordPosition = (state.historySize == 0);
+        
         if (!shouldRecordPosition) {
-            const glm::vec3& lastPos = state.positionHistory.back().position;
+            const auto& lastPos = state.GetHistoryItem(state.historySize - 1).position;
             float distanceMoved = glm::distance(entity->position, lastPos);
             shouldRecordPosition = (distanceMoved >= MIN_POSITION_CHANGE);
         }
@@ -232,10 +232,11 @@ namespace kx {
             PositionHistoryPoint newPoint;
             newPoint.position = entity->position;
             newPoint.timestamp = now;
-            state.positionHistory.push_back(newPoint);
             
-            if (state.positionHistory.size() > MAX_HISTORY_POINTS) {
-                state.positionHistory.pop_front();
+            state.PushHistory(newPoint);
+            
+            if (state.historySize > USER_SETTING_MAX) {
+                state.historySize = USER_SETTING_MAX;
             }
         }
     }
