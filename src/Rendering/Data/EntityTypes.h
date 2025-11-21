@@ -7,7 +7,8 @@ enum class EntityTypes {
     Player,
     NPC,
     Gadget,
-    AttackTarget
+    AttackTarget,
+    Item
 };
 
 } // namespace kx

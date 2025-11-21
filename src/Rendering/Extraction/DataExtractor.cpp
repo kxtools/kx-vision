@@ -12,6 +12,7 @@ namespace kx {
         ObjectPool<RenderableNpc>& npcPool,
         ObjectPool<RenderableGadget>& gadgetPool,
         ObjectPool<RenderableAttackTarget>& attackTargetPool,
+        ObjectPool<RenderableItem>& itemPool,
         PooledFrameRenderData& pooledData) {
         pooledData.Reset();
 
@@ -40,6 +41,7 @@ namespace kx {
         ExtractCharacterData(playerPool, npcPool, pooledData.players, pooledData.npcs, characterToPlayerNameMap);
         ExtractGadgetData(gadgetPool, pooledData.gadgets);
         ExtractAttackTargetData(attackTargetPool, pooledData.attackTargets);
+        ExtractItemData(itemPool, pooledData.items);
     }
 
     void DataExtractor::ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
@@ -134,6 +136,30 @@ namespace kx {
             // Delegate all extraction logic to the helper class
             if (EntityExtractor::ExtractAttackTarget(*renderableAttackTarget, agentInl)) {
                 attackTargets.push_back(renderableAttackTarget);
+            }
+        }
+    }
+
+    void DataExtractor::ExtractItemData(ObjectPool<RenderableItem>& itemPool,
+        std::vector<RenderableItem*>& items) {
+        items.clear();
+        items.reserve(ExtractionCapacity::ITEMS_RESERVE);
+
+        void* pContextCollection = AddressManager::GetContextCollectionPtr();
+        if (!pContextCollection) return;
+
+        ReClass::ContextCollection ctxCollection(pContextCollection);
+        ReClass::ItCliContext itemContext = ctxCollection.GetItCliContext();
+        if (!itemContext.data()) return;
+
+        SafeAccess::ItemList itemList(itemContext);
+        for (const auto& item : itemList) {
+            RenderableItem* renderableItem = itemPool.Get();
+            if (!renderableItem) break; // Pool exhausted
+
+            // Delegate all extraction logic to the helper class
+            if (EntityExtractor::ExtractItem(*renderableItem, item)) {
+                items.push_back(renderableItem);
             }
         }
     }

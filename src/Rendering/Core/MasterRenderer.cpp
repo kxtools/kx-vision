@@ -31,13 +31,15 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         m_npcPool.Reset();
         m_gadgetPool.Reset();
         m_attackTargetPool.Reset();
+        m_itemPool.Reset();
         m_processedRenderData.Reset();
         
         m_extractionData.Reset();
-        DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, m_extractionData);
+        DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, m_itemPool, m_extractionData);
         
         size_t totalCount = m_extractionData.players.size() + m_extractionData.npcs.size() + 
-                            m_extractionData.gadgets.size() + m_extractionData.attackTargets.size();
+                            m_extractionData.gadgets.size() + m_extractionData.attackTargets.size() +
+                            m_extractionData.items.size();
         m_activeKeys.clear();
         m_activeKeys.reserve(totalCount);
         
@@ -51,6 +53,7 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         collectKeys(m_extractionData.npcs);
         collectKeys(m_extractionData.gadgets);
         collectKeys(m_extractionData.attackTargets);
+        collectKeys(m_extractionData.items);
 
         m_combatStateManager.Prune(m_activeKeys);
         
@@ -62,6 +65,7 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.npcs.begin(), m_extractionData.npcs.end());
         m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.gadgets.begin(), m_extractionData.gadgets.end());
         m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.attackTargets.begin(), m_extractionData.attackTargets.end());
+        m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_extractionData.items.begin(), m_extractionData.items.end());
         m_combatStateManager.Update(m_allEntitiesBuffer, frameContext.now);
         
         EntityFilter::FilterPooledData(m_extractionData, frameContext, m_processedRenderData);

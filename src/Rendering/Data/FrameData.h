@@ -17,6 +17,7 @@ namespace kx {
     struct RenderableNpc;
     struct RenderableGadget;
     struct RenderableAttackTarget;
+    struct RenderableItem;
 }
 
 namespace kx {
@@ -109,12 +110,14 @@ struct PooledFrameRenderData {
     std::vector<RenderableNpc*> npcs;
     std::vector<RenderableGadget*> gadgets;
     std::vector<RenderableAttackTarget*> attackTargets;
+    std::vector<RenderableItem*> items;
 
     void Reset() {
         players.clear();
         npcs.clear();
         gadgets.clear();
         attackTargets.clear();
+        items.clear();
     }
 };
 

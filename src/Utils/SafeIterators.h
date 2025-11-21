@@ -467,5 +467,115 @@ namespace SafeAccess {
         }
     };
 
+    /**
+     * @brief Safe iterator for item arrays from the game
+     * 
+     * This iterator wraps raw ItCliItem** arrays and provides safe iteration
+     * with automatic validation of memory addresses and null pointer checks.
+     */
+    class ItemListIterator {
+    private:
+        ReClass::ItCliItem** m_array;
+        uint32_t m_index;
+        uint32_t m_capacity;
+        mutable ReClass::ItCliItem m_current;
+        mutable bool m_currentValid;
+
+        void AdvanceToValid() {
+            m_currentValid = false;
+            while (m_index < m_capacity) {
+                if (IsMemorySafe(m_array[m_index]) && IsVTablePointerValid(m_array[m_index])) {
+                    m_current = ReClass::ItCliItem(m_array[m_index]);
+                    if (m_current) {
+                        m_currentValid = true;
+                        return;
+                    }
+                }
+                ++m_index;
+            }
+        }
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = ReClass::ItCliItem;
+        using difference_type = std::ptrdiff_t;
+        using pointer = const ReClass::ItCliItem*;
+        using reference = const ReClass::ItCliItem&;
+
+        ItemListIterator(ReClass::ItCliItem** array, uint32_t index, uint32_t capacity)
+            : m_array(array), m_index(index), m_capacity(capacity), m_current(nullptr), m_currentValid(false) {
+            if (m_array && m_capacity < MAX_REASONABLE_ITEM_COUNT) {
+                AdvanceToValid();
+            } else {
+                m_index = m_capacity; // Mark as end
+            }
+        }
+
+        ItemListIterator& operator++() {
+            if (m_index < m_capacity) {
+                ++m_index;
+                AdvanceToValid();
+            }
+            return *this;
+        }
+
+        ItemListIterator operator++(int) {
+            ItemListIterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        const ReClass::ItCliItem& operator*() const {
+            return m_current;
+        }
+
+        const ReClass::ItCliItem* operator->() const {
+            return &m_current;
+        }
+
+        bool operator==(const ItemListIterator& other) const {
+            return m_array == other.m_array && m_index == other.m_index;
+        }
+
+        bool operator!=(const ItemListIterator& other) const {
+            return !(*this == other);
+        }
+
+        bool IsValid() const {
+            return m_currentValid;
+        }
+    };
+
+    /**
+     * @brief Range wrapper for item lists to enable range-based for loops
+     * 
+     * Iterates over the full CAPACITY to ensure no valid entries are missed.
+     * The iterator automatically skips null and invalid entries.
+     */
+    class ItemList {
+    private:
+        ReClass::ItCliItem** m_array;
+        uint32_t m_capacity;
+
+    public:
+        ItemList(ReClass::ItCliContext& context) {
+            if (context) {
+                m_array = context.GetItemList();
+                m_capacity = context.GetCapacity();
+            } else {
+                m_array = nullptr;
+                m_capacity = 0;
+            }
+        }
+
+        ItemListIterator begin() const {
+            return ItemListIterator(m_array, 0, m_capacity);
+        }
+
+        ItemListIterator end() const {
+            return ItemListIterator(m_array, m_capacity, m_capacity);
+        }
+    };
+
 } // namespace SafeAccess
 } // namespace kx

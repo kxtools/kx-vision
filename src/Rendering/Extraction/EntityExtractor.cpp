@@ -199,6 +199,52 @@ namespace PhysicsValidation {
         return true;
     }
 
+    bool EntityExtractor::ExtractItem(RenderableItem& outItem, const ReClass::ItCliItem& inItem) {
+        if (!inItem) return false;
+
+        // --- Check Location Type ---
+        // Only render items with LocationType == Agent (world items).
+        // Note: Testing confirmed that other location types (Equipment, Inventory, Lootable, etc.)
+        // do not have valid world positions - they either have null pointers or default (0,0,0) positions.
+        // Only Agent location type represents items actually dropped in the world.
+        if (inItem.GetLocationType() != Game::ItemLocation::Agent) {
+            return false;
+        }
+
+        // --- Follow Pointer Chain to Position ---
+        // ItCliItem -> ItemAgentWrapper -> AgKeyFramed -> CoKeyFramed -> Position
+        ReClass::ItemAgentWrapper itemAgent = inItem.GetItemAgent();
+        if (!itemAgent) return false;
+
+        ReClass::AgKeyFramed agKeyFramed = itemAgent.GetAgKeyFramed();
+        if (!agKeyFramed) return false;
+
+        // --- Position ---
+        glm::vec3 gamePos;
+        if (!ValidateAndExtractGamePosition(agKeyFramed, gamePos)) return false;
+
+        // --- Populate Core Data ---
+        outItem.position = TransformGamePositionToMumble(gamePos);
+        outItem.isValid = true;
+        outItem.entityType = EntityTypes::Item;
+        outItem.address = inItem.data();
+        outItem.agentType = agKeyFramed.GetType();
+        outItem.agentId = agKeyFramed.GetId();
+
+        // --- Get Definition Info ---
+        ReClass::ItemDef def = inItem.GetItemDefinition();
+        if (def) {
+            outItem.itemId = def.GetId();
+            outItem.rarity = def.GetRarity();
+        }
+
+        // --- Physics Shape Dimensions ---
+        // AgKeyFramed handles physics exactly like Gadgets
+        ExtractBoxShapeDimensions(outItem, agKeyFramed);
+
+        return true;
+    }
+
     void EntityExtractor::ExtractGear(RenderablePlayer& outPlayer, const ReClass::ChCliInventory& inventory) {
         outPlayer.gearCount = 0;
 

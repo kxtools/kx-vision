@@ -51,6 +51,15 @@ namespace kx {
         static bool ExtractAttackTarget(RenderableAttackTarget& outAttackTarget,
             const ReClass::AgentInl& inAgentInl);
 
+        /**
+         * @brief Populates a RenderableItem object from an ItCliItem game structure.
+         * @param outItem The RenderableItem object to populate (from an object pool).
+         * @param inItem The source ItCliItem structure from the item list.
+         * @return True if extraction was successful and the entity is valid, false otherwise.
+         */
+        static bool ExtractItem(RenderableItem& outItem,
+            const ReClass::ItCliItem& inItem);
+
     private:
         /**
          * @brief Helper to encapsulate the detailed gear extraction logic for a player.

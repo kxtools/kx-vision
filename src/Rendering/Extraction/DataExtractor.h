@@ -27,12 +27,14 @@ namespace kx {
          * @param npcPool Object pool for NPCs
          * @param gadgetPool Object pool for gadgets
          * @param attackTargetPool Object pool for attack targets
+         * @param itemPool Object pool for items
          * @param pooledData Output container for pooled data pointers
          */
         static void ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
             ObjectPool<RenderableNpc>& npcPool,
             ObjectPool<RenderableGadget>& gadgetPool,
             ObjectPool<RenderableAttackTarget>& attackTargetPool,
+            ObjectPool<RenderableItem>& itemPool,
             PooledFrameRenderData& pooledData);
 
     private:
@@ -50,6 +52,9 @@ namespace kx {
 
         static void ExtractAttackTargetData(ObjectPool<RenderableAttackTarget>& attackTargetPool,
             std::vector<RenderableAttackTarget*>& attackTargets);
+
+        static void ExtractItemData(ObjectPool<RenderableItem>& itemPool,
+            std::vector<RenderableItem*>& items);
     };
 
 } // namespace kx

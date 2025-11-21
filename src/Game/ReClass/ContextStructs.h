@@ -5,6 +5,7 @@
 #include "../offsets.h"
 #include "CharacterStructs.h"
 #include "GadgetStructs.h"
+#include "ItemStructs.h"
 
 namespace kx {
     namespace ReClass {
@@ -143,6 +144,41 @@ namespace kx {
         };
 
         /**
+         * @brief Item context manager - handles item lists
+         */
+        class ItCliContext : public SafeForeignClass {
+        public:
+            ItCliContext(void* ptr) : SafeForeignClass(ptr) {}
+
+            ItCliItem** GetItemList() const {
+                LOG_MEMORY("ItCliContext", "GetItemList", data(), Offsets::ItCliContext::ITEM_LIST);
+                
+                ItCliItem** itemList = ReadArrayPointer<ItCliItem*>(Offsets::ItCliContext::ITEM_LIST);
+                
+                LOG_PTR("ItemList", itemList);
+                return itemList;
+            }
+
+            uint32_t GetCapacity() const {
+                LOG_MEMORY("ItCliContext", "GetCapacity", data(), Offsets::ItCliContext::ITEM_LIST_CAPACITY);
+                
+                uint32_t capacity = ReadMemberFast<uint32_t>(Offsets::ItCliContext::ITEM_LIST_CAPACITY, 0);
+                
+                LOG_DEBUG("ItCliContext::GetCapacity - Capacity: %u", capacity);
+                return capacity;
+            }
+
+            uint32_t GetCount() const {
+                LOG_MEMORY("ItCliContext", "GetCount", data(), Offsets::ItCliContext::ITEM_LIST_COUNT);
+                
+                uint32_t count = ReadMemberFast<uint32_t>(Offsets::ItCliContext::ITEM_LIST_COUNT, 0);
+                
+                LOG_DEBUG("ItCliContext::GetCount - Count: %u", count);
+                return count;
+            }
+        };
+
+        /**
          * @brief Root context collection - entry point for all game context access
          */
         class ContextCollection : public SafeForeignClass {
@@ -169,6 +205,15 @@ namespace kx {
                 GdCliContext result = ReadPointerFast<GdCliContext>(Offsets::ContextCollection::GD_CLI_CONTEXT);
                 
                 LOG_PTR("GdCliContext", result.data());
+                return result;
+            }
+
+            ItCliContext GetItCliContext() const {
+                LOG_MEMORY("ContextCollection", "GetItCliContext", data(), Offsets::ContextCollection::IT_CLI_CONTEXT);
+                
+                ItCliContext result = ReadPointerFast<ItCliContext>(Offsets::ContextCollection::IT_CLI_CONTEXT);
+                
+                LOG_PTR("ItCliContext", result.data());
                 return result;
             }
         };

@@ -3,6 +3,7 @@
 #include "../../Utils/SafeForeignClass.h"
 #include "../GameEnums.h"
 #include "../offsets.h"
+#include "GadgetStructs.h"
 
 namespace kx {
     namespace ReClass {
@@ -23,6 +24,19 @@ namespace kx {
 
             Game::ItemRarity GetRarity() const {
                 return ReadMemberFast<Game::ItemRarity>(Offsets::ItemDef::RARITY, Game::ItemRarity::None);
+            }
+        };
+
+        /**
+         * @brief Wrapper for item agent structure (N0000018D)
+         * Used when ItemLocation == Agent (world items)
+         */
+        class ItemAgentWrapper : public SafeForeignClass {
+        public:
+            ItemAgentWrapper(void* ptr) : SafeForeignClass(ptr) {}
+
+            AgKeyFramed GetAgKeyFramed() const {
+                return ReadPointerFast<AgKeyFramed>(Offsets::ItemAgentWrapper::AG_KEYFRAMED);
             }
         };
 

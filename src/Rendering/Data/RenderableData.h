@@ -7,3 +7,4 @@
 #include "Entities/RenderableNpc.h"
 #include "Entities/RenderableGadget.h"
 #include "Entities/RenderableAttackTarget.h"
+#include "Entities/RenderableItem.h"
