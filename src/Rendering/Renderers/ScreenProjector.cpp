@@ -8,7 +8,7 @@
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
 #include <cmath>
-#include <vector>
+#include <array>
 #include <cfloat>
 
 namespace kx::Renderers {
@@ -89,7 +89,7 @@ void ScreenProjector::Calculate3DBoundingBox(
     ScreenGeometry& geometry,
     bool& outValid) {
     
-    std::vector<glm::vec3> worldCorners = {
+    const std::array<glm::vec3, 8> worldCorners = {
         entityPos + glm::vec3(-worldWidth/2, 0.0f, -worldDepth/2),
         entityPos + glm::vec3( worldWidth/2, 0.0f, -worldDepth/2),
         entityPos + glm::vec3(-worldWidth/2, 0.0f,  worldDepth/2),
