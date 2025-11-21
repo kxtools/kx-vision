@@ -10,6 +10,7 @@
 #include "../../../libs/ImGui/imgui.h"
 #include "../Data/RenderableData.h"
 #include <string_view>
+#include <span>
 #include <cstring>
 #include <cstdio>
 
@@ -158,7 +159,7 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
             ESPColors::DEFAULT_TEXT, 
             ESPColors::DEFAULT_TEXT 
         };
-        float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, 3, texts, colors, style);
+        float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, texts, colors, style);
         cursor.Advance(height + identityBottomPadding);
     } else if (showName) {
         style.color = props.style.fadedEntityColor;
@@ -402,7 +403,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                         }
 
                         if (count > 0) {
-                            float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, count, texts, colors, style);
+                            float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, std::span(texts, count), std::span(colors, count), style);
                             cursor.Advance(height);
                         }
                     }
@@ -451,7 +452,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                         append("]", ESPColors::SUMMARY_TEXT_RGB);
 
                         if (count > 0) {
-                            float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, count, texts, colors, style);
+                            float height = TextRenderer::DrawMultiColored(ctx.drawList, pos, std::span(texts, count), std::span(colors, count), style);
                             cursor.Advance(height);
                         }
                     }

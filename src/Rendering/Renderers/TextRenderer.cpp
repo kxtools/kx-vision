@@ -2,6 +2,7 @@
 #include "../../Core/AppState.h"
 #include "../Shared/LayoutConstants.h"
 #include "../../../libs/ImGui/imgui.h"
+#include <algorithm>
 
 namespace kx {
 
@@ -53,9 +54,11 @@ namespace kx {
     }
 
     float TextRenderer::DrawMultiColored(ImDrawList* dl, const glm::vec2& pos, 
-                                         int count, const std::string_view* texts, 
-                                         const ImU32* colors, const FastTextStyle& style) {
-        if (count <= 0) return 0.0f;
+                                         std::span<const std::string_view> texts, 
+                                         std::span<const ImU32> colors, 
+                                         const FastTextStyle& style) {
+        size_t count = (std::min)(texts.size(), colors.size());
+        if (count == 0) return 0.0f;
 
         ImFont* font = ImGui::GetFont();
         
@@ -63,9 +66,9 @@ namespace kx {
         float maxHeight = 0.0f;
         
         float segmentWidths[16]; 
-        int safeCount = (count > 16) ? 16 : count;
+        size_t safeCount = (std::min)(count, std::size(segmentWidths));
 
-        for (int i = 0; i < safeCount; i++) {
+        for (size_t i = 0; i < safeCount; i++) {
             const char* text_begin = texts[i].data();
             const char* text_end = texts[i].data() + texts[i].size();
             ImVec2 size = font->CalcTextSizeA(style.fontSize, FLT_MAX, 0.0f, text_begin, text_end);
@@ -93,7 +96,7 @@ namespace kx {
         }
 
         float currentX = x;
-        for (int i = 0; i < safeCount; i++) {
+        for (size_t i = 0; i < safeCount; i++) {
             const char* text_begin = texts[i].data();
             const char* text_end = texts[i].data() + texts[i].size();
             

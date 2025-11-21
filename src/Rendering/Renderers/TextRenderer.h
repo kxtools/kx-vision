@@ -2,6 +2,7 @@
 
 #include <glm.hpp>
 #include <string_view>
+#include <span>
 #include "../../../libs/ImGui/imgui.h"
 
 struct ImDrawList;
@@ -21,8 +22,9 @@ namespace kx {
         static float DrawCentered(ImDrawList* dl, const glm::vec2& pos, std::string_view text, const FastTextStyle& style);
         
         static float DrawMultiColored(ImDrawList* dl, const glm::vec2& pos, 
-                                      int count, const std::string_view* texts, 
-                                      const ImU32* colors, const FastTextStyle& style);
+                                      std::span<const std::string_view> texts, 
+                                      std::span<const ImU32> colors, 
+                                      const FastTextStyle& style);
     };
 
 }
