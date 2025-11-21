@@ -123,8 +123,8 @@ std::string_view GetEntityName(const RenderableEntity& entity) {
         case EntityTypes::Item: {
             static thread_local char itemNameBuffer[64];
             const auto& item = static_cast<const RenderableItem&>(entity);
-            sprintf_s(itemNameBuffer, "Item [%u]", item.itemId);
-            return itemNameBuffer;
+            auto res = std::format_to_n(itemNameBuffer, std::size(itemNameBuffer), "Item [{}]", item.itemId);
+            return std::string_view(itemNameBuffer, res.size);
         }
         default:
             return {};

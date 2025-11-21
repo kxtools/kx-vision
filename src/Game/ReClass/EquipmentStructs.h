@@ -9,9 +9,6 @@
 namespace kx {
     namespace ReClass {
 
-        // Forward declaration
-        class ItemAgentWrapper;
-
         // The total number of equipment slots in the game's data structure.
         constexpr int NUM_EQUIPMENT_SLOTS = 69;
 

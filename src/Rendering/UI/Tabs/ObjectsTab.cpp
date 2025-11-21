@@ -107,7 +107,7 @@ namespace kx {
                     const float column1 = 180.0f;
 
                     // Layout rarities in two columns
-                    CheckboxWithTooltip("Legendary", "Rarity", &settings.showItemLegendary, "Purple/Purple"); ImGui::SameLine(column1);
+                    CheckboxWithTooltip("Legendary", "Rarity", &settings.showItemLegendary, "Purple"); ImGui::SameLine(column1);
                     CheckboxWithTooltip("Ascended", "Rarity", &settings.showItemAscended, "Pink");
                     
                     CheckboxWithTooltip("Exotic", "Rarity", &settings.showItemExotic, "Orange"); ImGui::SameLine(column1);
