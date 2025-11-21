@@ -36,14 +36,14 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         m_extractionData.Reset();
         DataExtractor::ExtractFrameData(m_playerPool, m_npcPool, m_gadgetPool, m_attackTargetPool, m_extractionData);
         
-        ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> activeKeys;
         size_t totalCount = m_extractionData.players.size() + m_extractionData.npcs.size() + 
                             m_extractionData.gadgets.size() + m_extractionData.attackTargets.size();
-        activeKeys.reserve(totalCount);
+        m_activeKeys.clear();
+        m_activeKeys.reserve(totalCount);
         
         auto collectKeys = [&](const auto& collection) {
             for (const auto* e : collection) {
-                activeKeys.insert(e->GetCombatKey());
+                m_activeKeys.insert(e->GetCombatKey());
             }
         };
 
@@ -52,7 +52,7 @@ void MasterRenderer::UpdateESPData(const FrameContext& frameContext, float curre
         collectKeys(m_extractionData.gadgets);
         collectKeys(m_extractionData.attackTargets);
 
-        m_combatStateManager.Prune(activeKeys);
+        m_combatStateManager.Prune(m_activeKeys);
         
         std::vector<RenderableEntity*> allEntities;
         allEntities.reserve(totalCount);
@@ -108,6 +108,7 @@ void MasterRenderer::Reset() {
     m_attackTargetPool.Reset();
     m_processedRenderData.Reset();
     m_extractionData.Reset();
+    m_activeKeys.clear();
 }
 
 bool MasterRenderer::ShouldHideESP(const MumbleLinkData* mumbleData) {

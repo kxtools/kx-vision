@@ -6,6 +6,7 @@
 #include "../../Utils/ObjectPool.h"
 #include "../Combat/CombatStateManager.h"
 #include "Data/FrameData.h"
+#include <ankerl/unordered_dense.h>
 
 namespace kx {
 
@@ -40,6 +41,7 @@ private:
     PooledFrameRenderData m_extractionData;
     
     float m_lastUpdateTime = 0.0f;
+    ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeKeys;
 };
 
 } // namespace kx
