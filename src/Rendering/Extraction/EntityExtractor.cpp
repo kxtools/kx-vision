@@ -200,9 +200,9 @@ namespace PhysicsValidation {
     }
 
     void EntityExtractor::ExtractGear(RenderablePlayer& outPlayer, const ReClass::ChCliInventory& inventory) {
-        outPlayer.gear.clear();
+        outPlayer.gearCount = 0;
 
-        const std::vector<Game::EquipmentSlot> slotsToCheck = {
+        static constexpr Game::EquipmentSlot slotsToCheck[] = {
             Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
             Game::EquipmentSlot::Gloves, Game::EquipmentSlot::Pants, Game::EquipmentSlot::Boots,
             Game::EquipmentSlot::Back, Game::EquipmentSlot::Amulet, Game::EquipmentSlot::Accessory1,
@@ -231,9 +231,9 @@ namespace PhysicsValidation {
                 if (stat) slotInfo.statId = stat.GetId();
             }
 
-        outPlayer.gear[slotEnum] = slotInfo;
+            outPlayer.AddGear(slotEnum, slotInfo);
+        }
     }
-}
 
 // Helper method implementations
 bool EntityExtractor::ValidateAndExtractGamePosition(const ReClass::ChCliCharacter& character, glm::vec3& outGamePos) {

@@ -136,18 +136,17 @@ void InfoBuilder::RenderGearDetails(
 
     char buf[128];
     for (const auto& slotEnum : displayOrder) {
-        if (auto gearIt = player->gear.find(slotEnum); gearIt != player->gear.end()) {
-            const char* slotName = Formatting::EquipmentSlotToString(gearIt->first);
-            const GearSlotInfo& info = gearIt->second;
-            ImU32 rarityColor = Styling::GetRarityColor(info.rarity);
+        if (const GearSlotInfo* info = player->GetGearInfo(slotEnum)) {
+            const char* slotName = Formatting::EquipmentSlotToString(slotEnum);
+            ImU32 rarityColor = Styling::GetRarityColor(info->rarity);
             style.color = rarityColor;
 
             std::format_to_n_result<char*> res;
-            if (info.statId > 0) {
-                if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
+            if (info->statId > 0) {
+                if (auto statIt = data::stat::DATA.find(info->statId); statIt != data::stat::DATA.end()) {
                     res = std::format_to_n(buf, std::size(buf), "{}: {}", slotName, statIt->second.name);
                 } else {
-                    res = std::format_to_n(buf, std::size(buf), "{}: stat({})", slotName, info.statId);
+                    res = std::format_to_n(buf, std::size(buf), "{}: stat({})", slotName, info->statId);
                 }
             } else {
                 res = std::format_to_n(buf, std::size(buf), "{}: No Stats", slotName);
@@ -158,7 +157,7 @@ void InfoBuilder::RenderGearDetails(
 }
 
 size_t InfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player, CompactStatInfo* outBuffer, size_t bufferSize) {
-    if (!player || player->gear.empty() || bufferSize == 0) {
+    if (!player || player->gearCount == 0 || bufferSize == 0) {
         return 0;
     }
 
@@ -166,7 +165,8 @@ size_t InfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player, Comp
     size_t uniqueStatsCount = 0;
     int totalItems = 0;
 
-    for (const auto& [slot, info] : player->gear) {
+    for (size_t entryIndex = 0; entryIndex < player->gearCount; ++entryIndex) {
+        const auto& info = player->gear[entryIndex].info;
         if (info.statId > 0) {
             totalItems++;
             if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
@@ -273,14 +273,15 @@ size_t InfoBuilder::BuildDominantStats(const RenderablePlayer* player, DominantS
 }
 
 Game::ItemRarity InfoBuilder::GetHighestRarity(const RenderablePlayer* player) {
-    if (!player || player->gear.empty()) {
+    if (!player || player->gearCount == 0) {
         return Game::ItemRarity::None;
     }
 
     Game::ItemRarity highestRarity = Game::ItemRarity::None;
-    for (const auto& pair : player->gear) {
-        if (pair.second.rarity > highestRarity) {
-            highestRarity = pair.second.rarity;
+    for (size_t i = 0; i < player->gearCount; ++i) {
+        const auto& info = player->gear[i].info;
+        if (info.rarity > highestRarity) {
+            highestRarity = info.rarity;
         }
     }
     return highestRarity;
@@ -468,13 +469,14 @@ void InfoBuilder::RenderAttackTargetDetails(
 // ===== Private Helper Methods =====
 
 size_t InfoBuilder::BuildAttributeSummary(const RenderablePlayer* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize) {
-    if (!player || player->gear.empty() || bufferSize == 0) {
+    if (!player || player->gearCount == 0 || bufferSize == 0) {
         return 0;
     }
 
     size_t uniqueAttributesCount = 0;
 
-    for (const auto& [slot, info] : player->gear) {
+    for (size_t entryIndex = 0; entryIndex < player->gearCount; ++entryIndex) {
+        const auto& info = player->gear[entryIndex].info;
         if (info.statId > 0) {
             if (auto statIt = data::stat::DATA.find(info.statId); statIt != data::stat::DATA.end()) {
                 for (const auto& attr : statIt->second.attributes) {

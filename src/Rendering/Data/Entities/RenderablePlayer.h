@@ -2,7 +2,7 @@
 
 #include "RenderableEntity.h"
 #include "../PlayerRenderData.h"
-#include <ankerl/unordered_dense.h>
+#include <array>
 
 namespace kx {
 
@@ -19,7 +19,27 @@ struct RenderablePlayer : public RenderableEntity {
     Game::Race race;
     bool isLocalPlayer;
 
-    ankerl::unordered_dense::map<Game::EquipmentSlot, GearSlotInfo> gear;
+    struct GearItem {
+        Game::EquipmentSlot slot;
+        GearSlotInfo info;
+    };
+
+    static constexpr size_t MAX_GEAR_ITEMS = 32;
+    std::array<GearItem, MAX_GEAR_ITEMS> gear{};
+    size_t gearCount = 0;
+
+    const GearSlotInfo* GetGearInfo(Game::EquipmentSlot slot) const {
+        for (size_t i = 0; i < gearCount; ++i) {
+            if (gear[i].slot == slot) return &gear[i].info;
+        }
+        return nullptr;
+    }
+
+    void AddGear(Game::EquipmentSlot slot, const GearSlotInfo& info) {
+        if (gearCount < MAX_GEAR_ITEMS) {
+            gear[gearCount++] = { slot, info };
+        }
+    }
     
     RenderablePlayer() : RenderableEntity(),
                          currentEndurance(0.0f), maxEndurance(0.0f),
