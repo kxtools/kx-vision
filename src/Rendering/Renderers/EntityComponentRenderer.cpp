@@ -12,7 +12,6 @@
 #include <string_view>
 #include <span>
 #include <cstring>
-#include <cstdio>
 #include <format>
 #include <array>
 
@@ -383,10 +382,8 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                         for (size_t i = 0; i < summaryCount && count < 32; ++i) {
                             const auto& info = summaryBuffer[i];
                             char statBuffer[64];
-                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%.0f%% %.*s", info.percentage, static_cast<int>(info.statName.size()), info.statName.data());
-                            if (statLen < 0) statLen = 0;
-                            if (static_cast<size_t>(statLen) >= std::size(statBuffer)) statLen = static_cast<int>(std::size(statBuffer) - 1);
-                            std::string_view statText(statBuffer, static_cast<size_t>(statLen));
+                            auto result = std::format_to_n(statBuffer, std::size(statBuffer), "{:.0f}% {}", info.percentage, info.statName);
+                            std::string_view statText(statBuffer, result.size);
                             
                             ImU32 rarityColor = Styling::GetRarityColor(info.highestRarity);
                             append(statText, rarityColor);
@@ -432,10 +429,8 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                         for (size_t i = 0; i < statsCount && count < 32; ++i) {
                             const auto& stat = statsBuffer[i];
                             char statBuffer[64];
-                            int statLen = snprintf(statBuffer, std::size(statBuffer), "%.*s %.0f%%", static_cast<int>(stat.name.size()), stat.name.data(), stat.percentage);
-                            if (statLen < 0) statLen = 0;
-                            if (static_cast<size_t>(statLen) >= std::size(statBuffer)) statLen = static_cast<int>(std::size(statBuffer) - 1);
-                            std::string_view statText(statBuffer, static_cast<size_t>(statLen));
+                            auto result = std::format_to_n(statBuffer, std::size(statBuffer), "{} {:.0f}%", stat.name, stat.percentage);
+                            std::string_view statText(statBuffer, result.size);
                             
                             append(statText, stat.color);
                             

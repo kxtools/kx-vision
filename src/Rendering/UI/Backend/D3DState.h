@@ -5,11 +5,8 @@
 
 #include <d3d11.h>
 #include <windows.h>
-#include <mutex>
 
 namespace kx {
-
-    inline std::mutex g_d3dStateMutex;
 
     /**
      * @brief Structure to hold D3D11 state for backup/restore operations
@@ -77,8 +74,7 @@ namespace kx {
      * Performance: ~20-25 microseconds per backup/restore cycle
      */
     inline void BackupD3D11State(ID3D11DeviceContext* ctx, StateBackupD3D11& backup) {
-        std::lock_guard<std::mutex> lock(g_d3dStateMutex);
-
+        // Runs on the render thread; no locking required.
         // Ensure context is valid
         if (!ctx) return;
 
@@ -110,8 +106,7 @@ namespace kx {
      * game rendering or other overlays.
      */
     inline void RestoreD3D11State(ID3D11DeviceContext* ctx, StateBackupD3D11& backup) {
-        std::lock_guard<std::mutex> lock(g_d3dStateMutex);
-
+        // Runs on the render thread; no locking required.
         // Ensure context is valid
         if (!ctx) return;
 
