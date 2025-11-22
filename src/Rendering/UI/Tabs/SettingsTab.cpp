@@ -316,7 +316,7 @@ namespace kx {
                                 std::map<Game::ItemLocation, int> counts;
                                 int totalItems = 0;
 
-                                SafeAccess::ItemList list(itemCtx);
+                                auto list = itemCtx.GetItems();
                                 for (const auto& item : list) {
                                     counts[item.GetLocationType()]++;
                                     totalItems++;

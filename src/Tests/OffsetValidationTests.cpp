@@ -138,7 +138,7 @@ std::string DiagnoseCharacterAccess(const kx::ReClass::ChCliCharacter& character
 template<typename Predicate>
 std::string FindCharacterWithDiagnostics(kx::ReClass::ChCliContext& context, Predicate p, 
                                          std::string& diagnosticInfo) {
-    kx::SafeAccess::CharacterList characterList(context);
+    auto characterList = context.GetCharacters();
     size_t totalCount = 0;
     std::map<int, int> typeCounts;
     kx::ReClass::ChCliCharacter firstCharacter(nullptr);
@@ -176,7 +176,7 @@ std::string FindCharacterWithDiagnostics(kx::ReClass::ChCliContext& context, Pre
 template<typename Predicate>
 std::string FindGadgetWithDiagnostics(kx::ReClass::GdCliContext& context, Predicate p,
                                       std::string& diagnosticInfo) {
-    kx::SafeAccess::GadgetList gadgetList(context);
+    auto gadgetList = context.GetGadgets();
     size_t totalCount = 0;
     std::map<int, int> typeCounts;
     kx::ReClass::GdCliGadget firstGadget(nullptr);
@@ -214,7 +214,7 @@ std::string FindGadgetWithDiagnostics(kx::ReClass::GdCliContext& context, Predic
 
 template<typename Predicate>
 kx::ReClass::ChCliCharacter findCharacter(kx::ReClass::ChCliContext& context, Predicate p) {
-    kx::SafeAccess::CharacterList characterList(context);
+    auto characterList = context.GetCharacters();
     for (const auto& character : characterList) {
         if (p(character)) {
             return character;
@@ -225,7 +225,7 @@ kx::ReClass::ChCliCharacter findCharacter(kx::ReClass::ChCliContext& context, Pr
 
 template<typename Predicate>
 kx::ReClass::GdCliGadget findGadget(kx::ReClass::GdCliContext& context, Predicate p) {
-    kx::SafeAccess::GadgetList gadgetList(context);
+    auto gadgetList = context.GetGadgets();
     for (const auto& gadget : gadgetList) {
         if (p(gadget)) {
             return gadget;

@@ -28,10 +28,11 @@ namespace kx {
             ReClass::ContextCollection ctxCollection(pContextCollection);
             ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();
             if (charContext.data()) {
-                SafeAccess::PlayerList playerList(charContext);
-                for (auto playerIt = playerList.begin(); playerIt != playerList.end(); ++playerIt) {
-                    if (playerIt.IsValid()) {
-                        characterToPlayerNameMap[playerIt.GetCharacterDataPtr()] = playerIt.GetName();
+                auto playerList = charContext.GetPlayers();
+                for (const auto& player : playerList) {
+                    auto character = player.GetCharacter();
+                    if (character.data()) {
+                        characterToPlayerNameMap[character.data()] = player.GetName();
                     }
                 }
             }
@@ -64,7 +65,7 @@ namespace kx {
         void* localPlayerPtr = AddressManager::GetLocalPlayer();
 
         // Single pass over the character list - process both players and NPCs
-        SafeAccess::CharacterList characterList(charContext);
+        auto characterList = charContext.GetCharacters();
         for (const auto& character : characterList) {
             void* charPtr = const_cast<void*>(character.data());
             
@@ -104,7 +105,7 @@ namespace kx {
         ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
         if (!gadgetContext.data()) return;
 
-        SafeAccess::GadgetList gadgetList(gadgetContext);
+        auto gadgetList = gadgetContext.GetGadgets();
         for (const auto& gadget : gadgetList) {
             RenderableGadget* renderableGadget = gadgetPool.Get();
             if (!renderableGadget) break; // Pool exhausted
@@ -128,7 +129,7 @@ namespace kx {
         ReClass::GdCliContext gadgetContext = ctxCollection.GetGdCliContext();
         if (!gadgetContext.data()) return;
 
-        SafeAccess::AttackTargetList attackTargetList(gadgetContext);
+        auto attackTargetList = gadgetContext.GetAttackTargets();
         for (const auto& agentInl : attackTargetList) {
             RenderableAttackTarget* renderableAttackTarget = attackTargetPool.Get();
             if (!renderableAttackTarget) break; // Pool exhausted
@@ -152,7 +153,7 @@ namespace kx {
         ReClass::ItCliContext itemContext = ctxCollection.GetItCliContext();
         if (!itemContext.data()) return;
 
-        SafeAccess::ItemList itemList(itemContext);
+        auto itemList = itemContext.GetItems();
         for (const auto& item : itemList) {
             RenderableItem* renderableItem = itemPool.Get();
             if (!renderableItem) break; // Pool exhausted

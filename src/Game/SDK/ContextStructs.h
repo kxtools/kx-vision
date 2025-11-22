@@ -2,6 +2,7 @@
 
 #include "../../Utils/DebugLogger.h"
 #include "../../Utils/SafeForeignClass.h"
+#include "../../Utils/SafeIterators.h"
 #include "CharacterStructs.h"
 #include "GadgetStructs.h"
 #include "ItemStructs.h"
@@ -92,6 +93,18 @@ namespace kx {
                 LOG_PTR("LocalPlayer", result);
                 return result;
             }
+
+            SafeAccess::SafeGameArray<ChCliCharacter> GetCharacters() const {
+                void* arrayPtr = ReadMemberFast<void*>(Offsets::CHARACTER_LIST, nullptr);
+                uint32_t capacity = GetCharacterListCapacity();
+                return SafeAccess::SafeGameArray<ChCliCharacter>(arrayPtr, capacity);
+            }
+
+            SafeAccess::SafeGameArray<ChCliPlayer> GetPlayers() const {
+                void* arrayPtr = ReadMemberFast<void*>(Offsets::PLAYER_LIST, nullptr);
+                uint32_t capacity = GetPlayerListCapacity();
+                return SafeAccess::SafeGameArray<ChCliPlayer>(arrayPtr, capacity);
+            }
         };
 
         /**
@@ -172,6 +185,18 @@ namespace kx {
                 LOG_DEBUG("GdCliContext::GetAttackTargetListCount - Count: %u", count);
                 return count;
             }
+
+            SafeAccess::SafeGameArray<GdCliGadget> GetGadgets() const {
+                void* arrayPtr = ReadMemberFast<void*>(Offsets::GADGET_LIST, nullptr);
+                uint32_t capacity = GetGadgetListCapacity();
+                return SafeAccess::SafeGameArray<GdCliGadget>(arrayPtr, capacity);
+            }
+
+            SafeAccess::SafeGameArray<AgentInl> GetAttackTargets() const {
+                void* arrayPtr = ReadMemberFast<void*>(Offsets::ATTACK_TARGET_LIST, nullptr);
+                uint32_t capacity = GetAttackTargetListCapacity();
+                return SafeAccess::SafeGameArray<AgentInl>(arrayPtr, capacity);
+            }
         };
 
         /**
@@ -216,6 +241,12 @@ namespace kx {
                 
                 LOG_DEBUG("ItCliContext::GetCount - Count: %u", count);
                 return count;
+            }
+
+            SafeAccess::SafeGameArray<ItCliItem> GetItems() const {
+                void* arrayPtr = ReadMemberFast<void*>(Offsets::ITEM_LIST, nullptr);
+                uint32_t capacity = GetCapacity();
+                return SafeAccess::SafeGameArray<ItCliItem>(arrayPtr, capacity);
             }
         };
 
