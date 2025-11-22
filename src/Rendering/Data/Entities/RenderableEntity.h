@@ -12,7 +12,7 @@
 #include "../../../Game/Havok/HavokEnums.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../EntityTypes.h"
-#include "../../Combat/CombatStateKey.h"
+#include "../../../Features/Combat/CombatStateKey.h"
 
 namespace kx {
 

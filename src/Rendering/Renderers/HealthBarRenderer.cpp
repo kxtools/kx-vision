@@ -12,7 +12,7 @@
 #include "../Shared/LayoutConstants.h"
 #include "../../Core/Settings.h"
 #include "../Shared/RenderSettingsHelper.h"
-#include "Combat/CombatConstants.h"
+#include "../../Features/Combat/CombatConstants.h"
 #include "../Data/RenderableData.h"
 #include "../../Game/GameEnums.h"
 

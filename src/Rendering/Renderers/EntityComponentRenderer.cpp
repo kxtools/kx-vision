@@ -18,7 +18,7 @@
 #include "Presentation/Styling.h"
 #include "Presentation/InfoBuilder.h"
 #include "Presentation/Formatting.h"
-#include "Combat/CombatConstants.h"
+#include "../../Features/Combat/CombatConstants.h"
 #include "Shared/RenderSettingsHelper.h"
 #include "../../Utils/UnitConversion.h"
 #include "../Shared/ColorConstants.h"

@@ -108,12 +108,12 @@
     <ClCompile Include="src\Core\FrameCoordinator.cpp" />
     <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
+    <ClCompile Include="src\Features\Combat\CombatLogic.cpp" />
+    <ClCompile Include="src\Features\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Memory\AddressManager.cpp" />
     <ClCompile Include="src\Game\Services\Camera\Camera.cpp" />
     <ClCompile Include="src\Game\Services\Mumble\MumbleLinkManager.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_WndProc.cpp" />
-    <ClCompile Include="src\Rendering\Combat\CombatLogic.cpp" />
-    <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Rendering\Extraction\DataExtractor.cpp" />
     <ClCompile Include="src\Rendering\UI\Backend\OverlayWindow.cpp" />
     <ClCompile Include="src\Rendering\UI\Backend\ImGuiStyle.cpp" />
@@ -175,6 +175,11 @@
     <ClInclude Include="src\Core\Settings\ESPSettings.h" />
     <ClInclude Include="src\Core\Settings\RenderSettings.h" />
     <ClInclude Include="src\Core\Settings\SettingsConstants.h" />
+    <ClInclude Include="src\Features\Combat\CombatConstants.h" />
+    <ClInclude Include="src\Features\Combat\CombatLogic.h" />
+    <ClInclude Include="src\Features\Combat\CombatState.h" />
+    <ClInclude Include="src\Features\Combat\CombatStateKey.h" />
+    <ClInclude Include="src\Features\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
@@ -198,10 +203,6 @@
     <ClInclude Include="src\Game\SDK\StatStructs.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
-    <ClInclude Include="src\Rendering\Combat\CombatLogic.h" />
-    <ClInclude Include="src\Rendering\Combat\CombatState.h" />
-    <ClInclude Include="src\Rendering\Combat\CombatStateKey.h" />
-    <ClInclude Include="src\Rendering\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Rendering\Data\Entities\RenderableAttackTarget.h" />
     <ClInclude Include="src\Rendering\Data\Entities\RenderableEntity.h" />
     <ClInclude Include="src\Rendering\Data\Entities\RenderableGadget.h" />
@@ -243,7 +244,6 @@
     <ClInclude Include="src\Rendering\Presentation\Styling.h" />
     <ClInclude Include="src\Rendering\Shared\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Shared\ColorConstants.h" />
-    <ClInclude Include="src\Rendering\Combat\CombatConstants.h" />
     <ClInclude Include="src\Rendering\UI\Backend\D3DState.h" />
     <ClInclude Include="src\Rendering\Shared\MathUtils.h" />
     <ClInclude Include="src\Rendering\Shared\LayoutConstants.h" />

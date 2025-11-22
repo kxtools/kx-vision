@@ -4,7 +4,7 @@
 #include "../../Game/Services/Mumble/MumbleLink.h"
 #include "../Data/RenderableData.h"
 #include "../../Utils/ObjectPool.h"
-#include "../Combat/CombatStateManager.h"
+#include "../../Features/Combat/CombatStateManager.h"
 #include "Data/FrameData.h"
 #include <ankerl/unordered_dense.h>
 #include <vector>

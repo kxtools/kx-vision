@@ -11,9 +11,9 @@
 #include "../Shared/ColorConstants.h"
 #include "../Logic/StyleCalculator.h"
 #include "../Logic/Animations/HealthBarAnimations.h"
-#include "../Combat/CombatStateManager.h"
-#include "../Combat/CombatState.h"
-#include "../Combat/CombatConstants.h"
+#include "../../Features/Combat/CombatStateManager.h"
+#include "../../Features/Combat/CombatState.h"
+#include "../../Features/Combat/CombatConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <optional>
 #include <string>

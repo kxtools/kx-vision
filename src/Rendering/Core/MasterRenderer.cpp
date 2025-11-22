@@ -13,8 +13,8 @@
 #include "../Data/RenderableData.h"
 #include "../Extraction/DataExtractor.h"
 #include "StageRenderer.h"
-#include "../Combat/CombatStateManager.h"
-#include "../Combat/CombatStateKey.h"
+#include "../../Features/Combat/CombatStateManager.h"
+#include "../../Features/Combat/CombatStateKey.h"
 #include "../../../libs/ImGui/imgui.h"
 #include "Logic/EntityFilter.h"
 
