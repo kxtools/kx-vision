@@ -123,18 +123,18 @@ enum class ItemRarity : int {
 };
 
 enum class ItemLocation : int32_t {
-    None = 0,                       // Unclaimed loot after killing NPCs
+    None = 0,                       // Unclaimed loot after killing NPCs (no special structure at +0x58)
     Agent = 1,                      // Items on ground
     Equipment = 2,                  // All equipped items (players + NPCs) - usually the largest count
-    Inventory = 3,                 // Local player's items in bags
-    InventoryAccount = 4,         // Local player's items in bank
-    InventoryBagSlot = 5,          // Local player's bags
-    InventoryOverflow = 6,
-    Lootable = 7,
-    Vendor = 8,
-    InventoryShared = 10,          // Local player's items in shared inventory slots
-    InventoryArmory = 11,
-    InventoryLegendaryArmory = 12,
+    Inventory = 3,                 // Local player's items in bags (ChCliInventory)
+    InventoryAccount = 4,         // Local player's items in bank (ChCliInventory)
+    InventoryBagSlot = 5,          // Local player's bags (ChCliInventory)
+    InventoryOverflow = 6,         // (ChCliInventory)
+    Lootable = 7,                  // (LootCliLootable)
+    Vendor = 8,                     // (VendCliVendor)
+    InventoryShared = 10,          // Local player's items in shared inventory slots (ChCliInventory)
+    InventoryArmory = 11,          // (ChCliInventory)
+    InventoryLegendaryArmory = 12,  // (ChCliInventory)
     Count = 13
 };
 
