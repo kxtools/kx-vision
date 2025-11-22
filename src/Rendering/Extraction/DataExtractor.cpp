@@ -1,7 +1,7 @@
 #include "DataExtractor.h"
 #include <ankerl/unordered_dense.h>
 #include "../../Game/AddressManager.h"
-#include "../../Game/ReClassStructs.h"
+#include "../../Game/SdkStructs.h"
 #include "../../Utils/SafeIterators.h"
 #include "../../Utils/MemorySafety.h"
 #include "Extraction/EntityExtractor.h"

@@ -1,6 +1,6 @@
 #include "EntityExtractor.h"
 #include "../../Game/GameEnums.h"
-#include "../../Game/ReClass/HavokStructs.h"
+#include "../../Game/SDK/HavokStructs.h"
 #include "../../Utils/StringHelpers.h"
 #include <vector>
 #include <cstring>

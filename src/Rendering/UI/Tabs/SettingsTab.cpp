@@ -8,8 +8,8 @@
 #include "SettingsManager.h"
 
 #include "ImGui/imgui.h"
-#include "ReClass/ContextStructs.h"
-#include "ReClass/GadgetStructs.h"
+#include "SDK/ContextStructs.h"
+#include "SDK/GadgetStructs.h"
 #include "../../../Utils/SafeIterators.h"
 #include "../../../Rendering/Presentation/Formatting.h"
 #include "../../../Game/AddressManager.h"

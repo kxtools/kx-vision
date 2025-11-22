@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file ReClassStructs.h
+ * @file SdkStructs.h
  * @brief Main header that includes all ReClass structure modules
  * 
  * This file serves as the entry point for all ReClass game structure wrappers.
@@ -14,10 +14,10 @@
  * - ContextStructs.h: Context managers and the root context collection
  */
 
-#include "ReClass/AgentStructs.h"     // Must be included first (no dependencies)
-#include "ReClass/CharacterStructs.h" // Depends on AgentStructs
-#include "ReClass/HavokStructs.h"     // Havok physics wrappers (independent)
-#include "ReClass/GadgetStructs.h"    // Depends on HavokStructs
-#include "ReClass/ItemStructs.h"      // Depends on GadgetStructs (for AgKeyFramed)
-#include "ReClass/EquipmentStructs.h"
-#include "ReClass/ContextStructs.h"   // Depends on Character and Gadget structs
+#include "SDK/AgentStructs.h"     // Must be included first (no dependencies)
+#include "SDK/CharacterStructs.h" // Depends on AgentStructs
+#include "SDK/HavokStructs.h"     // Havok physics wrappers (independent)
+#include "SDK/GadgetStructs.h"    // Depends on HavokStructs
+#include "SDK/ItemStructs.h"      // Depends on GadgetStructs (for AgKeyFramed)
+#include "SDK/EquipmentStructs.h"
+#include "SDK/ContextStructs.h"   // Depends on Character and Gadget structs

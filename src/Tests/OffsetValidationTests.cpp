@@ -1,7 +1,7 @@
 #include "../../libs/Catch2/catch_amalgamated.hpp"
 
 #include "../Game/AddressManager.h"
-#include "../Game/ReClassStructs.h"
+#include "../Game/SdkStructs.h"
 #include "../Utils/SafeIterators.h"
 #include <string>
 #include <sstream>

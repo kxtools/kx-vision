@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iterator>
-#include "../Game/ReClassStructs.h"
+#include "../Game/SdkStructs.h"
 #include "MemorySafety.h"
 
 namespace kx {

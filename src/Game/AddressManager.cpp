@@ -6,7 +6,7 @@
 #include "../Core/Config.h" // For TARGET_PROCESS_NAME
 #include "../Utils/DebugLogger.h"
 #include "../Utils/PatternScanner.h"
-#include "ReClassStructs.h" // For ContextCollection and ChCliContext
+#include "SdkStructs.h" // For ContextCollection and ChCliContext
 
 namespace kx {
 
