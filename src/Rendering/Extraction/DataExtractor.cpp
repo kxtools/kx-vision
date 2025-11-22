@@ -5,6 +5,7 @@
 #include "../../Memory/SafeGameArray.h"
 #include "../../Memory/Safety.h"
 #include "Extraction/EntityExtractor.h"
+#include "../Shared/LayoutConstants.h"
 
 namespace kx {
 
@@ -52,8 +53,8 @@ namespace kx {
         const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap) {
         players.clear();
         npcs.clear();
-        players.reserve(ExtractionCapacity::PLAYERS_RESERVE);
-        npcs.reserve(ExtractionCapacity::NPCS_RESERVE);
+        players.reserve(EntityLimits::MAX_PLAYERS);
+        npcs.reserve(EntityLimits::MAX_NPCS);
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection) return;
@@ -96,7 +97,7 @@ namespace kx {
     void DataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
         std::vector<RenderableGadget*>& gadgets) {
         gadgets.clear();
-        gadgets.reserve(ExtractionCapacity::GADGETS_RESERVE);
+        gadgets.reserve(EntityLimits::MAX_GADGETS);
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection) return;
@@ -120,7 +121,7 @@ namespace kx {
     void DataExtractor::ExtractAttackTargetData(ObjectPool<RenderableAttackTarget>& attackTargetPool,
         std::vector<RenderableAttackTarget*>& attackTargets) {
         attackTargets.clear();
-        attackTargets.reserve(ExtractionCapacity::ATTACK_TARGETS_RESERVE);
+        attackTargets.reserve(EntityLimits::MAX_ATTACK_TARGETS);
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection) return;
@@ -144,7 +145,7 @@ namespace kx {
     void DataExtractor::ExtractItemData(ObjectPool<RenderableItem>& itemPool,
         std::vector<RenderableItem*>& items) {
         items.clear();
-        items.reserve(ExtractionCapacity::ITEMS_RESERVE);
+        items.reserve(EntityLimits::MAX_ITEMS);
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection) return;

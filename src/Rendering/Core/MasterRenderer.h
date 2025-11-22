@@ -6,6 +6,7 @@
 #include "../../Utils/ObjectPool.h"
 #include "../../Features/Combat/CombatStateManager.h"
 #include "Data/FrameData.h"
+#include "../Shared/LayoutConstants.h"
 #include <ankerl/unordered_dense.h>
 #include <vector>
 
@@ -31,11 +32,11 @@ private:
      */
     void UpdateESPData(const FrameContext& context, float currentTimeSeconds);
 
-    ObjectPool<RenderablePlayer> m_playerPool{500};
-    ObjectPool<RenderableNpc> m_npcPool{2000};
-    ObjectPool<RenderableGadget> m_gadgetPool{5000};
-    ObjectPool<RenderableAttackTarget> m_attackTargetPool{1000};
-    ObjectPool<RenderableItem> m_itemPool{5000};
+    ObjectPool<RenderablePlayer> m_playerPool{EntityLimits::MAX_PLAYERS};
+    ObjectPool<RenderableNpc> m_npcPool{EntityLimits::MAX_NPCS};
+    ObjectPool<RenderableGadget> m_gadgetPool{EntityLimits::MAX_GADGETS};
+    ObjectPool<RenderableAttackTarget> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
+    ObjectPool<RenderableItem> m_itemPool{EntityLimits::MAX_ITEMS};
 
     CombatStateManager m_combatStateManager;
     PooledFrameRenderData m_processedRenderData;

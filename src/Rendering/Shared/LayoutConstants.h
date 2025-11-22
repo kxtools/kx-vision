@@ -78,21 +78,24 @@ namespace CoordinateTransform {
 }
 
 /**
- * @brief Data extraction capacity constants
+ * @brief Entity Capacity Limits (Memory & Vectors)
  * 
- * Initial capacity reservations for entity collections to minimize dynamic allocations
- * during frame data extraction. These values are based on actual game data analysis:
- * - PlayerList typically has ~134 players, we extract ~12 valid players
- * - CharacterList capacity ~9728, we extract ~29 NPCs 
- * - GadgetList capacity ~9216, we extract ~457 gadgets
- * - Values include safe buffer for peak scenarios and different map types
+ * Defines the HARD limits for Object Pools and the reservation sizes for vectors.
+ * These values are tuned based on observed peaks in crowded areas + 50-100% safety margin.
+ * 
+ * Tuning History:
+ * - Players: Peak 100 -> Limit 250 (Map cap ~150)
+ * - NPCs: Peak ~413 -> Limit 750 (Meta event buffer)
+ * - Gadgets: Peak 311 -> Limit 750 (Resource heavy maps)
+ * - AttackTargets: Peak 106 -> Limit 250
+ * - Items: Peak 2231 (Total) -> Limit 500 (Filtered Ground Loot Only)
  */
-namespace ExtractionCapacity {
-    constexpr size_t PLAYERS_RESERVE = 64;     // ~12 typical + buffer for busy instances
-    constexpr size_t NPCS_RESERVE = 128;       // ~29 typical + buffer for NPC-heavy areas  
-    constexpr size_t GADGETS_RESERVE = 1024;   // ~457 typical + buffer for resource-rich zones
-    constexpr size_t ATTACK_TARGETS_RESERVE = 512; // Typical + buffer for attack targets
-    constexpr size_t ITEMS_RESERVE = 256;      // Typical + buffer for item-rich areas
+namespace EntityLimits {
+    constexpr size_t MAX_PLAYERS        = 250; 
+    constexpr size_t MAX_NPCS           = 750; 
+    constexpr size_t MAX_GADGETS        = 750; 
+    constexpr size_t MAX_ATTACK_TARGETS = 250; 
+    constexpr size_t MAX_ITEMS          = 500; 
 }
 
 /**
