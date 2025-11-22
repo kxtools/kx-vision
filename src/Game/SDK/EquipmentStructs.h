@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/ForeignClass.h"
 #include "../GameEnums.h"
 #include "ItemStructs.h"
 #include "StatStructs.h"
@@ -16,7 +16,7 @@ namespace kx {
          * @brief ItCliItem - Equipment slot containing item and stat data
          * Contains pointers to the item definition, stats, upgrades, etc.
          */
-        class ItCliItem : public SafeForeignClass {
+        class ItCliItem : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t ITEM_DEF = 0x40;      // ItemDef* item definition
@@ -37,7 +37,7 @@ namespace kx {
             };
 
         public:
-            ItCliItem(void* ptr) : SafeForeignClass(ptr) {}
+            ItCliItem(void* ptr) : ForeignClass(ptr) {}
 
             ItemDef GetItemDefinition() const {
                 return ReadPointerFast<ItemDef>(Offsets::ITEM_DEF);
@@ -85,14 +85,14 @@ namespace kx {
          * @brief ChCliInventory - Character inventory container
          * Contains the array of equipped items.
          */
-        class ChCliInventory : public SafeForeignClass {
+        class ChCliInventory : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t EQUIPMENT_ARRAY = 0x160;  // ItCliItem** array of equipment slots
             };
 
         public:
-            ChCliInventory(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliInventory(void* ptr) : ForeignClass(ptr) {}
 
             ItCliItem GetEquipSlot(int slotIndex) const {
                 if (!data() || slotIndex < 0 || slotIndex >= NUM_EQUIPMENT_SLOTS) {

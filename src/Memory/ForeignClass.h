@@ -2,7 +2,7 @@
 
 #include <windows.h> // Required for VirtualProtect
 #include <cstdint>   // Required for UINTPTR_MAX
-#include "../Memory/MemorySafety.h"
+#include "../Memory/Safety.h"
 #include "DebugLogger.h"
 
 namespace kx {
@@ -36,9 +36,9 @@ namespace kx {
      * - Exception handling for all memory operations
      * - Comprehensive validation methods for different risk levels
      */
-    class SafeForeignClass {
+    class ForeignClass {
     public:
-        SafeForeignClass(void* ptr) : m_ptr(ptr) {
+        ForeignClass(void* ptr) : m_ptr(ptr) {
             // Critical validation on construction - nullify unsafe pointers immediately
             if (ptr && !SafeAccess::IsMemorySafe(ptr)) {
                 m_ptr = nullptr; // Nullify unsafe pointers to prevent future crashes
@@ -46,7 +46,7 @@ namespace kx {
         }
 
         // Copy constructor with validation
-        SafeForeignClass(const SafeForeignClass& other) : m_ptr(other.m_ptr) {
+        ForeignClass(const ForeignClass& other) : m_ptr(other.m_ptr) {
             // Re-validate on copy to ensure safety
             if (m_ptr && !SafeAccess::IsMemorySafe(m_ptr)) {
                 m_ptr = nullptr;
@@ -54,7 +54,7 @@ namespace kx {
         }
 
         // Assignment operator with validation
-        SafeForeignClass& operator=(const SafeForeignClass& other) {
+        ForeignClass& operator=(const ForeignClass& other) {
             if (this != &other) {
                 m_ptr = other.m_ptr;
                 // Re-validate on assignment
@@ -66,12 +66,12 @@ namespace kx {
         }
 
         // Move constructor (safe since we validate on access)
-        SafeForeignClass(SafeForeignClass&& other) noexcept : m_ptr(other.m_ptr) {
+        ForeignClass(ForeignClass&& other) noexcept : m_ptr(other.m_ptr) {
             other.m_ptr = nullptr;
         }
 
         // Move assignment
-        SafeForeignClass& operator=(SafeForeignClass&& other) noexcept {
+        ForeignClass& operator=(ForeignClass&& other) noexcept {
             if (this != &other) {
                 m_ptr = other.m_ptr;
                 other.m_ptr = nullptr;
@@ -447,65 +447,65 @@ namespace kx {
     };
 
     // --- Comparison operators ---
-    inline bool operator==(const SafeForeignClass& lhs, const SafeForeignClass& rhs) {
+    inline bool operator==(const ForeignClass& lhs, const ForeignClass& rhs) {
         return lhs.data() == rhs.data();
     }
 
-    inline bool operator==(const SafeForeignClass& lhs, nullptr_t) {
+    inline bool operator==(const ForeignClass& lhs, nullptr_t) {
         return lhs.data() == nullptr;
     }
 
-    inline bool operator==(nullptr_t, const SafeForeignClass& rhs) {
+    inline bool operator==(nullptr_t, const ForeignClass& rhs) {
         return nullptr == rhs.data();
     }
 
-    inline bool operator!=(const SafeForeignClass& lhs, const SafeForeignClass& rhs) {
+    inline bool operator!=(const ForeignClass& lhs, const ForeignClass& rhs) {
         return lhs.data() != rhs.data();
     }
 
-    inline bool operator!=(const SafeForeignClass& lhs, nullptr_t) {
+    inline bool operator!=(const ForeignClass& lhs, nullptr_t) {
         return lhs.data() != nullptr;
     }
 
-    inline bool operator!=(nullptr_t, const SafeForeignClass& rhs) {
+    inline bool operator!=(nullptr_t, const ForeignClass& rhs) {
         return nullptr != rhs.data();
     }
 
     // --- Arithmetic operators with overflow protection ---
-    inline SafeForeignClass operator+(const SafeForeignClass& base, uintptr_t offset) {
+    inline ForeignClass operator+(const ForeignClass& base, uintptr_t offset) {
         uintptr_t base_addr = reinterpret_cast<uintptr_t>(base.data());
         
         // Critical validation: Check for overflow
         if (base_addr > UINTPTR_MAX - offset) {
-            return SafeForeignClass(nullptr); // Prevent overflow
+            return ForeignClass(nullptr); // Prevent overflow
         }
         
         // Critical validation: Check for reasonable offset
         if (offset > SafeForeignClassLimits::MAX_REASONABLE_OFFSET) {
-            return SafeForeignClass(nullptr); // Prevent unreasonable offsets
+            return ForeignClass(nullptr); // Prevent unreasonable offsets
         }
         
-        return SafeForeignClass((void*)(base_addr + offset));
+        return ForeignClass((void*)(base_addr + offset));
     }
 
-    inline SafeForeignClass operator+(uintptr_t offset, const SafeForeignClass& base) {
+    inline ForeignClass operator+(uintptr_t offset, const ForeignClass& base) {
         return base + offset;
     }
 
-    inline SafeForeignClass operator-(const SafeForeignClass& base, uintptr_t offset) {
+    inline ForeignClass operator-(const ForeignClass& base, uintptr_t offset) {
         uintptr_t base_addr = reinterpret_cast<uintptr_t>(base.data());
         
         // Critical validation: Check for underflow
         if (base_addr < offset) {
-            return SafeForeignClass(nullptr); // Prevent underflow
+            return ForeignClass(nullptr); // Prevent underflow
         }
         
         // Critical validation: Check for reasonable offset
         if (offset > SafeForeignClassLimits::MAX_REASONABLE_OFFSET) {
-            return SafeForeignClass(nullptr); // Prevent unreasonable offsets
+            return ForeignClass(nullptr); // Prevent unreasonable offsets
         }
         
-        return SafeForeignClass((void*)(base_addr - offset));
+        return ForeignClass((void*)(base_addr - offset));
     }
 
 } // namespace kx

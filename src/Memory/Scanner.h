@@ -7,7 +7,7 @@
 
 namespace kx {
 
-class PatternScanner {
+class Scanner {
 public:
     // Scans a memory region for a given byte pattern.
     // pattern: IDA-style pattern string (e.g., "48 89 5C 24 ? 57 48 83 EC 20")

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/ForeignClass.h"
 #include "../GameEnums.h"
 #include "HavokStructs.h"
 #include <glm.hpp>
@@ -18,7 +18,7 @@ namespace kx {
         /**
          * @brief CoKeyFramed - Coordinate system for keyframed objects (gadgets)
          */
-        class CoKeyFramed : public SafeForeignClass {
+        class CoKeyFramed : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t POSITION = 0x0030;  // glm::vec3 position
@@ -27,7 +27,7 @@ namespace kx {
             };
 
         public:
-            CoKeyFramed(void* ptr) : SafeForeignClass(ptr) {}
+            CoKeyFramed(void* ptr) : ForeignClass(ptr) {}
 
             glm::vec3 GetPosition() const {
                 LOG_MEMORY("CoKeyFramed", "GetPosition", data(), Offsets::POSITION);
@@ -50,7 +50,7 @@ namespace kx {
          * - 10: Regular gadget (AgentType::Gadget)
          * - 11: Attack target (AgentType::GadgetAttackTarget) - walls, destructible objects
          */
-        class AgKeyFramed : public SafeForeignClass {
+        class AgKeyFramed : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t TYPE = 0x08;            // int32_t agent type identifier
@@ -60,7 +60,7 @@ namespace kx {
             };
 
         public:
-            AgKeyFramed(void* ptr) : SafeForeignClass(ptr) {}
+            AgKeyFramed(void* ptr) : ForeignClass(ptr) {}
 
             CoKeyFramed GetCoKeyFramed() const {
                 LOG_MEMORY("AgKeyFramed", "GetCoKeyFramed", data(), Offsets::CO_KEYFRAMED);
@@ -93,7 +93,7 @@ namespace kx {
         /**
          * @brief GdCliHealth - Gadget health management wrapper (current and max HP only)
          */
-        class GdCliHealth : public SafeForeignClass {
+        class GdCliHealth : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CURRENT = 0x0C;  // float current health
@@ -101,7 +101,7 @@ namespace kx {
             };
 
         public:
-            GdCliHealth(void* ptr) : SafeForeignClass(ptr) {}
+            GdCliHealth(void* ptr) : ForeignClass(ptr) {}
             
             float GetCurrent() const { 
                 LOG_MEMORY("GdCliHealth", "GetCurrent", data(), Offsets::CURRENT);
@@ -125,7 +125,7 @@ namespace kx {
         /**
          * @brief GdCliGadget - Game gadget/object structure
          */
-        class GdCliGadget : public SafeForeignClass {
+        class GdCliGadget : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t AG_KEYFRAMED = 0x0038;         // AgKeyframed* agent wrapper
@@ -137,7 +137,7 @@ namespace kx {
             static constexpr uint32_t FlagGatherable = 0x2;  // Indicates gatherable resource
 
         public:
-            GdCliGadget(void* ptr) : SafeForeignClass(ptr) {}
+            GdCliGadget(void* ptr) : ForeignClass(ptr) {}
 
             Game::GadgetType GetGadgetType() const {
                 LOG_MEMORY("GdCliGadget", "GetGadgetType", data(), Offsets::TYPE);
@@ -192,7 +192,7 @@ namespace kx {
          * Entries point to AgKeyframed with TYPE=11 (GadgetAttackTarget)
          * Contains position, health, combat state, and defeat status information.
          */
-        class AgentInl : public SafeForeignClass {
+        class AgentInl : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t AG_KEYFRAMED = 0x18;    // AgKeyframed* agent wrapper
@@ -200,7 +200,7 @@ namespace kx {
             };
 
         public:
-            AgentInl(void* ptr) : SafeForeignClass(ptr) {}
+            AgentInl(void* ptr) : ForeignClass(ptr) {}
 
             AgKeyFramed GetAgKeyFramed() const {
                 LOG_MEMORY("AgentInl", "GetAgKeyFramed", data(), Offsets::AG_KEYFRAMED);

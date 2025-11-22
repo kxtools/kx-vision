@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/ForeignClass.h"
 #include "../GameEnums.h"
 #include "HavokStructs.h"
 #include <glm.hpp>
@@ -27,7 +27,7 @@ namespace kx {
          * - GetPositionAlt2(): LAGS BEHIND visual position - not recommended for real-time rendering
          * - GetPhysicsPhantom()->GetPhysicsPosition(): Updates similarly to Primary - smooth and accurate
          */
-        class CoCharSimpleCliWrapper : public SafeForeignClass {
+        class CoCharSimpleCliWrapper : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1
@@ -37,7 +37,7 @@ namespace kx {
             };
 
         public:
-            CoCharSimpleCliWrapper(void* ptr) : SafeForeignClass(ptr) {}
+            CoCharSimpleCliWrapper(void* ptr) : ForeignClass(ptr) {}
 
             glm::vec3 GetPositionAlt1() const {
                 // TESTED: Updates similarly to Primary position - smooth and accurate
@@ -69,7 +69,7 @@ namespace kx {
          * @brief CoChar - Character coordinate system for visual positioning
          * VISUAL_POSITION is the primary position source for real-time rendering.
          */
-        class CoChar : public SafeForeignClass {
+        class CoChar : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary)
@@ -78,7 +78,7 @@ namespace kx {
             };
 
         public:
-            CoChar(void* ptr) : SafeForeignClass(ptr) {}
+            CoChar(void* ptr) : ForeignClass(ptr) {}
 
             glm::vec3 GetVisualPosition() const {
                 // TESTED: Primary position source - smooth and accurate for real-time rendering
@@ -104,7 +104,7 @@ namespace kx {
         /**
          * @brief AgChar - Agent wrapper for characters
          */
-        class AgChar : public SafeForeignClass {
+        class AgChar : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CO_CHAR = 0x50;  // CoChar* coordinate system
@@ -114,7 +114,7 @@ namespace kx {
             };
 
         public:
-            AgChar(void* ptr) : SafeForeignClass(ptr) {}
+            AgChar(void* ptr) : ForeignClass(ptr) {}
 
             CoChar GetCoChar() const {
                 LOG_MEMORY("AgChar", "GetCoChar", data(), Offsets::CO_CHAR);

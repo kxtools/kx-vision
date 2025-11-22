@@ -10,7 +10,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/ringbuffer_sink.h>
 #include "../Core/AppState.h"
-#include "../Memory/MemorySafety.h"
+#include "../Memory/Safety.h"
 
 namespace kx {
 namespace Debug {

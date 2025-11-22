@@ -10,7 +10,7 @@
 #include "ImGui/imgui.h"
 #include "SDK/ContextStructs.h"
 #include "SDK/GadgetStructs.h"
-#include "../../../Memory/SafeIterators.h"
+#include "../../../Memory/SafeGameArray.h"
 #include "../../../Rendering/Presentation/Formatting.h"
 #include "../../../Memory/AddressManager.h"
 

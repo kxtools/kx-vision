@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/ForeignClass.h"
 #include "../GameEnums.h"
 #include "AgentStructs.h"
 #include "EquipmentStructs.h"
@@ -12,7 +12,7 @@ namespace kx {
         /**
          * @brief ChCliHealth - Character health management
          */
-        class ChCliHealth : public SafeForeignClass {
+        class ChCliHealth : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CURRENT = 0x0C;  // float current health
@@ -22,7 +22,7 @@ namespace kx {
             };
 
         public:
-            ChCliHealth(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliHealth(void* ptr) : ForeignClass(ptr) {}
             
             float GetCurrent() const { 
                 LOG_MEMORY("ChCliHealth", "GetCurrent", data(), Offsets::CURRENT);
@@ -64,7 +64,7 @@ namespace kx {
         /**
          * @brief ChCliEnergies - Character mount/special energy management
          */
-        class ChCliEnergies : public SafeForeignClass {
+        class ChCliEnergies : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CURRENT = 0x0C;  // float current energy
@@ -72,7 +72,7 @@ namespace kx {
             };
 
         public:
-            ChCliEnergies(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliEnergies(void* ptr) : ForeignClass(ptr) {}
             
             float GetCurrent() const { 
                 LOG_MEMORY("ChCliEnergies", "GetCurrent", data(), Offsets::CURRENT);
@@ -98,7 +98,7 @@ namespace kx {
          * 
          * Note: A second pool might exist at offsets 0x18/0x20
          */
-        class ChCliEndurance : public SafeForeignClass {
+        class ChCliEndurance : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CURRENT = 0x10;  // float current endurance
@@ -106,7 +106,7 @@ namespace kx {
             };
 
         public:
-            ChCliEndurance(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliEndurance(void* ptr) : ForeignClass(ptr) {}
             
             float GetCurrent() const { 
                 LOG_MEMORY("ChCliEndurance", "GetCurrent", data(), Offsets::CURRENT);
@@ -130,7 +130,7 @@ namespace kx {
         /**
          * @brief ChCliCoreStats - Character core statistics (race, level, profession)
          */
-        class ChCliCoreStats : public SafeForeignClass {
+        class ChCliCoreStats : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t RACE = 0x33;          // uint8_t race ID
@@ -140,7 +140,7 @@ namespace kx {
             };
 
         public:
-            ChCliCoreStats(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliCoreStats(void* ptr) : ForeignClass(ptr) {}
             
             Game::Race GetRace() const { 
                 LOG_MEMORY("ChCliCoreStats", "GetRace", data(), Offsets::RACE);
@@ -188,7 +188,7 @@ namespace kx {
         /**
          * @brief ChCliCharacter - Main character structure containing all subsystems
          */
-        class ChCliCharacter : public SafeForeignClass {
+        class ChCliCharacter : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t AGENT = 0x98;            // AgChar* character's agent
@@ -205,7 +205,7 @@ namespace kx {
             };
 
         public:
-            ChCliCharacter(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliCharacter(void* ptr) : ForeignClass(ptr) {}
 
             AgChar GetAgent() const {
                 return ReadPointerFast<AgChar>(Offsets::AGENT);
@@ -285,7 +285,7 @@ namespace kx {
         /**
          * @brief ChCliPlayer - Player wrapper containing character and name
          */
-        class ChCliPlayer : public SafeForeignClass {
+        class ChCliPlayer : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CHARACTER_PTR = 0x18;  // ChCliCharacter* player's character
@@ -293,7 +293,7 @@ namespace kx {
             };
 
         public:
-            ChCliPlayer(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliPlayer(void* ptr) : ForeignClass(ptr) {}
             
             ChCliCharacter GetCharacter() const { 
                 return ReadPointerFast<ChCliCharacter>(Offsets::CHARACTER_PTR);

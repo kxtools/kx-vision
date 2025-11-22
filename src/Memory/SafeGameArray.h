@@ -2,7 +2,7 @@
 
 #include <iterator>
 #include <cstdint>
-#include "MemorySafety.h"
+#include "Safety.h"
 
 namespace kx {
 namespace SafeAccess {

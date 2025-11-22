@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/ForeignClass.h"
 #include "../../Rendering/Shared/LayoutConstants.h"
 #include "../HavokEnums.h"
 #include "../HavokOffsets.h"
@@ -28,9 +28,9 @@ namespace kx {
         /**
          * @brief Havok physics box shape object - contains collision box dimensions
          */
-        class HkpBoxShape : public SafeForeignClass {
+        class HkpBoxShape : public ForeignClass {
         public:
-            HkpBoxShape(void* ptr) : SafeForeignClass(ptr) {}
+            HkpBoxShape(void* ptr) : ForeignClass(ptr) {}
 
             float GetHeightHalf() const {
                 if (!data()) {
@@ -93,9 +93,9 @@ namespace kx {
          * @brief Havok physics phantom object - contains physics-simulated position
          * TESTED: Physics position updates similarly to Primary - smooth and accurate
          */
-        class HkpSimpleShapePhantom : public SafeForeignClass {
+        class HkpSimpleShapePhantom : public ForeignClass {
         public:
-            HkpSimpleShapePhantom(void* ptr) : SafeForeignClass(ptr) {}
+            HkpSimpleShapePhantom(void* ptr) : ForeignClass(ptr) {}
 
             glm::vec3 GetPhysicsPosition() const {
                 // TESTED: Updates similarly to Primary position - smooth and accurate
@@ -109,18 +109,18 @@ namespace kx {
         /**
          * @brief Havok physics cylinder collision shape - contains gadget dimensions
          */
-        class HkpCylinderShape : public SafeForeignClass {
+        class HkpCylinderShape : public ForeignClass {
         public:
-            HkpCylinderShape(void* ptr) : SafeForeignClass(ptr) {}
+            HkpCylinderShape(void* ptr) : ForeignClass(ptr) {}
         };
 
         /**
          * @brief ReClass wrapper for an hkpMoppBvTreeShape
          * MOPP shapes are acceleration structures that wrap a child shape (typically hkpExtendedMeshShape)
          */
-        class HkpMoppBvTreeShape : public SafeForeignClass {
+        class HkpMoppBvTreeShape : public ForeignClass {
         public:
-            HkpMoppBvTreeShape(void* ptr) : SafeForeignClass(ptr) {}
+            HkpMoppBvTreeShape(void* ptr) : ForeignClass(ptr) {}
 
             /**
              * @brief Gets a pointer to the child shape that this MOPP tree wraps
@@ -138,9 +138,9 @@ namespace kx {
          * @brief ReClass wrapper for an hkpExtendedMeshShape
          * These complex mesh shapes cache their own AABB for performance
          */
-        class HkpExtendedMeshShape : public SafeForeignClass {
+        class HkpExtendedMeshShape : public ForeignClass {
         public:
-            HkpExtendedMeshShape(void* ptr) : SafeForeignClass(ptr) {}
+            HkpExtendedMeshShape(void* ptr) : ForeignClass(ptr) {}
 
             /**
              * @brief Reads the cached AABB half-extents from the shape
@@ -174,9 +174,9 @@ namespace kx {
          * Type-safe shape dimension extraction using primitive shape type byte at shape+0x10.
          * This prevents unsafe casts and reading incorrect fields from wrong shape types.
          */
-        class HkpRigidBody : public SafeForeignClass {
+        class HkpRigidBody : public ForeignClass {
         public:
-            HkpRigidBody(void* ptr) : SafeForeignClass(ptr) {}
+            HkpRigidBody(void* ptr) : ForeignClass(ptr) {}
 
             /**
              * @brief Get the wrapper shape type from the rigid body (for future filtering/early-out)

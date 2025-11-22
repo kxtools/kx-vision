@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Memory/SafeForeignClass.h"
-#include "../../Memory/SafeIterators.h"
+#include "../../Memory/ForeignClass.h"
+#include "../../Memory/SafeGameArray.h"
 #include "CharacterStructs.h"
 #include "GadgetStructs.h"
 #include "ItemStructs.h"
@@ -16,7 +16,7 @@ namespace kx {
          * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
          *       CAPACITY >= COUNT always. Arrays are sparse - use CAPACITY for iteration, validate pointers.
          */
-        class ChCliContext : public SafeForeignClass {
+        class ChCliContext : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CHARACTER_LIST = 0x60;          // ChCliCharacter** array
@@ -29,7 +29,7 @@ namespace kx {
             };
 
         public:
-            ChCliContext(void* ptr) : SafeForeignClass(ptr) {}
+            ChCliContext(void* ptr) : ForeignClass(ptr) {}
 
             ChCliCharacter** GetCharacterList() const {
                 LOG_MEMORY("ChCliContext", "GetCharacterList", data(), Offsets::CHARACTER_LIST);
@@ -117,7 +117,7 @@ namespace kx {
          * - Internal class: Gw2::Engine::Agent::AgentInl
          * - Entries are AgentInl structures pointing to AgKeyframed with TYPE=11 (GadgetAttackTarget)
          */
-        class GdCliContext : public SafeForeignClass {
+        class GdCliContext : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t GADGET_LIST = 0x0030;          // GdCliGadget** array
@@ -130,7 +130,7 @@ namespace kx {
             };
 
         public:
-            GdCliContext(void* ptr) : SafeForeignClass(ptr) {}
+            GdCliContext(void* ptr) : ForeignClass(ptr) {}
 
             GdCliGadget** GetGadgetList() const {
                 LOG_MEMORY("GdCliContext", "GetGadgetList", data(), Offsets::GADGET_LIST);
@@ -205,7 +205,7 @@ namespace kx {
          * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
          *       CAPACITY >= COUNT always. Arrays are sparse - use CAPACITY for iteration, validate pointers.
          */
-        class ItCliContext : public SafeForeignClass {
+        class ItCliContext : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t ITEM_LIST = 0x30;          // ItCliItem** array
@@ -214,7 +214,7 @@ namespace kx {
             };
 
         public:
-            ItCliContext(void* ptr) : SafeForeignClass(ptr) {}
+            ItCliContext(void* ptr) : ForeignClass(ptr) {}
 
             ItCliItem** GetItemList() const {
                 LOG_MEMORY("ItCliContext", "GetItemList", data(), Offsets::ITEM_LIST);
@@ -253,7 +253,7 @@ namespace kx {
         /**
          * @brief ContextCollection - Root collection containing all context managers
          */
-        class ContextCollection : public SafeForeignClass {
+        class ContextCollection : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t CH_CLI_CONTEXT = 0x98;   // ChCliContext* character context
@@ -262,7 +262,7 @@ namespace kx {
             };
 
         public:
-            ContextCollection(void* ptr) : SafeForeignClass(ptr) {
+            ContextCollection(void* ptr) : ForeignClass(ptr) {
                 // Debug: Log the ContextCollection base address using proper logging system
                 if (ptr) {
                     LOG_DEBUG("ContextCollection base = 0x" + std::to_string(reinterpret_cast<uintptr_t>(ptr)));

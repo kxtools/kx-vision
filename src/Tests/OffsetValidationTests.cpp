@@ -2,7 +2,7 @@
 
 #include "../Memory/AddressManager.h"
 #include "../Game/SdkStructs.h"
-#include "../Memory/SafeIterators.h"
+#include "../Memory/SafeGameArray.h"
 #include <string>
 #include <sstream>
 #include <map>

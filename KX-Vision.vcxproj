@@ -159,7 +159,7 @@
     <ClCompile Include="libs\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\Core\Main.cpp" />
     <ClCompile Include="src\Utils\DebugLogger.cpp" />
-    <ClCompile Include="src\Memory\PatternScanner.cpp" />
+    <ClCompile Include="src\Memory\Scanner.cpp" />
     <ClCompile Include="src\Utils\TestRunner.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -264,11 +264,11 @@
     <ClInclude Include="libs\ImGui\imstb_truetype.h" />
     <ClInclude Include="libs\MinHook\MinHook.h" />
     <ClInclude Include="src\Game\MumbleLink.h" />
-    <ClInclude Include="src\Memory\MemorySafety.h" />
+    <ClInclude Include="src\Memory\Safety.h" />
     <ClInclude Include="src\Utils\ObjectPool.h" />
-    <ClInclude Include="src\Memory\PatternScanner.h" />
-    <ClInclude Include="src\Memory\SafeForeignClass.h" />
-    <ClInclude Include="src\Memory\SafeIterators.h" />
+    <ClInclude Include="src\Memory\Scanner.h" />
+    <ClInclude Include="src\Memory\ForeignClass.h" />
+    <ClInclude Include="src\Memory\SafeGameArray.h" />
     <ClInclude Include="src\Utils\StringHelpers.h" />
     <ClInclude Include="src\Utils\UnitConversion.h" />
   </ItemGroup>

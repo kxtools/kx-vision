@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/ForeignClass.h"
 
 namespace kx {
     namespace ReClass {
@@ -9,14 +9,14 @@ namespace kx {
          * @brief Stat - Item stat combination structure
          * Contains the ID for an item's attribute combination (e.g., Berserker's).
          */
-        class Stat : public SafeForeignClass {
+        class Stat : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t ID = 0x28;  // uint32_t stat combination ID
             };
 
         public:
-            Stat(void* ptr) : SafeForeignClass(ptr) {}
+            Stat(void* ptr) : ForeignClass(ptr) {}
 
             uint32_t GetId() const {
                 // Reads the stat combination ID (e.g., 599 for Berserker's).

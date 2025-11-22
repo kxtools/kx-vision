@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/ForeignClass.h"
 #include "../GameEnums.h"
 #include "GadgetStructs.h"
 
@@ -11,7 +11,7 @@ namespace kx {
          * @brief ItemDef - Item definition with ID and rarity
          * Contains the core properties of an item, like its ID and rarity.
          */
-        class ItemDef : public SafeForeignClass {
+        class ItemDef : public ForeignClass {
         private:
             struct Offsets {
                 static constexpr uintptr_t ID = 0x28;      // uint32_t item ID
@@ -20,7 +20,7 @@ namespace kx {
             };
 
         public:
-            ItemDef(void* ptr) : SafeForeignClass(ptr) {}
+            ItemDef(void* ptr) : ForeignClass(ptr) {}
 
             uint32_t GetId() const {
                 // Reads the unique item ID (e.g., 49371 for Quiver of Swift Flight).
