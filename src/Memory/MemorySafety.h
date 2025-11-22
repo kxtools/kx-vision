@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <ankerl/unordered_dense.h>
 #include <random>
-#include "../Game/AddressManager.h"
+#include "../Memory/AddressManager.h"
 
 namespace kx {
 namespace SafeAccess {

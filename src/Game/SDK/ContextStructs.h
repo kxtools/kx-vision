@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Utils/SafeForeignClass.h"
-#include "../../Utils/SafeIterators.h"
+#include "../../Memory/SafeForeignClass.h"
+#include "../../Memory/SafeIterators.h"
 #include "CharacterStructs.h"
 #include "GadgetStructs.h"
 #include "ItemStructs.h"

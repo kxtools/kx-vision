@@ -1,8 +1,8 @@
 #include "../../libs/Catch2/catch_amalgamated.hpp"
 
-#include "../Game/AddressManager.h"
+#include "../Memory/AddressManager.h"
 #include "../Game/SdkStructs.h"
-#include "../Utils/SafeIterators.h"
+#include "../Memory/SafeIterators.h"
 #include <string>
 #include <sstream>
 #include <map>

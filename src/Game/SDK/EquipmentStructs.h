@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Utils/SafeForeignClass.h"
+#include "../../Memory/SafeForeignClass.h"
 #include "../GameEnums.h"
 #include "ItemStructs.h"
 #include "StatStructs.h"

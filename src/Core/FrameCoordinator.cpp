@@ -3,7 +3,7 @@
 #include "AppState.h"
 #include "Config.h"
 #include "../Utils/DebugLogger.h"
-#include "../Utils/MemorySafety.h"
+#include "../Memory/MemorySafety.h"
 #include "../../libs/ImGui/imgui.h"
 #include "UI/Backend/D3DState.h"
 #include "UI/Backend/OverlayWindow.h"

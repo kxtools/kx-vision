@@ -1,9 +1,9 @@
 #include "DataExtractor.h"
 #include <ankerl/unordered_dense.h>
-#include "../../Game/AddressManager.h"
+#include "../../Memory/AddressManager.h"
 #include "../../Game/SdkStructs.h"
-#include "../../Utils/SafeIterators.h"
-#include "../../Utils/MemorySafety.h"
+#include "../../Memory/SafeIterators.h"
+#include "../../Memory/MemorySafety.h"
 #include "Extraction/EntityExtractor.h"
 
 namespace kx {

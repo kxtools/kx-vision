@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Utils/SafeForeignClass.h"
+#include "../../Memory/SafeForeignClass.h"
 
 namespace kx {
     namespace ReClass {

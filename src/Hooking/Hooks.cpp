@@ -4,7 +4,7 @@
 
 #include "../Core/Config.h"      // For GW2AL_BUILD define
 #include "../Utils/DebugLogger.h"
-#include "AddressManager.h"
+#include "../Memory/AddressManager.h"
 #include "AppState.h"
 #include "D3DRenderHook.h"
 #include "HookManager.h"

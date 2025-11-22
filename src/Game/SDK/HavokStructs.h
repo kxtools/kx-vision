@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Utils/SafeForeignClass.h"
+#include "../../Memory/SafeForeignClass.h"
 #include "../../Rendering/Shared/LayoutConstants.h"
 #include "../HavokEnums.h"
 #include "../HavokOffsets.h"

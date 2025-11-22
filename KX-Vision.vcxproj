@@ -108,7 +108,7 @@
     <ClCompile Include="src\Core\FrameCoordinator.cpp" />
     <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
-    <ClCompile Include="src\Game\AddressManager.cpp" />
+    <ClCompile Include="src\Memory\AddressManager.cpp" />
     <ClCompile Include="src\Game\Camera.cpp" />
     <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_WndProc.cpp" />
@@ -159,7 +159,7 @@
     <ClCompile Include="libs\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\Core\Main.cpp" />
     <ClCompile Include="src\Utils\DebugLogger.cpp" />
-    <ClCompile Include="src\Utils\PatternScanner.cpp" />
+    <ClCompile Include="src\Memory\PatternScanner.cpp" />
     <ClCompile Include="src\Utils\TestRunner.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -175,7 +175,7 @@
     <ClInclude Include="src\Core\Settings\ESPSettings.h" />
     <ClInclude Include="src\Core\Settings\RenderSettings.h" />
     <ClInclude Include="src\Core\Settings\SettingsConstants.h" />
-    <ClInclude Include="src\Game\AddressManager.h" />
+    <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
     <ClInclude Include="src\Game\Camera.h" />
@@ -264,11 +264,11 @@
     <ClInclude Include="libs\ImGui\imstb_truetype.h" />
     <ClInclude Include="libs\MinHook\MinHook.h" />
     <ClInclude Include="src\Game\MumbleLink.h" />
-    <ClInclude Include="src\Utils\MemorySafety.h" />
+    <ClInclude Include="src\Memory\MemorySafety.h" />
     <ClInclude Include="src\Utils\ObjectPool.h" />
-    <ClInclude Include="src\Utils\PatternScanner.h" />
-    <ClInclude Include="src\Utils\SafeForeignClass.h" />
-    <ClInclude Include="src\Utils\SafeIterators.h" />
+    <ClInclude Include="src\Memory\PatternScanner.h" />
+    <ClInclude Include="src\Memory\SafeForeignClass.h" />
+    <ClInclude Include="src\Memory\SafeIterators.h" />
     <ClInclude Include="src\Utils\StringHelpers.h" />
     <ClInclude Include="src\Utils\UnitConversion.h" />
   </ItemGroup>

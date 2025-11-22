@@ -2,7 +2,7 @@
 
 #include <windows.h> // Required for VirtualProtect
 #include <cstdint>   // Required for UINTPTR_MAX
-#include "MemorySafety.h"
+#include "../Memory/MemorySafety.h"
 #include "DebugLogger.h"
 
 namespace kx {

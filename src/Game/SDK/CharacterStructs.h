@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Utils/DebugLogger.h"
-#include "../../Utils/SafeForeignClass.h"
+#include "../../Memory/SafeForeignClass.h"
 #include "../GameEnums.h"
 #include "AgentStructs.h"
 #include "EquipmentStructs.h"
