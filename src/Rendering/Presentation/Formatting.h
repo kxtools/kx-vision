@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Game/GameEnums.h"
-#include "../../Game/HavokEnums.h"
+#include "../../Game/Havok/HavokEnums.h"
 #include "../../Game/Generated/EnumsAndStructs.h"
 
 namespace kx::Formatting {

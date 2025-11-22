@@ -3,8 +3,8 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Memory/ForeignClass.h"
 #include "../../Rendering/Shared/LayoutConstants.h"
-#include "../HavokEnums.h"
-#include "../HavokOffsets.h"
+#include "../Havok/HavokEnums.h"
+#include "../Havok/HavokOffsets.h"
 #include <glm.hpp>
 
 namespace kx {

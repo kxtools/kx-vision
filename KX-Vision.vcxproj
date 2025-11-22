@@ -183,8 +183,8 @@
     <ClInclude Include="src\Game\Generated\APIData.h" />
     <ClInclude Include="src\Game\Generated\EnumsAndStructs.h" />
     <ClInclude Include="src\Game\Generated\StatData.h" />
-    <ClInclude Include="src\Game\HavokEnums.h" />
-    <ClInclude Include="src\Game\HavokOffsets.h" />
+    <ClInclude Include="src\Game\Havok\HavokEnums.h" />
+    <ClInclude Include="src\Game\Havok\HavokOffsets.h" />
     <ClInclude Include="src\Game\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
     <ClInclude Include="src\Game\SdkStructs.h" />

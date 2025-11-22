@@ -9,7 +9,7 @@
 #include <vec2.hpp>
 
 #include "../../../Game/GameEnums.h"
-#include "../../../Game/HavokEnums.h"
+#include "../../../Game/Havok/HavokEnums.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../EntityTypes.h"
 #include "../../Combat/CombatStateKey.h"
