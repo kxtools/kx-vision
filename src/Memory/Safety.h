@@ -11,15 +11,6 @@ namespace SafeAccess {
     // --- Memory Safety Constants ---
     constexpr uintptr_t MIN_VALID_MEMORY_ADDRESS = 0x1000;      // Minimum valid user-mode address
     constexpr uintptr_t MAX_VALID_MEMORY_ADDRESS = 0x7FFFFFFFFFFF; // Maximum valid user-mode address on x64
-    
-    // --- Sanity Check Limits ---
-    // These limits are based on actual observed game data and provide safety bounds
-    // for iterator validation to detect obviously corrupted memory/capacity values
-    constexpr uint32_t MAX_REASONABLE_PLAYER_COUNT = 1000;       // Observed ~134, set generous upper bound
-    constexpr uint32_t MAX_REASONABLE_CHARACTER_COUNT = 15000;   // Observed ~9728, allow for larger instances  
-    constexpr uint32_t MAX_REASONABLE_GADGET_COUNT = 15000;      // Observed ~9216, allow for resource-rich areas
-    constexpr uint32_t MAX_REASONABLE_ATTACK_TARGET_COUNT = 5000; // Reasonable limit for attack targets
-    constexpr uint32_t MAX_REASONABLE_ITEM_COUNT = 50000;         // Items lists can be large
 
     // --- Pointer Cache for Performance ---
     static constexpr uint64_t CACHE_TTL = 5000; // ms
