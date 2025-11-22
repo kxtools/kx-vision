@@ -95,7 +95,7 @@ namespace EntityLimits {
     constexpr size_t MAX_NPCS           = 750; 
     constexpr size_t MAX_GADGETS        = 750; 
     constexpr size_t MAX_ATTACK_TARGETS = 250; 
-    constexpr size_t MAX_ITEMS          = 500; 
+    constexpr size_t MAX_ITEMS          = 200;
 }
 
 /**
