@@ -212,11 +212,11 @@ namespace PhysicsValidation {
         }
 
         // --- Follow Pointer Chain to Position ---
-        // ItCliItem -> ItemAgentWrapper -> AgKeyFramed -> CoKeyFramed -> Position
-        ReClass::ItemAgentWrapper itemAgent = inItem.GetItemAgent();
-        if (!itemAgent) return false;
+        // ItCliItem -> AgentInl -> AgKeyFramed -> CoKeyFramed -> Position
+        ReClass::AgentInl agentInl = inItem.GetItemAgent();
+        if (!agentInl) return false;
 
-        ReClass::AgKeyFramed agKeyFramed = itemAgent.GetAgKeyFramed();
+        ReClass::AgKeyFramed agKeyFramed = agentInl.GetAgKeyFramed();
         if (!agKeyFramed) return false;
 
         // --- Position ---
