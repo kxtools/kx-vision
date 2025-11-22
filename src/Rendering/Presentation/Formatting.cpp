@@ -173,15 +173,15 @@ namespace kx::Formatting {
     const char* GetItemLocationName(Game::ItemLocation location) {
         switch (location) {
             case Game::ItemLocation::None: return "Unclaimed Loot";
-            case Game::ItemLocation::Agent: return "World (Ground)";
-            case Game::ItemLocation::Equipment: return "Equipment";
-            case Game::ItemLocation::Inventory: return "Inventory";
-            case Game::ItemLocation::InventoryAccount: return "Account Inv";
-            case Game::ItemLocation::InventoryBagSlot: return "Bag Slot";
+            case Game::ItemLocation::Agent: return "Items on Ground";
+            case Game::ItemLocation::Equipment: return "All Equipped Items";
+            case Game::ItemLocation::Inventory: return "Local Inventory";
+            case Game::ItemLocation::InventoryAccount: return "Local Bank";
+            case Game::ItemLocation::InventoryBagSlot: return "Local Bags";
             case Game::ItemLocation::InventoryOverflow: return "Overflow";
             case Game::ItemLocation::Lootable: return "Lootable";
             case Game::ItemLocation::Vendor: return "Vendor";
-            case Game::ItemLocation::InventoryShared: return "Shared Inv";
+            case Game::ItemLocation::InventoryShared: return "Local Shared Inventory";
             case Game::ItemLocation::InventoryArmory: return "Armory";
             case Game::ItemLocation::InventoryLegendaryArmory: return "Legendary Armory";
             default: return "Unknown";
