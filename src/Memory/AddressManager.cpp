@@ -250,7 +250,8 @@ void* AddressManager::GetLocalPlayerImpl(void* pContextCollection) {
         ReClass::ChCliContext chContext = contextCollection.GetChCliContext();
         if (!chContext.data()) return nullptr;
         
-        return chContext.GetLocalPlayer();
+        ReClass::ChCliCharacter localPlayer = chContext.GetLocalPlayer();
+        return localPlayer.data();
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return nullptr;
     }

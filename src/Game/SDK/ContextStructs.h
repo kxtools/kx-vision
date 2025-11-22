@@ -84,25 +84,27 @@ namespace kx {
                 return count;
             }
 
-            ChCliCharacter* GetLocalPlayer() const {
+            ChCliCharacter GetLocalPlayer() const {
                 LOG_MEMORY("ChCliContext", "GetLocalPlayer", data(), Offsets::LOCAL_PLAYER);
                 
-                ChCliCharacter* result = ReadMemberFast<ChCliCharacter*>(Offsets::LOCAL_PLAYER, nullptr);
+                ChCliCharacter result = ReadPointerFast<ChCliCharacter>(Offsets::LOCAL_PLAYER);
                 
-                LOG_PTR("LocalPlayer", result);
+                LOG_PTR("LocalPlayer", result.data());
                 return result;
             }
 
             SafeAccess::SafeGameArray<ChCliCharacter> GetCharacters() const {
-                void* arrayPtr = ReadMemberFast<void*>(Offsets::CHARACTER_LIST, nullptr);
-                uint32_t capacity = GetCharacterListCapacity();
-                return SafeAccess::SafeGameArray<ChCliCharacter>(arrayPtr, capacity);
+                return SafeAccess::SafeGameArray<ChCliCharacter>(
+                    ReadMemberFast<void*>(Offsets::CHARACTER_LIST, nullptr),
+                    ReadMemberFast<uint32_t>(Offsets::CHARACTER_LIST_CAPACITY, 0)
+                );
             }
 
             SafeAccess::SafeGameArray<ChCliPlayer> GetPlayers() const {
-                void* arrayPtr = ReadMemberFast<void*>(Offsets::PLAYER_LIST, nullptr);
-                uint32_t capacity = GetPlayerListCapacity();
-                return SafeAccess::SafeGameArray<ChCliPlayer>(arrayPtr, capacity);
+                return SafeAccess::SafeGameArray<ChCliPlayer>(
+                    ReadMemberFast<void*>(Offsets::PLAYER_LIST, nullptr),
+                    ReadMemberFast<uint32_t>(Offsets::PLAYER_LIST_CAPACITY, 0)
+                );
             }
         };
 
@@ -186,15 +188,17 @@ namespace kx {
             }
 
             SafeAccess::SafeGameArray<GdCliGadget> GetGadgets() const {
-                void* arrayPtr = ReadMemberFast<void*>(Offsets::GADGET_LIST, nullptr);
-                uint32_t capacity = GetGadgetListCapacity();
-                return SafeAccess::SafeGameArray<GdCliGadget>(arrayPtr, capacity);
+                return SafeAccess::SafeGameArray<GdCliGadget>(
+                    ReadMemberFast<void*>(Offsets::GADGET_LIST, nullptr),
+                    ReadMemberFast<uint32_t>(Offsets::GADGET_LIST_CAPACITY, 0)
+                );
             }
 
             SafeAccess::SafeGameArray<AgentInl> GetAttackTargets() const {
-                void* arrayPtr = ReadMemberFast<void*>(Offsets::ATTACK_TARGET_LIST, nullptr);
-                uint32_t capacity = GetAttackTargetListCapacity();
-                return SafeAccess::SafeGameArray<AgentInl>(arrayPtr, capacity);
+                return SafeAccess::SafeGameArray<AgentInl>(
+                    ReadMemberFast<void*>(Offsets::ATTACK_TARGET_LIST, nullptr),
+                    ReadMemberFast<uint32_t>(Offsets::ATTACK_TARGET_LIST_CAPACITY, 0)
+                );
             }
         };
 
@@ -243,9 +247,10 @@ namespace kx {
             }
 
             SafeAccess::SafeGameArray<ItCliItem> GetItems() const {
-                void* arrayPtr = ReadMemberFast<void*>(Offsets::ITEM_LIST, nullptr);
-                uint32_t capacity = GetCapacity();
-                return SafeAccess::SafeGameArray<ItCliItem>(arrayPtr, capacity);
+                return SafeAccess::SafeGameArray<ItCliItem>(
+                    ReadMemberFast<void*>(Offsets::ITEM_LIST, nullptr),
+                    ReadMemberFast<uint32_t>(Offsets::ITEM_LIST_CAPACITY, 0)
+                );
             }
         };
 
