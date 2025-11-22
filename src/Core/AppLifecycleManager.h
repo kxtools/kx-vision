@@ -2,8 +2,8 @@
 
 #include <d3d11.h>
 #include <windows.h>
-#include "../Game/Camera.h"
-#include "../Game/MumbleLinkManager.h"
+#include "../Game/Services/Camera/Camera.h"
+#include "../Game/Services/Mumble/MumbleLinkManager.h"
 
 namespace kx {
 

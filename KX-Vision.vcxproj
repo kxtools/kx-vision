@@ -109,8 +109,8 @@
     <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
     <ClCompile Include="src\Memory\AddressManager.cpp" />
-    <ClCompile Include="src\Game\Camera.cpp" />
-    <ClCompile Include="src\Game\MumbleLinkManager.cpp" />
+    <ClCompile Include="src\Game\Services\Camera\Camera.cpp" />
+    <ClCompile Include="src\Game\Services\Mumble\MumbleLinkManager.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_WndProc.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatLogic.cpp" />
     <ClCompile Include="src\Rendering\Combat\CombatStateManager.cpp" />
@@ -178,14 +178,14 @@
     <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
-    <ClInclude Include="src\Game\Camera.h" />
+    <ClInclude Include="src\Game\Services\Camera\Camera.h" />
     <ClInclude Include="src\Game\GameEnums.h" />
     <ClInclude Include="src\Game\Generated\APIData.h" />
     <ClInclude Include="src\Game\Generated\EnumsAndStructs.h" />
     <ClInclude Include="src\Game\Generated\StatData.h" />
     <ClInclude Include="src\Game\Havok\HavokEnums.h" />
     <ClInclude Include="src\Game\Havok\HavokOffsets.h" />
-    <ClInclude Include="src\Game\MumbleLinkManager.h" />
+    <ClInclude Include="src\Game\Services\Mumble\MumbleLinkManager.h" />
     <ClInclude Include="src\Core\Config.h" />
     <ClInclude Include="src\Game\SdkStructs.h" />
     <ClInclude Include="src\Game\SDK\AgentStructs.h" />
@@ -263,7 +263,7 @@
     <ClInclude Include="libs\ImGui\imstb_textedit.h" />
     <ClInclude Include="libs\ImGui\imstb_truetype.h" />
     <ClInclude Include="libs\MinHook\MinHook.h" />
-    <ClInclude Include="src\Game\MumbleLink.h" />
+    <ClInclude Include="src\Game\Services\Mumble\MumbleLink.h" />
     <ClInclude Include="src\Memory\Safety.h" />
     <ClInclude Include="src\Utils\ObjectPool.h" />
     <ClInclude Include="src\Memory\Scanner.h" />

@@ -3,7 +3,7 @@
 #include "AppState.h"
 #include "SettingsManager.h"
 #include "FrameCoordinator.h"
-#include "AddressManager.h"
+#include "../Memory/AddressManager.h"
 #include "HookManager.h"
 #include "Hooks.h"
 #include "../Rendering/Core/MasterRenderer.h"

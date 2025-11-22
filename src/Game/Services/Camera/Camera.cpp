@@ -1,5 +1,5 @@
 #include "Camera.h"
-#include "MumbleLinkManager.h"
+#include "../Mumble/MumbleLinkManager.h"
 
 #include <iostream>
 #include <windows.h>

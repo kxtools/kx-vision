@@ -1,6 +1,6 @@
 #include "StageRenderer.h"
 #include "../../Core/AppState.h"
-#include "../../Game/Camera.h"
+#include "../../Game/Services/Camera/Camera.h"
 #include "../Shared/LayoutConstants.h"
 #include "../Renderers/EntityComponentRenderer.h"
 #include "../Renderers/LayoutCursor.h"

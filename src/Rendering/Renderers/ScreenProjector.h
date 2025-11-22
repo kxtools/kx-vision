@@ -2,7 +2,7 @@
 
 #include "../Data/FrameData.h"
 #include "../Data/EntityTypes.h"
-#include "../../Game/Camera.h"
+#include "../../Game/Services/Camera/Camera.h"
 
 // Forward declarations
 namespace kx {

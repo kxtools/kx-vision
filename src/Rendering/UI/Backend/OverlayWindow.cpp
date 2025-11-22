@@ -11,7 +11,7 @@
 #include "../../libs/ImGui/imgui_impl_win32.h"
 #include "../Core/AppState.h"
 #include "../Core/Config.h"
-#include "../Game/MumbleLinkManager.h"
+#include "../Game/Services/Mumble/MumbleLinkManager.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 #include "Core/MasterRenderer.h"

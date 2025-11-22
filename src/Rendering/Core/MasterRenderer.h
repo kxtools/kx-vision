@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Game/Camera.h"
-#include "../../Game/MumbleLink.h"
+#include "../Game/Services/Camera/Camera.h"
+#include "../../Game/Services/Mumble/MumbleLink.h"
 #include "../Data/RenderableData.h"
 #include "../../Utils/ObjectPool.h"
 #include "../Combat/CombatStateManager.h"

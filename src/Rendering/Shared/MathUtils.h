@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Camera.h" // For Camera class
 #include "glm.hpp" 
+#include "Services/Camera/Camera.h"
 
 namespace kx {
 
