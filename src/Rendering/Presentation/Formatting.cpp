@@ -172,7 +172,7 @@ namespace kx::Formatting {
 
     const char* GetItemLocationName(Game::ItemLocation location) {
         switch (location) {
-            case Game::ItemLocation::None: return "None";
+            case Game::ItemLocation::None: return "Unclaimed Loot";
             case Game::ItemLocation::Agent: return "World (Ground)";
             case Game::ItemLocation::Equipment: return "Equipment";
             case Game::ItemLocation::Inventory: return "Inventory";
