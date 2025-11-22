@@ -155,10 +155,17 @@ namespace kx {
 
         auto itemList = itemContext.GetItems();
         for (const auto& item : itemList) {
+            // Pre-filter: Don't waste a pool slot on equipment items
+            // Only process items with LocationType == Agent (ground loot)
+            if (item.GetLocationType() != Game::ItemLocation::Agent) {
+                continue;
+            }
+
             RenderableItem* renderableItem = itemPool.Get();
             if (!renderableItem) break; // Pool exhausted
 
             // Delegate all extraction logic to the helper class
+            // Note: ExtractItem also checks LocationType as a double-safety check
             if (EntityExtractor::ExtractItem(*renderableItem, item)) {
                 items.push_back(renderableItem);
             }
