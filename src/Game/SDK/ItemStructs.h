@@ -2,7 +2,6 @@
 
 #include "../../Memory/ForeignClass.h"
 #include "../GameEnums.h"
-#include "GadgetStructs.h"
 
 namespace kx {
     namespace ReClass {

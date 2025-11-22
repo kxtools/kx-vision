@@ -1,16 +1,10 @@
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <vector>
-#include <algorithm>
-#include <utility>
 #include <vec3.hpp>
 #include <vec2.hpp>
 
 #include "../../../Game/GameEnums.h"
 #include "../../../Game/Havok/HavokEnums.h"
-#include "../../../../libs/ImGui/imgui.h"
 #include "../EntityTypes.h"
 #include "../../../Features/Combat/CombatStateKey.h"
 

@@ -8,7 +8,6 @@
 #include "../Shared/RenderSettingsHelper.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
-#include <cmath>
 #include <array>
 #include <cfloat>
 

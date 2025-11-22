@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ankerl/unordered_dense.h>
-#include <unordered_set>
 #include <vector>
 #include "CombatState.h"
 #include "CombatStateKey.h"

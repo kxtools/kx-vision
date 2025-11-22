@@ -5,7 +5,6 @@
 #include "../../Memory/SafeGameArray.h"
 #include "CharacterStructs.h"
 #include "GadgetStructs.h"
-#include "ItemStructs.h"
 
 namespace kx {
     namespace ReClass {

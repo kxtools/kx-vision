@@ -1,25 +1,19 @@
 #include "StageRenderer.h"
-#include "../../Core/AppState.h"
 #include "../../Game/Services/Camera/Camera.h"
-#include "../Shared/LayoutConstants.h"
 #include "../Renderers/EntityComponentRenderer.h"
 #include "../Renderers/LayoutCursor.h"
 #include "../Renderers/TrailRenderer.h"
 #include "../Data/RenderableData.h"
 #include "../Data/HealthBarAnimationState.h"
 #include "../Presentation/Styling.h"
-#include "../Shared/ColorConstants.h"
 #include "../Logic/StyleCalculator.h"
 #include "../Logic/Animations/HealthBarAnimations.h"
 #include "../../Features/Combat/CombatStateManager.h"
 #include "../../Features/Combat/CombatState.h"
 #include "../../Features/Combat/CombatConstants.h"
 #include "../../../libs/ImGui/imgui.h"
-#include <optional>
-#include <string>
 #include <string_view>
 #include <vector>
-#include <cstdio>
 
 #include "Renderers/ScreenProjector.h"
 #include "Shared/RenderSettingsHelper.h"

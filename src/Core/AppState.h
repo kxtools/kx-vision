@@ -2,7 +2,6 @@
 
 #include <atomic>
 #include <mutex>
-#include <chrono>
 #include <memory>
 #include "Settings.h"
 #include "AdaptiveFarPlaneCalculator.h"

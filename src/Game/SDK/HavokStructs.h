@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../Utils/DebugLogger.h"
 #include "../../Memory/ForeignClass.h"
 #include "../../Rendering/Shared/LayoutConstants.h"
 #include "../Havok/HavokEnums.h"

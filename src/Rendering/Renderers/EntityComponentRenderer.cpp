@@ -11,7 +11,6 @@
 #include "../Data/RenderableData.h"
 #include <string_view>
 #include <span>
-#include <cstring>
 #include <format>
 #include <array>
 

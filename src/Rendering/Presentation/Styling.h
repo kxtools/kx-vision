@@ -3,7 +3,6 @@
 #include "../../Game/GameEnums.h"
 #include "../../libs/ImGui/imgui.h"
 #include "Generated/EnumsAndStructs.h"
-#include "../Data/EntityTypes.h"
 
 namespace kx {
     struct RenderableEntity;

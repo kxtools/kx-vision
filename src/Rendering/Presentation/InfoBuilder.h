@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utility>
-#include <cstddef>
 #include "../Data/RenderableData.h"
 #include "../../Core/Settings.h"
 #include "Generated/EnumsAndStructs.h"
