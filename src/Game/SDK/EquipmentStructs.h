@@ -2,7 +2,6 @@
 
 #include "../../Utils/SafeForeignClass.h"
 #include "../GameEnums.h"
-#include "../offsets.h"
 #include "ItemStructs.h"
 #include "StatStructs.h"
 #include "GadgetStructs.h" 
@@ -14,19 +13,38 @@ namespace kx {
         constexpr int NUM_EQUIPMENT_SLOTS = 69;
 
         /**
-         * @brief Wrapper for a single equipment slot.
+         * @brief ItCliItem - Equipment slot containing item and stat data
          * Contains pointers to the item definition, stats, upgrades, etc.
          */
         class ItCliItem : public SafeForeignClass {
+        private:
+            struct Offsets {
+                static constexpr uintptr_t ITEM_DEF = 0x40;      // ItemDef* item definition
+                static constexpr uintptr_t LOCATION_TYPE = 0x48;  // uint16_t location type (mask with 0xF)
+
+                /**
+                 * @brief DATA_PTR - Polymorphic pointer based on LOCATION_TYPE
+                 * - Location::Agent (1)        -> AgentInl* (Item on ground)
+                 * - Location::Inventory (3)    -> ChCliInventory* (Item in bag)
+                 * - Location::Equipment (2)    -> ChCliInventory* (Item equipped)
+                 * - Location::Lootable (7)     -> LootCliLootable*
+                 * - Location::Vendor (8)       -> VendCliVendor*
+                 */
+                static constexpr uintptr_t DATA_PTR = 0x58;
+
+                static constexpr uintptr_t STAT_GEAR = 0xA0;     // Stat* for armor/trinkets
+                static constexpr uintptr_t STAT_WEAPON = 0xA8;   // Stat* for weapons
+            };
+
         public:
             ItCliItem(void* ptr) : SafeForeignClass(ptr) {}
 
             ItemDef GetItemDefinition() const {
-                return ReadPointerFast<ItemDef>(Offsets::ItCliItem::ITEM_DEF);
+                return ReadPointerFast<ItemDef>(Offsets::ITEM_DEF);
             }
 
             Game::ItemLocation GetLocationType() const {
-                uint16_t raw = ReadMemberFast<uint16_t>(Offsets::ItCliItem::LOCATION_TYPE, 0);
+                uint16_t raw = ReadMemberFast<uint16_t>(Offsets::LOCATION_TYPE, 0);
                 return static_cast<Game::ItemLocation>(raw & 0xF);
             }
 
@@ -35,7 +53,7 @@ namespace kx {
              * The type of this data depends on GetLocationType().
              */
             void* GetDataPtr() const {
-                return ReadMemberFast<void*>(Offsets::ItCliItem::DATA_PTR, nullptr);
+                return ReadMemberFast<void*>(Offsets::DATA_PTR, nullptr);
             }
 
             /**
@@ -44,7 +62,7 @@ namespace kx {
              */
             AgentInl GetAsAgent() const {
                 if (GetLocationType() == Game::ItemLocation::Agent) {
-                    return ReadPointerFast<AgentInl>(Offsets::ItCliItem::DATA_PTR);
+                    return ReadPointerFast<AgentInl>(Offsets::DATA_PTR);
                 }
                 return AgentInl(nullptr);
             }
@@ -55,19 +73,24 @@ namespace kx {
             // For now, use GetDataPtr() and cast externally if needed.
 
             Stat GetStatGear() const {
-                return ReadPointerFast<Stat>(Offsets::ItCliItem::STAT_GEAR);
+                return ReadPointerFast<Stat>(Offsets::STAT_GEAR);
             }
 
             Stat GetStatWeapon() const {
-                return ReadPointerFast<Stat>(Offsets::ItCliItem::STAT_WEAPON);
+                return ReadPointerFast<Stat>(Offsets::STAT_WEAPON);
             }
         };
 
         /**
-         * @brief Wrapper for the character's inventory.
+         * @brief ChCliInventory - Character inventory container
          * Contains the array of equipped items.
          */
         class ChCliInventory : public SafeForeignClass {
+        private:
+            struct Offsets {
+                static constexpr uintptr_t EQUIPMENT_ARRAY = 0x160;  // ItCliItem** array of equipment slots
+            };
+
         public:
             ChCliInventory(void* ptr) : SafeForeignClass(ptr) {}
 
@@ -76,7 +99,7 @@ namespace kx {
                     return ItCliItem(nullptr);
                 }
 
-                uintptr_t arrayBaseAddress = reinterpret_cast<uintptr_t>(data()) + Offsets::ChCliInventory::EQUIPMENT_ARRAY;
+                uintptr_t arrayBaseAddress = reinterpret_cast<uintptr_t>(data()) + Offsets::EQUIPMENT_ARRAY;
                 auto slotArray = reinterpret_cast<void**>(arrayBaseAddress);
                 return ItCliItem(slotArray[slotIndex]);
             }
