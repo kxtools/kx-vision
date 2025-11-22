@@ -274,7 +274,7 @@ namespace kx {
                 }
                 
                 // Additional validation of function pointer
-                if (!SafeAccess::IsMemorySafe((void*)function_ptr, sizeof(void*))) {
+                if (!SafeAccess::IsMemorySafe((void*)function_ptr)) {
                     return T();
                 }
                 
@@ -328,7 +328,7 @@ namespace kx {
             }
             
             void* target_ptr = (void*)(base_addr + offset);
-            return SafeAccess::IsMemorySafe(target_ptr, size);
+            return SafeAccess::IsMemorySafe(target_ptr);
         }
 
         /**
@@ -359,7 +359,7 @@ namespace kx {
                 }
                 
                 // Validate VTable pointer itself
-                if (!SafeAccess::IsMemorySafe((void*)vtable_ptr, sizeof(uintptr_t))) {
+                if (!SafeAccess::IsMemorySafe((void*)vtable_ptr)) {
                     return false;
                 }
                 
@@ -369,7 +369,7 @@ namespace kx {
                 }
                 
                 void* function_ptr_location = (void*)(vtable_ptr + offset);
-                return SafeAccess::IsMemorySafe(function_ptr_location, sizeof(uintptr_t));
+                return SafeAccess::IsMemorySafe(function_ptr_location);
             }
             catch (...) {
                 return false;
@@ -405,7 +405,7 @@ namespace kx {
                 }
                 
                 // Additional check: VTable should be readable
-                return SafeAccess::IsMemorySafe((void*)potential_vtable, sizeof(uintptr_t));
+                return SafeAccess::IsMemorySafe((void*)potential_vtable);
             }
             catch (...) {
                 return false;

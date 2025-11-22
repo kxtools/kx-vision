@@ -30,14 +30,11 @@ namespace SafeAccess {
                 while (m_idx < m_cap) {
                     void* candidate = m_ptr[m_idx];
                     
-                    if (IsMemorySafe(candidate)) {
+                    if (IsValidGameObject(candidate)) {
                         WrapperType wrapper(candidate);
-                        
                         if (wrapper.isValid()) {
-                            if (IsVTablePointerValid(candidate)) {
-                                m_current = wrapper;
-                                return;
-                            }
+                            m_current = wrapper;
+                            return;
                         }
                     }
                     m_idx++;

@@ -309,13 +309,13 @@ inline bool SafeRead(void* basePtr, uintptr_t offset, T& result) noexcept {
     
     // Use centralized address validation from SafeAccess
     if (address == 0xFFFFFFFFFFFFFFFF || 
-        address < SafeAccess::MIN_VALID_MEMORY_ADDRESS || 
-        address > SafeAccess::MAX_VALID_MEMORY_ADDRESS) {
+        address < SafeAccess::MIN_VALID || 
+        address > SafeAccess::MAX_VALID) {
         return false;
     }
     
     // Use centralized memory safety check
-    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address), sizeof(T))) {
+    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address))) {
         return false;
     }
     
@@ -340,13 +340,13 @@ inline bool SafeRead(const void* basePtr, uintptr_t offset, T& result) noexcept 
     
     // Use centralized address validation from SafeAccess
     if (address == 0xFFFFFFFFFFFFFFFF || 
-        address < SafeAccess::MIN_VALID_MEMORY_ADDRESS || 
-        address > SafeAccess::MAX_VALID_MEMORY_ADDRESS) {
+        address < SafeAccess::MIN_VALID || 
+        address > SafeAccess::MAX_VALID) {
         return false;
     }
     
     // Use centralized memory safety check
-    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address), sizeof(T))) {
+    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address))) {
         return false;
     }
     
@@ -376,8 +376,8 @@ inline bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result,
     
     // Use centralized address validation from SafeAccess
     if (address == 0xFFFFFFFFFFFFFFFF || 
-        address < SafeAccess::MIN_VALID_MEMORY_ADDRESS || 
-        address > SafeAccess::MAX_VALID_MEMORY_ADDRESS) {
+        address < SafeAccess::MIN_VALID || 
+        address > SafeAccess::MAX_VALID) {
         if (!context.empty()) {
             try {
                 std::stringstream ss;
@@ -393,7 +393,7 @@ inline bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result,
     }
     
     // Use centralized memory safety check
-    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address), sizeof(T))) {
+    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address))) {
         if (!context.empty()) {
             try {
                 std::stringstream ss;

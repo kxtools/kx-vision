@@ -1,147 +1,88 @@
 #pragma once
 
-#include <Windows.h>
-#include <ankerl/unordered_dense.h>
-#include <random>
 #include "../Memory/AddressManager.h"
 
 namespace kx {
 namespace SafeAccess {
 
-    // --- Memory Safety Constants ---
-    constexpr uintptr_t MIN_VALID_MEMORY_ADDRESS = 0x1000;      // Minimum valid user-mode address
-    constexpr uintptr_t MAX_VALID_MEMORY_ADDRESS = 0x7FFFFFFFFFFF; // Maximum valid user-mode address on x64
-
-    // --- Pointer Cache for Performance ---
-    static constexpr uint64_t CACHE_TTL = 5000; // ms
-    static constexpr uint64_t CACHE_TTL_JITTER = 1000; // ms
-    static constexpr uint64_t CACHE_CLEANUP_INTERVAL = 8000; // ms, this should be greater than CACHE_TTL + CACHE_TTL_JITTER combined
-
-    // --- Cache Structure ---
-    struct PageCacheEntry {
-        uint64_t expiry;
-        bool isReadable;
-    };
-
-    // Thread-safe cache accessors using function-local statics
-    inline ankerl::unordered_dense::map<uintptr_t, PageCacheEntry>& GetValidPagesCache() {
-        thread_local ankerl::unordered_dense::map<uintptr_t, PageCacheEntry> cache;
-        return cache;
-    }
-    
-    inline uint64_t& GetLastCacheCleanup() {
-        thread_local uint64_t lastCleanup = GetTickCount64();
-        return lastCleanup;
-    }
-
-    inline uint64_t GetRandomCacheTTL(uint64_t now) {
-        thread_local std::mt19937 rng{ std::random_device{}() };
-        thread_local std::uniform_int_distribution<uint64_t> jitter(0, CACHE_TTL_JITTER);
-        return now + CACHE_TTL + jitter(rng);
-    }
+    // Hard Limits (User Mode Address Space)
+    constexpr uintptr_t MIN_VALID = 0x10000;      // Skip null & low partition
+    constexpr uintptr_t MAX_VALID = 0x7FFFFFFEFFFF; // User mode limit
 
     /**
-     * @brief Removes expired pages from the cache periodically
+     * @brief Super-fast check. Does NOT guarantee readability, only sanity.
      */
-    inline void CleanupCacheIfNeeded(uint64_t now) {
-        uint64_t& lastCleanup = GetLastCacheCleanup();
-        if (now - lastCleanup >= CACHE_CLEANUP_INTERVAL) {
-            auto& cache = GetValidPagesCache();
-            for (auto it = cache.begin(); it != cache.end(); ) {
-                if (now > it->second.expiry) {
-                    it = cache.erase(it);
-                }
-                else {
-                    ++it;
-                }
-            }
-            lastCleanup = now;
-        }
+    inline bool IsAddressInBounds(void* ptr) {
+        uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
+        return addr >= MIN_VALID && addr <= MAX_VALID;
     }
 
-    // Helper to check if a value is a power of two
-    inline bool IsPowerOfTwo(uint64_t x) {
-        return x != 0 && (x & (x - 1)) == 0;
-    }
-    
-    inline uint64_t GetPageSize() {
-        static uint64_t pageSize = 0;
-        if (!pageSize) {
-            SYSTEM_INFO info = {};
-            GetSystemInfo(&info);
-            // Validate page size: must be non-zero and power of two
-            if (info.dwPageSize != 0 && IsPowerOfTwo(info.dwPageSize)) {
-                pageSize = info.dwPageSize;
-            } else {
-                // Fallback: use 4096 (common page size)
-                pageSize = 4096;
-            }
+    // ---------------------------------------------------------
+    // HELPER 1: Safe Pointer Read
+    // Isolated in its own function to avoid C2712 errors.
+    // ---------------------------------------------------------
+    inline bool SafeReadVTable(void* pObject, uintptr_t& outVTable) {
+        __try {
+            outVTable = *reinterpret_cast<uintptr_t*>(pObject);
+            return true;
         }
-        return pageSize;
-    }
-    
-    inline uintptr_t GetPageBase(uintptr_t addr) noexcept {
-        return addr & ~(GetPageSize() - 1);
-    }
-
-    /**
-     * @brief Validates if a memory address is safe to read.
-     * OPTIMIZED: Uses a thread_local micro-cache to skip hash lookups for sequential reads.
-     */
-    inline bool IsMemorySafe(void* ptr, size_t size = sizeof(void*)) {
-        if (!ptr) return false;
-        
-        uintptr_t address = reinterpret_cast<uintptr_t>(ptr);
-        
-        // 1. Fast Bounds Check (Constants defined at top of file)
-        if (address < MIN_VALID_MEMORY_ADDRESS || address > MAX_VALID_MEMORY_ADDRESS) {
+        __except (EXCEPTION_EXECUTE_HANDLER) {
             return false;
         }
+    }
 
-        // 2. Calculate Page Base (Assume 4KB pages for speed: 0xFFF)
-        // This avoids the function call overhead of GetPageBase/GetPageSize in the hot path
-        uintptr_t page = address & ~0xFFF;
+    // ---------------------------------------------------------
+    // HELPER 2: Memory Probe
+    // Isolated in its own function to avoid C2712 errors.
+    // ---------------------------------------------------------
+    inline bool ProbeMemory(void* ptr) {
+        __try {
+            volatile char c = *reinterpret_cast<volatile char*>(ptr);
+            (void)c;
+            return true;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            return false;
+        }
+    }
 
-        // 3. HOT PATH: Micro-Cache
-        // If we are reading the same page as the immediate last call, return result instantly.
-        // NO time checks, NO map lookups.
-        static thread_local uintptr_t s_LastPage = 0;
-        static thread_local bool s_LastResult = false;
+    // ---------------------------------------------------------
+    // Main Safety Checks
+    // ---------------------------------------------------------
 
-        if (page == s_LastPage) {
-            return s_LastResult;
+    /**
+     * @brief The High-Performance Safety Check.
+     * RELIES ON /EHa (Async Exceptions) to catch crashes.
+     */
+    inline bool IsMemorySafe(void* ptr) {
+        if (!IsAddressInBounds(ptr)) return false;
+        return ProbeMemory(ptr);
+    }
+
+    /**
+     * @brief Checks if an object is a Valid Game Object.
+     * This is the BEST check for Entity Lists.
+     */
+    inline bool IsValidGameObject(void* pObject) {
+        // 1. Fast sanity checks
+        if (!IsAddressInBounds(pObject)) return false;
+
+        // 2. Get Module Info
+        // Note: We moved the static vars out or rely on fast getters
+        // AddressManager::GetModuleBase() should be a simple return of a static var
+        uintptr_t modBase = AddressManager::GetModuleBase();
+        size_t modSize = AddressManager::GetModuleSize();
+
+        // 3. Use the Helper for the dangerous read
+        uintptr_t vtable = 0;
+        if (SafeReadVTable(pObject, vtable)) {
+            // 4. Validate VTable range
+            if (modBase > 0 && modSize > 0) {
+                return (vtable >= modBase && vtable < (modBase + modSize));
+            }
         }
 
-        // 4. COLD PATH: New Page Encountered
-        s_LastPage = page;
-        
-        // Check the main hash map
-        auto& cache = GetValidPagesCache();
-        auto it = cache.find(page);
-        
-        // If found in map, trust it. We don't check expiry here to save CPU.
-        // Expiry is handled by CleanupCacheIfNeeded() called elsewhere.
-        if (it != cache.end()) {
-            s_LastResult = it->second.isReadable;
-            return s_LastResult;
-        }
-
-        // 5. SLOW PATH: System Call (VirtualQuery)
-        // This only happens once per page per cache duration
-        MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery(ptr, &mbi, sizeof(mbi))) {
-            s_LastResult = (mbi.State == MEM_COMMIT) && 
-                           (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE)) &&
-                           !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS));
-        } else {
-            s_LastResult = false;
-        }
-
-        // Update main cache
-        // We only pay the cost of GetTickCount64 here (rarely)
-        cache.insert_or_assign(page, PageCacheEntry{ GetRandomCacheTTL(GetTickCount64()), s_LastResult });
-        
-        return s_LastResult;
+        return false;
     }
 
     /**
@@ -154,11 +95,9 @@ namespace SafeAccess {
             return false;
         }
 
-        // Safely read the first pointer-sized value (VTable pointer)
+        // Safely read the first pointer-sized value (VTable pointer) using helper
         uintptr_t vtablePtr = 0;
-        __try {
-            vtablePtr = *reinterpret_cast<uintptr_t*>(pObject);
-        } __except (EXCEPTION_EXECUTE_HANDLER) {
+        if (!SafeReadVTable(pObject, vtablePtr)) {
             return false;
         }
 
