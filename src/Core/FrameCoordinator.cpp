@@ -37,6 +37,9 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
 
     // Declare state backup here to ensure it's available in the catch block
     kx::StateBackupD3D11 d3dState;
+    
+    // Track if we successfully started an ImGui frame
+    bool isImGuiFrameActive = false;
 
     try {
         // CRITICAL: Backup D3D state before rendering
@@ -58,15 +61,25 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
 
         // Render ImGui UI
         OverlayWindow::NewFrame();
+        isImGuiFrameActive = true;
         OverlayWindow::RenderUI(camera, mumbleLinkManager, mumbleLinkData,
             windowHandle, displayWidth, displayHeight);
         OverlayWindow::Render(context, renderTargetView);
+        isImGuiFrameActive = false;
 
         // CRITICAL: Restore D3D state after rendering
         RestoreD3D11State(context, d3dState);
     }
     catch (...) {
         LOG_ERROR("Exception caught in FrameCoordinator::Execute");
+        
+        // RECOVERY: If we crashed mid-frame, close the frame safely
+        if (isImGuiFrameActive) {
+            if (ImGui::GetCurrentContext()) {
+                ImGui::EndFrame();
+            }
+        }
+
         // Attempt to restore the original D3D state to prevent a game crash
         RestoreD3D11State(context, d3dState);
     }
