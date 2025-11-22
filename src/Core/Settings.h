@@ -34,7 +34,6 @@ namespace kx {
         // Debug options
         bool enableDebugLogging = true;
         int logLevel = AppConfig::DEFAULT_LOG_LEVEL;  // Log level (0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR, 4=CRITICAL)
-        bool showItemStatistics = false;
 
 #ifdef _DEBUG
         bool showDebugAddresses = true;         // Show entity memory addresses on ESP
