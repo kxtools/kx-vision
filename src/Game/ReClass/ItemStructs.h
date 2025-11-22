@@ -27,18 +27,5 @@ namespace kx {
             }
         };
 
-        /**
-         * @brief Wrapper for item agent structure (N0000018D)
-         * Used when ItemLocation == Agent (world items)
-         */
-        class ItemAgentWrapper : public SafeForeignClass {
-        public:
-            ItemAgentWrapper(void* ptr) : SafeForeignClass(ptr) {}
-
-            AgKeyFramed GetAgKeyFramed() const {
-                return ReadPointerFast<AgKeyFramed>(Offsets::ItemAgentWrapper::AG_KEYFRAMED);
-            }
-        };
-
     } // namespace ReClass
 } // namespace kx

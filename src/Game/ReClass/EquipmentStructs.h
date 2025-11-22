@@ -29,8 +29,8 @@ namespace kx {
                 return static_cast<Game::ItemLocation>(raw & 0xF);
             }
 
-            ItemAgentWrapper GetItemAgent() const {
-                return ReadPointerFast<ItemAgentWrapper>(Offsets::ItCliItem::ITEM_AGENT);
+            AgentInl GetItemAgent() const {
+                return ReadPointerFast<AgentInl>(Offsets::ItCliItem::ITEM_AGENT);
             }
 
             Stat GetStatGear() const {

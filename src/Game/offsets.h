@@ -174,23 +174,14 @@ namespace Offsets {
     struct ItCliItem {
         static constexpr uintptr_t ITEM_DEF = 0x40;      // ItemDef* item definition
         static constexpr uintptr_t LOCATION_TYPE = 0x48;  // uint16_t location type (mask with 0xF)
-        static constexpr uintptr_t ITEM_AGENT = 0x58;     // ItemAgentWrapper* pointer to item agent (for world items)
+        static constexpr uintptr_t ITEM_AGENT = 0x58;     // AgentInl* pointer to item agent (when ItemLocation == Agent)
         static constexpr uintptr_t STAT_GEAR = 0xA0;     // Stat* for armor/trinkets
         static constexpr uintptr_t STAT_WEAPON = 0xA8;   // Stat* for weapons
-        static constexpr uintptr_t LOOTABLE = 0x88;      // Pointer to Lootable wrapper (future use)
         
         // Historical/Unverified offsets from old GearCheck - require verification
         // static constexpr uintptr_t RUNE = 0xC0;    // Rune* upgrade
         // static constexpr uintptr_t SIGIL1 = 0xC8;  // Sigil* first weapon sigil
         // static constexpr uintptr_t SIGIL2 = 0xD0;  // Sigil* second weapon sigil
-    };
-
-    /**
-     * @brief ItemAgentWrapper - Wrapper for item agent structure (N0000018D)
-     * Used when ItemLocation == Agent (world items)
-     */
-    struct ItemAgentWrapper {
-        static constexpr uintptr_t AG_KEYFRAMED = 0x18;  // AgKeyframed* agent wrapper
     };
 
     /**
