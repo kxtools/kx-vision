@@ -4,12 +4,12 @@
 /**
  * @file offsets.h
  * @brief Memory offsets for Guild Wars 2 game structures
- * 
+ *
  * Organized into nested structs that mirror the game's class hierarchy.
  */
 
-namespace Offsets {
-    
+    namespace Offsets {
+
     // ============================================================================
     // COORDINATE AND TRANSFORM STRUCTURES
     // ============================================================================
@@ -67,7 +67,7 @@ namespace Offsets {
 
     /**
      * @brief AgKeyframed - Agent wrapper for keyframed objects (gadgets)
-     * 
+     *
      * TYPE values:
      * - 10: Regular gadget (AgentType::Gadget)
      * - 11: Attack target (AgentType::GadgetAttackTarget) - walls, destructible objects
@@ -81,7 +81,7 @@ namespace Offsets {
 
     /**
      * @brief AgentInl - Internal agent structure for attack targets
-     * 
+     *
      * Internal class: Gw2::Engine::Agent::AgentInl
      * Used in the attack target list (walls, destructible objects, etc.)
      * Entries point to AgKeyframed with TYPE=11 (GadgetAttackTarget)
@@ -174,10 +174,20 @@ namespace Offsets {
     struct ItCliItem {
         static constexpr uintptr_t ITEM_DEF = 0x40;      // ItemDef* item definition
         static constexpr uintptr_t LOCATION_TYPE = 0x48;  // uint16_t location type (mask with 0xF)
-        static constexpr uintptr_t ITEM_AGENT = 0x58;     // AgentInl* pointer to item agent (when ItemLocation == Agent)
+
+        /**
+         * @brief DATA_PTR - Polymorphic pointer based on LOCATION_TYPE
+         * - Location::Agent (1)        -> AgentInl* (Item on ground)
+         * - Location::Inventory (3)    -> ChCliInventory* (Item in bag)
+         * - Location::Equipment (2)    -> ChCliInventory* (Item equipped)
+         * - Location::Lootable (7)     -> LootCliLootable*
+         * - Location::Vendor (8)       -> VendCliVendor*
+         */
+        static constexpr uintptr_t DATA_PTR = 0x58;
+
         static constexpr uintptr_t STAT_GEAR = 0xA0;     // Stat* for armor/trinkets
         static constexpr uintptr_t STAT_WEAPON = 0xA8;   // Stat* for weapons
-        
+
         // Historical/Unverified offsets from old GearCheck - require verification
         // static constexpr uintptr_t RUNE = 0xC0;    // Rune* upgrade
         // static constexpr uintptr_t SIGIL1 = 0xC8;  // Sigil* first weapon sigil
@@ -241,7 +251,7 @@ namespace Offsets {
         static constexpr uintptr_t HEALTH = 0x0220;               // GdCliHealth* health subsystem
         static constexpr uintptr_t RESOURCE_NODE_TYPE = 0x04EC;   // uint32_t resource node type
         static constexpr uintptr_t FLAGS = 0x04F0;                // uint32_t gadget flags
-        
+
         // Gadget flag constants
         static constexpr uint32_t FLAG_GATHERABLE = 0x2;  // Indicates gatherable resource
     };
@@ -252,7 +262,7 @@ namespace Offsets {
 
     /**
      * @brief ChCliContext - Character context managing all characters and players
-     * 
+     *
      * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
      *       CAPACITY >= COUNT always. Arrays are sparse - use CAPACITY for iteration, validate pointers.
      */
@@ -268,7 +278,7 @@ namespace Offsets {
 
     /**
      * @brief GdCliContext - Gadget context managing all gadgets/objects
-     * 
+     *
      * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
      *       CAPACITY >= COUNT always. Arrays are sparse - use CAPACITY for iteration, validate pointers.
      */
@@ -276,7 +286,7 @@ namespace Offsets {
         static constexpr uintptr_t GADGET_LIST = 0x0030;          // GdCliGadget** array
         static constexpr uintptr_t GADGET_LIST_CAPACITY = 0x0038; // uint32_t capacity (element count)
         static constexpr uintptr_t GADGET_LIST_COUNT = 0x003C;    // uint32_t count (element count)
-        
+
         // Attack target list (walls, destructible objects, etc.)
         // Internal class: Gw2::Engine::Agent::AgentInl
         // Entries are AgentInl structures pointing to AgKeyframed with TYPE=11 (GadgetAttackTarget)
@@ -287,7 +297,7 @@ namespace Offsets {
 
     /**
      * @brief ItCliContext - Item context managing all items
-     * 
+     *
      * Note: CAPACITY/COUNT are element counts (not bytes), represent zone limits not visible entities.
      *       CAPACITY >= COUNT always. Arrays are sparse - use CAPACITY for iteration, validate pointers.
      */

@@ -5,6 +5,7 @@
 #include "../offsets.h"
 #include "ItemStructs.h"
 #include "StatStructs.h"
+#include "GadgetStructs.h" 
 
 namespace kx {
     namespace ReClass {
@@ -29,9 +30,29 @@ namespace kx {
                 return static_cast<Game::ItemLocation>(raw & 0xF);
             }
 
-            AgentInl GetItemAgent() const {
-                return ReadPointerFast<AgentInl>(Offsets::ItCliItem::ITEM_AGENT);
+            /**
+             * @brief Gets the raw data pointer at 0x58.
+             * The type of this data depends on GetLocationType().
+             */
+            void* GetDataPtr() const {
+                return ReadMemberFast<void*>(Offsets::ItCliItem::DATA_PTR, nullptr);
             }
+
+            /**
+             * @brief Safe accessor for items on the ground (Location == Agent).
+             * @return AgentInl wrapper if location is Agent, otherwise nullptr wrapper.
+             */
+            AgentInl GetAsAgent() const {
+                if (GetLocationType() == Game::ItemLocation::Agent) {
+                    return ReadPointerFast<AgentInl>(Offsets::ItCliItem::DATA_PTR);
+                }
+                return AgentInl(nullptr);
+            }
+
+            // Note: We could add GetAsInventory() here for cases where Location == Inventory,
+            // but that would require including CharacterStructs.h which creates a circular
+            // dependency (since ChCliCharacter contains ChCliInventory which contains ItCliItem).
+            // For now, use GetDataPtr() and cast externally if needed.
 
             Stat GetStatGear() const {
                 return ReadPointerFast<Stat>(Offsets::ItCliItem::STAT_GEAR);
