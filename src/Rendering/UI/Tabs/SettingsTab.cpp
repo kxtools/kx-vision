@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <format>
+#include <map>
 
 #include "DebugLogger.h"
 #include "SettingsManager.h"
@@ -9,6 +10,9 @@
 #include "ImGui/imgui.h"
 #include "ReClass/ContextStructs.h"
 #include "ReClass/GadgetStructs.h"
+#include "../../../Utils/SafeIterators.h"
+#include "../../../Rendering/Presentation/Formatting.h"
+#include "../../../Game/AddressManager.h"
 
 namespace kx {
     namespace GUI {
@@ -297,6 +301,48 @@ namespace kx {
                             ImGui::PushItemWidth(-1.0f);
                             ImGui::InputText("##ItemListAddr", itemListAddrStr.data(), itemListAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
                             ImGui::PopItemWidth();
+
+                            ImGui::Checkbox("Show Item Statistics", &settings.showItemStatistics);
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("Show Item Statistics section, displaying counts of items by location type.");
+                            }
+                        }
+
+                        ImGui::Separator();
+
+                        // Item Statistics
+                        if (settings.showItemStatistics) {
+                            if (itemCtx.data()) {
+                                std::map<Game::ItemLocation, int> counts;
+                                int totalItems = 0;
+
+                                SafeAccess::ItemList list(itemCtx);
+                                for (const auto& item : list) {
+                                    counts[item.GetLocationType()]++;
+                                    totalItems++;
+                                }
+
+                                ImGui::Text("Total Items Loaded: %d", totalItems);
+                                ImGui::Separator();
+
+                                if (ImGui::BeginTable("ItemStatsTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                                    ImGui::TableSetupColumn("Location Type");
+                                    ImGui::TableSetupColumn("Count");
+                                    ImGui::TableHeadersRow();
+
+                                    for (const auto& [loc, count] : counts) {
+                                        ImGui::TableNextRow();
+                                        ImGui::TableNextColumn();
+                                        ImGui::TextUnformatted(Formatting::GetItemLocationName(loc));
+                                        
+                                        ImGui::TableNextColumn();
+                                        ImGui::Text("%d", count);
+                                    }
+                                    ImGui::EndTable();
+                                }
+                            } else {
+                                ImGui::TextColored(ImVec4(1, 0, 0, 1), "ItCliContext is null");
+                            }
                         }
                     } else {
                         ImGui::Text("ContextCollection not available.");

@@ -18,6 +18,7 @@ namespace kx::Formatting {
     
     const char* GetShapeTypeName(Havok::HkcdShapeType type);
     const char* GetAttributeShortName(data::ApiAttribute attribute);
+    const char* GetItemLocationName(Game::ItemLocation location);
 
 } // namespace kx::Formatting
 

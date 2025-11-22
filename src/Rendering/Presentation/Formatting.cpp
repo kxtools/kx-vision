@@ -170,5 +170,23 @@ namespace kx::Formatting {
         }
     }
 
+    const char* GetItemLocationName(Game::ItemLocation location) {
+        switch (location) {
+            case Game::ItemLocation::None: return "None";
+            case Game::ItemLocation::Agent: return "World (Ground)";
+            case Game::ItemLocation::Equipment: return "Equipment";
+            case Game::ItemLocation::Inventory: return "Inventory";
+            case Game::ItemLocation::InventoryAccount: return "Account Inv";
+            case Game::ItemLocation::InventoryBagSlot: return "Bag Slot";
+            case Game::ItemLocation::InventoryOverflow: return "Overflow";
+            case Game::ItemLocation::Lootable: return "Lootable";
+            case Game::ItemLocation::Vendor: return "Vendor";
+            case Game::ItemLocation::InventoryShared: return "Shared Inv";
+            case Game::ItemLocation::InventoryArmory: return "Armory";
+            case Game::ItemLocation::InventoryLegendaryArmory: return "Legendary Armory";
+            default: return "Unknown";
+        }
+    }
+
 } // namespace kx::Formatting
 
