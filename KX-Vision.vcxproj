@@ -124,9 +124,9 @@
     <ClCompile Include="src\Rendering\UI\Backend\ImGuiStyle.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\AppearanceTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\InfoTab.cpp" />
-    <ClCompile Include="src\Rendering\UI\Tabs\NpcsTab.cpp" />
-    <ClCompile Include="src\Rendering\UI\Tabs\ObjectsTab.cpp" />
-    <ClCompile Include="src\Rendering\UI\Tabs\PlayersTab.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\NpcsTab.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\ObjectsTab.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\PlayersTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\SettingsTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\ValidationTab.cpp" />
     <ClCompile Include="src\Rendering\Logic\Animations\HealthBarAnimations.cpp" />
@@ -223,9 +223,9 @@
     <ClInclude Include="src\Rendering\UI\Backend\ImGuiStyle.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\AppearanceTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\InfoTab.h" />
-    <ClInclude Include="src\Rendering\UI\Tabs\NpcsTab.h" />
-    <ClInclude Include="src\Rendering\UI\Tabs\ObjectsTab.h" />
-    <ClInclude Include="src\Rendering\UI\Tabs\PlayersTab.h" />
+    <ClInclude Include="src\Features\Visuals\UI\NpcsTab.h" />
+    <ClInclude Include="src\Features\Visuals\UI\ObjectsTab.h" />
+    <ClInclude Include="src\Features\Visuals\UI\PlayersTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\SettingsTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\ValidationTab.h" />
     <ClInclude Include="src\Rendering\Logic\Animations\HealthBarAnimations.h" />

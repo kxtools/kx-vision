@@ -2,10 +2,10 @@
 #include <string>
 #include <vector>
 
-#include "AppState.h"
-#include "ImGui/imgui.h"
-#include "Settings.h"
-#include "UI/GuiHelpers.h"
+#include "../../../Core/AppState.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../../../Core/Settings.h"
+#include "../../../Rendering/UI/GuiHelpers.h"
 
 namespace kx {
     namespace GUI {

@@ -1,7 +1,7 @@
 #include "PlayersTab.h"
 
-#include "AppState.h"
-#include "ImGui/imgui.h"
+#include "../../../Core/AppState.h"
+#include "../../../../libs/ImGui/imgui.h"
 
 namespace kx {
     namespace GUI {

@@ -1,7 +1,7 @@
 #include "VisualsFeature.h"
-#include "../../Rendering/UI/Tabs/PlayersTab.h"
-#include "../../Rendering/UI/Tabs/NpcsTab.h"
-#include "../../Rendering/UI/Tabs/ObjectsTab.h"
+#include "UI/PlayersTab.h"
+#include "UI/NpcsTab.h"
+#include "UI/ObjectsTab.h"
 #include "../../Core/AppLifecycleManager.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <spdlog/spdlog.h>
