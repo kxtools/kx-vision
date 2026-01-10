@@ -190,6 +190,9 @@
     <ClInclude Include="src\Features\Combat\CombatStateKey.h" />
     <ClInclude Include="src\Features\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Features\Visuals\VisualsFeature.h" />
+    <ClInclude Include="src\Game\Data\Entities\GameEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\NpcEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\PlayerEntity.h" />
     <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
