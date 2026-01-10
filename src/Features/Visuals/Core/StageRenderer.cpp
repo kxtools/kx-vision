@@ -247,7 +247,7 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
 
 } // namespace
 
-void StageRenderer::RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData) {
+void StageRenderer::RenderFrameData(const FrameContext& context, const FrameGameData& frameData) {
     for (const auto* player : frameData.players) {
         ProcessAndRender(context, player);
     }

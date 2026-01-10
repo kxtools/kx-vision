@@ -9,7 +9,7 @@
 namespace kx {
 
     // Forward declarations
-    struct PooledFrameRenderData;
+    struct FrameGameData;
 
     // --- Status Information ---
     enum class HookStatus {
@@ -60,7 +60,7 @@ namespace kx {
 
         // --- Adaptive Far Plane (for "No Limit" mode) ---
         float GetAdaptiveFarPlane() const { return m_adaptiveFarPlaneCalculator.GetCurrentFarPlane(); }
-        void UpdateAdaptiveFarPlane(const PooledFrameRenderData& frameData) {
+        void UpdateAdaptiveFarPlane(const FrameGameData& frameData) {
             m_adaptiveFarPlaneCalculator.UpdateAndGetFarPlane(frameData);
         }
 

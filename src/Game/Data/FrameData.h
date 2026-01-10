@@ -105,7 +105,7 @@ struct FrameContext {
     const bool isInWvW; // Game context: true if player is on a WvW map
 };
 
-struct PooledFrameRenderData {
+struct FrameGameData {
     std::vector<PlayerEntity*> players;
     std::vector<NpcEntity*> npcs;
     std::vector<RenderableGadget*> gadgets;

@@ -14,7 +14,7 @@ namespace kx {
         ObjectPool<RenderableGadget>& gadgetPool,
         ObjectPool<RenderableAttackTarget>& attackTargetPool,
         ObjectPool<RenderableItem>& itemPool,
-        PooledFrameRenderData& pooledData) {
+        FrameGameData& pooledData) {
         pooledData.Reset();
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();

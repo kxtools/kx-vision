@@ -14,8 +14,8 @@ public:
      * @param context Frame context containing camera, settings, game state, etc.
      * @param filteredData Output filtered pooled data
      */
-    static void FilterPooledData(const PooledFrameRenderData& extractedData, const FrameContext& context,
-                                 PooledFrameRenderData& filteredData);
+    static void FilterPooledData(const FrameGameData& extractedData, const FrameContext& context,
+                                 FrameGameData& filteredData);
 
 };
 

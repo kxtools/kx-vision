@@ -39,9 +39,9 @@ private:
     ObjectPool<RenderableItem> m_itemPool{EntityLimits::MAX_ITEMS};
 
     CombatStateManager m_combatStateManager;
-    PooledFrameRenderData m_processedRenderData;
+    FrameGameData m_processedRenderData;
     
-    PooledFrameRenderData m_extractionData;
+    FrameGameData m_extractionData;
     
     float m_lastUpdateTime = 0.0f;
     ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeKeys;

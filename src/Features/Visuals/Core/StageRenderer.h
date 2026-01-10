@@ -16,7 +16,7 @@ class CombatStateManager;
 
 class StageRenderer {
 public:
-    static void RenderFrameData(const FrameContext& context, const PooledFrameRenderData& frameData);
+    static void RenderFrameData(const FrameContext& context, const FrameGameData& frameData);
 };
 
 } // namespace kx

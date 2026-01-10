@@ -45,8 +45,8 @@ namespace { // Anonymous namespace for local helpers
 
 } // anonymous namespace
 
-void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, const FrameContext& context,
-                                 PooledFrameRenderData& filteredData) {
+void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const FrameContext& context,
+                                 FrameGameData& filteredData) {
     filteredData.Reset();
     
     const glm::vec3 playerPos = context.camera.GetPlayerPosition();
