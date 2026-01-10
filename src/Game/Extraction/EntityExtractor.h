@@ -19,7 +19,7 @@ namespace kx {
          * @param localPlayerPtr A pointer to the local player's character object for comparison.
          * @return True if extraction was successful and the entity is valid, false otherwise.
          */
-        static bool ExtractPlayer(RenderablePlayer& outPlayer,
+        static bool ExtractPlayer(PlayerEntity& outPlayer,
             const ReClass::ChCliCharacter& inCharacter,
             const wchar_t* playerName,
             void* localPlayerPtr);
@@ -30,7 +30,7 @@ namespace kx {
          * @param inCharacter The source ChCliCharacter structure from the game.
          * @return True if extraction was successful and the entity is valid, false otherwise.
          */
-        static bool ExtractNpc(RenderableNpc& outNpc,
+        static bool ExtractNpc(NpcEntity& outNpc,
             const ReClass::ChCliCharacter& inCharacter);
 
         /**
@@ -66,7 +66,7 @@ namespace kx {
          * @param outPlayer The RenderablePlayer object to add gear information to.
          * @param inventory The player's inventory structure from the game.
          */
-        static void ExtractGear(RenderablePlayer& outPlayer, const ReClass::ChCliInventory& inventory);
+        static void ExtractGear(PlayerEntity& outPlayer, const ReClass::ChCliInventory& inventory);
 
         // Common extraction pattern helpers
         static bool ValidateAndExtractGamePosition(const ReClass::ChCliCharacter& character, glm::vec3& outGamePos);

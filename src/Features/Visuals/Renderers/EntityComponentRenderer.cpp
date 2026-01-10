@@ -29,7 +29,7 @@ namespace {
         return context.settings.appearance.globalOpacity;
     }
 
-    float CalculateEnergyPercent(const RenderablePlayer* player, EnergyDisplayType displayType) {
+    float CalculateEnergyPercent(const PlayerEntity* player, EnergyDisplayType displayType) {
         if (displayType == EnergyDisplayType::Endurance) {
             if (player->maxEndurance > 0) {
                 return player->currentEndurance / player->maxEndurance;
@@ -128,7 +128,7 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
     std::string_view nameText = displayName;
     if (showName) {
         if (nameText.empty() && entity.entityType == EntityTypes::Player) {
-            const auto* player = static_cast<const RenderablePlayer*>(&entity);
+            const auto* player = static_cast<const PlayerEntity*>(&entity);
             if (player) {
                 const char* profName = Formatting::GetProfessionName(player->profession);
                 if (profName) {
@@ -323,7 +323,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
     }
 
     if (entity.entityType == EntityTypes::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(&entity);
+        const auto* player = static_cast<const PlayerEntity*>(&entity);
         EnergyDisplayType energyDisplayType = RenderSettingsHelper::GetPlayerEnergyDisplayType(ctx.settings);
         float energyPercent = CalculateEnergyPercent(player, energyDisplayType);
         if (energyPercent >= 0.0f && renderEnergyBar) {
@@ -340,7 +340,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                                                   const VisualProperties& props,
                                                   LayoutCursor& cursor) {
     if (entity.entityType == EntityTypes::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(&entity);
+        const auto* player = static_cast<const PlayerEntity*>(&entity);
         if (player != nullptr && ctx.settings.playerESP.enableGearDisplay) {
             GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(ctx.settings);
             glm::vec2 pos = cursor.GetPosition();
@@ -456,12 +456,12 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
 
     switch (entity.entityType) {
         case EntityTypes::Player: {
-            const auto* player = static_cast<const RenderablePlayer*>(&entity);
+            const auto* player = static_cast<const PlayerEntity*>(&entity);
             InfoBuilder::RenderPlayerDetails(ctx.drawList, cursor, props, player, ctx.settings.playerESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }
         case EntityTypes::NPC: {
-            const auto* npc = static_cast<const RenderableNpc*>(&entity);
+            const auto* npc = static_cast<const NpcEntity*>(&entity);
             InfoBuilder::RenderNpcDetails(ctx.drawList, cursor, props, npc, ctx.settings.npcESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }

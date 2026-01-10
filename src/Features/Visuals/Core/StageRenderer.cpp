@@ -43,7 +43,7 @@ bool IsDeathAnimating(const EntityCombatState* state, uint64_t now) {
     return (now - state->deathTimestamp) <= CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
 }
 
-bool ShouldRenderPlayerHealthBar(const RenderablePlayer& player, const PlayerEspSettings& settings) {
+bool ShouldRenderPlayerHealthBar(const PlayerEntity& player, const PlayerEspSettings& settings) {
     if (!settings.renderHealthBar) {
         return false;
     }
@@ -53,7 +53,7 @@ bool ShouldRenderPlayerHealthBar(const RenderablePlayer& player, const PlayerEsp
     return true;
 }
 
-bool ShouldRenderNpcHealthBar(const RenderableNpc& npc,
+bool ShouldRenderNpcHealthBar(const NpcEntity& npc,
                               const NpcEspSettings& settings,
                               const EntityCombatState* state,
                               uint64_t now) {
@@ -109,9 +109,9 @@ bool ShouldRenderGadgetHealthBar(const RenderableGadget& gadget,
 std::string_view GetEntityName(const GameEntity& entity) {
     switch (entity.entityType) {
         case EntityTypes::Player:
-            return static_cast<const RenderablePlayer&>(entity).playerName;
+            return static_cast<const PlayerEntity&>(entity).playerName;
         case EntityTypes::NPC:
-            return static_cast<const RenderableNpc&>(entity).name;
+            return static_cast<const NpcEntity&>(entity).name;
         case EntityTypes::Gadget:
             return static_cast<const RenderableGadget&>(entity).name;
         case EntityTypes::Item: {
@@ -158,7 +158,7 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
 
     switch (entity->entityType) {
         case EntityTypes::Player: {
-            const auto& player = static_cast<const RenderablePlayer&>(*entity);
+            const auto& player = static_cast<const PlayerEntity&>(*entity);
             attitude = player.attitude;
             renderHealthBar = ShouldRenderPlayerHealthBar(player, context.settings.playerESP);
             renderEnergyBar = context.settings.playerESP.renderEnergyBar;
@@ -167,7 +167,7 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
             break;
         }
         case EntityTypes::NPC: {
-            const auto& npc = static_cast<const RenderableNpc&>(*entity);
+            const auto& npc = static_cast<const NpcEntity&>(*entity);
             attitude = npc.attitude;
             renderHealthBar = ShouldRenderNpcHealthBar(npc, context.settings.npcESP, combatState, context.now);
             showCombatUI = true;
@@ -238,7 +238,7 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
 
     // E. Trails (Player specific)
     if (entity->entityType == EntityTypes::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(entity);
+        const auto* player = static_cast<const PlayerEntity*>(entity);
         if (player) {
             TrailRenderer::RenderPlayerTrail(context, *player, attitude, visuals);
         }

@@ -34,7 +34,7 @@ void InfoBuilder::RenderPlayerDetails(
     ImDrawList* drawList,
     LayoutCursor& cursor,
     const VisualProperties& props,
-    const RenderablePlayer* player,
+    const PlayerEntity* player,
     const PlayerEspSettings& settings,
     const AppearanceSettings& appearance,
     bool showDebugAddresses) {
@@ -115,7 +115,7 @@ void InfoBuilder::RenderGearDetails(
     ImDrawList* drawList,
     LayoutCursor& cursor,
     const VisualProperties& props,
-    const RenderablePlayer* player,
+    const PlayerEntity* player,
     const AppearanceSettings& appearance) {
     const std::vector<Game::EquipmentSlot> displayOrder = {
         Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
@@ -154,7 +154,7 @@ void InfoBuilder::RenderGearDetails(
     }
 }
 
-size_t InfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player, CompactStatInfo* outBuffer, size_t bufferSize) {
+size_t InfoBuilder::BuildCompactGearSummary(const PlayerEntity* player, CompactStatInfo* outBuffer, size_t bufferSize) {
     if (!player || player->gearCount == 0 || bufferSize == 0) {
         return 0;
     }
@@ -221,7 +221,7 @@ size_t InfoBuilder::BuildCompactGearSummary(const RenderablePlayer* player, Comp
     return resultCount;
 }
 
-size_t InfoBuilder::BuildDominantStats(const RenderablePlayer* player, DominantStat* outBuffer, size_t bufferSize) {
+size_t InfoBuilder::BuildDominantStats(const PlayerEntity* player, DominantStat* outBuffer, size_t bufferSize) {
     if (!player || bufferSize == 0) {
         return 0;
     }
@@ -270,7 +270,7 @@ size_t InfoBuilder::BuildDominantStats(const RenderablePlayer* player, DominantS
     return resultCount;
 }
 
-Game::ItemRarity InfoBuilder::GetHighestRarity(const RenderablePlayer* player) {
+Game::ItemRarity InfoBuilder::GetHighestRarity(const PlayerEntity* player) {
     if (!player || player->gearCount == 0) {
         return Game::ItemRarity::None;
     }
@@ -291,7 +291,7 @@ void InfoBuilder::RenderNpcDetails(
     ImDrawList* drawList,
     LayoutCursor& cursor,
     const VisualProperties& props,
-    const RenderableNpc* npc,
+    const NpcEntity* npc,
     const NpcEspSettings& settings,
     const AppearanceSettings& appearance,
     bool showDebugAddresses) {
@@ -528,7 +528,7 @@ void InfoBuilder::RenderItemDetails(
 
 // ===== Private Helper Methods =====
 
-size_t InfoBuilder::BuildAttributeSummary(const RenderablePlayer* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize) {
+size_t InfoBuilder::BuildAttributeSummary(const PlayerEntity* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize) {
     if (!player || player->gearCount == 0 || bufferSize == 0) {
         return 0;
     }

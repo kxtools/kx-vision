@@ -61,7 +61,7 @@ namespace kx::Styling {
     ImU32 GetEntityColor(const GameEntity& entity) {
         switch (entity.entityType) {
             case EntityTypes::Player: {
-                const auto* p = static_cast<const RenderablePlayer*>(&entity);
+                const auto* p = static_cast<const PlayerEntity*>(&entity);
                 switch (p->attitude) {
                     case Game::Attitude::Hostile:     return ESPColors::NPC_HOSTILE;
                     case Game::Attitude::Friendly:    return ESPColors::NPC_FRIENDLY;
@@ -71,7 +71,7 @@ namespace kx::Styling {
                 }
             }
             case EntityTypes::NPC: {
-                const auto* n = static_cast<const RenderableNpc*>(&entity);
+                const auto* n = static_cast<const NpcEntity*>(&entity);
                  switch (n->attitude) {
                     case Game::Attitude::Hostile:     return ESPColors::NPC_HOSTILE;
                     case Game::Attitude::Friendly:    return ESPColors::NPC_FRIENDLY;

@@ -6,8 +6,8 @@
 
 namespace kx {
     struct GameEntity;
-    struct RenderablePlayer;
-    struct RenderableNpc;
+    struct PlayerEntity;
+    struct NpcEntity;
 }
 
 namespace kx::Styling {

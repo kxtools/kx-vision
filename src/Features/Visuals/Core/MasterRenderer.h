@@ -32,8 +32,8 @@ private:
      */
     void UpdateESPData(const FrameContext& context, float currentTimeSeconds);
 
-    ObjectPool<RenderablePlayer> m_playerPool{EntityLimits::MAX_PLAYERS};
-    ObjectPool<RenderableNpc> m_npcPool{EntityLimits::MAX_NPCS};
+    ObjectPool<PlayerEntity> m_playerPool{EntityLimits::MAX_PLAYERS};
+    ObjectPool<NpcEntity> m_npcPool{EntityLimits::MAX_NPCS};
     ObjectPool<RenderableGadget> m_gadgetPool{EntityLimits::MAX_GADGETS};
     ObjectPool<RenderableAttackTarget> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
     ObjectPool<RenderableItem> m_itemPool{EntityLimits::MAX_ITEMS};

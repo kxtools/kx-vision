@@ -9,8 +9,8 @@
 
 namespace kx {
 
-    void DataExtractor::ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
-        ObjectPool<RenderableNpc>& npcPool,
+    void DataExtractor::ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
+        ObjectPool<NpcEntity>& npcPool,
         ObjectPool<RenderableGadget>& gadgetPool,
         ObjectPool<RenderableAttackTarget>& attackTargetPool,
         ObjectPool<RenderableItem>& itemPool,
@@ -46,10 +46,10 @@ namespace kx {
         ExtractItemData(itemPool, pooledData.items);
     }
 
-    void DataExtractor::ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
-        ObjectPool<RenderableNpc>& npcPool,
-        std::vector<RenderablePlayer*>& players,
-        std::vector<RenderableNpc*>& npcs,
+    void DataExtractor::ExtractCharacterData(ObjectPool<PlayerEntity>& playerPool,
+        ObjectPool<NpcEntity>& npcPool,
+        std::vector<PlayerEntity*>& players,
+        std::vector<NpcEntity*>& npcs,
         const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap) {
         players.clear();
         npcs.clear();
@@ -74,7 +74,7 @@ namespace kx {
             auto it = characterToPlayerNameMap.find(charPtr);
             if (it != characterToPlayerNameMap.end()) {
                 // This is a player
-                RenderablePlayer* renderablePlayer = playerPool.Get();
+                PlayerEntity* renderablePlayer = playerPool.Get();
                 if (!renderablePlayer) continue; // Pool exhausted, skip this entity
 
                 // Delegate all extraction logic to the helper class
@@ -83,7 +83,7 @@ namespace kx {
                 }
             } else {
                 // This is an NPC
-                RenderableNpc* renderableNpc = npcPool.Get();
+                NpcEntity* renderableNpc = npcPool.Get();
                 if (!renderableNpc) continue; // Pool exhausted, skip this entity
 
                 // Delegate all extraction logic to the helper class

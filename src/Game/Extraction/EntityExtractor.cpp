@@ -20,7 +20,7 @@ namespace PhysicsValidation {
     constexpr float WIDTH_TO_HEIGHT_RATIO = 0.35f;  // 35% - typical humanoid/object proportions
 }
 
-    bool EntityExtractor::ExtractPlayer(RenderablePlayer& outPlayer,
+    bool EntityExtractor::ExtractPlayer(PlayerEntity& outPlayer,
         const ReClass::ChCliCharacter& inCharacter,
         const wchar_t* playerName,
         void* localPlayerPtr) {
@@ -88,7 +88,7 @@ namespace PhysicsValidation {
         return true;
     }
 
-    bool EntityExtractor::ExtractNpc(RenderableNpc& outNpc, const ReClass::ChCliCharacter& inCharacter) {
+    bool EntityExtractor::ExtractNpc(NpcEntity& outNpc, const ReClass::ChCliCharacter& inCharacter) {
 
         // --- Validation and Position ---
         glm::vec3 gamePos;
@@ -242,7 +242,7 @@ namespace PhysicsValidation {
         return true;
     }
 
-    void EntityExtractor::ExtractGear(RenderablePlayer& outPlayer, const ReClass::ChCliInventory& inventory) {
+    void EntityExtractor::ExtractGear(PlayerEntity& outPlayer, const ReClass::ChCliInventory& inventory) {
         outPlayer.gearCount = 0;
 
         static constexpr Game::EquipmentSlot slotsToCheck[] = {

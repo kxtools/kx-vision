@@ -22,7 +22,7 @@ namespace {
 
 void TrailRenderer::RenderPlayerTrail(
     const FrameContext& context,
-    const RenderablePlayer& player,
+    const PlayerEntity& player,
     Game::Attitude attitude,
     const VisualProperties& props)
 {

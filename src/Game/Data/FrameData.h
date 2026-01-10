@@ -13,8 +13,8 @@ namespace kx {
     class CombatStateManager;
     struct Settings;
     struct GameEntity; // Forward declare from RenderableData.h
-    struct RenderablePlayer;
-    struct RenderableNpc;
+    struct PlayerEntity;
+    struct NpcEntity;
     struct RenderableGadget;
     struct RenderableAttackTarget;
     struct RenderableItem;
@@ -106,8 +106,8 @@ struct FrameContext {
 };
 
 struct PooledFrameRenderData {
-    std::vector<RenderablePlayer*> players;
-    std::vector<RenderableNpc*> npcs;
+    std::vector<PlayerEntity*> players;
+    std::vector<NpcEntity*> npcs;
     std::vector<RenderableGadget*> gadgets;
     std::vector<RenderableAttackTarget*> attackTargets;
     std::vector<RenderableItem*> items;

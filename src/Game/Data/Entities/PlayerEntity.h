@@ -6,7 +6,7 @@
 
 namespace kx {
 
-struct RenderablePlayer : public GameEntity {
+struct PlayerEntity : public GameEntity {
     char playerName[64] = { 0 };
     float currentEndurance;
     float maxEndurance;
@@ -41,7 +41,7 @@ struct RenderablePlayer : public GameEntity {
         }
     }
     
-    RenderablePlayer() : GameEntity(),
+    PlayerEntity() : GameEntity(),
                          currentEndurance(0.0f), maxEndurance(0.0f),
                          currentEnergy(0.0f), maxEnergy(0.0f),
                          level(0), scaledLevel(0),

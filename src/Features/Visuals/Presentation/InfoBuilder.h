@@ -32,7 +32,7 @@ public:
      * @param settings Player ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const PlayerEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
+    static void RenderPlayerDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const PlayerEntity* player, const PlayerEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
     /**
      * @brief Render detailed gear information showing each equipment slot and stat
@@ -41,7 +41,7 @@ public:
      * @param props Visual properties for styling
      * @param player The player entity to analyze
      */
-    static void RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderablePlayer* player, const AppearanceSettings& appearance);
+    static void RenderGearDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const PlayerEntity* player, const AppearanceSettings& appearance);
 
     /**
      * @brief Build compact gear summary showing stat names and counts
@@ -50,7 +50,7 @@ public:
      * @param bufferSize Size of the output buffer (typically 3)
      * @return Number of stats written (0-3, max 3 after sorting)
      */
-    static size_t BuildCompactGearSummary(const RenderablePlayer* player, CompactStatInfo* outBuffer, size_t bufferSize);
+    static size_t BuildCompactGearSummary(const PlayerEntity* player, CompactStatInfo* outBuffer, size_t bufferSize);
 
     /**
      * @brief Build top 3 dominant stats with percentages
@@ -59,14 +59,14 @@ public:
      * @param bufferSize Size of the output buffer (typically 3)
      * @return Number of stats written (0-3, max 3 after sorting)
      */
-    static size_t BuildDominantStats(const RenderablePlayer* player, DominantStat* outBuffer, size_t bufferSize);
+    static size_t BuildDominantStats(const PlayerEntity* player, DominantStat* outBuffer, size_t bufferSize);
 
     /**
      * @brief Get the highest rarity of all equipped items for a player
      * @param player The player entity to analyze
      * @return The highest item rarity found
      */
-    static Game::ItemRarity GetHighestRarity(const RenderablePlayer* player);
+    static Game::ItemRarity GetHighestRarity(const PlayerEntity* player);
 
     // ===== NPC Methods =====
     
@@ -79,7 +79,7 @@ public:
      * @param settings NPC ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableNpc* npc, const NpcEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
+    static void RenderNpcDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const NpcEntity* npc, const NpcEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
     // ===== Gadget Methods =====
     
@@ -124,7 +124,7 @@ private:
      * @param bufferSize Size of the output buffer
      * @return Number of unique attributes found
      */
-    static size_t BuildAttributeSummary(const RenderablePlayer* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize);
+    static size_t BuildAttributeSummary(const PlayerEntity* player, std::pair<kx::data::ApiAttribute, int>* outBuffer, size_t bufferSize);
 };
 
 } // namespace kx

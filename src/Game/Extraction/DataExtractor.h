@@ -30,8 +30,8 @@ namespace kx {
          * @param itemPool Object pool for items
          * @param pooledData Output container for pooled data pointers
          */
-        static void ExtractFrameData(ObjectPool<RenderablePlayer>& playerPool,
-            ObjectPool<RenderableNpc>& npcPool,
+        static void ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
+            ObjectPool<NpcEntity>& npcPool,
             ObjectPool<RenderableGadget>& gadgetPool,
             ObjectPool<RenderableAttackTarget>& attackTargetPool,
             ObjectPool<RenderableItem>& itemPool,
@@ -41,10 +41,10 @@ namespace kx {
         /**
          * @brief OPTIMIZED extraction methods - write directly into object pools
          */
-        static void ExtractCharacterData(ObjectPool<RenderablePlayer>& playerPool,
-            ObjectPool<RenderableNpc>& npcPool,
-            std::vector<RenderablePlayer*>& players,
-            std::vector<RenderableNpc*>& npcs,
+        static void ExtractCharacterData(ObjectPool<PlayerEntity>& playerPool,
+            ObjectPool<NpcEntity>& npcPool,
+            std::vector<PlayerEntity*>& players,
+            std::vector<NpcEntity*>& npcs,
             const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap);
 
         static void ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,

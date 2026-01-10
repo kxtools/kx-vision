@@ -147,7 +147,7 @@ StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(c
     EntityMultipliers multipliers;
     
     if (entity.entityType == EntityTypes::Player) {
-        const auto* player = static_cast<const RenderablePlayer*>(&entity);
+        const auto* player = static_cast<const PlayerEntity*>(&entity);
         const auto& settings = AppState::Get().GetSettings();
         if (player->attitude == Game::Attitude::Hostile) {
             multipliers.hostile = settings.playerESP.hostileBoostMultiplier;
@@ -155,7 +155,7 @@ StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(c
     }
     
     if (entity.entityType == EntityTypes::NPC) {
-        const auto* npc = static_cast<const RenderableNpc*>(&entity);
+        const auto* npc = static_cast<const NpcEntity*>(&entity);
         multipliers.rank = Styling::GetRankMultiplier(npc->rank);
     }
     

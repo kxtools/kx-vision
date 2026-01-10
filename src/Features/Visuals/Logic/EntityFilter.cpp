@@ -55,7 +55,7 @@ void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, 
     // Filter players
     if (context.settings.playerESP.enabled) {
         filteredData.players.reserve(extractedData.players.size());
-        for (RenderablePlayer* player : extractedData.players) {
+        for (PlayerEntity* player : extractedData.players) {
             // Call the common helper function first
             if (!PassesCommonFilters(player, cameraPos, playerPos, context)) {
                 continue;
@@ -77,7 +77,7 @@ void EntityFilter::FilterPooledData(const PooledFrameRenderData& extractedData, 
     // Filter NPCs
     if (context.settings.npcESP.enabled) {
         filteredData.npcs.reserve(extractedData.npcs.size());
-        for (RenderableNpc* npc : extractedData.npcs) {
+        for (NpcEntity* npc : extractedData.npcs) {
             // Call the common helper function first
             if (!PassesCommonFilters(npc, cameraPos, playerPos, context)) {
                 continue;
