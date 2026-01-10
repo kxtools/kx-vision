@@ -34,21 +34,12 @@ namespace kx {
             }
 
             // Update EntityManager on Game Thread for safe TLS access
-            __try {
-                const uint64_t now = GetTickCount64();
-                kx::g_App.GetEntityManager().Update(now);
-            }
-            __except (EXCEPTION_EXECUTE_HANDLER) {
-                // Silently catch exceptions to prevent crashes
-            }
+            // Note: Memory safety is handled at the ForeignClass level during extraction
+            const uint64_t now = GetTickCount64();
+            kx::g_App.GetEntityManager().Update(now);
 
             // Run game thread updates for all features
-            __try {
-                kx::g_App.GetFeatureManager().RunGameThreadUpdates();
-            }
-            __except (EXCEPTION_EXECUTE_HANDLER) {
-                // Silently catch exceptions to prevent crashes
-            }
+            kx::g_App.GetFeatureManager().RunGameThreadUpdates();
 
             if (pOriginalGameThreadUpdate) {
                 pOriginalGameThreadUpdate(pInst, frame_time);

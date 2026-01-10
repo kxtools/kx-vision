@@ -47,6 +47,21 @@ namespace SafeAccess {
     }
 
     // ---------------------------------------------------------
+    // HELPER 3: Safe Byte Read
+    // Isolated proxy for single-byte reads without C++ objects.
+    // Used by Scanner to avoid SEH/C++ destructor conflicts.
+    // ---------------------------------------------------------
+    inline bool RawSafeReadByte(uintptr_t address, unsigned char& outByte) {
+        __try {
+            outByte = *reinterpret_cast<unsigned char*>(address);
+            return true;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            return false;
+        }
+    }
+
+    // ---------------------------------------------------------
     // Main Safety Checks
     // ---------------------------------------------------------
 

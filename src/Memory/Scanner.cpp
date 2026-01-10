@@ -8,6 +8,7 @@
 #include <windows.h>
 
 #include "DebugLogger.h"
+#include "Safety.h"
 
 #pragma comment(lib, "psapi.lib") // Link against psapi.lib for GetModuleInformation
 
@@ -73,25 +74,31 @@ std::optional<uintptr_t> Scanner::FindPattern(const std::string& pattern, const 
     return FindPattern(pattern, baseAddress, scanSize);
 }
 
-// Helper function to perform the actual pattern scanning with __try/__except
+// Helper function to perform the actual pattern scanning using safe memory access
 static uintptr_t ScanPatternWithExceptionHandling(const std::vector<int>& patternBytes, uintptr_t startAddress, size_t scanSize) {
     size_t patternSize = patternBytes.size();
     
     for (uintptr_t i = 0; i <= scanSize - patternSize; ++i) {
         bool found = true;
         
-        __try {
-            for (size_t j = 0; j < patternSize; ++j) {
-                // Check if the byte is a wildcard (-1) or if the memory matches the pattern byte
-                if (patternBytes[j] != -1 && patternBytes[j] != *reinterpret_cast<unsigned char*>(startAddress + i + j)) {
-                    found = false;
-                    break;
-                }
+        for (size_t j = 0; j < patternSize; ++j) {
+            // Skip wildcards
+            if (patternBytes[j] == -1) {
+                continue;
             }
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER) {
-            // Memory access violation - skip this location
-            found = false;
+            
+            // Use proxy function for safe byte read (no C++ objects in __try)
+            unsigned char byteAtAddress = 0;
+            if (!SafeAccess::RawSafeReadByte(startAddress + i + j, byteAtAddress)) {
+                // Memory access violation - skip this location
+                found = false;
+                break;
+            }
+            
+            if (patternBytes[j] != byteAtAddress) {
+                found = false;
+                break;
+            }
         }
 
         if (found) {
