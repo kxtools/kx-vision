@@ -6,6 +6,7 @@
 #include "Architecture/IFeature.h"
 #include "../Utils/DebugLogger.h"
 #include "../Memory/Safety.h"
+#include "../Game/Data/FrameData.h"
 #include "../../libs/ImGui/imgui.h"
 #include "UI/Backend/D3DState.h"
 #include "UI/Backend/OverlayWindow.h"
@@ -61,9 +62,14 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         kx::Camera& camera = lifecycleManager.GetCamera();
         camera.Update(mumbleLinkManager, windowHandle);
 
-        // Get feature manager
+        // Update game data extraction (entity pools, combat states, far plane)
+        const uint64_t now = GetTickCount64();
+        lifecycleManager.UpdateGameData(now);
+
+        // Get feature manager and update all features with extracted data
         kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
-        featureManager.UpdateAll(0.016f); // Approximate 60 FPS deltaTime
+        const kx::FrameGameData& frameData = lifecycleManager.GetFrameData();
+        featureManager.UpdateAll(0.016f, frameData); // Approximate 60 FPS deltaTime
 
         // Render ImGui UI
         OverlayWindow::NewFrame();

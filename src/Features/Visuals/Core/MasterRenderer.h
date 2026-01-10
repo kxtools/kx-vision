@@ -3,11 +3,8 @@
 #include "../../../Game/Services/Camera/Camera.h"
 #include "../../../Game/Services/Mumble/MumbleLink.h"
 #include "../../../Game/Data/EntityData.h"
-#include "../../../Utils/ObjectPool.h"
-#include "../../Combat/CombatStateManager.h"
 #include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Shared/LayoutConstants.h"
-#include <ankerl/unordered_dense.h>
 #include <vector>
 
 namespace kx {
@@ -25,27 +22,15 @@ private:
     bool ShouldHideESP(const MumbleLinkData* mumbleData);
     
     /**
-     * @brief Executes the low-frequency data processing pipeline if the update interval has passed.
-     * This includes data extraction, combat state updates, filtering, and visual processing.
+     * @brief Filters raw entity data based on visibility and distance settings.
+     * This runs every frame on the global data from AppLifecycleManager.
+     * @param extractionData The raw entity data from AppLifecycleManager
      * @param context The current frame's context.
-     * @param currentTimeSeconds The current time in seconds, used to check the update interval.
      */
-    void UpdateESPData(const FrameContext& context, float currentTimeSeconds);
+    void FilterAndProcessData(const FrameGameData& extractionData, const FrameContext& context);
 
-    ObjectPool<PlayerEntity> m_playerPool{EntityLimits::MAX_PLAYERS};
-    ObjectPool<NpcEntity> m_npcPool{EntityLimits::MAX_NPCS};
-    ObjectPool<GadgetEntity> m_gadgetPool{EntityLimits::MAX_GADGETS};
-    ObjectPool<AttackTargetEntity> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
-    ObjectPool<ItemEntity> m_itemPool{EntityLimits::MAX_ITEMS};
-
-    CombatStateManager m_combatStateManager;
+    // Filtered render data (only what should be displayed)
     FrameGameData m_processedRenderData;
-    
-    FrameGameData m_extractionData;
-    
-    float m_lastUpdateTime = 0.0f;
-    ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeKeys;
-    std::vector<GameEntity*> m_allEntitiesBuffer;
 };
 
 } // namespace kx

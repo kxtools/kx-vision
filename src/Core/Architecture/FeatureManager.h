@@ -10,6 +10,7 @@ struct ImDrawList;
 namespace kx {
 
 class IFeature;
+struct FrameGameData;
 
 /**
  * @brief Manages the lifecycle of all registered features.
@@ -41,8 +42,9 @@ public:
     /**
      * @brief Update all features.
      * @param deltaTime Time since last frame in seconds.
+     * @param frameData Const reference to current frame's extracted game data.
      */
-    void UpdateAll(float deltaTime);
+    void UpdateAll(float deltaTime, const FrameGameData& frameData);
 
     /**
      * @brief Render all features to the draw list.

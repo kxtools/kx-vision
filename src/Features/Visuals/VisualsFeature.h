@@ -21,7 +21,7 @@ public:
     ~VisualsFeature() override = default;
 
     bool Initialize() override;
-    void Update(float deltaTime) override;
+    void Update(float deltaTime, const FrameGameData& frameData) override;
     void RenderDrawList(ImDrawList* drawList) override;
     void OnMenuRender() override;
     const char* GetName() const override { return "Visuals"; }

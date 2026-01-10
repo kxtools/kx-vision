@@ -1,5 +1,6 @@
 #include "FeatureManager.h"
 #include "IFeature.h"
+#include "../../Game/Data/FrameData.h"
 #include <spdlog/spdlog.h>
 
 namespace kx {
@@ -29,9 +30,9 @@ bool FeatureManager::InitializeAll() {
     return true;
 }
 
-void FeatureManager::UpdateAll(float deltaTime) {
+void FeatureManager::UpdateAll(float deltaTime, const FrameGameData& frameData) {
     for (auto& feature : m_features) {
-        feature->Update(deltaTime);
+        feature->Update(deltaTime, frameData);
     }
 }
 

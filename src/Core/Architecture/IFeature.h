@@ -6,6 +6,9 @@ struct ImDrawList;
 
 namespace kx {
 
+// Forward declarations
+struct FrameGameData;
+
 /**
  * @brief Base interface for modular features in KX-Vision.
  * 
@@ -25,8 +28,9 @@ public:
     /**
      * @brief Update feature logic. Called every frame.
      * @param deltaTime Time since last frame in seconds.
+     * @param frameData Const reference to current frame's extracted game data.
      */
-    virtual void Update(float deltaTime) = 0;
+    virtual void Update(float deltaTime, const FrameGameData& frameData) = 0;
 
     /**
      * @brief Render the feature to the ImGui background draw list.

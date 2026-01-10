@@ -18,9 +18,9 @@ bool VisualsFeature::Initialize() {
     return true;
 }
 
-void VisualsFeature::Update(float deltaTime) {
-    // MasterRenderer updates are handled during Render() call
-    // No per-frame logic needed here
+void VisualsFeature::Update(float deltaTime, const FrameGameData& frameData) {
+    // Currently no per-frame update logic needed
+    // Frame data is now available if needed in the future
 }
 
 void VisualsFeature::RenderDrawList(ImDrawList* drawList) {
