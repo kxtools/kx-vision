@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameEntity.h"
-#include "../PlayerRenderData.h"
+#include "../PlayerGearData.h"
 #include <array>
 
 namespace kx {
