@@ -1,6 +1,6 @@
 #pragma once
 #include <glm.hpp>
-#include "../Shared/LayoutConstants.h"
+#include "../../../Rendering/Shared/LayoutConstants.h"
 
 namespace kx {
 

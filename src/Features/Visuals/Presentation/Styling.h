@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../Game/GameEnums.h"
-#include "../../libs/ImGui/imgui.h"
-#include "Generated/EnumsAndStructs.h"
+#include "../../../Game/GameEnums.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../../../Game/Generated/EnumsAndStructs.h"
 
 namespace kx {
     struct RenderableEntity;

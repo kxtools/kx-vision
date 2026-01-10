@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Data/FrameData.h"
-#include "../Data/EntityTypes.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Data/EntityTypes.h"
 
 // Forward declarations
 namespace kx {

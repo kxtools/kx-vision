@@ -1,8 +1,8 @@
 #pragma once
 
 #include "glm.hpp"
-#include "../../../libs/ImGui/imgui.h"
-#include "Data/FrameData.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../../../Rendering/Data/FrameData.h"
 
 namespace kx {
 

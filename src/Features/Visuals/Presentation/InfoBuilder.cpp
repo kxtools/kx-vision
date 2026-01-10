@@ -1,7 +1,7 @@
 #include "InfoBuilder.h"
-#include "../../Game/GameEnums.h"
-#include "../../Game/Generated/StatData.h"
-#include "../../../libs/ImGui/imgui.h"
+#include "../../../Game/GameEnums.h"
+#include "../../../Game/Generated/StatData.h"
+#include "../../../../libs/ImGui/imgui.h"
 
 #include <algorithm>
 #include <array>
@@ -10,12 +10,12 @@
 #include <format>
 
 #include "Styling.h"
-#include "Shared/ColorConstants.h"
+#include "../../../Rendering/Shared/ColorConstants.h"
 #include "Formatting.h"
-#include "../Renderers/TextRenderer.h"
+#include "../../../Rendering/Renderers/TextRenderer.h"
 #include "../Renderers/LayoutCursor.h"
-#include "../Data/FrameData.h"
-#include "../Shared/LayoutConstants.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Shared/LayoutConstants.h"
 
 namespace kx {
 

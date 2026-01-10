@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../Rendering/Renderers/LayoutCursor.h"
+#include "LayoutCursor.h"
 #include "../../../Rendering/Data/FrameData.h"
 #include "../../../Rendering/Data/HealthBarAnimationState.h"
 #include "../../../Game/GameEnums.h"

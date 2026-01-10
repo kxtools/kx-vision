@@ -1,9 +1,9 @@
 #pragma once
 
 #include <utility>
-#include "../Data/RenderableData.h"
-#include "../../Core/Settings.h"
-#include "Generated/EnumsAndStructs.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Core/Settings.h"
+#include "../../../Game/Generated/EnumsAndStructs.h"
 
 struct ImDrawList;
 namespace kx {

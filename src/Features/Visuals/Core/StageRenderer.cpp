@@ -1,13 +1,13 @@
 #include "StageRenderer.h"
 #include "../../../Game/Services/Camera/Camera.h"
 #include "../Renderers/EntityComponentRenderer.h"
-#include "../../../Rendering/Renderers/LayoutCursor.h"
+#include "../Renderers/LayoutCursor.h"
 #include "../Renderers/TrailRenderer.h"
 #include "../../../Rendering/Data/RenderableData.h"
 #include "../../../Rendering/Data/HealthBarAnimationState.h"
-#include "../../../Rendering/Presentation/Styling.h"
-#include "../../../Rendering/Logic/StyleCalculator.h"
-#include "../../../Rendering/Logic/Animations/HealthBarAnimations.h"
+#include "../Presentation/Styling.h"
+#include "../Logic/StyleCalculator.h"
+#include "../Logic/Animations/HealthBarAnimations.h"
 #include "../../Combat/CombatStateManager.h"
 #include "../../Combat/CombatState.h"
 #include "../../Combat/CombatConstants.h"
@@ -15,7 +15,7 @@
 #include <string_view>
 #include <vector>
 
-#include "../../../Rendering/Renderers/ScreenProjector.h"
+#include "../Renderers/ScreenProjector.h"
 #include "../../../Rendering/Shared/RenderSettingsHelper.h"
 
 namespace kx {

@@ -1,12 +1,12 @@
 #define NOMINMAX
 
 #include "StyleCalculator.h"
-#include "../../Core/AppState.h"
-#include "../Data/RenderableData.h"
+#include "../../../Core/AppState.h"
+#include "../../../Rendering/Data/RenderableData.h"
 #include "../Renderers/ShapeRenderer.h"
-#include "../Shared/RenderSettingsHelper.h"
-#include "../Shared/ScalingConstants.h"
-#include "Presentation/Styling.h"
+#include "../../../Rendering/Shared/RenderSettingsHelper.h"
+#include "../../../Rendering/Shared/ScalingConstants.h"
+#include "../Presentation/Styling.h"
 #include <algorithm>
 #include <cmath>
 

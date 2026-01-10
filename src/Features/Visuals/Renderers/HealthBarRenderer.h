@@ -1,11 +1,11 @@
 #pragma once
 
 #include "glm.hpp"
-#include "../../../libs/ImGui/imgui.h"
-#include "../Data/FrameData.h"
-#include "../Data/HealthBarAnimationState.h"
-#include "../Data/EntityTypes.h"
-#include "../../Game/GameEnums.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Data/HealthBarAnimationState.h"
+#include "../../../Rendering/Data/EntityTypes.h"
+#include "../../../Game/GameEnums.h"
 
 namespace kx {
 

@@ -4,7 +4,7 @@
 #include "../../Combat/CombatStateManager.h"
 #include "../../Combat/CombatState.h"
 #include "../../../Rendering/Shared/MathUtils.h"
-#include "../../../Rendering/Renderers/ShapeRenderer.h"
+#include "ShapeRenderer.h"
 #include "../../../Core/AppState.h"
 #include "../../../Game/GameEnums.h"
 #include <algorithm>

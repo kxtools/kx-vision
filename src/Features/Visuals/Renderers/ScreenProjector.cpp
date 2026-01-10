@@ -1,12 +1,12 @@
 #define NOMINMAX
 
 #include "ScreenProjector.h"
-#include "../../Core/AppState.h"
-#include "../Data/RenderableData.h"
-#include "../Shared/LayoutConstants.h"
-#include "../Shared/MathUtils.h"
-#include "../Shared/RenderSettingsHelper.h"
-#include "../../../libs/ImGui/imgui.h"
+#include "../../../Core/AppState.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../../../Rendering/Shared/MathUtils.h"
+#include "../../../Rendering/Shared/RenderSettingsHelper.h"
+#include "../../../../libs/ImGui/imgui.h"
 #include <algorithm>
 #include <array>
 #include <cfloat>

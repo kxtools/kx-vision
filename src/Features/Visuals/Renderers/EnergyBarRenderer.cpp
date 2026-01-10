@@ -1,10 +1,10 @@
 #include "EnergyBarRenderer.h"
 
 #include "ShapeRenderer.h"
-#include "../../Core/Settings.h"
-#include "../../../libs/ImGui/imgui.h"
-#include "Shared/ColorConstants.h"
-#include "Shared/LayoutConstants.h"
+#include "../../../Core/Settings.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../../../Rendering/Shared/ColorConstants.h"
+#include "../../../Rendering/Shared/LayoutConstants.h"
 
 namespace kx {
 

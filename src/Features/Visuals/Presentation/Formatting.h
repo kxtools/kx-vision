@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../Game/GameEnums.h"
-#include "../../Game/Havok/HavokEnums.h"
-#include "../../Game/Generated/EnumsAndStructs.h"
+#include "../../../Game/GameEnums.h"
+#include "../../../Game/Havok/HavokEnums.h"
+#include "../../../Game/Generated/EnumsAndStructs.h"
 
 namespace kx::Formatting {
 

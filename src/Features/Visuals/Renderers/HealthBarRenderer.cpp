@@ -2,19 +2,19 @@
 
 #include "HealthBarRenderer.h"
 #include <iomanip>
-#include "../../../libs/ImGui/imgui.h"
+#include "../../../../libs/ImGui/imgui.h"
 #include <Windows.h>
 
 #include <algorithm>
 #include <format>
 #include <string_view>
-#include "TextRenderer.h"
-#include "../Shared/LayoutConstants.h"
-#include "../../Core/Settings.h"
-#include "../Shared/RenderSettingsHelper.h"
-#include "../../Features/Combat/CombatConstants.h"
-#include "../Data/RenderableData.h"
-#include "../../Game/GameEnums.h"
+#include "../../../Rendering/Renderers/TextRenderer.h"
+#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../../../Core/Settings.h"
+#include "../../../Rendering/Shared/RenderSettingsHelper.h"
+#include "../../Combat/CombatConstants.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Game/GameEnums.h"
 
 namespace kx {
 

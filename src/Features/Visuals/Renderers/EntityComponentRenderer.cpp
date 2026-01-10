@@ -1,7 +1,7 @@
 #include "EntityComponentRenderer.h"
-#include "../../../Rendering/Renderers/ShapeRenderer.h"
-#include "../../../Rendering/Renderers/HealthBarRenderer.h"
-#include "../../../Rendering/Renderers/EnergyBarRenderer.h"
+#include "ShapeRenderer.h"
+#include "HealthBarRenderer.h"
+#include "EnergyBarRenderer.h"
 
 #include "../../../Rendering/Renderers/TextRenderer.h"
 
@@ -14,9 +14,9 @@
 #include <format>
 #include <array>
 
-#include "../../../Rendering/Presentation/Styling.h"
-#include "../../../Rendering/Presentation/InfoBuilder.h"
-#include "../../../Rendering/Presentation/Formatting.h"
+#include "../Presentation/Styling.h"
+#include "../Presentation/InfoBuilder.h"
+#include "../Presentation/Formatting.h"
 #include "../../Combat/CombatConstants.h"
 #include "../../../Rendering/Shared/RenderSettingsHelper.h"
 #include "../../../Utils/UnitConversion.h"

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Data/FrameData.h"
-#include "../Data/EntityTypes.h"
-#include "../../Game/Services/Camera/Camera.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Data/EntityTypes.h"
+#include "../../../Game/Services/Camera/Camera.h"
 
 // Forward declarations
 namespace kx {
