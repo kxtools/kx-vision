@@ -29,13 +29,15 @@ namespace kx {
          * @param attackTargetPool Object pool for attack targets
          * @param itemPool Object pool for items
          * @param pooledData Output container for pooled data pointers
+         * @param charToNameMap Persistent map for character-to-player-name lookup (cleared each frame, retains capacity)
          */
         static void ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
             ObjectPool<NpcEntity>& npcPool,
             ObjectPool<GadgetEntity>& gadgetPool,
             ObjectPool<AttackTargetEntity>& attackTargetPool,
             ObjectPool<ItemEntity>& itemPool,
-            FrameGameData& pooledData);
+            FrameGameData& pooledData,
+            ankerl::unordered_dense::map<void*, const wchar_t*>& charToNameMap);
 
     private:
         /**

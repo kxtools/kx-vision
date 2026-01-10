@@ -82,6 +82,9 @@ private:
     ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeCombatKeys;
     std::vector<GameEntity*> m_allEntitiesBuffer;
 
+    // Persistent map for character-to-player-name lookup (cleared every frame, retains capacity)
+    ankerl::unordered_dense::map<void*, const wchar_t*> m_charToNameMap;
+
     // Throttling
     float m_lastGameDataUpdateTime = 0.0f;
 };

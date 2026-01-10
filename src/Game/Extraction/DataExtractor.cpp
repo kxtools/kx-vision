@@ -14,7 +14,8 @@ namespace kx {
         ObjectPool<GadgetEntity>& gadgetPool,
         ObjectPool<AttackTargetEntity>& attackTargetPool,
         ObjectPool<ItemEntity>& itemPool,
-        FrameGameData& pooledData) {
+        FrameGameData& pooledData,
+        ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap) {
         pooledData.Reset();
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
@@ -22,9 +23,7 @@ namespace kx {
             return;
         }
 
-        // Build the map of character pointers to player names
-        ankerl::unordered_dense::map<void*, const wchar_t*> characterToPlayerNameMap;
-        characterToPlayerNameMap.reserve(150);
+        // Build the map of character pointers to player names (using persistent map passed by reference)
         {
             ReClass::ContextCollection ctxCollection(pContextCollection);
             ReClass::ChCliContext charContext = ctxCollection.GetChCliContext();

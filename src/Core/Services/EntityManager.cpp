@@ -21,10 +21,14 @@ void EntityManager::Update(uint64_t now) {
         m_itemPool.Reset();
         m_frameDataWorkBuffer.Reset();
 
+        // Clear the persistent character-to-name map (retains capacity for high-water mark strategy)
+        m_charToNameMap.clear();
+
         // Extract entity data from game memory into work buffer
         DataExtractor::ExtractFrameData(
             m_playerPool, m_npcPool, m_gadgetPool, 
-            m_attackTargetPool, m_itemPool, m_frameDataWorkBuffer
+            m_attackTargetPool, m_itemPool, m_frameDataWorkBuffer,
+            m_charToNameMap
         );
 
         // Collect all combat state keys from work buffer
