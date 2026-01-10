@@ -147,7 +147,7 @@
     <ClCompile Include="src\Core\AppLifecycleManager.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
     <ClCompile Include="src\Rendering\Extraction\EntityExtractor.cpp" />
-    <ClCompile Include="src\Rendering\UI\GuiHelpers.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\GuiHelpers.cpp" />
     <ClCompile Include="src\Rendering\Shared\MathUtils.cpp" />
     <ClCompile Include="src\Tests\OffsetValidationTests.cpp" />
     <ClCompile Include="src\Utils\Console.cpp" />
@@ -247,7 +247,7 @@
     <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
     <ClInclude Include="src\Rendering\Data\RenderableData.h" />
     <ClInclude Include="src\Rendering\Extraction\EntityExtractor.h" />
-    <ClInclude Include="src\Rendering\UI\GuiHelpers.h" />
+    <ClInclude Include="src\Features\Visuals\UI\GuiHelpers.h" />
     <ClInclude Include="src\Features\Visuals\Renderers\HealthBarRenderer.h" />
     <ClInclude Include="src\Features\Visuals\Renderers\ShapeRenderer.h" />
     <ClInclude Include="src\Features\Visuals\Presentation\InfoBuilder.h" />

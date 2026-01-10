@@ -5,7 +5,7 @@
 #include "../../../Core/AppState.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../../../Core/Settings.h"
-#include "../../../Rendering/UI/GuiHelpers.h"
+#include "GuiHelpers.h"
 
 namespace kx {
     namespace GUI {
