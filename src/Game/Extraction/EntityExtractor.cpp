@@ -125,7 +125,7 @@ namespace PhysicsValidation {
         return true;
     }
 
-    bool EntityExtractor::ExtractGadget(RenderableGadget& outGadget, const ReClass::GdCliGadget& inGadget) {
+    bool EntityExtractor::ExtractGadget(GadgetEntity& outGadget, const ReClass::GdCliGadget& inGadget) {
 
         // --- Validation and Position ---
         glm::vec3 gamePos;

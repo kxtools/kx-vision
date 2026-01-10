@@ -215,7 +215,7 @@
     <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderableAttackTarget.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderableEntity.h" />
-    <ClInclude Include="src\Game\Data\Entities\RenderableGadget.h" />
+    <ClInclude Include="src\Game\Data\Entities\GadgetEntity.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderableItem.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderableNpc.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderablePlayer.h" />

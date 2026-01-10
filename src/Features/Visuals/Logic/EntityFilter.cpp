@@ -97,7 +97,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
     // Filter gadgets
     if (context.settings.objectESP.enabled) {
         filteredData.gadgets.reserve(extractedData.gadgets.size());
-        for (RenderableGadget* gadget : extractedData.gadgets) {
+        for (GadgetEntity* gadget : extractedData.gadgets) {
             // Call the common helper function first
             if (!PassesCommonFilters(gadget, cameraPos, playerPos, context)) {
                 continue;

@@ -32,7 +32,7 @@ namespace kx {
          */
         static void ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
             ObjectPool<NpcEntity>& npcPool,
-            ObjectPool<RenderableGadget>& gadgetPool,
+            ObjectPool<GadgetEntity>& gadgetPool,
             ObjectPool<RenderableAttackTarget>& attackTargetPool,
             ObjectPool<RenderableItem>& itemPool,
             FrameGameData& pooledData);
@@ -47,8 +47,8 @@ namespace kx {
             std::vector<NpcEntity*>& npcs,
             const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap);
 
-        static void ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
-            std::vector<RenderableGadget*>& gadgets);
+        static void ExtractGadgetData(ObjectPool<GadgetEntity>& gadgetPool,
+            std::vector<GadgetEntity*>& gadgets);
 
         static void ExtractAttackTargetData(ObjectPool<RenderableAttackTarget>& attackTargetPool,
             std::vector<RenderableAttackTarget*>& attackTargets);

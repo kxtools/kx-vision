@@ -78,7 +78,7 @@ bool ShouldRenderNpcHealthBar(const NpcEntity& npc,
     return true;
 }
 
-bool ShouldRenderGadgetHealthBar(const RenderableGadget& gadget,
+bool ShouldRenderGadgetHealthBar(const GadgetEntity& gadget,
                                  const ObjectEspSettings& settings,
                                  const EntityCombatState* state,
                                  uint64_t now) {
@@ -113,7 +113,7 @@ std::string_view GetEntityName(const GameEntity& entity) {
         case EntityTypes::NPC:
             return static_cast<const NpcEntity&>(entity).name;
         case EntityTypes::Gadget:
-            return static_cast<const RenderableGadget&>(entity).name;
+            return static_cast<const GadgetEntity&>(entity).name;
         case EntityTypes::Item: {
             static thread_local char itemNameBuffer[64];
             const auto& item = static_cast<const RenderableItem&>(entity);
@@ -175,7 +175,7 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
             break;
         }
         case EntityTypes::Gadget: {
-            const auto& gadget = static_cast<const RenderableGadget&>(*entity);
+            const auto& gadget = static_cast<const GadgetEntity&>(*entity);
             renderHealthBar = ShouldRenderGadgetHealthBar(gadget, context.settings.objectESP, combatState, context.now);
             showCombatUI = !Styling::ShouldHideCombatUIForGadget(gadget.type);
             burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);

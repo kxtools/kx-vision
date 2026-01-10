@@ -466,7 +466,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
             break;
         }
         case EntityTypes::Gadget: {
-            const auto* gadget = static_cast<const RenderableGadget*>(&entity);
+            const auto* gadget = static_cast<const GadgetEntity*>(&entity);
             InfoBuilder::RenderGadgetDetails(ctx.drawList, cursor, props, gadget, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }

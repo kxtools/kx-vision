@@ -15,7 +15,7 @@ namespace kx {
     struct GameEntity; // Forward declare from RenderableData.h
     struct PlayerEntity;
     struct NpcEntity;
-    struct RenderableGadget;
+    struct GadgetEntity;
     struct RenderableAttackTarget;
     struct RenderableItem;
 }
@@ -108,7 +108,7 @@ struct FrameContext {
 struct FrameGameData {
     std::vector<PlayerEntity*> players;
     std::vector<NpcEntity*> npcs;
-    std::vector<RenderableGadget*> gadgets;
+    std::vector<GadgetEntity*> gadgets;
     std::vector<RenderableAttackTarget*> attackTargets;
     std::vector<RenderableItem*> items;
 

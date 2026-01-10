@@ -39,7 +39,7 @@ namespace kx {
          * @param inGadget The source GdCliGadget structure from the game.
          * @return True if extraction was successful and the entity is valid, false otherwise.
          */
-        static bool ExtractGadget(RenderableGadget& outGadget,
+        static bool ExtractGadget(GadgetEntity& outGadget,
             const ReClass::GdCliGadget& inGadget);
 
         /**

@@ -359,7 +359,7 @@ void InfoBuilder::RenderGadgetDetails(
     ImDrawList* drawList,
     LayoutCursor& cursor,
     const VisualProperties& props,
-    const RenderableGadget* gadget,
+    const GadgetEntity* gadget,
     const ObjectEspSettings& settings,
     const AppearanceSettings& appearance,
     bool showDebugAddresses) {

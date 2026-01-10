@@ -11,7 +11,7 @@ namespace kx {
 
     void DataExtractor::ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
         ObjectPool<NpcEntity>& npcPool,
-        ObjectPool<RenderableGadget>& gadgetPool,
+        ObjectPool<GadgetEntity>& gadgetPool,
         ObjectPool<RenderableAttackTarget>& attackTargetPool,
         ObjectPool<RenderableItem>& itemPool,
         FrameGameData& pooledData) {
@@ -94,8 +94,8 @@ namespace kx {
         }
     }
 
-    void DataExtractor::ExtractGadgetData(ObjectPool<RenderableGadget>& gadgetPool,
-        std::vector<RenderableGadget*>& gadgets) {
+    void DataExtractor::ExtractGadgetData(ObjectPool<GadgetEntity>& gadgetPool,
+        std::vector<GadgetEntity*>& gadgets) {
         gadgets.clear();
         gadgets.reserve(EntityLimits::MAX_GADGETS);
 
@@ -108,7 +108,7 @@ namespace kx {
 
         auto gadgetList = gadgetContext.GetGadgets();
         for (const auto& gadget : gadgetList) {
-            RenderableGadget* renderableGadget = gadgetPool.Get();
+            GadgetEntity* renderableGadget = gadgetPool.Get();
             if (!renderableGadget) break; // Pool exhausted
 
             // Delegate all extraction logic to the helper class
