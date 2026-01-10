@@ -106,7 +106,7 @@ bool ShouldRenderGadgetHealthBar(const RenderableGadget& gadget,
     return true;
 }
 
-std::string_view GetEntityName(const RenderableEntity& entity) {
+std::string_view GetEntityName(const GameEntity& entity) {
     switch (entity.entityType) {
         case EntityTypes::Player:
             return static_cast<const RenderablePlayer&>(entity).playerName;
@@ -126,7 +126,7 @@ std::string_view GetEntityName(const RenderableEntity& entity) {
 }
 
 
-void ProcessAndRender(const FrameContext& context, const RenderableEntity* entity) {
+void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
     if (!entity) {
         return;
     }

@@ -5,7 +5,7 @@
 #include "../../../Game/Generated/EnumsAndStructs.h"
 
 namespace kx {
-    struct RenderableEntity;
+    struct GameEntity;
     struct RenderablePlayer;
     struct RenderableNpc;
 }
@@ -16,7 +16,7 @@ namespace kx::Styling {
     ImU32 GetTacticalColor(data::ApiAttribute attribute);
     bool ShouldHideCombatUIForGadget(Game::GadgetType type);
     
-    ImU32 GetEntityColor(const RenderableEntity& entity);
+    ImU32 GetEntityColor(const GameEntity& entity);
 
     float GetRankMultiplier(Game::CharacterRank rank);
     float GetGadgetHealthMultiplier(float maxHealth);

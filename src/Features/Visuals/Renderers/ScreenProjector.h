@@ -6,7 +6,7 @@
 
 // Forward declarations
 namespace kx {
-    struct RenderableEntity;
+    struct GameEntity;
 }
 
 namespace kx::Renderers {
@@ -34,7 +34,7 @@ public:
      * @return true if entity is effectively on screen, false if behind camera/culled
      */
     static bool Project(
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         const Camera& camera,
         float screenW,
         float screenH,
@@ -61,7 +61,7 @@ private:
         float& outHeight);
 
     static void ApplyFallback2DBox(
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         ScreenGeometry& geometry,
         float scale,
         const glm::vec2& screenPos);
@@ -70,7 +70,7 @@ private:
                                             float& outBoxWidth, float& outBoxHeight);
 
     static void ProjectGadget(
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         const Camera& camera,
         float screenWidth,
         float screenHeight,
@@ -79,7 +79,7 @@ private:
         bool isOriginValid);
 
     static void ProjectCharacter(
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         const Camera& camera,
         float screenWidth,
         float screenHeight,

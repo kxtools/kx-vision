@@ -12,7 +12,7 @@
 
 namespace kx::Logic {
 
-bool StyleCalculator::Calculate(const RenderableEntity& entity,
+bool StyleCalculator::Calculate(const GameEntity& entity,
                                  const FrameContext& context,
                                  VisualStyle& outStyle) {
     float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
@@ -143,7 +143,7 @@ float StyleCalculator::CalculateDistanceFadeAlpha(float distance, bool useDistan
     }
 }
 
-StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(const RenderableEntity& entity) {
+StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(const GameEntity& entity) {
     EntityMultipliers multipliers;
     
     if (entity.entityType == EntityTypes::Player) {

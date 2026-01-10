@@ -4,7 +4,7 @@
 namespace kx {
     // Forward declarations
     struct EntityCombatState;
-    struct RenderableEntity;
+    struct GameEntity;
 
     /**
      * @brief Pure logic container for combat state transitions.
@@ -21,22 +21,22 @@ namespace kx {
          * @param entity The read-only entity data from the current frame.
          * @param now Current timestamp in milliseconds.
          */
-        static void UpdateState(EntityCombatState& state, const RenderableEntity* entity, uint64_t now);
+        static void UpdateState(EntityCombatState& state, const GameEntity* entity, uint64_t now);
 
     private:
         // Internal logic helpers
         static void UpdateDamageAccumulatorAnimation(EntityCombatState& state, uint64_t now);
-        static bool HandleAttributeChanges(const RenderableEntity* entity, EntityCombatState& state, uint64_t now);
+        static bool HandleAttributeChanges(const GameEntity* entity, EntityCombatState& state, uint64_t now);
         static void ResetForRespawn(EntityCombatState& state, float currentHealth, uint64_t now);
         
-        static void UpdateBarrierState(const RenderableEntity* entity, EntityCombatState& state, uint64_t now);
+        static void UpdateBarrierState(const GameEntity* entity, EntityCombatState& state, uint64_t now);
         
-        static void ProcessHealthChanges(const RenderableEntity* entity, EntityCombatState& state, uint64_t now);
+        static void ProcessHealthChanges(const GameEntity* entity, EntityCombatState& state, uint64_t now);
         static void HandleDamage(EntityCombatState& state, float currentHealth, uint64_t now);
         static void HandleHealing(EntityCombatState& state, float currentHealth, uint64_t now);
         
         static void TriggerDamageFlushIfNeeded(EntityCombatState& state, uint64_t now);
-        static void UpdatePositionHistory(EntityCombatState& state, const RenderableEntity* entity, uint64_t now);
+        static void UpdatePositionHistory(EntityCombatState& state, const GameEntity* entity, uint64_t now);
     };
 }
 

@@ -325,7 +325,7 @@ glm::vec3 EntityExtractor::TransformGamePositionToMumble(const glm::vec3& gamePo
     );
 }
 
-void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass::ChCliHealth& health) {
+void EntityExtractor::ExtractHealthData(GameEntity& entity, const ReClass::ChCliHealth& health) {
     if (health) {
         entity.currentHealth = health.GetCurrent();
         entity.maxHealth = health.GetMax();
@@ -333,7 +333,7 @@ void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass:
     }
 }
 
-void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass::GdCliHealth& health) {
+void EntityExtractor::ExtractHealthData(GameEntity& entity, const ReClass::GdCliHealth& health) {
     if (health) {
         entity.currentHealth = health.GetCurrent();
         entity.maxHealth = health.GetMax();
@@ -341,7 +341,7 @@ void EntityExtractor::ExtractHealthData(RenderableEntity& entity, const ReClass:
     }
 }
 
-void EntityExtractor::ExtractPlayerShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
+void EntityExtractor::ExtractPlayerShapeDimensions(GameEntity& entity, const ReClass::ChCliCharacter& character) {
     // Navigate: ChCliCharacter -> AgChar -> CoChar -> HkpRigidBody (PLAYER ONLY)
     // Players use HkpRigidBody path at CoChar+0x60 which provides full shape type detection
     // The RigidBody contains an HkpBoxShape at +0x20 (always BOX type for players)
@@ -377,7 +377,7 @@ void EntityExtractor::ExtractPlayerShapeDimensions(RenderableEntity& entity, con
     entity.hasPhysicsDimensions = true;
 }
 
-void EntityExtractor::ExtractNpcShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character) {
+void EntityExtractor::ExtractNpcShapeDimensions(GameEntity& entity, const ReClass::ChCliCharacter& character) {
     // Navigate: ChCliCharacter -> AgChar -> CoChar -> CoCharSimpleCliWrapper -> HkpBoxShape (NPC ONLY)
     // NPCs use HkpBoxShape path at CoCharSimpleCliWrapper+0xE8 (only BOX shapes supported)
     // 
@@ -400,7 +400,7 @@ void EntityExtractor::ExtractNpcShapeDimensions(RenderableEntity& entity, const 
     ExtractBoxShapeDimensionsFromHkpBoxShape(entity, boxShape);
 }
 
-void EntityExtractor::ExtractShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget) {
+void EntityExtractor::ExtractShapeDimensions(GameEntity& entity, const ReClass::GdCliGadget& gadget) {
     // Navigate: GdCliGadget -> AgKeyFramed -> CoKeyFramed
     ReClass::AgKeyFramed agent = gadget.GetAgKeyFramed();
     if (!agent) return;
@@ -411,7 +411,7 @@ void EntityExtractor::ExtractShapeDimensions(RenderableEntity& entity, const ReC
     ExtractShapeDimensionsFromCoKeyframed(entity, coKeyframed);
 }
 
-void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::AgKeyFramed& agKeyframed) {
+void EntityExtractor::ExtractBoxShapeDimensions(GameEntity& entity, const ReClass::AgKeyFramed& agKeyframed) {
     // Navigate: AgKeyFramed -> CoKeyFramed
     ReClass::CoKeyFramed coKeyframed = agKeyframed.GetCoKeyFramed();
     if (!coKeyframed) return;
@@ -419,7 +419,7 @@ void EntityExtractor::ExtractBoxShapeDimensions(RenderableEntity& entity, const 
     ExtractShapeDimensionsFromCoKeyframed(entity, coKeyframed);
 }
 
-void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed) {
+void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(GameEntity& entity, const ReClass::CoKeyFramed& coKeyframed) {
     // Navigate: CoKeyFramed -> HkpRigidBody
     // This path is used for gadgets and attack targets (AgKeyFramed), which support CYLINDER, BOX, and MOPP shapes.
     // Characters use different extraction functions (ExtractPlayerShapeDimensions or ExtractNpcShapeDimensions).
@@ -472,7 +472,7 @@ void EntityExtractor::ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& en
     entity.hasPhysicsDimensions = true;
 }
 
-void EntityExtractor::ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity& entity, const ReClass::HkpBoxShape& boxShape) {
+void EntityExtractor::ExtractBoxShapeDimensionsFromHkpBoxShape(GameEntity& entity, const ReClass::HkpBoxShape& boxShape) {
     // Validate shape type: characters should only have BOX shapes
     Havok::HkcdShapeType shapeType = boxShape.GetShapeType();
     

@@ -100,7 +100,7 @@ namespace kx {
     }
 
     void HealthBarRenderer::DrawAccumulatedDamage(ImDrawList* dl,
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         const HealthBarAnimationState& animState,
         const ImVec2& barMin,
         float barWidth,
@@ -128,7 +128,7 @@ namespace kx {
     }
 
     void HealthBarRenderer::DrawDamageFlash(ImDrawList* dl,
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         const HealthBarAnimationState& animState,
         const ImVec2& barMin,
         float barWidth,
@@ -155,7 +155,7 @@ namespace kx {
 
 
     void HealthBarRenderer::DrawBarrierOverlay(ImDrawList* dl,
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         const HealthBarAnimationState& animState,
         const ImVec2& barMin,
         const ImVec2& barMax,
@@ -216,7 +216,7 @@ namespace kx {
     // -----------------------------------------------------------------------------
     void HealthBarRenderer::RenderStandaloneHealthBar(ImDrawList* drawList,
         const glm::vec2& barTopLeftPosition,
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         EntityTypes entityType,
         Game::Attitude attitude,
         const VisualProperties& props,
@@ -284,7 +284,7 @@ namespace kx {
     }
 
     void HealthBarRenderer::RenderAliveState(ImDrawList* drawList,
-        const RenderableEntity& entity,
+        const GameEntity& entity,
         EntityTypes entityType,
         const ImVec2& barMin,
         const ImVec2& barMax,

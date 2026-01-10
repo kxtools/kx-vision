@@ -8,20 +8,20 @@
 
 namespace kx {
 
-struct RenderableEntity;
+struct GameEntity;
 
 class EntityComponentRenderer {
 public:
-    static void RenderGeometry(const FrameContext& ctx, const RenderableEntity& entity, const VisualProperties& props);
+    static void RenderGeometry(const FrameContext& ctx, const GameEntity& entity, const VisualProperties& props);
 
     static void RenderIdentity(const FrameContext& ctx,
-                               const RenderableEntity& entity,
+                               const GameEntity& entity,
                                std::string_view displayName,
                                const VisualProperties& props,
                                LayoutCursor& cursor);
 
     static void RenderStatusBars(const FrameContext& ctx,
-                                 const RenderableEntity& entity,
+                                 const GameEntity& entity,
                                  bool showCombatUI,
                                  bool renderHealthBar,
                                  bool renderEnergyBar,
@@ -32,7 +32,7 @@ public:
                                  LayoutCursor& cursor);
 
     static void RenderEntityDetails(const FrameContext& ctx,
-                                    const RenderableEntity& entity,
+                                    const GameEntity& entity,
                                     const VisualProperties& props,
                                     LayoutCursor& cursor);
 };

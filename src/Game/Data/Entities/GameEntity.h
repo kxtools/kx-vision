@@ -10,7 +10,7 @@
 
 namespace kx {
 
-struct RenderableEntity {
+struct GameEntity {
     glm::vec3 position;
     float visualDistance;
     float gameplayDistance;
@@ -29,7 +29,7 @@ struct RenderableEntity {
     bool hasPhysicsDimensions = false;
     Havok::HkcdShapeType shapeType = Havok::HkcdShapeType::INVALID;
 
-    RenderableEntity() : position(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
+    GameEntity() : position(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
                          isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),
                          entityType(EntityTypes::Gadget), agentType(Game::AgentType::Error), agentId(0),
                          shapeType(Havok::HkcdShapeType::INVALID)

@@ -42,7 +42,7 @@ void AnimateDeathBurst(const EntityCombatState* state, HealthBarAnimationState& 
     }
 }
 
-void AnimateDamageAccumulator(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
+void AnimateDamageAccumulator(const GameEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
     if (state->accumulatedDamage > 0)
     {
         // Default to fully opaque
@@ -81,7 +81,7 @@ void AnimateDamageAccumulator(const RenderableEntity* entity, const EntityCombat
     }
 }
 
-void AnimateHealOverlay(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
+void AnimateHealOverlay(const GameEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
     if (state->lastHealTimestamp > 0) {
         uint64_t elapsed = now - state->lastHealTimestamp;
         if (elapsed < CombatEffects::HEAL_OVERLAY_DURATION_MS) {
@@ -102,7 +102,7 @@ void AnimateHealOverlay(const RenderableEntity* entity, const EntityCombatState*
     }
 }
 
-void AnimateDamageFlash(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
+void AnimateDamageFlash(const GameEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
     if (state->lastHitTimestamp > 0) {
         uint64_t elapsed = now - state->lastHitTimestamp;
         if (elapsed < CombatEffects::DAMAGE_FLASH_TOTAL_DURATION_MS) {
@@ -128,7 +128,7 @@ void AnimateHealFlash(const EntityCombatState* state, HealthBarAnimationState& a
     }
 }
 
-void AnimateLivingEffects(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
+void AnimateLivingEffects(const GameEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
     if (state->deathTimestamp == 0 && entity->maxHealth > 0) {
         AnimateHealOverlay(entity, state, animState, now);
         AnimateDamageFlash(entity, state, animState, now);
@@ -136,7 +136,7 @@ void AnimateLivingEffects(const RenderableEntity* entity, const EntityCombatStat
     }
 }
 
-void AnimateBarrier(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
+void AnimateBarrier(const GameEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
     const float currentBarrier = entity->currentBarrier;
     float animatedBarrier = currentBarrier;
     if (state->lastBarrierChangeTimestamp > 0) {
@@ -152,7 +152,7 @@ void AnimateBarrier(const RenderableEntity* entity, const EntityCombatState* sta
 
 } // anonymous namespace
 
-void PopulateHealthBarAnimations(const RenderableEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
+void PopulateHealthBarAnimations(const GameEntity* entity, const EntityCombatState* state, HealthBarAnimationState& animState, uint64_t now) {
     if (!entity || !state) {
         return;
     }

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "RenderableEntity.h"
+#include "GameEntity.h"
 
 namespace kx {
 
-struct RenderableAttackTarget : public RenderableEntity {
+struct RenderableAttackTarget : public GameEntity {
     Game::AttackTargetCombatState combatState = Game::AttackTargetCombatState::Idle;
     
-    RenderableAttackTarget() : RenderableEntity()
+    RenderableAttackTarget() : GameEntity()
     {
         entityType = EntityTypes::AttackTarget;
     }

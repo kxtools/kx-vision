@@ -12,7 +12,7 @@ namespace kx {
     class Camera;
     class CombatStateManager;
     struct Settings;
-    struct RenderableEntity; // Forward declare from RenderableData.h
+    struct GameEntity; // Forward declare from RenderableData.h
     struct RenderablePlayer;
     struct RenderableNpc;
     struct RenderableGadget;

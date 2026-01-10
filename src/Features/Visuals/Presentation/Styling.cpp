@@ -58,7 +58,7 @@ namespace kx::Styling {
         }
     }
 
-    ImU32 GetEntityColor(const RenderableEntity& entity) {
+    ImU32 GetEntityColor(const GameEntity& entity) {
         switch (entity.entityType) {
             case EntityTypes::Player: {
                 const auto* p = static_cast<const RenderablePlayer*>(&entity);

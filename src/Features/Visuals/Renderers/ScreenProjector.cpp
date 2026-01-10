@@ -14,7 +14,7 @@
 namespace kx::Renderers {
 
 bool ScreenProjector::Project(
-    const RenderableEntity& entity,
+    const GameEntity& entity,
     const Camera& camera,
     float screenW,
     float screenH,
@@ -195,7 +195,7 @@ void ScreenProjector::CalculateEntityBoxDimensions(EntityTypes entityType, float
 }
 
 void ScreenProjector::ApplyFallback2DBox(
-    const RenderableEntity& entity,
+    const GameEntity& entity,
     ScreenGeometry& geometry,
     float scale,
     const glm::vec2& screenPos) {
@@ -206,7 +206,7 @@ void ScreenProjector::ApplyFallback2DBox(
 }
 
 void ScreenProjector::ProjectGadget(
-    const RenderableEntity& entity,
+    const GameEntity& entity,
     const Camera& camera,
     float screenWidth,
     float screenHeight,
@@ -251,7 +251,7 @@ void ScreenProjector::ProjectGadget(
 }
 
 void ScreenProjector::ProjectCharacter(
-    const RenderableEntity& entity,
+    const GameEntity& entity,
     const Camera& camera,
     float screenWidth,
     float screenHeight,

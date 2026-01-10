@@ -64,7 +64,7 @@ namespace {
     }
 }
 
-void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const RenderableEntity& entity, const VisualProperties& props) {
+void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const GameEntity& entity, const VisualProperties& props) {
     float globalOpacity = GetGlobalOpacity(ctx);
 
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(ctx.settings, entity.entityType);
@@ -110,7 +110,7 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Rend
 }
 
 void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
-                                             const RenderableEntity& entity,
+                                             const GameEntity& entity,
                                              std::string_view displayName,
                                              const VisualProperties& props,
                                              LayoutCursor& cursor) {
@@ -173,7 +173,7 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
 }
 
 static void RenderDamageNumbers(const FrameContext& context,
-                                const RenderableEntity& entity,
+                                const GameEntity& entity,
                                 EntityTypes entityType,
                                 bool showCombatUI,
                                 bool renderHealthBar,
@@ -209,7 +209,7 @@ static void RenderDamageNumbers(const FrameContext& context,
 }
 
 static void RenderBurstDps(const FrameContext& context,
-                           const RenderableEntity& entity,
+                           const GameEntity& entity,
                            EntityTypes entityType,
                            bool showCombatUI,
                            bool renderHealthBar,
@@ -284,7 +284,7 @@ static void RenderBurstDps(const FrameContext& context,
 }
 
 void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
-                                               const RenderableEntity& entity,
+                                               const GameEntity& entity,
                                                bool showCombatUI,
                                                bool renderHealthBar,
                                                bool renderEnergyBar,
@@ -336,7 +336,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
 }
 
 void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
-                                                  const RenderableEntity& entity,
+                                                  const GameEntity& entity,
                                                   const VisualProperties& props,
                                                   LayoutCursor& cursor) {
     if (entity.entityType == EntityTypes::Player) {

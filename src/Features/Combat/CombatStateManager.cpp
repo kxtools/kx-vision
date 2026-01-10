@@ -9,7 +9,7 @@ namespace kx
 		return m_entityStates[key];
 	}
 
-	void CombatStateManager::Update(const std::vector<RenderableEntity*>& entities, uint64_t now)
+	void CombatStateManager::Update(const std::vector<GameEntity*>& entities, uint64_t now)
 	{
 		for (auto* entity : entities)
 		{

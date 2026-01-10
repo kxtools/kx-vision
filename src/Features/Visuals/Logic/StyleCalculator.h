@@ -5,7 +5,7 @@
 
 // Forward declarations
 namespace kx {
-    struct RenderableEntity;
+    struct GameEntity;
     struct FrameContext;
 }
 
@@ -30,7 +30,7 @@ public:
      * @return true if entity should be rendered, false if fully transparent (distanceFadeAlpha <= 0)
      */
     static bool Calculate(
-        const RenderableEntity& entity, 
+        const GameEntity& entity, 
         const FrameContext& context,
         VisualStyle& outStyle
     );
@@ -50,7 +50,7 @@ private:
         float healthBar = 1.0f;
     };
     
-    static EntityMultipliers CalculateEntityMultipliers(const RenderableEntity& entity);
+    static EntityMultipliers CalculateEntityMultipliers(const GameEntity& entity);
     static void CalculateFinalSizes(VisualStyle& style, 
                                    float scale,
                                    const EntityMultipliers& multipliers);

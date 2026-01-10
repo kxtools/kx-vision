@@ -1,14 +1,14 @@
 #pragma once
 
-#include "RenderableEntity.h"
+#include "GameEntity.h"
 
 namespace kx {
 
-struct RenderableItem : public RenderableEntity {
+struct RenderableItem : public GameEntity {
     Game::ItemRarity rarity = Game::ItemRarity::None;
     uint32_t itemId = 0;
 
-    RenderableItem() : RenderableEntity() {
+    RenderableItem() : GameEntity() {
         entityType = EntityTypes::Item;
     }
 };

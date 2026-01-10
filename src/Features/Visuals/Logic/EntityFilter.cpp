@@ -10,7 +10,7 @@ namespace kx {
 
 namespace { // Anonymous namespace for local helpers
 
-    bool IsDeathAnimationPlaying(const RenderableEntity* entity, const CombatStateManager& stateManager, uint64_t now) {
+    bool IsDeathAnimationPlaying(const GameEntity* entity, const CombatStateManager& stateManager, uint64_t now) {
         const EntityCombatState* state = stateManager.GetState(entity->GetCombatKey());
         if (!state || state->deathTimestamp == 0) {
             return false;
@@ -23,7 +23,7 @@ namespace { // Anonymous namespace for local helpers
      * @return True if the entity passes common filters, false otherwise.
      */
     bool PassesCommonFilters(
-        RenderableEntity* entity,
+        GameEntity* entity,
         const glm::vec3& cameraPos,
         const glm::vec3& playerPos,
         const FrameContext& context

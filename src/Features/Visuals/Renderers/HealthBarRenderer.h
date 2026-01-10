@@ -11,7 +11,7 @@ namespace kx {
 
     // Forward declarations
     class CombatStateManager;
-    struct RenderableEntity;
+    struct GameEntity;
     struct EntityCombatState;
     struct Settings;
 
@@ -22,7 +22,7 @@ namespace kx {
     public:
         static void RenderStandaloneHealthBar(ImDrawList* drawList,
             const glm::vec2& barTopLeftPosition,
-            const RenderableEntity& entity,
+            const GameEntity& entity,
             EntityTypes entityType,
             Game::Attitude attitude,
             const VisualProperties& props,
@@ -32,7 +32,7 @@ namespace kx {
     private:
         // --- Internal Specializations ---
         static void RenderAliveState(ImDrawList* drawList,
-            const RenderableEntity& entity,
+            const GameEntity& entity,
             EntityTypes entityType,
             const ImVec2& barMin,
             const ImVec2& barMax,
@@ -83,7 +83,7 @@ namespace kx {
             const Settings& settings);
 
         static void DrawAccumulatedDamage(ImDrawList* dl,
-			const RenderableEntity& entity,
+			const GameEntity& entity,
             const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             float barWidth,
@@ -92,7 +92,7 @@ namespace kx {
             const Settings& settings);
 
         static void DrawDamageFlash(ImDrawList* dl,
-            const RenderableEntity& entity,
+            const GameEntity& entity,
             const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             float barWidth,
@@ -101,7 +101,7 @@ namespace kx {
             const Settings& settings);
 
         static void DrawBarrierOverlay(ImDrawList* dl,
-            const RenderableEntity& entity,
+            const GameEntity& entity,
             const HealthBarAnimationState& animState,
             const ImVec2& barMin,
             const ImVec2& barMax,

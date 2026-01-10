@@ -73,8 +73,8 @@ namespace kx {
         static bool ValidateAndExtractGamePosition(const ReClass::GdCliGadget& gadget, glm::vec3& outGamePos);
         static bool ValidateAndExtractGamePosition(const ReClass::AgKeyFramed& agKeyframed, glm::vec3& outGamePos);
         static glm::vec3 TransformGamePositionToMumble(const glm::vec3& gamePos);
-        static void ExtractHealthData(RenderableEntity& entity, const ReClass::ChCliHealth& health);
-        static void ExtractHealthData(RenderableEntity& entity, const ReClass::GdCliHealth& health);
+        static void ExtractHealthData(GameEntity& entity, const ReClass::ChCliHealth& health);
+        static void ExtractHealthData(GameEntity& entity, const ReClass::GdCliHealth& health);
         
         /**
          * @brief Extract physics shape dimensions from player character
@@ -82,7 +82,7 @@ namespace kx {
          * @param character The character to extract dimensions from
          * @note Players use HkpRigidBody path (CoChar+0x60) which provides full shape type detection
          */
-        static void ExtractPlayerShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
+        static void ExtractPlayerShapeDimensions(GameEntity& entity, const ReClass::ChCliCharacter& character);
         
         /**
          * @brief Extract physics box shape dimensions from NPC character
@@ -90,7 +90,7 @@ namespace kx {
          * @param character The character to extract dimensions from
          * @note NPCs use HkpBoxShape path (CoCharSimpleCliWrapper+0xE8) which only supports BOX shapes
          */
-        static void ExtractNpcShapeDimensions(RenderableEntity& entity, const ReClass::ChCliCharacter& character);
+        static void ExtractNpcShapeDimensions(GameEntity& entity, const ReClass::ChCliCharacter& character);
         
         /**
          * @brief Extract physics shape dimensions from gadget
@@ -98,7 +98,7 @@ namespace kx {
          * @param gadget The gadget to extract dimensions from
          * @note Uses unified type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
          */
-        static void ExtractShapeDimensions(RenderableEntity& entity, const ReClass::GdCliGadget& gadget);
+        static void ExtractShapeDimensions(GameEntity& entity, const ReClass::GdCliGadget& gadget);
         
         /**
          * @brief Extract physics shape dimensions from AgKeyFramed (for attack targets)
@@ -106,7 +106,7 @@ namespace kx {
          * @param agKeyframed The AgKeyFramed to extract dimensions from
          * @note Uses unified type-safe dimension extraction (supports CYLINDER, BOX, and MOPP shapes)
          */
-        static void ExtractBoxShapeDimensions(RenderableEntity& entity, const ReClass::AgKeyFramed& agKeyframed);
+        static void ExtractBoxShapeDimensions(GameEntity& entity, const ReClass::AgKeyFramed& agKeyframed);
         
     private:
         /**
@@ -117,14 +117,14 @@ namespace kx {
          *       This path is used for gadgets and attack targets. Characters use ExtractBoxShapeDimensions instead.
          *       All dimensions are returned in meters with proper coordinate conversion applied.
          */
-        static void ExtractShapeDimensionsFromCoKeyframed(RenderableEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
+        static void ExtractShapeDimensionsFromCoKeyframed(GameEntity& entity, const ReClass::CoKeyFramed& coKeyframed);
         
         /**
          * @brief Internal helper to extract dimensions from HkpBoxShape
          * @param entity The entity to populate with dimensions
          * @param boxShape The HkpBoxShape to extract dimensions from
          */
-        static void ExtractBoxShapeDimensionsFromHkpBoxShape(RenderableEntity& entity, const ReClass::HkpBoxShape& boxShape);
+        static void ExtractBoxShapeDimensionsFromHkpBoxShape(GameEntity& entity, const ReClass::HkpBoxShape& boxShape);
     };
 
 } // namespace kx

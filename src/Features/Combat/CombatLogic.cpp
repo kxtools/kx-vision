@@ -12,7 +12,7 @@ namespace kx {
         constexpr float MIN_POSITION_CHANGE = 0.1f;
     }
 
-    void CombatLogic::UpdateState(EntityCombatState& state, const RenderableEntity* entity, uint64_t now)
+    void CombatLogic::UpdateState(EntityCombatState& state, const GameEntity* entity, uint64_t now)
     {
         const float currentHealth = entity->currentHealth;
         const float currentMaxHealth = entity->maxHealth;
@@ -60,7 +60,7 @@ namespace kx {
         }
     }
 
-    bool CombatLogic::HandleAttributeChanges(const RenderableEntity* entity, EntityCombatState& state, uint64_t now)
+    bool CombatLogic::HandleAttributeChanges(const GameEntity* entity, EntityCombatState& state, uint64_t now)
     {
         const float currentHealth = entity->currentHealth;
         const float currentMaxHealth = entity->maxHealth;
@@ -109,7 +109,7 @@ namespace kx {
         // No heal effects triggered; respawn is treated as a fresh baseline.
     }
 
-    void CombatLogic::UpdateBarrierState(const RenderableEntity* entity, EntityCombatState& state, uint64_t now)
+    void CombatLogic::UpdateBarrierState(const GameEntity* entity, EntityCombatState& state, uint64_t now)
     {
         const float currentBarrier = entity->currentBarrier;
         if (currentBarrier != state.lastKnownBarrier)
@@ -119,7 +119,7 @@ namespace kx {
         }
     }
 
-    void CombatLogic::ProcessHealthChanges(const RenderableEntity* entity, EntityCombatState& state, uint64_t now)
+    void CombatLogic::ProcessHealthChanges(const GameEntity* entity, EntityCombatState& state, uint64_t now)
     {
         const float currentHealth = entity->currentHealth;
         
@@ -215,7 +215,7 @@ namespace kx {
         }
     }
 
-    void CombatLogic::UpdatePositionHistory(EntityCombatState& state, const RenderableEntity* entity, uint64_t now)
+    void CombatLogic::UpdatePositionHistory(EntityCombatState& state, const GameEntity* entity, uint64_t now)
     {
         const auto& settings = AppState::Get().GetSettings();
         const size_t USER_SETTING_MAX = static_cast<size_t>(settings.playerESP.trails.maxPoints);

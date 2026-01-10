@@ -27,7 +27,7 @@ namespace kx
 		 * @param entities Entities currently visible/processed this frame.
 		 * @param now Current timestamp in milliseconds (use GetTickCount64 or equivalent).
 		 */
-		void Update(const std::vector<RenderableEntity*>& entities, uint64_t now);
+		void Update(const std::vector<GameEntity*>& entities, uint64_t now);
 
 		/**
 		 * @brief Remove combat state for entities that are no longer present in the game.

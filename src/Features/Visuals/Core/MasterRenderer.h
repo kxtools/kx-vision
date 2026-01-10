@@ -45,7 +45,7 @@ private:
     
     float m_lastUpdateTime = 0.0f;
     ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeKeys;
-    std::vector<RenderableEntity*> m_allEntitiesBuffer;
+    std::vector<GameEntity*> m_allEntitiesBuffer;
 };
 
 } // namespace kx
