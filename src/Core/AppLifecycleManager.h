@@ -2,10 +2,14 @@
 
 #include <d3d11.h>
 #include <windows.h>
+#include <memory>
 #include "../Game/Services/Camera/Camera.h"
 #include "../Game/Services/Mumble/MumbleLinkManager.h"
 
 namespace kx {
+
+// Forward declarations
+class FeatureManager;
 
 /**
  * @brief Manages the application lifecycle state machine
@@ -36,6 +40,11 @@ public:
      * @return true if initialization successful, false otherwise
      */
     bool InitializeForGW2AL();
+
+    /**
+     * @brief Destructor
+     */
+    ~AppLifecycleManager();
 
     /**
      * @brief Called when the renderer is initialized (GW2AL mode)
@@ -96,6 +105,12 @@ public:
     const MumbleLinkData* GetMumbleLinkData() const { return m_mumbleLinkManager.GetData(); }
 
     /**
+     * @brief Get reference to the FeatureManager
+     * @return Reference to FeatureManager instance
+     */
+    FeatureManager& GetFeatureManager() { return *m_featureManager; }
+
+    /**
      * @brief Get the D3D11 device (if initialized)
      * @return Pointer to ID3D11Device, or nullptr if not available
      */
@@ -154,6 +169,7 @@ private:
     // Core game state (owned by lifecycle manager)
     Camera m_camera;
     MumbleLinkManager m_mumbleLinkManager;
+    std::unique_ptr<FeatureManager> m_featureManager;
 
     // State transition handlers
     void HandlePreInitState();
@@ -168,6 +184,7 @@ private:
     bool IsImGuiReady() const;
     bool IsPlayerInGame() const;
     bool InitializeGameServices();
+    bool InitializeFeatures();
     void CleanupServices();
 };
 

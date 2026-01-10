@@ -10,7 +10,6 @@ namespace kx {
 
     // Forward declarations
     struct PooledFrameRenderData;
-    class MasterRenderer;
 
     // --- Status Information ---
     enum class HookStatus {
@@ -65,9 +64,6 @@ namespace kx {
             m_adaptiveFarPlaneCalculator.UpdateAndGetFarPlane(frameData);
         }
 
-        // --- Master Renderer Access ---
-        MasterRenderer& GetMasterRenderer() { return *m_masterRenderer; }
-
         // Private constructor for singleton
         AppState();
         ~AppState() = default;
@@ -86,9 +82,6 @@ namespace kx {
 
         // Adaptive far plane calculator
         AdaptiveFarPlaneCalculator m_adaptiveFarPlaneCalculator;
-
-        // Master renderer instance (using unique_ptr to break circular dependency)
-        std::unique_ptr<MasterRenderer> m_masterRenderer;
 
         // Mutex for thread-safe access (if needed for future extensions)
         mutable std::mutex m_mutex;

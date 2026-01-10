@@ -2,6 +2,8 @@
 #include "AppLifecycleManager.h"
 #include "AppState.h"
 #include "Config.h"
+#include "Architecture/FeatureManager.h"
+#include "Architecture/IFeature.h"
 #include "../Utils/DebugLogger.h"
 #include "../Memory/Safety.h"
 #include "../../libs/ImGui/imgui.h"
@@ -59,11 +61,15 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         kx::Camera& camera = lifecycleManager.GetCamera();
         camera.Update(mumbleLinkManager, windowHandle);
 
+        // Get feature manager
+        kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
+        featureManager.UpdateAll(0.016f); // Approximate 60 FPS deltaTime
+
         // Render ImGui UI
         OverlayWindow::NewFrame();
         isImGuiFrameActive = true;
         OverlayWindow::RenderUI(camera, mumbleLinkManager, mumbleLinkData,
-            windowHandle, displayWidth, displayHeight);
+            windowHandle, displayWidth, displayHeight, featureManager);
         OverlayWindow::Render(context, renderTargetView);
         isImGuiFrameActive = false;
 

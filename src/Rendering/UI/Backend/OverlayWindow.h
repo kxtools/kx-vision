@@ -9,6 +9,7 @@ namespace kx {
     class Camera;
     class MumbleLinkManager;
     struct MumbleLinkData;
+    class FeatureManager;
 }
 
 /**
@@ -32,20 +33,24 @@ public:
      * @param windowHandle Window handle for input handling
      * @param displayWidth Display width for rendering
      * @param displayHeight Display height for rendering
+     * @param featureManager Reference to the feature manager for feature rendering
      */
     static void RenderUI(kx::Camera& camera, 
                         kx::MumbleLinkManager& mumbleLinkManager,
                         const kx::MumbleLinkData* mumbleLinkData,
                         HWND windowHandle,
                         float displayWidth,
-                        float displayHeight);
+                        float displayHeight,
+                        kx::FeatureManager& featureManager);
     
     static void Shutdown();
     
     static bool IsImGuiInitialized() { return m_isInitialized; }
 
 private:
-    static void RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, const kx::MumbleLinkData* mumbleLinkData);
+    static void RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, 
+                               const kx::MumbleLinkData* mumbleLinkData,
+                               kx::FeatureManager& featureManager);
     static void RenderHints();
 
     static bool m_isInitialized;

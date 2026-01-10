@@ -14,14 +14,25 @@
 #include <shellapi.h>
 
 #include "UI/Backend/OverlayWindow.h"
+#include "Architecture/FeatureRegistry.h"
+#include "Architecture/FeatureManager.h"
 
 namespace kx {
 
     // Global instance of AppLifecycleManager
     AppLifecycleManager g_App;
 
+    // Define destructor where FeatureManager's complete type is known
+    AppLifecycleManager::~AppLifecycleManager() = default;
+
     bool AppLifecycleManager::Initialize() {
         LOG_INFO("AppLifecycleManager: Starting initialization");
+
+        // Initialize FeatureManager
+        m_featureManager = std::make_unique<FeatureManager>();
+
+        // Register features immediately so UI tabs appear in correct order from first frame
+        RegisterFeatures(*m_featureManager);
 
         // Initialize HookManager (MinHook)
         if (!Hooking::HookManager::Initialize()) {
@@ -47,6 +58,12 @@ namespace kx {
 
     bool AppLifecycleManager::InitializeForGW2AL() {
         LOG_INFO("AppLifecycleManager: Initializing for GW2AL mode");
+
+        // Initialize FeatureManager
+        m_featureManager = std::make_unique<FeatureManager>();
+
+        // Register features immediately so UI tabs appear in correct order from first frame
+        RegisterFeatures(*m_featureManager);
 
         // Initialize HookManager (MinHook) - needed for game thread hook later
         if (!Hooking::HookManager::Initialize()) {
@@ -290,12 +307,12 @@ namespace kx {
     }
 
     void AppLifecycleManager::HandleInitializingServicesState() {
-        if (InitializeGameServices()) {
-            LOG_INFO("AppLifecycleManager: Services initialized, transitioning to Running");
+        if (InitializeGameServices() && InitializeFeatures()) {
+            LOG_INFO("AppLifecycleManager: Services and features initialized, transitioning to Running");
             m_currentState = State::Running;
             m_servicesInitialized = true;
         } else {
-            LOG_ERROR("AppLifecycleManager: Service initialization failed - AddressManager or ESPRenderer setup failed, shutting down");
+            LOG_ERROR("AppLifecycleManager: Service or feature initialization failed, shutting down");
             m_currentState = State::ShuttingDown;
         }
     }
@@ -355,6 +372,19 @@ namespace kx {
             LOG_WARN("AppLifecycleManager: Game thread hook initialization failed - ESP may not work");
         }
 
+        return true;
+    }
+
+    bool AppLifecycleManager::InitializeFeatures() {
+        LOG_INFO("AppLifecycleManager: Initializing features");
+
+        // Features already registered in Initialize(), just initialize them now
+        if (!m_featureManager->InitializeAll()) {
+            LOG_ERROR("AppLifecycleManager: Failed to initialize features");
+            return false;
+        }
+
+        LOG_INFO("AppLifecycleManager: Features initialized successfully");
         return true;
     }
 

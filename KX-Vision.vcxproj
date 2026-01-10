@@ -106,12 +106,15 @@
     <ClCompile Include="libs\Catch2\catch_amalgamated.cpp" />
     <ClCompile Include="libs\ImGui\imgui_stdlib.cpp" />
     <ClCompile Include="src\Core\AdaptiveFarPlaneCalculator.cpp" />
+    <ClCompile Include="src\Core\Architecture\FeatureManager.cpp" />
+    <ClCompile Include="src\Core\Architecture\FeatureRegistry.cpp" />
     <ClCompile Include="src\Core\Bootstrap.cpp" />
     <ClCompile Include="src\Core\FrameCoordinator.cpp" />
     <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
     <ClCompile Include="src\Features\Combat\CombatLogic.cpp" />
     <ClCompile Include="src\Features\Combat\CombatStateManager.cpp" />
+    <ClCompile Include="src\Features\Visuals\VisualsFeature.cpp" />
     <ClCompile Include="src\Memory\AddressManager.cpp" />
     <ClCompile Include="src\Game\Services\Camera\Camera.cpp" />
     <ClCompile Include="src\Game\Services\Mumble\MumbleLinkManager.cpp" />
@@ -170,6 +173,9 @@
     <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
     <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
     <ClInclude Include="src\Core\AdaptiveFarPlaneCalculator.h" />
+    <ClInclude Include="src\Core\Architecture\FeatureManager.h" />
+    <ClInclude Include="src\Core\Architecture\FeatureRegistry.h" />
+    <ClInclude Include="src\Core\Architecture\IFeature.h" />
     <ClInclude Include="src\Core\Bootstrap.h" />
     <ClInclude Include="src\Core\FrameCoordinator.h" />
     <ClInclude Include="src\Core\Settings.h" />
@@ -182,6 +188,7 @@
     <ClInclude Include="src\Features\Combat\CombatState.h" />
     <ClInclude Include="src\Features\Combat\CombatStateKey.h" />
     <ClInclude Include="src\Features\Combat\CombatStateManager.h" />
+    <ClInclude Include="src\Features\Visuals\VisualsFeature.h" />
     <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
