@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h> // For UINT, WPARAM, LPARAM
+#include "../../libs/nlohmann/json.hpp"
 
 struct ImDrawList;
 
@@ -64,6 +65,18 @@ public:
      * that must run on the game thread.
      */
     virtual void OnGameThreadUpdate() {}
+
+    /**
+     * @brief Load feature-specific settings from JSON configuration.
+     * @param j The JSON object containing feature settings (may be empty/null).
+     */
+    virtual void LoadSettings(const nlohmann::json& j) = 0;
+
+    /**
+     * @brief Save feature-specific settings to JSON configuration.
+     * @param j The JSON object to write feature settings into.
+     */
+    virtual void SaveSettings(nlohmann::json& j) = 0;
 };
 
 } // namespace kx

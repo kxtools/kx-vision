@@ -98,7 +98,7 @@ struct FrameContext {
     const uint64_t now;
     Camera& camera;
     CombatStateManager& stateManager;
-    const Settings& settings;
+    const Settings& settings;                      // Core application settings (distance, scaling, sizes, appearance)
     ImDrawList* drawList;
     const float screenWidth;
     const float screenHeight;

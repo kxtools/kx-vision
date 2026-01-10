@@ -2,6 +2,7 @@
 
 #include "../../Core/Architecture/IFeature.h"
 #include "Core/MasterRenderer.h"
+#include "Settings/VisualsSettings.h"
 #include <memory>
 
 namespace kx {
@@ -25,9 +26,15 @@ public:
     void RenderDrawList(ImDrawList* drawList) override;
     void OnMenuRender() override;
     const char* GetName() const override { return "Visuals"; }
+    
+    void LoadSettings(const nlohmann::json& j) override;
+    void SaveSettings(nlohmann::json& j) override;
 
 private:
+    static constexpr const char* SettingsKey = "visuals";
+    
     std::unique_ptr<MasterRenderer> m_masterRenderer;
+    VisualsConfiguration m_settings;
 };
 
 } // namespace kx

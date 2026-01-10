@@ -12,7 +12,7 @@ namespace kx {
         constexpr float MIN_POSITION_CHANGE = 0.1f;
     }
 
-    void CombatLogic::UpdateState(EntityCombatState& state, const GameEntity* entity, uint64_t now)
+    void CombatLogic::UpdateState(EntityCombatState& state, const GameEntity* entity, uint64_t now, size_t maxTrailPoints)
     {
         const float currentHealth = entity->currentHealth;
         const float currentMaxHealth = entity->maxHealth;
@@ -36,7 +36,7 @@ namespace kx {
         TriggerDamageFlushIfNeeded(state, now);
         
         // 6. Update movement history (Trails)
-        UpdatePositionHistory(state, entity, now);
+        UpdatePositionHistory(state, entity, now, maxTrailPoints);
         
         // --- Final State Update for Next Frame ---
         state.lastKnownHealth = currentHealth;
@@ -215,11 +215,8 @@ namespace kx {
         }
     }
 
-    void CombatLogic::UpdatePositionHistory(EntityCombatState& state, const GameEntity* entity, uint64_t now)
+    void CombatLogic::UpdatePositionHistory(EntityCombatState& state, const GameEntity* entity, uint64_t now, size_t maxTrailPoints)
     {
-        const auto& settings = AppState::Get().GetSettings();
-        const size_t USER_SETTING_MAX = static_cast<size_t>(settings.playerESP.trails.maxPoints);
-        
         bool shouldRecordPosition = (state.historySize == 0);
         
         if (!shouldRecordPosition) {
@@ -235,8 +232,8 @@ namespace kx {
             
             state.PushHistory(newPoint);
             
-            if (state.historySize > USER_SETTING_MAX) {
-                state.historySize = USER_SETTING_MAX;
+            if (state.historySize > maxTrailPoints) {
+                state.historySize = maxTrailPoints;
             }
         }
     }

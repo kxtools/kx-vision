@@ -1,5 +1,6 @@
 #pragma once
 #include "../../Core/Settings.h"
+#include "../../Features/Visuals/Settings/VisualsSettings.h"
 #include "../../Game/Data/EntityTypes.h"
 
 namespace kx {
@@ -12,112 +13,112 @@ public:
                type == EntityTypes::Item;
     }
 
-    static bool ShouldRenderBox(const Settings& s, EntityTypes type) {
+    static bool ShouldRenderBox(const VisualsConfiguration& vs, EntityTypes type) {
         switch (type) {
-            case EntityTypes::Player: return s.playerESP.renderBox;
-            case EntityTypes::NPC:    return s.npcESP.renderBox;
-            case EntityTypes::Gadget: return s.objectESP.renderBox;
-            case EntityTypes::AttackTarget: return s.objectESP.renderBox;
-            case EntityTypes::Item: return s.objectESP.renderBox;
+            case EntityTypes::Player: return vs.playerESP.renderBox;
+            case EntityTypes::NPC:    return vs.npcESP.renderBox;
+            case EntityTypes::Gadget: return vs.objectESP.renderBox;
+            case EntityTypes::AttackTarget: return vs.objectESP.renderBox;
+            case EntityTypes::Item: return vs.objectESP.renderBox;
             default: return false;
         }
     }
 
-    static bool ShouldRenderWireframe(const Settings& s, EntityTypes type) {
+    static bool ShouldRenderWireframe(const VisualsConfiguration& vs, EntityTypes type) {
         switch (type) {
-            case EntityTypes::Player: return s.playerESP.renderWireframe;
-            case EntityTypes::NPC:    return s.npcESP.renderWireframe;
-            case EntityTypes::Gadget: return s.objectESP.renderWireframe;
-            case EntityTypes::AttackTarget: return s.objectESP.renderWireframe;
-            case EntityTypes::Item: return s.objectESP.renderWireframe;
+            case EntityTypes::Player: return vs.playerESP.renderWireframe;
+            case EntityTypes::NPC:    return vs.npcESP.renderWireframe;
+            case EntityTypes::Gadget: return vs.objectESP.renderWireframe;
+            case EntityTypes::AttackTarget: return vs.objectESP.renderWireframe;
+            case EntityTypes::Item: return vs.objectESP.renderWireframe;
             default: return false;
         }
     }
 
-    static bool ShouldRenderDistance(const Settings& s, EntityTypes type) {
+    static bool ShouldRenderDistance(const VisualsConfiguration& vs, EntityTypes type) {
         switch (type) {
-            case EntityTypes::Player: return s.playerESP.renderDistance;
-            case EntityTypes::NPC:    return s.npcESP.renderDistance;
-            case EntityTypes::Gadget: return s.objectESP.renderDistance;
-            case EntityTypes::AttackTarget: return s.objectESP.renderDistance;
-            case EntityTypes::Item: return s.objectESP.renderDistance;
+            case EntityTypes::Player: return vs.playerESP.renderDistance;
+            case EntityTypes::NPC:    return vs.npcESP.renderDistance;
+            case EntityTypes::Gadget: return vs.objectESP.renderDistance;
+            case EntityTypes::AttackTarget: return vs.objectESP.renderDistance;
+            case EntityTypes::Item: return vs.objectESP.renderDistance;
             default: return false;
         }
     }
 
-    static bool ShouldRenderDot(const Settings& s, EntityTypes type) {
+    static bool ShouldRenderDot(const VisualsConfiguration& vs, EntityTypes type) {
         switch (type) {
-            case EntityTypes::Player: return s.playerESP.renderDot;
-            case EntityTypes::NPC:    return s.npcESP.renderDot;
-            case EntityTypes::Gadget: return s.objectESP.renderDot;
-            case EntityTypes::AttackTarget: return s.objectESP.renderDot;
-            case EntityTypes::Item: return s.objectESP.renderDot;
+            case EntityTypes::Player: return vs.playerESP.renderDot;
+            case EntityTypes::NPC:    return vs.npcESP.renderDot;
+            case EntityTypes::Gadget: return vs.objectESP.renderDot;
+            case EntityTypes::AttackTarget: return vs.objectESP.renderDot;
+            case EntityTypes::Item: return vs.objectESP.renderDot;
             default: return false;
         }
     }
     
-    static bool ShouldRenderName(const Settings& s, EntityTypes type) {
-        if (type == EntityTypes::Player) return s.playerESP.renderPlayerName;
+    static bool ShouldRenderName(const VisualsConfiguration& vs, EntityTypes type) {
+        if (type == EntityTypes::Player) return vs.playerESP.renderPlayerName;
         return false;
     }
 
-    static bool ShouldRenderHealthPercentage(const Settings& s, EntityTypes type) {
+    static bool ShouldRenderHealthPercentage(const VisualsConfiguration& vs, EntityTypes type) {
         switch (type) {
-            case EntityTypes::Player: return s.playerESP.showHealthPercentage;
-            case EntityTypes::NPC:    return s.npcESP.showHealthPercentage;
-            case EntityTypes::Gadget: return s.objectESP.showHealthPercentage;
-            case EntityTypes::AttackTarget: return s.objectESP.showHealthPercentage;
-            case EntityTypes::Item: return s.objectESP.showHealthPercentage;
+            case EntityTypes::Player: return vs.playerESP.showHealthPercentage;
+            case EntityTypes::NPC:    return vs.npcESP.showHealthPercentage;
+            case EntityTypes::Gadget: return vs.objectESP.showHealthPercentage;
+            case EntityTypes::AttackTarget: return vs.objectESP.showHealthPercentage;
+            case EntityTypes::Item: return vs.objectESP.showHealthPercentage;
             default: return false;
         }
     }
     
-    static bool ShouldRenderGadgetSphere(const Settings& s, EntityTypes type) {
+    static bool ShouldRenderGadgetSphere(const VisualsConfiguration& vs, EntityTypes type) {
         if (IsObjectType(type)) {
-            return s.objectESP.renderSphere;
+            return vs.objectESP.renderSphere;
         }
         return false;
     }
 
-    static bool ShouldRenderGadgetCircle(const Settings& s, EntityTypes type) {
+    static bool ShouldRenderGadgetCircle(const VisualsConfiguration& vs, EntityTypes type) {
         if (IsObjectType(type)) {
-            return s.objectESP.renderCircle;
+            return vs.objectESP.renderCircle;
         }
         return false;
     }
 
-    static bool ShouldShowDamageNumbers(const Settings& s, EntityTypes type) {
+    static bool ShouldShowDamageNumbers(const VisualsConfiguration& vs, EntityTypes type) {
         switch (type) {
-            case EntityTypes::Player: return s.playerESP.showDamageNumbers;
-            case EntityTypes::NPC:    return s.npcESP.showDamageNumbers;
-            case EntityTypes::Gadget: return s.objectESP.showDamageNumbers;
-            case EntityTypes::AttackTarget: return s.objectESP.showDamageNumbers;
-            case EntityTypes::Item: return s.objectESP.showDamageNumbers;
+            case EntityTypes::Player: return vs.playerESP.showDamageNumbers;
+            case EntityTypes::NPC:    return vs.npcESP.showDamageNumbers;
+            case EntityTypes::Gadget: return vs.objectESP.showDamageNumbers;
+            case EntityTypes::AttackTarget: return vs.objectESP.showDamageNumbers;
+            case EntityTypes::Item: return vs.objectESP.showDamageNumbers;
             default: return false;
         }
     }
 
-    static bool ShouldShowBurstDps(const Settings& s, EntityTypes type) {
+    static bool ShouldShowBurstDps(const VisualsConfiguration& vs, EntityTypes type) {
         switch (type) {
-            case EntityTypes::Player: return s.playerESP.showBurstDps;
-            case EntityTypes::NPC:    return s.npcESP.showBurstDps;
-            case EntityTypes::Gadget: return s.objectESP.showBurstDps;
-            case EntityTypes::AttackTarget: return s.objectESP.showBurstDps;
-            case EntityTypes::Item: return s.objectESP.showBurstDps;
+            case EntityTypes::Player: return vs.playerESP.showBurstDps;
+            case EntityTypes::NPC:    return vs.npcESP.showBurstDps;
+            case EntityTypes::Gadget: return vs.objectESP.showBurstDps;
+            case EntityTypes::AttackTarget: return vs.objectESP.showBurstDps;
+            case EntityTypes::Item: return vs.objectESP.showBurstDps;
             default: return false;
         }
     }
 
-    static GearDisplayMode GetPlayerGearDisplayMode(const Settings& s) {
-        return s.playerESP.enableGearDisplay ? s.playerESP.gearDisplayMode : GearDisplayMode::Compact;
+    static GearDisplayMode GetPlayerGearDisplayMode(const VisualsConfiguration& vs) {
+        return vs.playerESP.enableGearDisplay ? vs.playerESP.gearDisplayMode : GearDisplayMode::Compact;
     }
 
-    static EnergyDisplayType GetPlayerEnergyDisplayType(const Settings& s) {
-        return s.playerESP.energyDisplayType;
+    static EnergyDisplayType GetPlayerEnergyDisplayType(const VisualsConfiguration& vs) {
+        return vs.playerESP.energyDisplayType;
     }
     
-    static bool IsBoxAllowedForSize(const Settings& s, EntityTypes type, float height) {
-        if (IsObjectType(type) && height > s.objectESP.maxBoxHeight) {
+    static bool IsBoxAllowedForSize(const VisualsConfiguration& vs, EntityTypes type, float height) {
+        if (IsObjectType(type) && height > vs.objectESP.maxBoxHeight) {
             return false;
         }
         return true;

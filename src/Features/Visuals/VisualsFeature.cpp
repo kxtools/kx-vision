@@ -3,8 +3,8 @@
 #include "UI/NpcsTab.h"
 #include "UI/ObjectsTab.h"
 #include "../../Core/AppLifecycleManager.h"
+#include "../../Utils/DebugLogger.h"
 #include "../../../libs/ImGui/imgui.h"
-#include <spdlog/spdlog.h>
 
 namespace kx {
 
@@ -13,14 +13,14 @@ VisualsFeature::VisualsFeature()
 }
 
 bool VisualsFeature::Initialize() {
-    spdlog::info("VisualsFeature: Initializing...");
+    LOG_INFO("VisualsFeature: Initializing...");
     // MasterRenderer initializes in its constructor, no additional setup needed
     return true;
 }
 
 void VisualsFeature::Update(float deltaTime, const FrameGameData& frameData) {
-    // Currently no per-frame update logic needed
-    // Frame data is now available if needed in the future
+    // Push configuration to Core service (Feature depends on Core - Allowed)
+    g_App.GetCombatStateManager().SetMaxTrailPoints(m_settings.playerESP.trails.maxPoints);
 }
 
 void VisualsFeature::RenderDrawList(ImDrawList* drawList) {
@@ -41,15 +41,26 @@ void VisualsFeature::RenderDrawList(ImDrawList* drawList) {
     float screenWidth = io.DisplaySize.x;
     float screenHeight = io.DisplaySize.y;
 
-    // Render ESP to the background draw list
-    m_masterRenderer->Render(screenWidth, screenHeight, mumbleData, camera);
+    // Render ESP to the background draw list, passing our local settings
+    m_masterRenderer->Render(screenWidth, screenHeight, mumbleData, camera, m_settings);
 }
 
 void VisualsFeature::OnMenuRender() {
     // Render ESP configuration tabs
-    kx::GUI::RenderPlayersTab();
-    kx::GUI::RenderNPCsTab();
-    kx::GUI::RenderObjectsTab();
+    kx::GUI::RenderPlayersTab(m_settings);
+    kx::GUI::RenderNPCsTab(m_settings);
+    kx::GUI::RenderObjectsTab(m_settings);
+}
+
+void VisualsFeature::LoadSettings(const nlohmann::json& j) {
+    if (j.contains(SettingsKey)) {
+        m_settings = j[SettingsKey].get<VisualsConfiguration>();
+        LOG_INFO("Visuals settings loaded");
+    }
+}
+
+void VisualsFeature::SaveSettings(nlohmann::json& j) {
+    j[SettingsKey] = m_settings;
 }
 
 } // namespace kx

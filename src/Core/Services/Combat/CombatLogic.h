@@ -20,8 +20,9 @@ namespace kx {
          * @param state The mutable combat state to update.
          * @param entity The read-only entity data from the current frame.
          * @param now Current timestamp in milliseconds.
+         * @param maxTrailPoints Maximum number of position history points to store.
          */
-        static void UpdateState(EntityCombatState& state, const GameEntity* entity, uint64_t now);
+        static void UpdateState(EntityCombatState& state, const GameEntity* entity, uint64_t now, size_t maxTrailPoints);
 
     private:
         // Internal logic helpers
@@ -36,7 +37,7 @@ namespace kx {
         static void HandleHealing(EntityCombatState& state, float currentHealth, uint64_t now);
         
         static void TriggerDamageFlushIfNeeded(EntityCombatState& state, uint64_t now);
-        static void UpdatePositionHistory(EntityCombatState& state, const GameEntity* entity, uint64_t now);
+        static void UpdatePositionHistory(EntityCombatState& state, const GameEntity* entity, uint64_t now, size_t maxTrailPoints);
     };
 }
 

@@ -7,6 +7,7 @@
 #include "../../../Rendering/Shared/RenderSettingsHelper.h"
 #include "../../../Rendering/Shared/ScalingConstants.h"
 #include "../Presentation/Styling.h"
+#include "../Settings/VisualsSettings.h"
 #include <algorithm>
 #include <cmath>
 
@@ -14,6 +15,7 @@ namespace kx::Logic {
 
 bool StyleCalculator::Calculate(const GameEntity& entity,
                                  const FrameContext& context,
+                                 const VisualsConfiguration& visualsConfig,
                                  VisualStyle& outStyle) {
     float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
     bool useLimitMode = activeLimit > 0.0f;
@@ -36,7 +38,7 @@ bool StyleCalculator::Calculate(const GameEntity& entity,
 
     outStyle.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(outStyle.fadedEntityColor, outStyle.finalAlpha);
 
-    EntityMultipliers multipliers = CalculateEntityMultipliers(entity);
+    EntityMultipliers multipliers = CalculateEntityMultipliers(entity, visualsConfig);
     CalculateFinalSizes(outStyle, outStyle.scale, multipliers);
 
     return true;
@@ -143,14 +145,13 @@ float StyleCalculator::CalculateDistanceFadeAlpha(float distance, bool useDistan
     }
 }
 
-StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(const GameEntity& entity) {
+StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(const GameEntity& entity, const VisualsConfiguration& visualsConfig) {
     EntityMultipliers multipliers;
     
     if (entity.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const PlayerEntity*>(&entity);
-        const auto& settings = AppState::Get().GetSettings();
         if (player->attitude == Game::Attitude::Hostile) {
-            multipliers.hostile = settings.playerESP.hostileBoostMultiplier;
+            multipliers.hostile = visualsConfig.playerESP.hostileBoostMultiplier;
         }
     }
     

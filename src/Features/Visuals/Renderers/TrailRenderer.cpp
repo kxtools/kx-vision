@@ -7,6 +7,7 @@
 #include "ShapeRenderer.h"
 #include "../../../Core/AppState.h"
 #include "../../../Game/GameEnums.h"
+#include "../Settings/VisualsSettings.h"
 #include <algorithm>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -24,10 +25,10 @@ void TrailRenderer::RenderPlayerTrail(
     const FrameContext& context,
     const PlayerEntity& player,
     Game::Attitude attitude,
-    const VisualProperties& props)
+    const VisualProperties& props,
+    const VisualsConfiguration& visualsConfig)
 {
-    const auto& settings = AppState::Get().GetSettings();
-    const auto& trailSettings = settings.playerESP.trails;
+    const auto& trailSettings = visualsConfig.playerESP.trails;
     
     if (!trailSettings.enabled) {
         return;
@@ -50,7 +51,7 @@ void TrailRenderer::RenderPlayerTrail(
     const float maxDuration = trailSettings.maxDuration;
     ImU32 baseColor = props.style.fadedEntityColor;
     float finalAlpha = props.style.finalAlpha;
-    float globalOpacity = settings.appearance.globalOpacity;
+    float globalOpacity = context.settings.appearance.globalOpacity;
     bool renderTeleportConnections = (trailSettings.teleportMode == TrailTeleportMode::Analysis);
     
     constexpr float DASH_LENGTH = 10.0f;

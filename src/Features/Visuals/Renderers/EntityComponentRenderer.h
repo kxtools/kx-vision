@@ -9,16 +9,18 @@
 namespace kx {
 
 struct GameEntity;
+struct VisualsConfiguration;
 
 class EntityComponentRenderer {
 public:
-    static void RenderGeometry(const FrameContext& ctx, const GameEntity& entity, const VisualProperties& props);
+    static void RenderGeometry(const FrameContext& ctx, const GameEntity& entity, const VisualProperties& props, const VisualsConfiguration& visualsConfig);
 
     static void RenderIdentity(const FrameContext& ctx,
                                const GameEntity& entity,
                                std::string_view displayName,
                                const VisualProperties& props,
-                               LayoutCursor& cursor);
+                               LayoutCursor& cursor,
+                               const VisualsConfiguration& visualsConfig);
 
     static void RenderStatusBars(const FrameContext& ctx,
                                  const GameEntity& entity,
@@ -29,12 +31,14 @@ public:
                                  Game::Attitude attitude,
                                  const HealthBarAnimationState& animState,
                                  const VisualProperties& props,
-                                 LayoutCursor& cursor);
+                                 LayoutCursor& cursor,
+                                 const VisualsConfiguration& visualsConfig);
 
     static void RenderEntityDetails(const FrameContext& ctx,
                                     const GameEntity& entity,
                                     const VisualProperties& props,
-                                    LayoutCursor& cursor);
+                                    LayoutCursor& cursor,
+                                    const VisualsConfiguration& visualsConfig);
 };
 
 } // namespace kx

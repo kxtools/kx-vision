@@ -565,13 +565,6 @@ namespace kx {
                         ImGui::SetTooltip("Enable detailed logging to console and kx_debug.log file.\nHelps diagnose crashes and memory access issues.");
                     }
 
-#ifdef _DEBUG
-                    ImGui::Checkbox("Show Debug Addresses", &settings.showDebugAddresses);
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("Show entity memory addresses on the ESP overlay.");
-                    }
-#endif
-
                     // Log level selection (always visible)
                     ImGui::Separator();
                     ImGui::Text("Log Level:");

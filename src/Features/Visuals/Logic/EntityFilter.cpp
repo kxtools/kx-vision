@@ -1,10 +1,12 @@
 #include "EntityFilter.h"
 
 #include "FilterSettings.h"
+#include "../Settings/VisualsSettings.h"
 #include "../../../Game/Data/EntityData.h"
 #include "../../../Core/Services/Combat/CombatStateManager.h"
 #include "../../../Game/Services/Camera/Camera.h"
 #include "../../../Core/Services/Combat/CombatConstants.h"
+#include "../../../Core/Settings.h"
 
 namespace kx {
 
@@ -46,14 +48,14 @@ namespace { // Anonymous namespace for local helpers
 } // anonymous namespace
 
 void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const FrameContext& context,
-                                 FrameGameData& filteredData) {
+                                 const VisualsConfiguration& visualsConfig, FrameGameData& filteredData) {
     filteredData.Reset();
     
     const glm::vec3 playerPos = context.camera.GetPlayerPosition();
     const glm::vec3 cameraPos = context.camera.GetCameraPosition();
     
     // Filter players
-    if (context.settings.playerESP.enabled) {
+    if (visualsConfig.playerESP.enabled) {
         filteredData.players.reserve(extractedData.players.size());
         for (PlayerEntity* player : extractedData.players) {
             // Call the common helper function first
@@ -62,20 +64,20 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             }
             
             // Now, perform player-specific filtering
-            if (player->isLocalPlayer && !context.settings.playerESP.showLocalPlayer) continue;
+            if (player->isLocalPlayer && !visualsConfig.playerESP.showLocalPlayer) continue;
             
             if (player->currentHealth <= 0.0f && !IsDeathAnimationPlaying(player, context.stateManager, context.now)) {
                 continue;
             }
             
-            if (!Filtering::FilterSettings::ShouldRenderPlayer(player->attitude, context.settings.playerESP)) continue;
+            if (!Filtering::FilterSettings::ShouldRenderPlayer(player->attitude, visualsConfig.playerESP)) continue;
             
             filteredData.players.push_back(player);
         }
     }
     
     // Filter NPCs
-    if (context.settings.npcESP.enabled) {
+    if (visualsConfig.npcESP.enabled) {
         filteredData.npcs.reserve(extractedData.npcs.size());
         for (NpcEntity* npc : extractedData.npcs) {
             // Call the common helper function first
@@ -84,18 +86,18 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             }
             
             // Now, perform NPC-specific filtering
-            if (npc->currentHealth <= 0.0f && !context.settings.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc, context.stateManager, context.now)) {
+            if (npc->currentHealth <= 0.0f && !visualsConfig.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc, context.stateManager, context.now)) {
                 continue;
             }
             
-            if (!Filtering::FilterSettings::ShouldRenderNpc(npc->attitude, npc->rank, context.settings.npcESP)) continue;
+            if (!Filtering::FilterSettings::ShouldRenderNpc(npc->attitude, npc->rank, visualsConfig.npcESP)) continue;
             
             filteredData.npcs.push_back(npc);
         }
     }
     
     // Filter gadgets
-    if (context.settings.objectESP.enabled) {
+    if (visualsConfig.objectESP.enabled) {
         filteredData.gadgets.reserve(extractedData.gadgets.size());
         for (GadgetEntity* gadget : extractedData.gadgets) {
             // Call the common helper function first
@@ -104,15 +106,15 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             }
 
             // Now, perform gadget-specific filtering
-            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !context.settings.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget, context.stateManager, context.now)) {
+            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !visualsConfig.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget, context.stateManager, context.now)) {
                 continue;
             }
 
-            if (context.settings.hideDepletedNodes && gadget->type == Game::GadgetType::ResourceNode && !gadget->isGatherable) {
+            if (visualsConfig.hideDepletedNodes && gadget->type == Game::GadgetType::ResourceNode && !gadget->isGatherable) {
                 continue;
             }
             
-            if (!Filtering::FilterSettings::ShouldRenderGadget(gadget->type, context.settings.objectESP)) continue;
+            if (!Filtering::FilterSettings::ShouldRenderGadget(gadget->type, visualsConfig.objectESP)) continue;
             
             // Note: Max height check is handled in context factory to disable box rendering only
             // Entity is still rendered with other visualizations (circles, dots, details, etc.)
@@ -122,7 +124,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
     }
     
     // Filter attack targets
-    if (context.settings.objectESP.enabled && context.settings.objectESP.showAttackTargetList) {
+    if (visualsConfig.objectESP.enabled && visualsConfig.objectESP.showAttackTargetList) {
         filteredData.attackTargets.reserve(extractedData.attackTargets.size());
         for (AttackTargetEntity* attackTarget : extractedData.attackTargets) {
             // Call the common helper function first
@@ -131,7 +133,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             }
 
             // Filter by combat state if enabled
-            if (context.settings.objectESP.showAttackTargetListOnlyInCombat) {
+            if (visualsConfig.objectESP.showAttackTargetListOnlyInCombat) {
                 if (attackTarget->combatState != Game::AttackTargetCombatState::InCombat) {
                     continue;
                 }
@@ -145,7 +147,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
     }
     
     // Filter items
-    if (context.settings.objectESP.enabled && context.settings.objectESP.showItems) {
+    if (visualsConfig.objectESP.enabled && visualsConfig.objectESP.showItems) {
         filteredData.items.reserve(extractedData.items.size());
         for (ItemEntity* item : extractedData.items) {
             // Call the common helper function first
@@ -157,28 +159,28 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             bool shouldShow = false;
             switch (item->rarity) {
                 case Game::ItemRarity::Junk:
-                    shouldShow = context.settings.objectESP.showItemJunk;
+                    shouldShow = visualsConfig.objectESP.showItemJunk;
                     break;
                 case Game::ItemRarity::Common:
-                    shouldShow = context.settings.objectESP.showItemCommon;
+                    shouldShow = visualsConfig.objectESP.showItemCommon;
                     break;
                 case Game::ItemRarity::Fine:
-                    shouldShow = context.settings.objectESP.showItemFine;
+                    shouldShow = visualsConfig.objectESP.showItemFine;
                     break;
                 case Game::ItemRarity::Masterwork:
-                    shouldShow = context.settings.objectESP.showItemMasterwork;
+                    shouldShow = visualsConfig.objectESP.showItemMasterwork;
                     break;
                 case Game::ItemRarity::Rare:
-                    shouldShow = context.settings.objectESP.showItemRare;
+                    shouldShow = visualsConfig.objectESP.showItemRare;
                     break;
                 case Game::ItemRarity::Exotic:
-                    shouldShow = context.settings.objectESP.showItemExotic;
+                    shouldShow = visualsConfig.objectESP.showItemExotic;
                     break;
                 case Game::ItemRarity::Ascended:
-                    shouldShow = context.settings.objectESP.showItemAscended;
+                    shouldShow = visualsConfig.objectESP.showItemAscended;
                     break;
                 case Game::ItemRarity::Legendary:
-                    shouldShow = context.settings.objectESP.showItemLegendary;
+                    shouldShow = visualsConfig.objectESP.showItemLegendary;
                     break;
                 case Game::ItemRarity::None:
                 default:

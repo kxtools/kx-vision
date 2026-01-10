@@ -14,6 +14,7 @@ namespace kx {
     struct GameEntity;
     struct EntityCombatState;
     struct Settings;
+    struct VisualsConfiguration;
 
     /**
      * @brief Utility functions for rendering health & energy bars with combat effect overlays.
@@ -27,7 +28,8 @@ namespace kx {
             Game::Attitude attitude,
             const VisualProperties& props,
             const HealthBarAnimationState& animState,
-            const Settings& settings);
+            const Settings& settings,
+            const VisualsConfiguration& visualsSettings);
 
     private:
         // --- Internal Specializations ---
@@ -39,7 +41,8 @@ namespace kx {
             const VisualProperties& props,
             float fadeAlpha,
             const HealthBarAnimationState& animState,
-            const Settings& settings);
+            const Settings& settings,
+            const VisualsConfiguration& visualsSettings);
 
         // Add new helper for drawing text
         static void DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha);
