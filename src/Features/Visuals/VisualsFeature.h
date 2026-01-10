@@ -31,6 +31,8 @@ public:
     void SaveSettings(nlohmann::json& j) override;
 
 private:
+    static constexpr const char* SettingsKey = "visuals";
+    
     std::unique_ptr<MasterRenderer> m_masterRenderer;
     VisualsConfiguration m_settings;
 };

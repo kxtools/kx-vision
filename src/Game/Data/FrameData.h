@@ -5,7 +5,6 @@
 #include <array>
 
 #include "../../libs/ImGui/imgui.h" // For ImU32, ImVec2
-#include "../../Features/Visuals/Settings/VisualsSettings.h" // For VisualsConfiguration
 
 // Forward declarations
 struct ImDrawList;
@@ -100,7 +99,6 @@ struct FrameContext {
     Camera& camera;
     CombatStateManager& stateManager;
     const Settings& settings;                      // Core application settings (distance, scaling, sizes, appearance)
-    const VisualsConfiguration& visualsSettings;   // Feature-specific visuals settings (ESP config)
     ImDrawList* drawList;
     const float screenWidth;
     const float screenHeight;

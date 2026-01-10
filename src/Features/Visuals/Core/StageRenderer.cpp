@@ -11,6 +11,7 @@
 #include "../../../Core/Services/Combat/CombatStateManager.h"
 #include "../../../Core/Services/Combat/CombatState.h"
 #include "../../../Core/Services/Combat/CombatConstants.h"
+#include "../Settings/VisualsSettings.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include <string_view>
 #include <vector>
@@ -126,13 +127,13 @@ std::string_view GetEntityName(const GameEntity& entity) {
 }
 
 
-void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
+void ProcessAndRender(const FrameContext& context, const GameEntity* entity, const VisualsConfiguration& visualsConfig) {
     if (!entity) {
         return;
     }
 
     VisualProperties visuals;
-    if (!Logic::StyleCalculator::Calculate(*entity, context, visuals.style)) {
+    if (!Logic::StyleCalculator::Calculate(*entity, context, visualsConfig, visuals.style)) {
         return;
     }
 
@@ -160,31 +161,31 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
         case EntityTypes::Player: {
             const auto& player = static_cast<const PlayerEntity&>(*entity);
             attitude = player.attitude;
-            renderHealthBar = ShouldRenderPlayerHealthBar(player, context.visualsSettings.playerESP);
-            renderEnergyBar = context.visualsSettings.playerESP.renderEnergyBar;
+            renderHealthBar = ShouldRenderPlayerHealthBar(player, visualsConfig.playerESP);
+            renderEnergyBar = visualsConfig.playerESP.renderEnergyBar;
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.playerESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.playerESP.showBurstDps);
             break;
         }
         case EntityTypes::NPC: {
             const auto& npc = static_cast<const NpcEntity&>(*entity);
             attitude = npc.attitude;
-            renderHealthBar = ShouldRenderNpcHealthBar(npc, context.visualsSettings.npcESP, combatState, context.now);
+            renderHealthBar = ShouldRenderNpcHealthBar(npc, visualsConfig.npcESP, combatState, context.now);
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.npcESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.npcESP.showBurstDps);
             break;
         }
         case EntityTypes::Gadget: {
             const auto& gadget = static_cast<const GadgetEntity&>(*entity);
-            renderHealthBar = ShouldRenderGadgetHealthBar(gadget, context.visualsSettings.objectESP, combatState, context.now);
+            renderHealthBar = ShouldRenderGadgetHealthBar(gadget, visualsConfig.objectESP, combatState, context.now);
             showCombatUI = !Styling::ShouldHideCombatUIForGadget(gadget.type);
-            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.objectESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.objectESP.showBurstDps);
             break;
         }
         case EntityTypes::AttackTarget: {
             renderHealthBar = false;
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.objectESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.objectESP.showBurstDps);
             break;
         }
         case EntityTypes::Item: {
@@ -201,7 +202,7 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
 
     // RENDER PHASE (Immediate Mode)
     // Initialize cursor at top of entity
-    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.visualsSettings, entity->entityType);
+    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(visualsConfig, entity->entityType);
     LayoutCursor cursor({visuals.geometry.center.x, visuals.geometry.boxMax.y}, 1.0f);
 
     // Special case for gadgets without boxes
@@ -215,11 +216,11 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
     }
 
     // A. Geometry
-    EntityComponentRenderer::RenderGeometry(context, *entity, visuals);
+    EntityComponentRenderer::RenderGeometry(context, *entity, visuals, visualsConfig);
 
     // B. Identity
     std::string_view name = GetEntityName(*entity);
-    EntityComponentRenderer::RenderIdentity(context, *entity, name, visuals, cursor);
+    EntityComponentRenderer::RenderIdentity(context, *entity, name, visuals, cursor, visualsConfig);
 
     // C. Bars
     EntityComponentRenderer::RenderStatusBars(context,
@@ -231,41 +232,42 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
                                               attitude,
                                               animState,
                                               visuals,
-                                              cursor);
+                                              cursor,
+                                              visualsConfig);
 
     // D. Details
-    EntityComponentRenderer::RenderEntityDetails(context, *entity, visuals, cursor);
+    EntityComponentRenderer::RenderEntityDetails(context, *entity, visuals, cursor, visualsConfig);
 
     // E. Trails (Player specific)
     if (entity->entityType == EntityTypes::Player) {
         const auto* player = static_cast<const PlayerEntity*>(entity);
         if (player) {
-            TrailRenderer::RenderPlayerTrail(context, *player, attitude, visuals);
+            TrailRenderer::RenderPlayerTrail(context, *player, attitude, visuals, visualsConfig);
         }
     }
 }
 
 } // namespace
 
-void StageRenderer::RenderFrameData(const FrameContext& context, const FrameGameData& frameData) {
+void StageRenderer::RenderFrameData(const FrameContext& context, const FrameGameData& frameData, const VisualsConfiguration& visualsConfig) {
     for (const auto* player : frameData.players) {
-        ProcessAndRender(context, player);
+        ProcessAndRender(context, player, visualsConfig);
     }
 
     for (const auto* npc : frameData.npcs) {
-        ProcessAndRender(context, npc);
+        ProcessAndRender(context, npc, visualsConfig);
     }
 
     for (const auto* gadget : frameData.gadgets) {
-        ProcessAndRender(context, gadget);
+        ProcessAndRender(context, gadget, visualsConfig);
     }
 
     for (const auto* target : frameData.attackTargets) {
-        ProcessAndRender(context, target);
+        ProcessAndRender(context, target, visualsConfig);
     }
 
     for (const auto* item : frameData.items) {
-        ProcessAndRender(context, item);
+        ProcessAndRender(context, item, visualsConfig);
     }
 }
 

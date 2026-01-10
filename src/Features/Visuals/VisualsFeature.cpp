@@ -53,25 +53,14 @@ void VisualsFeature::OnMenuRender() {
 }
 
 void VisualsFeature::LoadSettings(const nlohmann::json& j) {
-    try {
-        if (j.contains("visuals")) {
-            m_settings = j["visuals"].get<VisualsConfiguration>();
-            LOG_INFO("VisualsFeature: Settings loaded successfully");
-        } else {
-            LOG_WARN("VisualsFeature: No 'visuals' key found in settings, using defaults");
-        }
-    } catch (const std::exception& e) {
-        LOG_ERROR("VisualsFeature: Failed to load settings: %s", e.what());
+    if (j.contains(SettingsKey)) {
+        m_settings = j[SettingsKey].get<VisualsConfiguration>();
+        LOG_INFO("Visuals settings loaded");
     }
 }
 
 void VisualsFeature::SaveSettings(nlohmann::json& j) {
-    try {
-        j["visuals"] = m_settings;
-        LOG_DEBUG("VisualsFeature: Settings saved successfully");
-    } catch (const std::exception& e) {
-        LOG_ERROR("VisualsFeature: Failed to save settings: %s", e.what());
-    }
+    j[SettingsKey] = m_settings;
 }
 
 } // namespace kx

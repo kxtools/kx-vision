@@ -7,6 +7,7 @@
 #include "../../../Rendering/Shared/RenderSettingsHelper.h"
 #include "../../../Rendering/Shared/ScalingConstants.h"
 #include "../Presentation/Styling.h"
+#include "../Settings/VisualsSettings.h"
 #include <algorithm>
 #include <cmath>
 
@@ -14,6 +15,7 @@ namespace kx::Logic {
 
 bool StyleCalculator::Calculate(const GameEntity& entity,
                                  const FrameContext& context,
+                                 const VisualsConfiguration& visualsConfig,
                                  VisualStyle& outStyle) {
     float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
     bool useLimitMode = activeLimit > 0.0f;

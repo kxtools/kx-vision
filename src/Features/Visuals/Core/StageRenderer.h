@@ -11,12 +11,13 @@ namespace kx {
 struct VisualProperties;
 struct FrameContext;
 struct LayoutCursor;
+struct VisualsConfiguration;
 class CombatStateManager;
 
 
 class StageRenderer {
 public:
-    static void RenderFrameData(const FrameContext& context, const FrameGameData& frameData);
+    static void RenderFrameData(const FrameContext& context, const FrameGameData& frameData, const VisualsConfiguration& visualsConfig);
 };
 
 } // namespace kx

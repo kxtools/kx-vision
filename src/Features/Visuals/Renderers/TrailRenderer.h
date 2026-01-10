@@ -7,6 +7,7 @@ namespace kx {
 struct FrameContext;
 struct PlayerEntity;
 struct VisualProperties;
+struct VisualsConfiguration;
 
 class TrailRenderer {
 public:
@@ -14,7 +15,8 @@ public:
         const FrameContext& context,
         const PlayerEntity& player,
         Game::Attitude attitude,
-        const VisualProperties& props);
+        const VisualProperties& props,
+        const VisualsConfiguration& visualsConfig);
 };
 
 } // namespace kx

@@ -7,6 +7,7 @@
 namespace kx {
     struct GameEntity;
     struct FrameContext;
+    struct VisualsConfiguration;
 }
 
 namespace kx::Logic {
@@ -26,12 +27,14 @@ public:
      * @brief Calculates abstract visual properties (Color, Alpha, Sizes).
      * @param entity The entity to process
      * @param context Frame context containing settings and game state
+     * @param visualsConfig Visual configuration settings
      * @param outStyle Output parameter for the calculated visual style
      * @return true if entity should be rendered, false if fully transparent (distanceFadeAlpha <= 0)
      */
     static bool Calculate(
         const GameEntity& entity, 
         const FrameContext& context,
+        const VisualsConfiguration& visualsConfig,
         VisualStyle& outStyle
     );
 

@@ -7,6 +7,7 @@
 #include "ShapeRenderer.h"
 #include "../../../Core/AppState.h"
 #include "../../../Game/GameEnums.h"
+#include "../Settings/VisualsSettings.h"
 #include <algorithm>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -24,9 +25,10 @@ void TrailRenderer::RenderPlayerTrail(
     const FrameContext& context,
     const PlayerEntity& player,
     Game::Attitude attitude,
-    const VisualProperties& props)
+    const VisualProperties& props,
+    const VisualsConfiguration& visualsConfig)
 {
-    const auto& trailSettings = context.visualsSettings.playerESP.trails;
+    const auto& trailSettings = visualsConfig.playerESP.trails;
     
     if (!trailSettings.enabled) {
         return;

@@ -35,7 +35,12 @@ namespace kx {
             // Save feature-specific settings
             auto& featureManager = g_App.GetFeatureManager();
             for (const auto& feature : featureManager.GetFeatures()) {
-                feature->SaveSettings(j);
+                try {
+                    feature->SaveSettings(j);
+                } catch (const std::exception& e) {
+                    LOG_ERROR("Failed to save settings for feature '%s': %s", feature->GetName(), e.what());
+                    // Continue saving other features
+                }
             }
             
             std::ofstream file(path);
@@ -97,7 +102,12 @@ namespace kx {
             // Load feature-specific settings
             auto& featureManager = g_App.GetFeatureManager();
             for (const auto& feature : featureManager.GetFeatures()) {
-                feature->LoadSettings(j);
+                try {
+                    feature->LoadSettings(j);
+                } catch (const std::exception& e) {
+                    LOG_ERROR("Failed to load settings for feature '%s': %s. Using defaults.", feature->GetName(), e.what());
+                    // Continue loading other features
+                }
             }
             
             LOG_INFO("Feature settings loaded successfully");

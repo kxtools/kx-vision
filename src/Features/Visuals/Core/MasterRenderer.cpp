@@ -17,9 +17,9 @@ namespace kx {
 MasterRenderer::MasterRenderer() {
 }
 
-void MasterRenderer::FilterAndProcessData(const FrameGameData& extractionData, const FrameContext& context) {
+void MasterRenderer::FilterAndProcessData(const FrameGameData& extractionData, const FrameContext& context, const VisualsConfiguration& visualsConfig) {
     m_processedRenderData.Reset();
-    EntityFilter::FilterPooledData(extractionData, context, m_processedRenderData);
+    EntityFilter::FilterPooledData(extractionData, context, visualsConfig, m_processedRenderData);
 }
 
 void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera, const VisualsConfiguration& visualsConfig) {
@@ -43,7 +43,6 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
         camera,
         combatStateManager,
         AppState::Get().GetSettings(),
-        visualsConfig,
         ImGui::GetBackgroundDrawList(),
         screenWidth,
         screenHeight,
@@ -51,10 +50,10 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
     };
 
     // Filter the global data for this frame
-    FilterAndProcessData(extractionData, frameContext);
+    FilterAndProcessData(extractionData, frameContext, visualsConfig);
 
     // Render the filtered data
-    StageRenderer::RenderFrameData(frameContext, m_processedRenderData);
+    StageRenderer::RenderFrameData(frameContext, m_processedRenderData, visualsConfig);
 }
 
 void MasterRenderer::Reset() {

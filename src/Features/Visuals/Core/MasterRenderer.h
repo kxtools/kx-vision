@@ -27,8 +27,9 @@ private:
      * This runs every frame on the global data from AppLifecycleManager.
      * @param extractionData The raw entity data from AppLifecycleManager
      * @param context The current frame's context.
+     * @param visualsConfig Feature-specific visuals configuration
      */
-    void FilterAndProcessData(const FrameGameData& extractionData, const FrameContext& context);
+    void FilterAndProcessData(const FrameGameData& extractionData, const FrameContext& context, const VisualsConfiguration& visualsConfig);
 
     // Filtered render data (only what should be displayed)
     FrameGameData m_processedRenderData;
