@@ -1,9 +1,9 @@
 #pragma once
 
-#include "LayoutCursor.h"
-#include "../Data/FrameData.h"
-#include "../Data/HealthBarAnimationState.h"
-#include "../../Game/GameEnums.h"
+#include "../../../Rendering/Renderers/LayoutCursor.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Data/HealthBarAnimationState.h"
+#include "../../../Game/GameEnums.h"
 #include <string_view>
 
 namespace kx {

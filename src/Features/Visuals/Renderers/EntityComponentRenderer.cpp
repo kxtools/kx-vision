@@ -1,26 +1,26 @@
 #include "EntityComponentRenderer.h"
-#include "ShapeRenderer.h"
-#include "HealthBarRenderer.h"
-#include "EnergyBarRenderer.h"
+#include "../../../Rendering/Renderers/ShapeRenderer.h"
+#include "../../../Rendering/Renderers/HealthBarRenderer.h"
+#include "../../../Rendering/Renderers/EnergyBarRenderer.h"
 
-#include "TextRenderer.h"
+#include "../../../Rendering/Renderers/TextRenderer.h"
 
-#include "../Data/FrameData.h"
-#include "../Shared/LayoutConstants.h"
-#include "../../../libs/ImGui/imgui.h"
-#include "../Data/RenderableData.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../../../Rendering/Data/RenderableData.h"
 #include <string_view>
 #include <span>
 #include <format>
 #include <array>
 
-#include "Presentation/Styling.h"
-#include "Presentation/InfoBuilder.h"
-#include "Presentation/Formatting.h"
-#include "../../Features/Combat/CombatConstants.h"
-#include "Shared/RenderSettingsHelper.h"
-#include "../../Utils/UnitConversion.h"
-#include "../Shared/ColorConstants.h"
+#include "../../../Rendering/Presentation/Styling.h"
+#include "../../../Rendering/Presentation/InfoBuilder.h"
+#include "../../../Rendering/Presentation/Formatting.h"
+#include "../../Combat/CombatConstants.h"
+#include "../../../Rendering/Shared/RenderSettingsHelper.h"
+#include "../../../Utils/UnitConversion.h"
+#include "../../../Rendering/Shared/ColorConstants.h"
 
 namespace kx {
 

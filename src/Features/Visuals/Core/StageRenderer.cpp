@@ -1,22 +1,22 @@
 #include "StageRenderer.h"
-#include "../../Game/Services/Camera/Camera.h"
+#include "../../../Game/Services/Camera/Camera.h"
 #include "../Renderers/EntityComponentRenderer.h"
-#include "../Renderers/LayoutCursor.h"
+#include "../../../Rendering/Renderers/LayoutCursor.h"
 #include "../Renderers/TrailRenderer.h"
-#include "../Data/RenderableData.h"
-#include "../Data/HealthBarAnimationState.h"
-#include "../Presentation/Styling.h"
-#include "../Logic/StyleCalculator.h"
-#include "../Logic/Animations/HealthBarAnimations.h"
-#include "../../Features/Combat/CombatStateManager.h"
-#include "../../Features/Combat/CombatState.h"
-#include "../../Features/Combat/CombatConstants.h"
-#include "../../../libs/ImGui/imgui.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Rendering/Data/HealthBarAnimationState.h"
+#include "../../../Rendering/Presentation/Styling.h"
+#include "../../../Rendering/Logic/StyleCalculator.h"
+#include "../../../Rendering/Logic/Animations/HealthBarAnimations.h"
+#include "../../Combat/CombatStateManager.h"
+#include "../../Combat/CombatState.h"
+#include "../../Combat/CombatConstants.h"
+#include "../../../../libs/ImGui/imgui.h"
 #include <string_view>
 #include <vector>
 
-#include "Renderers/ScreenProjector.h"
-#include "Shared/RenderSettingsHelper.h"
+#include "../../../Rendering/Renderers/ScreenProjector.h"
+#include "../../../Rendering/Shared/RenderSettingsHelper.h"
 
 namespace kx {
 

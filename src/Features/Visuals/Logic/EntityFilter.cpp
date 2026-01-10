@@ -1,10 +1,10 @@
 #include "EntityFilter.h"
 
 #include "FilterSettings.h"
-#include "../Data/RenderableData.h"
-#include "../../Features/Combat/CombatStateManager.h"
-#include "Services/Camera/Camera.h"
-#include "../../Features/Combat/CombatConstants.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../Combat/CombatStateManager.h"
+#include "../../../Game/Services/Camera/Camera.h"
+#include "../../Combat/CombatConstants.h"
 
 namespace kx {
 

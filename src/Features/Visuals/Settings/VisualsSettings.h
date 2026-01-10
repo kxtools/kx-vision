@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../libs/nlohmann/json.hpp"
-#include "SettingsConstants.h"
+#include "../../../../libs/nlohmann/json.hpp"
+#include "../../../Core/Settings/SettingsConstants.h"
 
 namespace kx {
 

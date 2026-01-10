@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../Game/Services/Camera/Camera.h"
-#include "../../Game/Services/Mumble/MumbleLink.h"
-#include "../Data/RenderableData.h"
-#include "../../Utils/ObjectPool.h"
-#include "../../Features/Combat/CombatStateManager.h"
-#include "Data/FrameData.h"
-#include "../Shared/LayoutConstants.h"
+#include "../../../Game/Services/Camera/Camera.h"
+#include "../../../Game/Services/Mumble/MumbleLink.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Utils/ObjectPool.h"
+#include "../../Combat/CombatStateManager.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Shared/LayoutConstants.h"
 #include <ankerl/unordered_dense.h>
 #include <vector>
 

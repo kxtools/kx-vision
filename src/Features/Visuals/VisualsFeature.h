@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Core/Architecture/IFeature.h"
-#include "../../Rendering/Core/MasterRenderer.h"
+#include "Core/MasterRenderer.h"
 #include <memory>
 
 namespace kx {

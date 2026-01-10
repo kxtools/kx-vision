@@ -1,21 +1,21 @@
 #define NOMINMAX
 
 #include "MasterRenderer.h"
-#include "../Data/FrameData.h"
+#include "../../../Rendering/Data/FrameData.h"
 
 #include <algorithm>
 #include <ankerl/unordered_dense.h>
 #include <Windows.h>
 
-#include "../../Core/AppState.h"
-#include "../../Core/AppLifecycleManager.h"
-#include "../../Utils/ObjectPool.h"
-#include "../Data/RenderableData.h"
-#include "../Extraction/DataExtractor.h"
+#include "../../../Core/AppState.h"
+#include "../../../Core/AppLifecycleManager.h"
+#include "../../../Utils/ObjectPool.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Rendering/Extraction/DataExtractor.h"
 #include "StageRenderer.h"
-#include "../../Features/Combat/CombatStateManager.h"
-#include "../../../libs/ImGui/imgui.h"
-#include "Logic/EntityFilter.h"
+#include "../../Combat/CombatStateManager.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../Logic/EntityFilter.h"
 
 namespace kx {
 

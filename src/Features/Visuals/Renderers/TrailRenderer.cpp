@@ -1,12 +1,12 @@
 #include "TrailRenderer.h"
-#include "../Data/FrameData.h"
-#include "../Data/RenderableData.h"
-#include "../../Features/Combat/CombatStateManager.h"
-#include "../../Features/Combat/CombatState.h"
-#include "../Shared/MathUtils.h"
-#include "ShapeRenderer.h"
-#include "../../Core/AppState.h"
-#include "../../Game/GameEnums.h"
+#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Rendering/Data/RenderableData.h"
+#include "../../Combat/CombatStateManager.h"
+#include "../../Combat/CombatState.h"
+#include "../../../Rendering/Shared/MathUtils.h"
+#include "../../../Rendering/Renderers/ShapeRenderer.h"
+#include "../../../Core/AppState.h"
+#include "../../../Game/GameEnums.h"
 #include <algorithm>
 
 #define GLM_ENABLE_EXPERIMENTAL

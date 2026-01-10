@@ -6,7 +6,6 @@
 #include "../Memory/AddressManager.h"
 #include "HookManager.h"
 #include "Hooks.h"
-#include "../Rendering/Core/MasterRenderer.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"

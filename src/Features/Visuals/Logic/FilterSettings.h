@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Game/GameEnums.h"
-#include "../Core/AppState.h"
+#include "../../../Game/GameEnums.h"
+#include "../../../Core/AppState.h"
 
 namespace kx {
 namespace Filtering {
