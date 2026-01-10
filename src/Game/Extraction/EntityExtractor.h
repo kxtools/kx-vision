@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Data/RenderableData.h"
+#include "../Data/EntityData.h"
 #include "../SdkStructs.h"
 
 namespace kx {

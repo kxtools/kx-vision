@@ -1,6 +1,6 @@
 #include "CombatLogic.h"
 #include "CombatState.h"
-#include "../../Game/Data/RenderableData.h"
+#include "../../Game/Data/EntityData.h"
 #include "../../Core/AppState.h"
 #include <glm/geometric.hpp>
 

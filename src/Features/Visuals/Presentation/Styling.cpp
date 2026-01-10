@@ -1,5 +1,5 @@
 #include "Styling.h"
-#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Data/EntityData.h"
 #include "../../../Rendering/Shared/ColorConstants.h"
 #include "../../../Rendering/Shared/ScalingConstants.h"
 #include <algorithm>

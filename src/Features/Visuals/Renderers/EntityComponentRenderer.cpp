@@ -8,7 +8,7 @@
 #include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Shared/LayoutConstants.h"
 #include "../../../../libs/ImGui/imgui.h"
-#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Data/EntityData.h"
 #include <string_view>
 #include <span>
 #include <format>

@@ -248,7 +248,7 @@
     <ClInclude Include="src\Game\Data\FrameData.h" />
     <ClInclude Include="src\Rendering\Data\HealthBarAnimationState.h" />
     <ClInclude Include="src\Game\Data\EntityTypes.h" />
-    <ClInclude Include="src\Game\Data\RenderableData.h" />
+    <ClInclude Include="src\Game\Data\EntityData.h" />
     <ClInclude Include="src\Game\Extraction\EntityExtractor.h" />
     <ClInclude Include="src\Features\Visuals\UI\GuiHelpers.h" />
     <ClInclude Include="src\Features\Visuals\Renderers\HealthBarRenderer.h" />

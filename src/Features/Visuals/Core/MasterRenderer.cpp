@@ -10,7 +10,7 @@
 #include "../../../Core/AppState.h"
 #include "../../../Core/AppLifecycleManager.h"
 #include "../../../Utils/ObjectPool.h"
-#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Data/EntityData.h"
 #include "../../../Game/Extraction/DataExtractor.h"
 #include "StageRenderer.h"
 #include "../../Combat/CombatStateManager.h"

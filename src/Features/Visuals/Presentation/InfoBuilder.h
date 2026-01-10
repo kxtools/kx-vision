@@ -1,7 +1,7 @@
 #pragma once
 
 #include <utility>
-#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Data/EntityData.h"
 #include "../../../Core/Settings.h"
 #include "../../../Game/Generated/EnumsAndStructs.h"
 

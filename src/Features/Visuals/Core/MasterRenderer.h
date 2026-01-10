@@ -2,7 +2,7 @@
 
 #include "../../../Game/Services/Camera/Camera.h"
 #include "../../../Game/Services/Mumble/MumbleLink.h"
-#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Data/EntityData.h"
 #include "../../../Utils/ObjectPool.h"
 #include "../../Combat/CombatStateManager.h"
 #include "../../../Game/Data/FrameData.h"

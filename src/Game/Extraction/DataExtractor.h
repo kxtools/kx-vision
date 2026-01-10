@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <ankerl/unordered_dense.h>
-#include "../Data/RenderableData.h"
+#include "../Data/EntityData.h"
 #include "../Data/FrameData.h"
 #include "../../Utils/ObjectPool.h"
 

@@ -1,7 +1,7 @@
 #include "EntityFilter.h"
 
 #include "FilterSettings.h"
-#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Data/EntityData.h"
 #include "../../Combat/CombatStateManager.h"
 #include "../../../Game/Services/Camera/Camera.h"
 #include "../../Combat/CombatConstants.h"

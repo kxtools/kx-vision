@@ -2,7 +2,7 @@
 
 #include "StyleCalculator.h"
 #include "../../../Core/AppState.h"
-#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Data/EntityData.h"
 #include "../Renderers/ShapeRenderer.h"
 #include "../../../Rendering/Shared/RenderSettingsHelper.h"
 #include "../../../Rendering/Shared/ScalingConstants.h"
