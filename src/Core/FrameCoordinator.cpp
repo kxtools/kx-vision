@@ -62,10 +62,6 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         kx::Camera& camera = lifecycleManager.GetCamera();
         camera.Update(mumbleLinkManager, windowHandle);
 
-        // Update game data extraction (entity pools, combat states, far plane)
-        const uint64_t now = GetTickCount64();
-        lifecycleManager.GetEntityManager().Update(now);
-
         // Get feature manager and update all features with extracted data
         kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
         const kx::FrameGameData& frameData = lifecycleManager.GetEntityManager().GetFrameData();

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <mutex>
 #include <ankerl/unordered_dense.h>
 #include "../../Game/Data/FrameData.h"
 #include "../../Game/Data/EntityData.h"
@@ -42,9 +43,13 @@ public:
 
     /**
      * @brief Get const reference to current frame's extracted game data
-     * @return Const reference to FrameGameData
+     * Thread-safe: Returns a stable snapshot that won't be modified during rendering
+     * @return Const reference to FrameGameData snapshot
      */
-    const FrameGameData& GetFrameData() const { return m_frameData; }
+    const FrameGameData& GetFrameData() const {
+        std::lock_guard<std::mutex> lock(m_snapshotMutex);
+        return m_frameDataSnapshot;
+    }
 
     /**
      * @brief Get reference to CombatStateManager for frame context
@@ -65,8 +70,12 @@ private:
     ObjectPool<AttackTargetEntity> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
     ObjectPool<ItemEntity> m_itemPool{EntityLimits::MAX_ITEMS};
 
-    // Frame data container
-    FrameGameData m_frameData;
+    // Double-buffering for thread-safe access
+    // Work buffer: Populated by Game Thread during Update()
+    FrameGameData m_frameDataWorkBuffer;
+    // Snapshot: Stable copy for Render Thread consumption
+    mutable FrameGameData m_frameDataSnapshot;
+    mutable std::mutex m_snapshotMutex;
 
     // Combat state management
     CombatStateManager m_combatStateManager;
