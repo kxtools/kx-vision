@@ -6,13 +6,7 @@
 #include <vector>
 #include "../Game/Services/Camera/Camera.h"
 #include "../Game/Services/Mumble/MumbleLinkManager.h"
-#include "../Game/Data/FrameData.h"
-#include "../Game/Data/EntityData.h"
-#include "../Utils/ObjectPool.h"
-#include "../Rendering/Shared/LayoutConstants.h"
-#include "Services/Combat/CombatStateManager.h"
-#include "Services/Combat/CombatStateKey.h"
-#include <ankerl/unordered_dense.h>
+#include "Services/EntityManager.h"
 
 namespace kx {
 
@@ -119,16 +113,10 @@ public:
     FeatureManager& GetFeatureManager() { return *m_featureManager; }
 
     /**
-     * @brief Get const reference to current frame's extracted game data
-     * @return Const reference to FrameGameData
+     * @brief Get reference to EntityManager
+     * @return Reference to EntityManager instance
      */
-    const FrameGameData& GetFrameData() const { return m_frameData; }
-
-    /**
-     * @brief Get reference to CombatStateManager for frame context
-     * @return Reference to CombatStateManager instance
-     */
-    CombatStateManager& GetCombatStateManager() { return m_combatStateManager; }
+    EntityManager& GetEntityManager() { return *m_entityManager; }
 
     /**
      * @brief Get the D3D11 device (if initialized)
@@ -168,16 +156,6 @@ public:
      */
     void ShowDonationPromptIfNeeded();
 
-    /**
-     * @brief Update game data extraction (entity pools, combat states)
-     * 
-     * This method performs data extraction from game memory at a throttled rate.
-     * It updates object pools, combat states, and adaptive far plane calculation.
-     * Should be called before feature updates each frame.
-     * 
-     * @param now Current time in milliseconds (from GetTickCount64)
-     */
-    void UpdateGameData(uint64_t now);
 
 private:
     /**
@@ -202,19 +180,8 @@ private:
     MumbleLinkManager m_mumbleLinkManager;
     std::unique_ptr<FeatureManager> m_featureManager;
 
-    // Game data extraction (moved from MasterRenderer)
-    ObjectPool<PlayerEntity> m_playerPool{EntityLimits::MAX_PLAYERS};
-    ObjectPool<NpcEntity> m_npcPool{EntityLimits::MAX_NPCS};
-    ObjectPool<GadgetEntity> m_gadgetPool{EntityLimits::MAX_GADGETS};
-    ObjectPool<AttackTargetEntity> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
-    ObjectPool<ItemEntity> m_itemPool{EntityLimits::MAX_ITEMS};
-    FrameGameData m_frameData;
-
-    // Combat state management (moved from MasterRenderer)
-    CombatStateManager m_combatStateManager;
-    ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeCombatKeys;
-    std::vector<GameEntity*> m_allEntitiesBuffer;
-    float m_lastGameDataUpdateTime = 0.0f;
+    // Entity data management (owned by EntityManager service)
+    std::unique_ptr<EntityManager> m_entityManager;
 
     // State transition handlers
     void HandlePreInitState();

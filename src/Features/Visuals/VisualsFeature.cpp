@@ -20,7 +20,7 @@ bool VisualsFeature::Initialize() {
 
 void VisualsFeature::Update(float deltaTime, const FrameGameData& frameData) {
     // Push configuration to Core service (Feature depends on Core - Allowed)
-    g_App.GetCombatStateManager().SetMaxTrailPoints(m_settings.playerESP.trails.maxPoints);
+    g_App.GetEntityManager().GetCombatStateManager().SetMaxTrailPoints(m_settings.playerESP.trails.maxPoints);
 }
 
 void VisualsFeature::RenderDrawList(ImDrawList* drawList) {

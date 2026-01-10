@@ -64,11 +64,11 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
 
         // Update game data extraction (entity pools, combat states, far plane)
         const uint64_t now = GetTickCount64();
-        lifecycleManager.UpdateGameData(now);
+        lifecycleManager.GetEntityManager().Update(now);
 
         // Get feature manager and update all features with extracted data
         kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
-        const kx::FrameGameData& frameData = lifecycleManager.GetFrameData();
+        const kx::FrameGameData& frameData = lifecycleManager.GetEntityManager().GetFrameData();
         featureManager.UpdateAll(0.016f, frameData); // Approximate 60 FPS deltaTime
 
         // Render ImGui UI

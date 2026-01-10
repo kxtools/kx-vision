@@ -34,9 +34,9 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
     const uint64_t now = GetTickCount64();
     bool isInWvW = g_App.GetMumbleLinkManager().isInWvW();
 
-    // Get globally extracted data from AppLifecycleManager
-    const FrameGameData& extractionData = g_App.GetFrameData();
-    CombatStateManager& combatStateManager = g_App.GetCombatStateManager();
+    // Get globally extracted data from EntityManager
+    const FrameGameData& extractionData = g_App.GetEntityManager().GetFrameData();
+    CombatStateManager& combatStateManager = g_App.GetEntityManager().GetCombatStateManager();
 
     FrameContext frameContext = {
         now,

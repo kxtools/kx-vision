@@ -1,0 +1,80 @@
+#pragma once
+
+#include <cstdint>
+#include <memory>
+#include <vector>
+#include <ankerl/unordered_dense.h>
+#include "../../Game/Data/FrameData.h"
+#include "../../Game/Data/EntityData.h"
+#include "../../Utils/ObjectPool.h"
+#include "../../Rendering/Shared/LayoutConstants.h"
+#include "Combat/CombatStateManager.h"
+#include "Combat/CombatStateKey.h"
+
+namespace kx {
+
+/**
+ * @brief Manages game entity data extraction, pooling, and combat state tracking
+ * 
+ * This class serves as the "Source of Truth" for all game entity data.
+ * It handles:
+ * - Object pooling for efficient entity management
+ * - Throttled data extraction from game memory
+ * - Combat state tracking and updates
+ * - Frame data aggregation
+ * 
+ * Separated from AppLifecycleManager to enable clean separation of concerns
+ */
+class EntityManager {
+public:
+    EntityManager();
+    ~EntityManager() = default;
+
+    /**
+     * @brief Update entity data extraction and combat states
+     * 
+     * Performs throttled extraction based on settings.espUpdateRate.
+     * Updates object pools, extracts frame data, and manages combat states.
+     * 
+     * @param now Current time in milliseconds (from GetTickCount64)
+     */
+    void Update(uint64_t now);
+
+    /**
+     * @brief Get const reference to current frame's extracted game data
+     * @return Const reference to FrameGameData
+     */
+    const FrameGameData& GetFrameData() const { return m_frameData; }
+
+    /**
+     * @brief Get reference to CombatStateManager for frame context
+     * @return Reference to CombatStateManager instance
+     */
+    CombatStateManager& GetCombatStateManager() { return m_combatStateManager; }
+
+    /**
+     * @brief Reset all pools and frame data (e.g., on map change)
+     */
+    void Reset();
+
+private:
+    // Object pools for entity management
+    ObjectPool<PlayerEntity> m_playerPool{EntityLimits::MAX_PLAYERS};
+    ObjectPool<NpcEntity> m_npcPool{EntityLimits::MAX_NPCS};
+    ObjectPool<GadgetEntity> m_gadgetPool{EntityLimits::MAX_GADGETS};
+    ObjectPool<AttackTargetEntity> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
+    ObjectPool<ItemEntity> m_itemPool{EntityLimits::MAX_ITEMS};
+
+    // Frame data container
+    FrameGameData m_frameData;
+
+    // Combat state management
+    CombatStateManager m_combatStateManager;
+    ankerl::unordered_dense::set<CombatStateKey, CombatStateKeyHash> m_activeCombatKeys;
+    std::vector<GameEntity*> m_allEntitiesBuffer;
+
+    // Throttling
+    float m_lastGameDataUpdateTime = 0.0f;
+};
+
+} // namespace kx
