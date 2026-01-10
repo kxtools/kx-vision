@@ -3,7 +3,7 @@
 #include "Config.h"
 #include "../../libs/nlohmann/json.hpp"
 #include "Settings/SettingsConstants.h"
-#include "Settings/ESPSettings.h"
+#include "../Features/Visuals/Settings/VisualsSettings.h"
 #include "Settings/RenderSettings.h"
 
 namespace kx {

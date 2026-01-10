@@ -3,6 +3,8 @@
 #include <windows.h> // For __try/__except
 
 #include "../Core/Config.h"      // For GW2AL_BUILD define
+#include "../Core/AppLifecycleManager.h"
+#include "../Core/Architecture/FeatureManager.h"
 #include "../Utils/DebugLogger.h"
 #include "../Memory/AddressManager.h"
 #include "AppState.h"
@@ -29,6 +31,14 @@ namespace kx {
                 __except (EXCEPTION_EXECUTE_HANDLER) {
                     AddressManager::SetContextCollectionPtr(nullptr);
                 }
+            }
+
+            // Run game thread updates for all features
+            __try {
+                kx::g_App.GetFeatureManager().RunGameThreadUpdates();
+            }
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+                // Silently catch exceptions to prevent crashes
             }
 
             if (pOriginalGameThreadUpdate) {

@@ -1,6 +1,6 @@
 #include "AdaptiveFarPlaneCalculator.h"
-#include "../Rendering/Data/FrameData.h"
-#include "../Rendering/Data/RenderableData.h"
+#include "../Game/Data/FrameData.h"
+#include "../Game/Data/EntityData.h"
 #include "../Utils/DebugLogger.h"
 #include <vector>
 #include <algorithm>
@@ -14,7 +14,7 @@ namespace kx {
         , m_lastRecalc(std::chrono::steady_clock::now()) {
     }
 
-    float AdaptiveFarPlaneCalculator::UpdateAndGetFarPlane(const PooledFrameRenderData& frameData) {
+    float AdaptiveFarPlaneCalculator::UpdateAndGetFarPlane(const FrameGameData& frameData) {
         if (!ShouldRecalculate()) {
             return m_currentFarPlane;
         }
@@ -42,7 +42,7 @@ namespace kx {
         return std::chrono::duration_cast<std::chrono::seconds>(now - m_lastRecalc).count() >= AdaptiveScaling::RECALC_INTERVAL_SECONDS;
     }
 
-    std::vector<float> AdaptiveFarPlaneCalculator::CollectGadgetDistances(const PooledFrameRenderData& frameData) {
+    std::vector<float> AdaptiveFarPlaneCalculator::CollectGadgetDistances(const FrameGameData& frameData) {
         // Collect distances from gadgets/objects only
         // Rationale: Players and NPCs are limited to ~200m by game mechanics,
         // but objects (waypoints, vistas, resource nodes) can be 1000m+ away.

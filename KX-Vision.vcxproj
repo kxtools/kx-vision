@@ -22,13 +22,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -106,45 +106,48 @@
     <ClCompile Include="libs\Catch2\catch_amalgamated.cpp" />
     <ClCompile Include="libs\ImGui\imgui_stdlib.cpp" />
     <ClCompile Include="src\Core\AdaptiveFarPlaneCalculator.cpp" />
+    <ClCompile Include="src\Core\Architecture\FeatureManager.cpp" />
+    <ClCompile Include="src\Core\Architecture\FeatureRegistry.cpp" />
     <ClCompile Include="src\Core\Bootstrap.cpp" />
     <ClCompile Include="src\Core\FrameCoordinator.cpp" />
     <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
+    <ClCompile Include="src\Core\Services\Combat\CombatLogic.cpp" />
+    <ClCompile Include="src\Core\Services\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
-    <ClCompile Include="src\Features\Combat\CombatLogic.cpp" />
-    <ClCompile Include="src\Features\Combat\CombatStateManager.cpp" />
+    <ClCompile Include="src\Features\Visuals\VisualsFeature.cpp" />
     <ClCompile Include="src\Memory\AddressManager.cpp" />
     <ClCompile Include="src\Game\Services\Camera\Camera.cpp" />
     <ClCompile Include="src\Game\Services\Mumble\MumbleLinkManager.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_WndProc.cpp" />
-    <ClCompile Include="src\Rendering\Extraction\DataExtractor.cpp" />
+    <ClCompile Include="src\Game\Extraction\DataExtractor.cpp" />
     <ClCompile Include="src\Rendering\UI\Backend\OverlayWindow.cpp" />
     <ClCompile Include="src\Rendering\UI\Backend\ImGuiStyle.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\AppearanceTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\InfoTab.cpp" />
-    <ClCompile Include="src\Rendering\UI\Tabs\NpcsTab.cpp" />
-    <ClCompile Include="src\Rendering\UI\Tabs\ObjectsTab.cpp" />
-    <ClCompile Include="src\Rendering\UI\Tabs\PlayersTab.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\NpcsTab.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\ObjectsTab.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\PlayersTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\SettingsTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\ValidationTab.cpp" />
-    <ClCompile Include="src\Rendering\Logic\Animations\HealthBarAnimations.cpp" />
-    <ClCompile Include="src\Rendering\Logic\EntityFilter.cpp" />
-    <ClCompile Include="src\Rendering\Core\MasterRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Core\StageRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Logic\StyleCalculator.cpp" />
-    <ClCompile Include="src\Rendering\Presentation\Formatting.cpp" />
-    <ClCompile Include="src\Rendering\Presentation\Styling.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\EntityComponentRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\EnergyBarRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\HealthBarRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\ScreenProjector.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\ShapeRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Renderers\TrailRenderer.cpp" />
-    <ClCompile Include="src\Rendering\Presentation\InfoBuilder.cpp" />
+    <ClCompile Include="src\Features\Visuals\Logic\Animations\HealthBarAnimations.cpp" />
+    <ClCompile Include="src\Features\Visuals\Logic\EntityFilter.cpp" />
+    <ClCompile Include="src\Features\Visuals\Core\MasterRenderer.cpp" />
+    <ClCompile Include="src\Features\Visuals\Core\StageRenderer.cpp" />
+    <ClCompile Include="src\Features\Visuals\Logic\StyleCalculator.cpp" />
+    <ClCompile Include="src\Features\Visuals\Presentation\Formatting.cpp" />
+    <ClCompile Include="src\Features\Visuals\Presentation\Styling.cpp" />
+    <ClCompile Include="src\Features\Visuals\Renderers\EntityComponentRenderer.cpp" />
+    <ClCompile Include="src\Features\Visuals\Renderers\EnergyBarRenderer.cpp" />
+    <ClCompile Include="src\Features\Visuals\Renderers\HealthBarRenderer.cpp" />
+    <ClCompile Include="src\Features\Visuals\Renderers\ScreenProjector.cpp" />
+    <ClCompile Include="src\Features\Visuals\Renderers\ShapeRenderer.cpp" />
+    <ClCompile Include="src\Features\Visuals\Renderers\TrailRenderer.cpp" />
+    <ClCompile Include="src\Features\Visuals\Presentation\InfoBuilder.cpp" />
     <ClCompile Include="src\Rendering\Renderers\TextRenderer.cpp" />
     <ClCompile Include="src\Core\AppLifecycleManager.cpp" />
     <ClCompile Include="src\Core\AppState.cpp" />
-    <ClCompile Include="src\Rendering\Extraction\EntityExtractor.cpp" />
-    <ClCompile Include="src\Rendering\UI\GuiHelpers.cpp" />
+    <ClCompile Include="src\Game\Extraction\EntityExtractor.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\GuiHelpers.cpp" />
     <ClCompile Include="src\Rendering\Shared\MathUtils.cpp" />
     <ClCompile Include="src\Tests\OffsetValidationTests.cpp" />
     <ClCompile Include="src\Utils\Console.cpp" />
@@ -170,18 +173,27 @@
     <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
     <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
     <ClInclude Include="src\Core\AdaptiveFarPlaneCalculator.h" />
+    <ClInclude Include="src\Core\Architecture\FeatureManager.h" />
+    <ClInclude Include="src\Core\Architecture\FeatureRegistry.h" />
+    <ClInclude Include="src\Core\Architecture\IFeature.h" />
     <ClInclude Include="src\Core\Bootstrap.h" />
     <ClInclude Include="src\Core\FrameCoordinator.h" />
+    <ClInclude Include="src\Core\Services\Combat\CombatConstants.h" />
+    <ClInclude Include="src\Core\Services\Combat\CombatLogic.h" />
+    <ClInclude Include="src\Core\Services\Combat\CombatState.h" />
+    <ClInclude Include="src\Core\Services\Combat\CombatStateKey.h" />
+    <ClInclude Include="src\Core\Services\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Core\SettingsManager.h" />
-    <ClInclude Include="src\Core\Settings\ESPSettings.h" />
+    <ClInclude Include="src\Features\Visuals\Settings\VisualsSettings.h" />
+    <ClInclude Include="src\Features\Visuals\Logic\FilterSettings.h" />
     <ClInclude Include="src\Core\Settings\RenderSettings.h" />
     <ClInclude Include="src\Core\Settings\SettingsConstants.h" />
-    <ClInclude Include="src\Features\Combat\CombatConstants.h" />
-    <ClInclude Include="src\Features\Combat\CombatLogic.h" />
-    <ClInclude Include="src\Features\Combat\CombatState.h" />
-    <ClInclude Include="src\Features\Combat\CombatStateKey.h" />
-    <ClInclude Include="src\Features\Combat\CombatStateManager.h" />
+    <ClInclude Include="src\Features\Visuals\VisualsFeature.h" />
+    <ClInclude Include="src\Game\Data\Entities\GameEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\NpcEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\PlayerEntity.h" />
+    <ClInclude Include="src\Game\Data\PlayerGearData.h" />
     <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
@@ -205,46 +217,45 @@
     <ClInclude Include="src\Game\SDK\StatStructs.h" />
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
-    <ClInclude Include="src\Rendering\Data\Entities\RenderableAttackTarget.h" />
-    <ClInclude Include="src\Rendering\Data\Entities\RenderableEntity.h" />
-    <ClInclude Include="src\Rendering\Data\Entities\RenderableGadget.h" />
-    <ClInclude Include="src\Rendering\Data\Entities\RenderableItem.h" />
-    <ClInclude Include="src\Rendering\Data\Entities\RenderableNpc.h" />
-    <ClInclude Include="src\Rendering\Data\Entities\RenderablePlayer.h" />
-    <ClInclude Include="src\Rendering\Extraction\DataExtractor.h" />
+    <ClInclude Include="src\Game\Data\Entities\AttackTargetEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\RenderableEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\GadgetEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\ItemEntity.h" />
+    <ClInclude Include="src\Game\Data\Entities\RenderableNpc.h" />
+    <ClInclude Include="src\Game\Data\Entities\RenderablePlayer.h" />
+    <ClInclude Include="src\Game\Extraction\DataExtractor.h" />
     <ClInclude Include="src\Rendering\UI\Backend\OverlayWindow.h" />
     <ClInclude Include="src\Rendering\UI\Backend\ImGuiStyle.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\AppearanceTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\InfoTab.h" />
-    <ClInclude Include="src\Rendering\UI\Tabs\NpcsTab.h" />
-    <ClInclude Include="src\Rendering\UI\Tabs\ObjectsTab.h" />
-    <ClInclude Include="src\Rendering\UI\Tabs\PlayersTab.h" />
+    <ClInclude Include="src\Features\Visuals\UI\NpcsTab.h" />
+    <ClInclude Include="src\Features\Visuals\UI\ObjectsTab.h" />
+    <ClInclude Include="src\Features\Visuals\UI\PlayersTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\SettingsTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\ValidationTab.h" />
-    <ClInclude Include="src\Rendering\Logic\Animations\HealthBarAnimations.h" />
-    <ClInclude Include="src\Rendering\Logic\EntityFilter.h" />
-    <ClInclude Include="src\Rendering\Core\MasterRenderer.h" />
-    <ClInclude Include="src\Rendering\Core\StageRenderer.h" />
+    <ClInclude Include="src\Features\Visuals\Logic\Animations\HealthBarAnimations.h" />
+    <ClInclude Include="src\Features\Visuals\Logic\EntityFilter.h" />
+    <ClInclude Include="src\Features\Visuals\Core\MasterRenderer.h" />
+    <ClInclude Include="src\Features\Visuals\Core\StageRenderer.h" />
     <ClInclude Include="src\Rendering\UI\UIConstants.h" />
-    <ClInclude Include="src\Rendering\Logic\StyleCalculator.h" />
-    <ClInclude Include="src\Rendering\Presentation\Formatting.h" />
-    <ClInclude Include="src\Rendering\Renderers\LayoutCursor.h" />
-    <ClInclude Include="src\Rendering\Renderers\EntityComponentRenderer.h" />
-    <ClInclude Include="src\Rendering\Renderers\EnergyBarRenderer.h" />
-    <ClInclude Include="src\Rendering\Renderers\ScreenProjector.h" />
-    <ClInclude Include="src\Rendering\Renderers\TrailRenderer.h" />
-    <ClInclude Include="src\Rendering\Data\FrameData.h" />
+    <ClInclude Include="src\Features\Visuals\Logic\StyleCalculator.h" />
+    <ClInclude Include="src\Features\Visuals\Presentation\Formatting.h" />
+    <ClInclude Include="src\Features\Visuals\Renderers\LayoutCursor.h" />
+    <ClInclude Include="src\Features\Visuals\Renderers\EntityComponentRenderer.h" />
+    <ClInclude Include="src\Features\Visuals\Renderers\EnergyBarRenderer.h" />
+    <ClInclude Include="src\Features\Visuals\Renderers\ScreenProjector.h" />
+    <ClInclude Include="src\Features\Visuals\Renderers\TrailRenderer.h" />
+    <ClInclude Include="src\Game\Data\FrameData.h" />
     <ClInclude Include="src\Rendering\Data\HealthBarAnimationState.h" />
-    <ClInclude Include="src\Rendering\Data\EntityTypes.h" />
-    <ClInclude Include="src\Rendering\Data\PlayerRenderData.h" />
-    <ClInclude Include="src\Rendering\Data\RenderableData.h" />
-    <ClInclude Include="src\Rendering\Extraction\EntityExtractor.h" />
-    <ClInclude Include="src\Rendering\UI\GuiHelpers.h" />
-    <ClInclude Include="src\Rendering\Renderers\HealthBarRenderer.h" />
-    <ClInclude Include="src\Rendering\Renderers\ShapeRenderer.h" />
-    <ClInclude Include="src\Rendering\Presentation\InfoBuilder.h" />
+    <ClInclude Include="src\Game\Data\EntityTypes.h" />
+    <ClInclude Include="src\Game\Data\EntityData.h" />
+    <ClInclude Include="src\Game\Extraction\EntityExtractor.h" />
+    <ClInclude Include="src\Features\Visuals\UI\GuiHelpers.h" />
+    <ClInclude Include="src\Features\Visuals\Renderers\HealthBarRenderer.h" />
+    <ClInclude Include="src\Features\Visuals\Renderers\ShapeRenderer.h" />
+    <ClInclude Include="src\Features\Visuals\Presentation\InfoBuilder.h" />
     <ClInclude Include="src\Rendering\Renderers\TextRenderer.h" />
-    <ClInclude Include="src\Rendering\Presentation\Styling.h" />
+    <ClInclude Include="src\Features\Visuals\Presentation\Styling.h" />
     <ClInclude Include="src\Rendering\Shared\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Shared\ColorConstants.h" />
     <ClInclude Include="src\Rendering\UI\Backend\D3DState.h" />

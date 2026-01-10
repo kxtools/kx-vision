@@ -13,6 +13,8 @@
 #include "D3DRenderHook.h"
 #include <windowsx.h>
 #include "../Core/AppState.h"
+#include "../Core/AppLifecycleManager.h"
+#include "../Core/Architecture/FeatureManager.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
 #include "ImGui/imgui_internal.h"
@@ -44,6 +46,13 @@ namespace kx::Hooking {
             }
             m_rightMouseDown = false;
             m_leftMouseDown = false;
+        }
+
+        // Broadcast input to features before ImGui processing
+        if (m_isInit) {
+            if (kx::g_App.GetFeatureManager().BroadcastInput(uMsg, wParam, lParam)) {
+                return 1; // Feature consumed the input, block propagation
+            }
         }
 
         // Only process ImGui input when initialized, window is open, and context is valid

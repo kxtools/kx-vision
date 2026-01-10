@@ -11,16 +11,14 @@
 #include "../../libs/ImGui/imgui_impl_win32.h"
 #include "../Core/AppState.h"
 #include "../Core/Config.h"
+#include "../Core/Architecture/FeatureManager.h"
+#include "../Core/Architecture/IFeature.h"
 #include "../Game/Services/Mumble/MumbleLinkManager.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
-#include "Core/MasterRenderer.h"
 
 #include "UI/Tabs/AppearanceTab.h"
 #include "UI/Tabs/InfoTab.h"
-#include "UI/Tabs/NpcsTab.h"
-#include "UI/Tabs/ObjectsTab.h"
-#include "UI/Tabs/PlayersTab.h"
 #include "UI/Tabs/SettingsTab.h"
 #include "UI/Tabs/ValidationTab.h"
 
@@ -76,7 +74,9 @@ void OverlayWindow::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView*
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
-void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, const kx::MumbleLinkData* mumbleData) {
+void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, 
+                                   const kx::MumbleLinkData* mumbleData,
+                                   kx::FeatureManager& featureManager) {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
@@ -158,12 +158,13 @@ void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, co
     ImGui::Separator();
 
     if (ImGui::BeginTabBar("##ESPCategories")) {
-	    kx::GUI::RenderPlayersTab();
-	    kx::GUI::RenderNPCsTab();
-	    kx::GUI::RenderObjectsTab();
-	    kx::GUI::RenderAppearanceTab();
-	    kx::GUI::RenderSettingsTab();
-	    kx::GUI::RenderInfoTab();
+        // Render feature-specific menu tabs (Players, NPCs, Objects from VisualsFeature)
+        featureManager.RenderAllMenus();
+        
+        // Render core application tabs
+        kx::GUI::RenderAppearanceTab();
+        kx::GUI::RenderSettingsTab();
+        kx::GUI::RenderInfoTab();
 
 #ifdef _DEBUG
         kx::GUI::RenderValidationTab();
@@ -180,18 +181,20 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
                             const kx::MumbleLinkData* mumbleLinkData,
                             HWND windowHandle,
                             float displayWidth,
-                            float displayHeight) {
+                            float displayHeight,
+                            kx::FeatureManager& featureManager) {
     // Critical: Check if ImGui context is still valid and manager is initialized
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
     }
 
-    // Render the ESP overlay
-    kx::AppState::Get().GetMasterRenderer().Render(displayWidth, displayHeight, mumbleLinkData, camera);
+    // Render features to the background draw list
+    ImDrawList* backgroundDrawList = ImGui::GetBackgroundDrawList();
+    featureManager.RenderAllDrawLists(backgroundDrawList);
     
     // Render the UI window if it's shown (check AppState's unified visibility flag)
     if (kx::AppState::Get().IsVisionWindowOpen()) {
-        RenderESPWindow(mumbleLinkManager, mumbleLinkData);
+        RenderESPWindow(mumbleLinkManager, mumbleLinkData, featureManager);
     }
 }
 

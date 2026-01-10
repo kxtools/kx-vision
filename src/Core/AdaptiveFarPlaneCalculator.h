@@ -6,7 +6,7 @@
 namespace kx {
 
     // Forward declarations
-    struct PooledFrameRenderData;
+    struct FrameGameData;
 
     /**
      * @brief Handles adaptive far plane calculation for "No Limit" mode
@@ -20,7 +20,7 @@ namespace kx {
         AdaptiveFarPlaneCalculator();
         
         // Main calculation method
-        float UpdateAndGetFarPlane(const PooledFrameRenderData& frameData);
+        float UpdateAndGetFarPlane(const FrameGameData& frameData);
         
         // Get current far plane value
         float GetCurrentFarPlane() const { return m_currentFarPlane; }
@@ -31,7 +31,7 @@ namespace kx {
     private:
         // Helper methods
         bool ShouldRecalculate() const;
-        std::vector<float> CollectGadgetDistances(const PooledFrameRenderData& frameData);
+        std::vector<float> CollectGadgetDistances(const FrameGameData& frameData);
         float CalculateTargetFarPlane(const std::vector<float>& distances);
         float CalculateFarPlaneFromFewSamples(const std::vector<float>& distances);
         float CalculateFarPlaneFromPercentile(std::vector<float>& distances); // Non-const for nth_element

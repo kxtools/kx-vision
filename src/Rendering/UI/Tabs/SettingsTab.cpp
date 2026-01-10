@@ -14,7 +14,7 @@
 #include "SDK/ContextStructs.h"
 #include "SDK/GadgetStructs.h"
 #include "../../../Memory/SafeGameArray.h"
-#include "../../../Rendering/Presentation/Formatting.h"
+#include "../../../Features/Visuals/Presentation/Formatting.h"
 #include "../../../Memory/AddressManager.h"
 
 namespace kx {

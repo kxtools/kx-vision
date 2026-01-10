@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../libs/nlohmann/json.hpp"
-#include "../../Rendering/Data/EntityTypes.h"
+#include "../../Game/Data/EntityTypes.h"
 #include "../../Rendering/UI/UIConstants.h"
 
 namespace kx {
