@@ -38,7 +38,7 @@ bool StyleCalculator::Calculate(const GameEntity& entity,
 
     outStyle.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(outStyle.fadedEntityColor, outStyle.finalAlpha);
 
-    EntityMultipliers multipliers = CalculateEntityMultipliers(entity);
+    EntityMultipliers multipliers = CalculateEntityMultipliers(entity, visualsConfig);
     CalculateFinalSizes(outStyle, outStyle.scale, multipliers);
 
     return true;
@@ -145,17 +145,13 @@ float StyleCalculator::CalculateDistanceFadeAlpha(float distance, bool useDistan
     }
 }
 
-StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(const GameEntity& entity) {
+StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(const GameEntity& entity, const VisualsConfiguration& visualsConfig) {
     EntityMultipliers multipliers;
     
     if (entity.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const PlayerEntity*>(&entity);
-        const auto& settings = AppState::Get().GetSettings();
         if (player->attitude == Game::Attitude::Hostile) {
-            // Note: hostileBoostMultiplier is now in VisualsConfiguration
-            // This file needs FrameContext to access it, or we need a different approach
-            // For now, using a default value until we pass FrameContext to this function
-            multipliers.hostile = 2.0f; // Default from VisualsConfiguration
+            multipliers.hostile = visualsConfig.playerESP.hostileBoostMultiplier;
         }
     }
     

@@ -40,9 +40,16 @@ namespace kx
 		 */
 		const EntityCombatState* GetState(CombatStateKey key) const;
 
+		/**
+		 * @brief Allow features to configure the maximum trail points.
+		 * @param points Maximum number of position history points to store per entity.
+		 */
+		void SetMaxTrailPoints(size_t points) { m_maxTrailPoints = points; }
+
 	private:
 		EntityCombatState* GetStateNonConst(CombatStateKey key);
 		ankerl::unordered_dense::map<CombatStateKey, EntityCombatState, CombatStateKeyHash> m_entityStates;
+		size_t m_maxTrailPoints = 30; // Default trail history size
 
 		EntityCombatState& AcquireState(CombatStateKey key);
 	};

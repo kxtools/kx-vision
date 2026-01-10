@@ -53,7 +53,7 @@ private:
         float healthBar = 1.0f;
     };
     
-    static EntityMultipliers CalculateEntityMultipliers(const GameEntity& entity);
+    static EntityMultipliers CalculateEntityMultipliers(const GameEntity& entity, const VisualsConfiguration& visualsConfig);
     static void CalculateFinalSizes(VisualStyle& style, 
                                    float scale,
                                    const EntityMultipliers& multipliers);

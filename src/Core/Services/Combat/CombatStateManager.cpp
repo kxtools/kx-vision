@@ -20,7 +20,7 @@ namespace kx
 
 			CombatStateKey key = entity->GetCombatKey();
 			EntityCombatState& state = AcquireState(key);
-			CombatLogic::UpdateState(state, entity, now);
+			CombatLogic::UpdateState(state, entity, now, m_maxTrailPoints);
 		}
 	}
 

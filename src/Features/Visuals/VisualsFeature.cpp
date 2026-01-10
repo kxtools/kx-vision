@@ -19,8 +19,8 @@ bool VisualsFeature::Initialize() {
 }
 
 void VisualsFeature::Update(float deltaTime, const FrameGameData& frameData) {
-    // Currently no per-frame update logic needed
-    // Frame data is now available if needed in the future
+    // Push configuration to Core service (Feature depends on Core - Allowed)
+    g_App.GetCombatStateManager().SetMaxTrailPoints(m_settings.playerESP.trails.maxPoints);
 }
 
 void VisualsFeature::RenderDrawList(ImDrawList* drawList) {

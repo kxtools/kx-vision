@@ -48,7 +48,7 @@ void TrailRenderer::RenderPlayerTrail(
     
     ImDrawList* drawList = context.drawList;
     const float thickness = trailSettings.thickness;
-    const float maxDuration = trailSettings.maxDuration * 1000.0f;
+    const float maxDuration = trailSettings.maxDuration;
     ImU32 baseColor = props.style.fadedEntityColor;
     float finalAlpha = props.style.finalAlpha;
     float globalOpacity = context.settings.appearance.globalOpacity;
