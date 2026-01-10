@@ -173,4 +173,28 @@ namespace kx {
                                        showDetailGadgetType, showDetailHealth, showDetailPosition, showDetailResourceInfo,
                                        showDetailGatherableStatus);
 
+    /**
+     * @brief Unified configuration for the Visuals feature.
+     * Consolidates all ESP settings and visuals-specific configuration.
+     */
+    struct VisualsConfiguration {
+        // Category-specific ESP settings
+        PlayerEspSettings playerESP;
+        NpcEspSettings npcESP;
+        ObjectEspSettings objectESP;
+
+        // Enhanced filtering options
+        bool hideDepletedNodes = true;          // Hide depleted resource nodes
+
+        // Debug options
+#ifdef _DEBUG
+        bool showDebugAddresses = true;         // Show entity memory addresses on ESP
+#else
+        bool showDebugAddresses = false;
+#endif
+    };
+
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(VisualsConfiguration, playerESP, npcESP, objectESP, 
+                                       hideDepletedNodes, showDebugAddresses);
+
 } // namespace kx

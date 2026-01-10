@@ -3,6 +3,7 @@
 #include <utility>
 #include "../../../Game/Data/EntityData.h"
 #include "../../../Core/Settings.h"
+#include "../Settings/VisualsSettings.h"
 #include "../../../Game/Generated/EnumsAndStructs.h"
 
 struct ImDrawList;

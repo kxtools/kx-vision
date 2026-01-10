@@ -26,8 +26,7 @@ void TrailRenderer::RenderPlayerTrail(
     Game::Attitude attitude,
     const VisualProperties& props)
 {
-    const auto& settings = AppState::Get().GetSettings();
-    const auto& trailSettings = settings.playerESP.trails;
+    const auto& trailSettings = context.visualsSettings.playerESP.trails;
     
     if (!trailSettings.enabled) {
         return;
@@ -47,10 +46,10 @@ void TrailRenderer::RenderPlayerTrail(
     
     ImDrawList* drawList = context.drawList;
     const float thickness = trailSettings.thickness;
-    const float maxDuration = trailSettings.maxDuration;
+    const float maxDuration = trailSettings.maxDuration * 1000.0f;
     ImU32 baseColor = props.style.fadedEntityColor;
     float finalAlpha = props.style.finalAlpha;
-    float globalOpacity = settings.appearance.globalOpacity;
+    float globalOpacity = context.settings.appearance.globalOpacity;
     bool renderTeleportConnections = (trailSettings.teleportMode == TrailTeleportMode::Analysis);
     
     constexpr float DASH_LENGTH = 10.0f;

@@ -1,7 +1,7 @@
 #include "FeatureManager.h"
 #include "IFeature.h"
 #include "../../Game/Data/FrameData.h"
-#include <spdlog/spdlog.h>
+#include "../../Utils/DebugLogger.h"
 
 namespace kx {
 
@@ -11,20 +11,20 @@ FeatureManager::~FeatureManager() = default;
 
 void FeatureManager::RegisterFeature(std::unique_ptr<IFeature> feature) {
     if (feature) {
-        spdlog::info("Registering feature: {}", feature->GetName());
+        LOG_INFO("Registering feature: %s", feature->GetName());
         m_features.push_back(std::move(feature));
     }
 }
 
 bool FeatureManager::InitializeAll() {
-    spdlog::info("Initializing {} feature(s)...", m_features.size());
+    LOG_INFO("Initializing %zu feature(s)...", m_features.size());
     
     for (auto& feature : m_features) {
         if (!feature->Initialize()) {
-            spdlog::error("Failed to initialize feature: {}", feature->GetName());
+            LOG_ERROR("Failed to initialize feature: %s", feature->GetName());
             return false;
         }
-        spdlog::info("Initialized feature: {}", feature->GetName());
+        LOG_INFO("Initialized feature: %s", feature->GetName());
     }
     
     return true;

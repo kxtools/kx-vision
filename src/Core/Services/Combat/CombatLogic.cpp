@@ -217,8 +217,9 @@ namespace kx {
 
     void CombatLogic::UpdatePositionHistory(EntityCombatState& state, const GameEntity* entity, uint64_t now)
     {
-        const auto& settings = AppState::Get().GetSettings();
-        const size_t USER_SETTING_MAX = static_cast<size_t>(settings.playerESP.trails.maxPoints);
+        // Use a reasonable default max points for trail history
+        // This value matches the default from VisualsConfiguration
+        constexpr size_t USER_SETTING_MAX = 30;
         
         bool shouldRecordPosition = (state.historySize == 0);
         

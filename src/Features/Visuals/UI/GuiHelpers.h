@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../Core/Settings.h"
+#include "../Settings/VisualsSettings.h"
 
 namespace kx {
     namespace GUI {

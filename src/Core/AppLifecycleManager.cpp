@@ -384,6 +384,9 @@ namespace kx {
             return false;
         }
 
+        // Load feature-specific settings after features are initialized
+        SettingsManager::LoadFeatureSettings();
+
         LOG_INFO("AppLifecycleManager: Features initialized successfully");
         return true;
     }

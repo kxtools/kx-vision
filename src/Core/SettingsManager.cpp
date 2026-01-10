@@ -1,5 +1,8 @@
 #include "SettingsManager.h"
 #include "Settings.h"
+#include "AppLifecycleManager.h"
+#include "Architecture/FeatureManager.h"
+#include "Architecture/IFeature.h"
 #include "../Utils/DebugLogger.h"
 #include <fstream>
 
@@ -25,8 +28,17 @@ namespace kx {
 
         try {
             std::filesystem::create_directories(path.parent_path());
-            std::ofstream file(path);
+            
+            // Start with core settings
             nlohmann::json j = settings;
+            
+            // Save feature-specific settings
+            auto& featureManager = g_App.GetFeatureManager();
+            for (const auto& feature : featureManager.GetFeatures()) {
+                feature->SaveSettings(j);
+            }
+            
+            std::ofstream file(path);
             file << j.dump(4);
             LOG_INFO("Settings saved to %s", path.u8string().c_str());
         }
@@ -53,12 +65,45 @@ namespace kx {
                 return;
             }
 
+            // Load core settings
             j.get_to(settings);
+            
             LOG_INFO("Settings loaded from %s", path.u8string().c_str());
         }
         catch (const std::exception& e) {
             LOG_ERROR("Failed to load settings: %s. Using default settings.", e.what());
             settings = Settings(); // Reset to default
+        }
+    }
+
+    void SettingsManager::LoadFeatureSettings() {
+        auto path = GetConfigFilePath();
+        if (path.empty() || !std::filesystem::exists(path)) {
+            LOG_INFO("Settings file not found for features, using defaults.");
+            return;
+        }
+
+        try {
+            std::ifstream file(path);
+            nlohmann::json j;
+            file >> j;
+
+            int fileVersion = j.value("settingsVersion", 0);
+            if (fileVersion != CURRENT_SETTINGS_VERSION) {
+                LOG_WARN("Settings file version mismatch, skipping feature settings load.");
+                return;
+            }
+
+            // Load feature-specific settings
+            auto& featureManager = g_App.GetFeatureManager();
+            for (const auto& feature : featureManager.GetFeatures()) {
+                feature->LoadSettings(j);
+            }
+            
+            LOG_INFO("Feature settings loaded successfully");
+        }
+        catch (const std::exception& e) {
+            LOG_ERROR("Failed to load feature settings: %s. Using defaults.", e.what());
         }
     }
 

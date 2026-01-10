@@ -4,7 +4,7 @@
 
 #include "../../../Core/AppState.h"
 #include "../../../../libs/ImGui/imgui.h"
-#include "../../../Core/Settings.h"
+#include "../Settings/VisualsSettings.h"
 #include "GuiHelpers.h"
 
 namespace kx {
@@ -74,10 +74,10 @@ namespace kx {
             }
         }
 
-        void RenderSpecialFilters(Settings& settings) {
+        void RenderSpecialFilters(VisualsConfiguration& config) {
             if (ImGui::CollapsingHeader("Special Filters")) {
-                CheckboxWithTooltip("Hide Depleted Nodes", "Objects", &settings.hideDepletedNodes, "Hide resource nodes that have already been gathered.");
-                CheckboxWithTooltip("Show Dead Gadgets", "Objects", &settings.objectESP.showDeadGadgets, "Show destroyed gadgets with health (e.g., siege, doors).");
+                CheckboxWithTooltip("Hide Depleted Nodes", "Objects", &config.hideDepletedNodes, "Hide resource nodes that have already been gathered.");
+                CheckboxWithTooltip("Show Dead Gadgets", "Objects", &config.objectESP.showDeadGadgets, "Show destroyed gadgets with health (e.g., siege, doors).");
             }
         }
 
@@ -139,25 +139,25 @@ namespace kx {
             }
         }
 
-        void RenderObjectsTab() {
+        void RenderObjectsTab(VisualsConfiguration& config) {
             if (ImGui::BeginTabItem("Objects")) {
-                auto& settings = AppState::Get().GetSettings();
+                auto& settings = config.objectESP;
 
-                ImGui::Checkbox("Enable Object ESP", &settings.objectESP.enabled);
+                ImGui::Checkbox("Enable Object ESP", &settings.enabled);
 
-                if (settings.objectESP.enabled) {
-                    RenderObjectTypeFilters(settings.objectESP);
-                    RenderSpecialFilters(settings);
-                    RenderItemListSettings(settings.objectESP);
-                    RenderAttackTargetListSettings(settings.objectESP);
+                if (settings.enabled) {
+                    RenderObjectTypeFilters(settings);
+                    RenderSpecialFilters(config);
+                    RenderItemListSettings(settings);
+                    RenderAttackTargetListSettings(settings);
 
                     ImGui::Separator();
 
                     if (ImGui::CollapsingHeader("Visual Style", ImGuiTreeNodeFlags_DefaultOpen)) {
-                        RenderObjectStyleSettings(settings.objectESP);
+                        RenderObjectStyleSettings(settings);
                     }
 
-                    RenderDetailedInformationSettings(settings.objectESP);
+                    RenderDetailedInformationSettings(settings);
                 }
                 ImGui::EndTabItem();
             }

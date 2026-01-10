@@ -67,21 +67,21 @@ namespace {
 void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const GameEntity& entity, const VisualProperties& props) {
     float globalOpacity = GetGlobalOpacity(ctx);
 
-    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(ctx.settings, entity.entityType);
+    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(ctx.visualsSettings, entity.entityType);
     float entityHeight = entity.hasPhysicsDimensions ? entity.physicsHeight : 0.0f;
-    bool sizeAllowed = RenderSettingsHelper::IsBoxAllowedForSize(ctx.settings, entity.entityType, entityHeight);
+    bool sizeAllowed = RenderSettingsHelper::IsBoxAllowedForSize(ctx.visualsSettings, entity.entityType, entityHeight);
 
     if (shouldRenderBox && sizeAllowed) {
         ShapeRenderer::RenderBoundingBox(ctx.drawList, props.geometry.boxMin, props.geometry.boxMax, props.style.fadedEntityColor, props.style.finalBoxThickness, globalOpacity);
     }
 
-    bool shouldRenderWireframe = RenderSettingsHelper::ShouldRenderWireframe(ctx.settings, entity.entityType);
+    bool shouldRenderWireframe = RenderSettingsHelper::ShouldRenderWireframe(ctx.visualsSettings, entity.entityType);
     if (shouldRenderWireframe && sizeAllowed) {
         ShapeRenderer::RenderWireframeBox(ctx.drawList, props, props.style.fadedEntityColor, props.style.finalBoxThickness, globalOpacity);
     }
 
     if (RenderSettingsHelper::IsObjectType(entity.entityType)) {
-        if (RenderSettingsHelper::ShouldRenderGadgetSphere(ctx.settings, entity.entityType)) {
+        if (RenderSettingsHelper::ShouldRenderGadgetSphere(ctx.visualsSettings, entity.entityType)) {
             ShapeRenderer::RenderGyroscopicOverlay(
                 ctx.drawList, 
                 entity.position,          
@@ -95,12 +95,12 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Game
                 globalOpacity
             );
         }
-        if (RenderSettingsHelper::ShouldRenderGadgetCircle(ctx.settings, entity.entityType)) {
+        if (RenderSettingsHelper::ShouldRenderGadgetCircle(ctx.visualsSettings, entity.entityType)) {
             ShapeRenderer::RenderGadgetCircle(ctx.drawList, props.geometry.screenPos, props.geometry.circleRadius, props.style.fadedEntityColor, props.style.finalBoxThickness, globalOpacity);
         }
     }
 
-    if (RenderSettingsHelper::ShouldRenderDot(ctx.settings, entity.entityType)) {
+    if (RenderSettingsHelper::ShouldRenderDot(ctx.visualsSettings, entity.entityType)) {
         if (RenderSettingsHelper::IsObjectType(entity.entityType) && entity.entityType != EntityTypes::Item) {
             ShapeRenderer::RenderNaturalWhiteDot(ctx.drawList, props.geometry.screenPos, props.style.finalAlpha, props.style.finalDotRadius, globalOpacity);
         } else {
@@ -114,8 +114,8 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
                                              std::string_view displayName,
                                              const VisualProperties& props,
                                              LayoutCursor& cursor) {
-    bool showName = RenderSettingsHelper::ShouldRenderName(ctx.settings, entity.entityType);
-    bool showDistance = RenderSettingsHelper::ShouldRenderDistance(ctx.settings, entity.entityType);
+    bool showName = RenderSettingsHelper::ShouldRenderName(ctx.visualsSettings, entity.entityType);
+    bool showDistance = RenderSettingsHelper::ShouldRenderDistance(ctx.visualsSettings, entity.entityType);
 
     if (!showName && !showDistance) return;
 
@@ -180,7 +180,7 @@ static void RenderDamageNumbers(const FrameContext& context,
                                 const HealthBarAnimationState& animState,
                                 const VisualProperties& props,
                                 const glm::vec2& healthBarPos) {
-    bool shouldShowDamageNumbers = RenderSettingsHelper::ShouldShowDamageNumbers(context.settings, entityType);
+    bool shouldShowDamageNumbers = RenderSettingsHelper::ShouldShowDamageNumbers(context.visualsSettings, entityType);
     if (!showCombatUI || !shouldShowDamageNumbers || animState.damageNumberAlpha <= 0.0f) {
         return;
     }
@@ -219,7 +219,7 @@ static void RenderBurstDps(const FrameContext& context,
                            const glm::vec2& healthBarPos) {
     if (!ImGui::GetCurrentContext()) return;
     
-    bool shouldShowBurstDps = RenderSettingsHelper::ShouldShowBurstDps(context.settings, entityType);
+    bool shouldShowBurstDps = RenderSettingsHelper::ShouldShowBurstDps(context.visualsSettings, entityType);
     if (!showCombatUI || !shouldShowBurstDps || burstDps <= 0.0f || animState.healthBarFadeAlpha <= 0.0f) {
         return;
     }
@@ -246,7 +246,7 @@ static void RenderBurstDps(const FrameContext& context,
 
         float barCenterY = healthBarPos.y + props.style.finalHealthBarHeight / 2.0f;
         
-        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(context.settings, entityType);
+        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(context.visualsSettings, entityType);
         
         float spacingFromBar = shouldRenderHealthPercentage 
             ? RenderingLayout::BURST_DPS_HORIZONTAL_PADDING 
@@ -309,7 +309,8 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
                                                         attitude,
                                                         props,
                                                         animState,
-                                                        ctx.settings);
+                                                        ctx.settings,
+                                                        ctx.visualsSettings);
 
             RenderDamageNumbers(ctx, entity, entity.entityType, showCombatUI, renderHealthBar, animState, props, healthBarPos);
             RenderBurstDps(ctx, entity, entity.entityType, showCombatUI, renderHealthBar, burstDps, animState, props, healthBarPos);
@@ -324,7 +325,7 @@ void EntityComponentRenderer::RenderStatusBars(const FrameContext& ctx,
 
     if (entity.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const PlayerEntity*>(&entity);
-        EnergyDisplayType energyDisplayType = RenderSettingsHelper::GetPlayerEnergyDisplayType(ctx.settings);
+        EnergyDisplayType energyDisplayType = RenderSettingsHelper::GetPlayerEnergyDisplayType(ctx.visualsSettings);
         float energyPercent = CalculateEnergyPercent(player, energyDisplayType);
         if (energyPercent >= 0.0f && renderEnergyBar) {
             glm::vec2 barPos = cursor.GetTopLeftForBar(props.style.finalHealthBarWidth, props.style.finalHealthBarHeight);
@@ -341,8 +342,8 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
                                                   LayoutCursor& cursor) {
     if (entity.entityType == EntityTypes::Player) {
         const auto* player = static_cast<const PlayerEntity*>(&entity);
-        if (player != nullptr && ctx.settings.playerESP.enableGearDisplay) {
-            GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(ctx.settings);
+        if (player != nullptr && ctx.visualsSettings.playerESP.enableGearDisplay) {
+            GearDisplayMode gearDisplayMode = RenderSettingsHelper::GetPlayerGearDisplayMode(ctx.visualsSettings);
             glm::vec2 pos = cursor.GetPosition();
             
             FastTextStyle style;
@@ -457,27 +458,27 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
     switch (entity.entityType) {
         case EntityTypes::Player: {
             const auto* player = static_cast<const PlayerEntity*>(&entity);
-            InfoBuilder::RenderPlayerDetails(ctx.drawList, cursor, props, player, ctx.settings.playerESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderPlayerDetails(ctx.drawList, cursor, props, player, ctx.visualsSettings.playerESP, ctx.settings.appearance, ctx.visualsSettings.showDebugAddresses);
             break;
         }
         case EntityTypes::NPC: {
             const auto* npc = static_cast<const NpcEntity*>(&entity);
-            InfoBuilder::RenderNpcDetails(ctx.drawList, cursor, props, npc, ctx.settings.npcESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderNpcDetails(ctx.drawList, cursor, props, npc, ctx.visualsSettings.npcESP, ctx.settings.appearance, ctx.visualsSettings.showDebugAddresses);
             break;
         }
         case EntityTypes::Gadget: {
             const auto* gadget = static_cast<const GadgetEntity*>(&entity);
-            InfoBuilder::RenderGadgetDetails(ctx.drawList, cursor, props, gadget, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderGadgetDetails(ctx.drawList, cursor, props, gadget, ctx.visualsSettings.objectESP, ctx.settings.appearance, ctx.visualsSettings.showDebugAddresses);
             break;
         }
         case EntityTypes::AttackTarget: {
             const auto* attackTarget = static_cast<const AttackTargetEntity*>(&entity);
-            InfoBuilder::RenderAttackTargetDetails(ctx.drawList, cursor, props, attackTarget, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderAttackTargetDetails(ctx.drawList, cursor, props, attackTarget, ctx.visualsSettings.objectESP, ctx.settings.appearance, ctx.visualsSettings.showDebugAddresses);
             break;
         }
         case EntityTypes::Item: {
             const auto* item = static_cast<const ItemEntity*>(&entity);
-            InfoBuilder::RenderItemDetails(ctx.drawList, cursor, props, item, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
+            InfoBuilder::RenderItemDetails(ctx.drawList, cursor, props, item, ctx.visualsSettings.objectESP, ctx.settings.appearance, ctx.visualsSettings.showDebugAddresses);
             break;
         }
     }

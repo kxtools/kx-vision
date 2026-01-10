@@ -3,8 +3,8 @@
 #include "UI/NpcsTab.h"
 #include "UI/ObjectsTab.h"
 #include "../../Core/AppLifecycleManager.h"
+#include "../../Utils/DebugLogger.h"
 #include "../../../libs/ImGui/imgui.h"
-#include <spdlog/spdlog.h>
 
 namespace kx {
 
@@ -13,7 +13,7 @@ VisualsFeature::VisualsFeature()
 }
 
 bool VisualsFeature::Initialize() {
-    spdlog::info("VisualsFeature: Initializing...");
+    LOG_INFO("VisualsFeature: Initializing...");
     // MasterRenderer initializes in its constructor, no additional setup needed
     return true;
 }
@@ -41,15 +41,37 @@ void VisualsFeature::RenderDrawList(ImDrawList* drawList) {
     float screenWidth = io.DisplaySize.x;
     float screenHeight = io.DisplaySize.y;
 
-    // Render ESP to the background draw list
-    m_masterRenderer->Render(screenWidth, screenHeight, mumbleData, camera);
+    // Render ESP to the background draw list, passing our local settings
+    m_masterRenderer->Render(screenWidth, screenHeight, mumbleData, camera, m_settings);
 }
 
 void VisualsFeature::OnMenuRender() {
     // Render ESP configuration tabs
-    kx::GUI::RenderPlayersTab();
-    kx::GUI::RenderNPCsTab();
-    kx::GUI::RenderObjectsTab();
+    kx::GUI::RenderPlayersTab(m_settings);
+    kx::GUI::RenderNPCsTab(m_settings);
+    kx::GUI::RenderObjectsTab(m_settings);
+}
+
+void VisualsFeature::LoadSettings(const nlohmann::json& j) {
+    try {
+        if (j.contains("visuals")) {
+            m_settings = j["visuals"].get<VisualsConfiguration>();
+            LOG_INFO("VisualsFeature: Settings loaded successfully");
+        } else {
+            LOG_WARN("VisualsFeature: No 'visuals' key found in settings, using defaults");
+        }
+    } catch (const std::exception& e) {
+        LOG_ERROR("VisualsFeature: Failed to load settings: %s", e.what());
+    }
+}
+
+void VisualsFeature::SaveSettings(nlohmann::json& j) {
+    try {
+        j["visuals"] = m_settings;
+        LOG_DEBUG("VisualsFeature: Settings saved successfully");
+    } catch (const std::exception& e) {
+        LOG_ERROR("VisualsFeature: Failed to save settings: %s", e.what());
+    }
 }
 
 } // namespace kx

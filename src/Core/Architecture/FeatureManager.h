@@ -77,6 +77,12 @@ public:
      */
     void RunGameThreadUpdates();
 
+    /**
+     * @brief Get read-only access to all registered features.
+     * Used for settings management and other introspection needs.
+     */
+    const std::vector<std::unique_ptr<IFeature>>& GetFeatures() const { return m_features; }
+
 private:
     std::vector<std::unique_ptr<IFeature>> m_features;
 };

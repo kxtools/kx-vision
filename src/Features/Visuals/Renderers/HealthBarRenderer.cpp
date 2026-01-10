@@ -221,7 +221,8 @@ namespace kx {
         Game::Attitude attitude,
         const VisualProperties& props,
         const HealthBarAnimationState& animState,
-        const Settings& settings) 
+        const Settings& settings,
+        const VisualsConfiguration& visualsSettings) 
     { 
         // Use properties from VisualProperties directly
         float fadeAlpha = ((props.style.fadedEntityColor >> 24) & 0xFF) / 255.0f;
@@ -243,7 +244,7 @@ namespace kx {
 
         // Alive vs Dead specialized rendering
         if (entity.currentHealth > 0) {
-            RenderAliveState(drawList, entity, entityType, barMin, barMax, props, fadeAlpha, animState, settings);
+            RenderAliveState(drawList, entity, entityType, barMin, barMax, props, fadeAlpha, animState, settings, visualsSettings);
         }
         else {
             RenderDeadState(drawList, animState, barMin, barMax, props.style.finalHealthBarWidth, fadeAlpha);
@@ -291,7 +292,8 @@ namespace kx {
         const VisualProperties& props,
         float fadeAlpha,
         const HealthBarAnimationState& animState,
-        const Settings& settings) 
+        const Settings& settings,
+        const VisualsConfiguration& visualsSettings) 
     {
         float barWidth = props.style.finalHealthBarWidth;
         float barHeight = props.style.finalHealthBarHeight;
@@ -315,7 +317,7 @@ namespace kx {
         DrawBarrierOverlay(drawList, entity, animState, barMin, barMax, barWidth, barHeight, fadeAlpha, settings);
 
         // 6. Health Percentage Text (drawn last, on top of everything)
-        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(settings, entityType);
+        bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(visualsSettings, entityType);
         if (shouldRenderHealthPercentage && entity.maxHealth > 0) {
             float healthPercent = entity.currentHealth / entity.maxHealth;
             DrawHealthPercentageText(drawList, barMin, barMax, healthPercent, props.style.finalFontSize, fadeAlpha);

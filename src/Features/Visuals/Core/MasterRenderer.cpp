@@ -22,7 +22,7 @@ void MasterRenderer::FilterAndProcessData(const FrameGameData& extractionData, c
     EntityFilter::FilterPooledData(extractionData, context, m_processedRenderData);
 }
 
-void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera) {
+void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera, const VisualsConfiguration& visualsConfig) {
     if (ShouldHideESP(mumbleData)) {
         return;
     }
@@ -43,6 +43,7 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
         camera,
         combatStateManager,
         AppState::Get().GetSettings(),
+        visualsConfig,
         ImGui::GetBackgroundDrawList(),
         screenWidth,
         screenHeight,

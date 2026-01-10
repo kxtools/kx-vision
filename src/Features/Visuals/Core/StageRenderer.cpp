@@ -160,31 +160,31 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
         case EntityTypes::Player: {
             const auto& player = static_cast<const PlayerEntity&>(*entity);
             attitude = player.attitude;
-            renderHealthBar = ShouldRenderPlayerHealthBar(player, context.settings.playerESP);
-            renderEnergyBar = context.settings.playerESP.renderEnergyBar;
+            renderHealthBar = ShouldRenderPlayerHealthBar(player, context.visualsSettings.playerESP);
+            renderEnergyBar = context.visualsSettings.playerESP.renderEnergyBar;
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, context.settings.playerESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.playerESP.showBurstDps);
             break;
         }
         case EntityTypes::NPC: {
             const auto& npc = static_cast<const NpcEntity&>(*entity);
             attitude = npc.attitude;
-            renderHealthBar = ShouldRenderNpcHealthBar(npc, context.settings.npcESP, combatState, context.now);
+            renderHealthBar = ShouldRenderNpcHealthBar(npc, context.visualsSettings.npcESP, combatState, context.now);
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, context.settings.npcESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.npcESP.showBurstDps);
             break;
         }
         case EntityTypes::Gadget: {
             const auto& gadget = static_cast<const GadgetEntity&>(*entity);
-            renderHealthBar = ShouldRenderGadgetHealthBar(gadget, context.settings.objectESP, combatState, context.now);
+            renderHealthBar = ShouldRenderGadgetHealthBar(gadget, context.visualsSettings.objectESP, combatState, context.now);
             showCombatUI = !Styling::ShouldHideCombatUIForGadget(gadget.type);
-            burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.objectESP.showBurstDps);
             break;
         }
         case EntityTypes::AttackTarget: {
             renderHealthBar = false;
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, context.settings.objectESP.showBurstDps);
+            burstDps = CalculateBurstDps(combatState, context.now, context.visualsSettings.objectESP.showBurstDps);
             break;
         }
         case EntityTypes::Item: {
@@ -201,7 +201,7 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity) {
 
     // RENDER PHASE (Immediate Mode)
     // Initialize cursor at top of entity
-    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.settings, entity->entityType);
+    bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(context.visualsSettings, entity->entityType);
     LayoutCursor cursor({visuals.geometry.center.x, visuals.geometry.boxMax.y}, 1.0f);
 
     // Special case for gadgets without boxes

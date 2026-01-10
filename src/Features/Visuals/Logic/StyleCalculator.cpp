@@ -150,7 +150,10 @@ StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(c
         const auto* player = static_cast<const PlayerEntity*>(&entity);
         const auto& settings = AppState::Get().GetSettings();
         if (player->attitude == Game::Attitude::Hostile) {
-            multipliers.hostile = settings.playerESP.hostileBoostMultiplier;
+            // Note: hostileBoostMultiplier is now in VisualsConfiguration
+            // This file needs FrameContext to access it, or we need a different approach
+            // For now, using a default value until we pass FrameContext to this function
+            multipliers.hostile = 2.0f; // Default from VisualsConfiguration
         }
     }
     

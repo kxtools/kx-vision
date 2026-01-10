@@ -5,6 +5,7 @@
 #include "../../../Game/Data/EntityData.h"
 #include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../Settings/VisualsSettings.h"
 #include <vector>
 
 namespace kx {
@@ -14,7 +15,7 @@ public:
     MasterRenderer();
     ~MasterRenderer() = default;
 
-    void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera);
+    void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera, const VisualsConfiguration& visualsConfig);
 
     void Reset();
 
