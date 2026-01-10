@@ -1,5 +1,7 @@
 #pragma once
 
+#include <windows.h> // For UINT, WPARAM, LPARAM
+
 struct ImDrawList;
 
 namespace kx {
@@ -42,6 +44,22 @@ public:
      * @brief Get the name of this feature for debugging/logging.
      */
     virtual const char* GetName() const = 0;
+
+    /**
+     * @brief Handle input events before they reach ImGui or the game.
+     * @param message The Windows message (WM_KEYDOWN, WM_LBUTTONDOWN, etc.)
+     * @param wParam Additional message parameter
+     * @param lParam Additional message parameter
+     * @return true to consume the input (block propagation), false to pass through
+     */
+    virtual bool OnInput(UINT message, WPARAM wParam, LPARAM lParam) { return false; }
+
+    /**
+     * @brief Called every frame from the game thread.
+     * Use this for safe memory writes, teleportation, or other operations
+     * that must run on the game thread.
+     */
+    virtual void OnGameThreadUpdate() {}
 };
 
 } // namespace kx

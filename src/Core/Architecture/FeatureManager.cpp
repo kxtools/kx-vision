@@ -53,4 +53,19 @@ size_t FeatureManager::GetFeatureCount() const {
     return m_features.size();
 }
 
+bool FeatureManager::BroadcastInput(UINT message, WPARAM wParam, LPARAM lParam) {
+    for (auto& feature : m_features) {
+        if (feature->OnInput(message, wParam, lParam)) {
+            return true; // Feature consumed the input
+        }
+    }
+    return false; // No feature consumed the input
+}
+
+void FeatureManager::RunGameThreadUpdates() {
+    for (auto& feature : m_features) {
+        feature->OnGameThreadUpdate();
+    }
+}
+
 } // namespace kx

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <windows.h> // For UINT, WPARAM, LPARAM
 #include <memory>
 #include <vector>
 
@@ -58,6 +59,21 @@ public:
      * @brief Get the number of registered features.
      */
     size_t GetFeatureCount() const;
+
+    /**
+     * @brief Broadcast input event to all features.
+     * @param message The Windows message (WM_KEYDOWN, WM_LBUTTONDOWN, etc.)
+     * @param wParam Additional message parameter
+     * @param lParam Additional message parameter
+     * @return true if any feature consumed the input, false otherwise
+     */
+    bool BroadcastInput(UINT message, WPARAM wParam, LPARAM lParam);
+
+    /**
+     * @brief Run game thread updates for all features.
+     * Called from the game thread hook.
+     */
+    void RunGameThreadUpdates();
 
 private:
     std::vector<std::unique_ptr<IFeature>> m_features;
