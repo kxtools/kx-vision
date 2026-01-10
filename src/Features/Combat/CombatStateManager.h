@@ -4,7 +4,7 @@
 #include <vector>
 #include "CombatState.h"
 #include "CombatStateKey.h"
-#include "../../Rendering/Data/RenderableData.h" // For RenderableEntity
+#include "../../Game/Data/RenderableData.h" // For RenderableEntity
 
 namespace kx
 {

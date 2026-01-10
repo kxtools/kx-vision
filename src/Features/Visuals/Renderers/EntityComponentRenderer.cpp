@@ -5,10 +5,10 @@
 
 #include "../../../Rendering/Renderers/TextRenderer.h"
 
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Shared/LayoutConstants.h"
 #include "../../../../libs/ImGui/imgui.h"
-#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Game/Data/RenderableData.h"
 #include <string_view>
 #include <span>
 #include <format>

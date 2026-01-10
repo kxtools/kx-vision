@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../../Rendering/Data/FrameData.h"
-#include "../../../Rendering/Data/EntityTypes.h"
+#include "../../../Game/Data/FrameData.h"
+#include "../../../Game/Data/EntityTypes.h"
 #include "../../../Game/Services/Camera/Camera.h"
 
 // Forward declarations

@@ -2,7 +2,7 @@
 
 #include "ScreenProjector.h"
 #include "../../../Core/AppState.h"
-#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Game/Data/RenderableData.h"
 #include "../../../Rendering/Shared/LayoutConstants.h"
 #include "../../../Rendering/Shared/MathUtils.h"
 #include "../../../Rendering/Shared/RenderSettingsHelper.h"

@@ -1,6 +1,6 @@
 #include "TrailRenderer.h"
-#include "../../../Rendering/Data/FrameData.h"
-#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Game/Data/FrameData.h"
+#include "../../../Game/Data/RenderableData.h"
 #include "../../Combat/CombatStateManager.h"
 #include "../../Combat/CombatState.h"
 #include "../../../Rendering/Shared/MathUtils.h"

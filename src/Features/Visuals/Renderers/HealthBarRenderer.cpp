@@ -13,7 +13,7 @@
 #include "../../../Core/Settings.h"
 #include "../../../Rendering/Shared/RenderSettingsHelper.h"
 #include "../../Combat/CombatConstants.h"
-#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Game/Data/RenderableData.h"
 #include "../../../Game/GameEnums.h"
 
 namespace kx {

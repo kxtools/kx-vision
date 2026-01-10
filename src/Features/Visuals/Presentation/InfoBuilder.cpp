@@ -14,7 +14,7 @@
 #include "Formatting.h"
 #include "../../../Rendering/Renderers/TextRenderer.h"
 #include "../Renderers/LayoutCursor.h"
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Shared/LayoutConstants.h"
 
 namespace kx {

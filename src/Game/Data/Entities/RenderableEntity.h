@@ -3,8 +3,8 @@
 #include <vec3.hpp>
 #include <vec2.hpp>
 
-#include "../../../Game/GameEnums.h"
-#include "../../../Game/Havok/HavokEnums.h"
+#include "../../GameEnums.h"
+#include "../../Havok/HavokEnums.h"
 #include "../EntityTypes.h"
 #include "../../../Features/Combat/CombatStateKey.h"
 

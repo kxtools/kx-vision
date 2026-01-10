@@ -1,6 +1,6 @@
 #include "AdaptiveFarPlaneCalculator.h"
-#include "../Rendering/Data/FrameData.h"
-#include "../Rendering/Data/RenderableData.h"
+#include "../Game/Data/FrameData.h"
+#include "../Game/Data/RenderableData.h"
 #include "../Utils/DebugLogger.h"
 #include <vector>
 #include <algorithm>

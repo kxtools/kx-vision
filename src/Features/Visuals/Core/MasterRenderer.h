@@ -2,10 +2,10 @@
 
 #include "../../../Game/Services/Camera/Camera.h"
 #include "../../../Game/Services/Mumble/MumbleLink.h"
-#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Game/Data/RenderableData.h"
 #include "../../../Utils/ObjectPool.h"
 #include "../../Combat/CombatStateManager.h"
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Shared/LayoutConstants.h"
 #include <ankerl/unordered_dense.h>
 #include <vector>

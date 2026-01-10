@@ -2,7 +2,7 @@
 
 #include "glm.hpp"
 #include "../../../../libs/ImGui/imgui.h"
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 
 namespace kx {
 

@@ -3,7 +3,7 @@
 #include "../Renderers/EntityComponentRenderer.h"
 #include "../Renderers/LayoutCursor.h"
 #include "../Renderers/TrailRenderer.h"
-#include "../../../Rendering/Data/RenderableData.h"
+#include "../../../Game/Data/RenderableData.h"
 #include "../../../Rendering/Data/HealthBarAnimationState.h"
 #include "../Presentation/Styling.h"
 #include "../Logic/StyleCalculator.h"

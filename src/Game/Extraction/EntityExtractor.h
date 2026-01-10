@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Data/RenderableData.h"
-#include "../../Game/SdkStructs.h"
+#include "../SdkStructs.h"
 
 namespace kx {
 

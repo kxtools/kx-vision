@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LayoutCursor.h"
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Data/HealthBarAnimationState.h"
 #include "../../../Game/GameEnums.h"
 #include <string_view>

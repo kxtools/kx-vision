@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 
 // Forward declarations
 struct ImDrawList;

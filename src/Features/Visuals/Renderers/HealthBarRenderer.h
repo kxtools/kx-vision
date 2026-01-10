@@ -2,9 +2,9 @@
 
 #include "glm.hpp"
 #include "../../../../libs/ImGui/imgui.h"
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 #include "../../../Rendering/Data/HealthBarAnimationState.h"
-#include "../../../Rendering/Data/EntityTypes.h"
+#include "../../../Game/Data/EntityTypes.h"
 #include "../../../Game/GameEnums.h"
 
 namespace kx {

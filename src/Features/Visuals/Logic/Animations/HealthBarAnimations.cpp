@@ -1,6 +1,6 @@
 #include "HealthBarAnimations.h"
 
-#include "../../../../Rendering/Data/RenderableData.h"
+#include "../../../../Game/Data/RenderableData.h"
 #include "../../../Combat/CombatState.h"
 #include "../../../../Rendering/Data/HealthBarAnimationState.h"
 #include "../../../../Rendering/Shared/AnimationHelpers.h"

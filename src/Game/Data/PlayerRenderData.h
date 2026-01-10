@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string_view>
-#include "../../Game/GameEnums.h"
-#include "../../../libs/ImGui/imgui.h"
+#include "../GameEnums.h"
+#include "../../libs/ImGui/imgui.h"
 
 namespace kx {
 

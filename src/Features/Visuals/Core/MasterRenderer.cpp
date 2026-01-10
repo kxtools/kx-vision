@@ -1,7 +1,7 @@
 #define NOMINMAX
 
 #include "MasterRenderer.h"
-#include "../../../Rendering/Data/FrameData.h"
+#include "../../../Game/Data/FrameData.h"
 
 #include <algorithm>
 #include <ankerl/unordered_dense.h>
@@ -10,8 +10,8 @@
 #include "../../../Core/AppState.h"
 #include "../../../Core/AppLifecycleManager.h"
 #include "../../../Utils/ObjectPool.h"
-#include "../../../Rendering/Data/RenderableData.h"
-#include "../../../Rendering/Extraction/DataExtractor.h"
+#include "../../../Game/Data/RenderableData.h"
+#include "../../../Game/Extraction/DataExtractor.h"
 #include "StageRenderer.h"
 #include "../../Combat/CombatStateManager.h"
 #include "../../../../libs/ImGui/imgui.h"
