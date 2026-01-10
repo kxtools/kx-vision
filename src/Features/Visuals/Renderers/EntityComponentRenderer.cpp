@@ -471,7 +471,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
             break;
         }
         case EntityTypes::AttackTarget: {
-            const auto* attackTarget = static_cast<const RenderableAttackTarget*>(&entity);
+            const auto* attackTarget = static_cast<const AttackTargetEntity*>(&entity);
             InfoBuilder::RenderAttackTargetDetails(ctx.drawList, cursor, props, attackTarget, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }

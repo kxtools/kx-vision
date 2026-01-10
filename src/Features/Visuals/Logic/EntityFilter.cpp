@@ -124,7 +124,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
     // Filter attack targets
     if (context.settings.objectESP.enabled && context.settings.objectESP.showAttackTargetList) {
         filteredData.attackTargets.reserve(extractedData.attackTargets.size());
-        for (RenderableAttackTarget* attackTarget : extractedData.attackTargets) {
+        for (AttackTargetEntity* attackTarget : extractedData.attackTargets) {
             // Call the common helper function first
             if (!PassesCommonFilters(attackTarget, cameraPos, playerPos, context)) {
                 continue;

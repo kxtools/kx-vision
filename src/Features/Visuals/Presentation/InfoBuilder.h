@@ -103,7 +103,7 @@ public:
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableAttackTarget* attackTarget, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
+    static void RenderAttackTargetDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const AttackTargetEntity* attackTarget, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
     /**
      * @brief Render Item information details (item ID, rarity, position)

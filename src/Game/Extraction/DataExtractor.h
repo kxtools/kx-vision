@@ -33,7 +33,7 @@ namespace kx {
         static void ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
             ObjectPool<NpcEntity>& npcPool,
             ObjectPool<GadgetEntity>& gadgetPool,
-            ObjectPool<RenderableAttackTarget>& attackTargetPool,
+            ObjectPool<AttackTargetEntity>& attackTargetPool,
             ObjectPool<ItemEntity>& itemPool,
             FrameGameData& pooledData);
 
@@ -50,8 +50,8 @@ namespace kx {
         static void ExtractGadgetData(ObjectPool<GadgetEntity>& gadgetPool,
             std::vector<GadgetEntity*>& gadgets);
 
-        static void ExtractAttackTargetData(ObjectPool<RenderableAttackTarget>& attackTargetPool,
-            std::vector<RenderableAttackTarget*>& attackTargets);
+        static void ExtractAttackTargetData(ObjectPool<AttackTargetEntity>& attackTargetPool,
+            std::vector<AttackTargetEntity*>& attackTargets);
 
         static void ExtractItemData(ObjectPool<ItemEntity>& itemPool,
             std::vector<ItemEntity*>& items);

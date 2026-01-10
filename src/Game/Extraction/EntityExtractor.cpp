@@ -160,7 +160,7 @@ namespace PhysicsValidation {
         return true;
     }
 
-    bool EntityExtractor::ExtractAttackTarget(RenderableAttackTarget& outAttackTarget,
+    bool EntityExtractor::ExtractAttackTarget(AttackTargetEntity& outAttackTarget,
         const ReClass::AgentInl& inAgentInl) {
 
         if (!inAgentInl) return false;

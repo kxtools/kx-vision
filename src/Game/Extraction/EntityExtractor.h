@@ -48,7 +48,7 @@ namespace kx {
          * @param inAgentInl The source AgentInl structure from the attack target list.
          * @return True if extraction was successful and the entity is valid, false otherwise.
          */
-        static bool ExtractAttackTarget(RenderableAttackTarget& outAttackTarget,
+        static bool ExtractAttackTarget(AttackTargetEntity& outAttackTarget,
             const ReClass::AgentInl& inAgentInl);
 
         /**

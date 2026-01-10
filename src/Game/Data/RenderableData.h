@@ -6,5 +6,5 @@
 #include "Entities/PlayerEntity.h"
 #include "Entities/NpcEntity.h"
 #include "Entities/GadgetEntity.h"
-#include "Entities/RenderableAttackTarget.h"
+#include "Entities/AttackTargetEntity.h"
 #include "Entities/ItemEntity.h"

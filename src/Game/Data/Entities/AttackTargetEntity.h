@@ -4,10 +4,10 @@
 
 namespace kx {
 
-struct RenderableAttackTarget : public GameEntity {
+struct AttackTargetEntity : public GameEntity {
     Game::AttackTargetCombatState combatState = Game::AttackTargetCombatState::Idle;
     
-    RenderableAttackTarget() : GameEntity()
+    AttackTargetEntity() : GameEntity()
     {
         entityType = EntityTypes::AttackTarget;
     }

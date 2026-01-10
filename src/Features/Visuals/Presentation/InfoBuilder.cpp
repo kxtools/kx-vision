@@ -424,7 +424,7 @@ void InfoBuilder::RenderAttackTargetDetails(
     ImDrawList* drawList,
     LayoutCursor& cursor,
     const VisualProperties& props,
-    const RenderableAttackTarget* attackTarget,
+    const AttackTargetEntity* attackTarget,
     const ObjectEspSettings& settings,
     const AppearanceSettings& appearance,
     bool showDebugAddresses) {
