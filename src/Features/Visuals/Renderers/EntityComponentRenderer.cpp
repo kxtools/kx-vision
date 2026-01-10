@@ -476,7 +476,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
             break;
         }
         case EntityTypes::Item: {
-            const auto* item = static_cast<const RenderableItem*>(&entity);
+            const auto* item = static_cast<const ItemEntity*>(&entity);
             InfoBuilder::RenderItemDetails(ctx.drawList, cursor, props, item, ctx.settings.objectESP, ctx.settings.appearance, ctx.settings.showDebugAddresses);
             break;
         }

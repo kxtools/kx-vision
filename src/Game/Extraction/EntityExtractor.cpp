@@ -196,7 +196,7 @@ namespace PhysicsValidation {
         return true;
     }
 
-    bool EntityExtractor::ExtractItem(RenderableItem& outItem, const ReClass::ItCliItem& inItem) {
+    bool EntityExtractor::ExtractItem(ItemEntity& outItem, const ReClass::ItCliItem& inItem) {
         if (!inItem) return false;
 
         // --- Check Location Type ---

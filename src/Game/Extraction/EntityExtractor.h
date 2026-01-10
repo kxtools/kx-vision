@@ -57,7 +57,7 @@ namespace kx {
          * @param inItem The source ItCliItem structure from the item list.
          * @return True if extraction was successful and the entity is valid, false otherwise.
          */
-        static bool ExtractItem(RenderableItem& outItem,
+        static bool ExtractItem(ItemEntity& outItem,
             const ReClass::ItCliItem& inItem);
 
     private:

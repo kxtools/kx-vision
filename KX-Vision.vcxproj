@@ -216,7 +216,7 @@
     <ClInclude Include="src\Game\Data\Entities\RenderableAttackTarget.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderableEntity.h" />
     <ClInclude Include="src\Game\Data\Entities\GadgetEntity.h" />
-    <ClInclude Include="src\Game\Data\Entities\RenderableItem.h" />
+    <ClInclude Include="src\Game\Data\Entities\ItemEntity.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderableNpc.h" />
     <ClInclude Include="src\Game\Data\Entities\RenderablePlayer.h" />
     <ClInclude Include="src\Game\Extraction\DataExtractor.h" />

@@ -17,7 +17,7 @@ namespace kx {
     struct NpcEntity;
     struct GadgetEntity;
     struct RenderableAttackTarget;
-    struct RenderableItem;
+    struct ItemEntity;
 }
 
 namespace kx {
@@ -110,7 +110,7 @@ struct FrameGameData {
     std::vector<NpcEntity*> npcs;
     std::vector<GadgetEntity*> gadgets;
     std::vector<RenderableAttackTarget*> attackTargets;
-    std::vector<RenderableItem*> items;
+    std::vector<ItemEntity*> items;
 
     void Reset() {
         players.clear();

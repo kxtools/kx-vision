@@ -468,7 +468,7 @@ void InfoBuilder::RenderItemDetails(
     ImDrawList* drawList,
     LayoutCursor& cursor,
     const VisualProperties& props,
-    const RenderableItem* item,
+    const ItemEntity* item,
     const ObjectEspSettings& settings,
     const AppearanceSettings& appearance,
     bool showDebugAddresses) {

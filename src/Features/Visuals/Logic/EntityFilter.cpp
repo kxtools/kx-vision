@@ -147,7 +147,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
     // Filter items
     if (context.settings.objectESP.enabled && context.settings.objectESP.showItems) {
         filteredData.items.reserve(extractedData.items.size());
-        for (RenderableItem* item : extractedData.items) {
+        for (ItemEntity* item : extractedData.items) {
             // Call the common helper function first
             if (!PassesCommonFilters(item, cameraPos, playerPos, context)) {
                 continue;

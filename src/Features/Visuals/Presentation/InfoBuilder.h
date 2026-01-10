@@ -114,7 +114,7 @@ public:
      * @param settings Object ESP settings for filtering what to display
      * @param showDebugAddresses Whether to include memory addresses for debugging
      */
-    static void RenderItemDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const RenderableItem* item, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
+    static void RenderItemDetails(ImDrawList* drawList, LayoutCursor& cursor, const VisualProperties& props, const ItemEntity* item, const ObjectEspSettings& settings, const AppearanceSettings& appearance, bool showDebugAddresses);
 
 private:
     /**

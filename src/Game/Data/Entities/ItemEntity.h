@@ -4,11 +4,11 @@
 
 namespace kx {
 
-struct RenderableItem : public GameEntity {
+struct ItemEntity : public GameEntity {
     Game::ItemRarity rarity = Game::ItemRarity::None;
     uint32_t itemId = 0;
 
-    RenderableItem() : GameEntity() {
+    ItemEntity() : GameEntity() {
         entityType = EntityTypes::Item;
     }
 };

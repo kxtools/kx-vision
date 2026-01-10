@@ -36,7 +36,7 @@ private:
     ObjectPool<NpcEntity> m_npcPool{EntityLimits::MAX_NPCS};
     ObjectPool<GadgetEntity> m_gadgetPool{EntityLimits::MAX_GADGETS};
     ObjectPool<RenderableAttackTarget> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
-    ObjectPool<RenderableItem> m_itemPool{EntityLimits::MAX_ITEMS};
+    ObjectPool<ItemEntity> m_itemPool{EntityLimits::MAX_ITEMS};
 
     CombatStateManager m_combatStateManager;
     FrameGameData m_processedRenderData;

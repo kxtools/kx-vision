@@ -116,7 +116,7 @@ std::string_view GetEntityName(const GameEntity& entity) {
             return static_cast<const GadgetEntity&>(entity).name;
         case EntityTypes::Item: {
             static thread_local char itemNameBuffer[64];
-            const auto& item = static_cast<const RenderableItem&>(entity);
+            const auto& item = static_cast<const ItemEntity&>(entity);
             auto res = std::format_to_n(itemNameBuffer, std::size(itemNameBuffer), "Item [{}]", item.itemId);
             return std::string_view(itemNameBuffer, res.size);
         }
