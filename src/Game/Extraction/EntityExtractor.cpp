@@ -2,6 +2,7 @@
 #include "../GameEnums.h"
 #include "../SDK/HavokStructs.h"
 #include "../../Utils/StringHelpers.h"
+#include "../../Memory/Safety.h"
 
 #include "../../Features/Visuals/Presentation/Formatting.h"
 
@@ -25,6 +26,22 @@ namespace PhysicsValidation {
         const wchar_t* playerName,
         void* localPlayerPtr) {
 
+        // --- TYPE GUARD: Verify this memory actually belongs to a Character ---
+        // Prevents "Ghost ESP" from stale pointers that have been reused for other entity types
+        ReClass::AgChar agent = inCharacter.GetAgent();
+        if (!agent.isValid()) return false;
+        
+        const Game::AgentType agentType = agent.GetType();
+        if (agentType != Game::AgentType::Character) {
+            return false; // This is a stale pointer or reused address (e.g., now a Gadget)
+        }
+
+        // --- Agent ID Sanity Check ---
+        const int32_t agentId = agent.GetId();
+        if (!SafeAccess::IsAgentIdSane(agentId)) {
+            return false; // Garbage memory or corrupted agent ID
+        }
+
         // --- Validation and Position ---
         glm::vec3 gamePos;
         if (!ValidateAndExtractGamePosition(inCharacter, gamePos)) return false;
@@ -41,12 +58,9 @@ namespace PhysicsValidation {
             outPlayer.playerName[0] = '\0';
         }
 
-        // --- Agent Info ---
-        ReClass::AgChar agent = inCharacter.GetAgent();
-        if (agent) {
-            outPlayer.agentType = agent.GetType();
-            outPlayer.agentId = agent.GetId();
-        }
+        // --- Agent Info (using pre-validated agent reference) ---
+        outPlayer.agentType = agentType;
+        outPlayer.agentId = agentId;
 
         // --- Health & Energy ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
@@ -90,6 +104,21 @@ namespace PhysicsValidation {
 
     bool EntityExtractor::ExtractNpc(NpcEntity& outNpc, const ReClass::ChCliCharacter& inCharacter) {
 
+        // --- TYPE GUARD: Verify this memory actually belongs to a Character ---
+        ReClass::AgChar agent = inCharacter.GetAgent();
+        if (!agent.isValid()) return false;
+        
+        const Game::AgentType agentType = agent.GetType();
+        if (agentType != Game::AgentType::Character) {
+            return false; // Stale pointer or type mismatch
+        }
+
+        // --- Agent ID Sanity Check ---
+        const int32_t agentId = agent.GetId();
+        if (!SafeAccess::IsAgentIdSane(agentId)) {
+            return false; // Corrupted or invalid agent ID
+        }
+
         // --- Validation and Position ---
         glm::vec3 gamePos;
         if (!ValidateAndExtractGamePosition(inCharacter, gamePos)) return false;
@@ -100,12 +129,9 @@ namespace PhysicsValidation {
         outNpc.entityType = EntityTypes::NPC;
         outNpc.address = inCharacter.data();
 
-        // --- Agent Info ---
-        ReClass::AgChar agent = inCharacter.GetAgent();
-        if (agent) {
-            outNpc.agentType = agent.GetType();
-            outNpc.agentId = agent.GetId();
-        }
+        // --- Agent Info (using pre-validated agent reference) ---
+        outNpc.agentType = agentType;
+        outNpc.agentId = agentId;
 
         // --- Health ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
@@ -127,6 +153,23 @@ namespace PhysicsValidation {
 
     bool EntityExtractor::ExtractGadget(GadgetEntity& outGadget, const ReClass::GdCliGadget& inGadget) {
 
+        // --- TYPE GUARD: Verify this memory actually belongs to a Gadget ---
+        ReClass::AgKeyFramed agent = inGadget.GetAgKeyFramed();
+        if (!agent.isValid()) return false;
+        
+        const Game::AgentType agentType = agent.GetType();
+        // Gadgets can be type 10 (Gadget) or 11 (GadgetAttackTarget)
+        if (agentType != Game::AgentType::Gadget && 
+            agentType != Game::AgentType::GadgetAttackTarget) {
+            return false; // Type mismatch - not a gadget
+        }
+
+        // --- Agent ID Sanity Check ---
+        const int32_t agentId = agent.GetId();
+        if (!SafeAccess::IsAgentIdSane(agentId)) {
+            return false; // Invalid agent ID
+        }
+
         // --- Validation and Position ---
         glm::vec3 gamePos;
         if (!ValidateAndExtractGamePosition(inGadget, gamePos)) return false;
@@ -139,12 +182,9 @@ namespace PhysicsValidation {
         outGadget.type = inGadget.GetGadgetType();
         outGadget.isGatherable = inGadget.IsGatherable();
 
-        // --- Agent Info ---
-        ReClass::AgKeyFramed agent = inGadget.GetAgKeyFramed();
-        if (agent) {
-            outGadget.agentType = agent.GetType();
-            outGadget.agentId = agent.GetId();
-        }
+        // --- Agent Info (using pre-validated agent reference) ---
+        outGadget.agentType = agentType;
+        outGadget.agentId = agentId;
 
         // --- Health ---
         ReClass::GdCliHealth health = inGadget.GetHealth();

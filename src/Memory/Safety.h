@@ -114,5 +114,20 @@ namespace SafeAccess {
         return (vtablePtr >= moduleBase && vtablePtr < (moduleBase + moduleSize));
     }
 
+    /**
+     * @brief Validates if an Agent ID is within a sane range
+     * Memory addresses are reused, but Agent IDs are unique for the entity's lifetime.
+     * This check helps detect when a pointer is accessing stale or garbage memory.
+     * 
+     * @param id The agent ID to validate
+     * @return true if the ID is within expected bounds, false if it's garbage
+     */
+    inline bool IsAgentIdSane(int32_t id) {
+        // Agent IDs are usually positive and within a reasonable range.
+        // If you see an ID of 0, -1, or extremely large values, the memory is likely corrupted.
+        // Typical range in active sessions: 1 to ~100,000
+        return id > 0 && id < 0x0FFFFFFF;
+    }
+
 } // namespace SafeAccess
 } // namespace kx
