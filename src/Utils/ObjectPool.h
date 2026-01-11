@@ -9,6 +9,13 @@ namespace kx {
  * 
  * Pre-allocates a fixed number of objects and allows checking them out/returning them
  * to avoid repeated new/delete operations that cause heap churn and performance drops.
+ * 
+ * @tparam T Type to pool. MUST have:
+ *   - Default constructor (used for placement-new reconstruction)
+ *   - Trivial or no-op destructor (called during reconstruction)
+ *   
+ * @note Each Get() call performs placement-new reconstruction to guarantee clean state.
+ *       This prevents stale data from previous frames when objects are reused.
  */
 template<typename T>
 class ObjectPool {
@@ -27,7 +34,11 @@ public:
 
     /**
      * @brief Get an object from the pool
-     * @return Pointer to an available object, or nullptr if pool is exhausted
+     * 
+     * Uses placement-new to reconstruct the object, ensuring all fields are reset to
+     * constructor defaults. This prevents stale data from previous frames.
+     * 
+     * @return Pointer to a freshly-constructed object, or nullptr if pool is exhausted
      */
     T* Get() {
         if (m_nextAvailable >= m_pool.size()) {
@@ -36,7 +47,14 @@ public:
                     typeid(T).name(), m_nextAvailable + 1, m_pool.size());
             return nullptr; 
         }
-        return &m_pool[m_nextAvailable++];
+        T* obj = &m_pool[m_nextAvailable++];
+        
+        // Placement-new: reconstruct object to guarantee clean state
+        // Prevents stale data from previous frames (e.g., old health values)
+        obj->~T();        // Call destructor (no-op for trivially destructible types)
+        new (obj) T();    // Reconstruct with default constructor
+        
+        return obj;
     }
 
     /**

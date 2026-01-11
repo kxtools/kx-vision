@@ -283,8 +283,8 @@ namespace PhysicsValidation {
     }
 
     void EntityExtractor::ExtractGear(PlayerEntity& outPlayer, const ReClass::ChCliInventory& inventory) {
-        outPlayer.gearCount = 0;
-
+        // Note: gearCount is already initialized to 0 by PlayerEntity constructor (via ObjectPool placement-new)
+        
         static constexpr Game::EquipmentSlot slotsToCheck[] = {
             Game::EquipmentSlot::Helm, Game::EquipmentSlot::Shoulders, Game::EquipmentSlot::Chest,
             Game::EquipmentSlot::Gloves, Game::EquipmentSlot::Pants, Game::EquipmentSlot::Boots,
