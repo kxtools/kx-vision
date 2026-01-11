@@ -210,39 +210,6 @@ namespace kx {
         }
 
         /**
-         * @brief Safely set a value at base pointer with memory protection handling
-         * @tparam T Type to write
-         * @param value Value to write
-         * @return true if write was successful, false if memory was unsafe
-         */
-        template <typename T>
-        bool setNoOffset(const T& value) {
-            if (!isValidAccess(0, sizeof(T))) {
-                return false; // Cannot set on invalid memory
-            }
-            
-            uintptr_t uintmPtr = (uintptr_t)m_ptr;
-            DWORD oldProtection;
-            
-            if (!VirtualProtect((LPVOID)uintmPtr, sizeof(T), PAGE_READWRITE, &oldProtection)) {
-                return false; // Failed to change protection
-            }
-            
-            bool success = false;
-            try {
-                *(T*)((uintptr_t)m_ptr) = value;
-                success = true;
-            }
-            catch (...) {
-                success = false;
-            }
-            
-            // Always restore the original protection
-            VirtualProtect((LPVOID)uintmPtr, sizeof(T), oldProtection, &oldProtection);
-            return success;
-        }
-
-        /**
          * @brief Safely call a virtual function with memory validation
          * @tparam T Return type
          * @tparam Ts Argument types
