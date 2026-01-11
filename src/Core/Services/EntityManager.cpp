@@ -13,21 +13,32 @@ void EntityManager::Update(uint64_t now) {
     const float updateInterval = 1.0f / (std::max)(1.0f, settings.espUpdateRate);
 
     if (currentTimeSeconds - m_lastGameDataUpdateTime >= updateInterval) {
-        // Reset all object pools and scratch buffers used for extraction
-        m_playerPool.Reset();
-        m_npcPool.Reset();
-        m_gadgetPool.Reset();
-        m_attackTargetPool.Reset();
-        m_itemPool.Reset();
+        // 1. Determine which pools to write to (back buffers)
+        // We compute the next index but don't flip the global index yet
+        const size_t nextIndex = (m_writeIndex + 1) % BUFFER_COUNT;
+
+        // Get references to the back buffer pools
+        auto& nextPlayerPool = m_playerPools[nextIndex];
+        auto& nextNpcPool = m_npcPools[nextIndex];
+        auto& nextGadgetPool = m_gadgetPools[nextIndex];
+        auto& nextAttackTargetPool = m_attackTargetPools[nextIndex];
+        auto& nextItemPool = m_itemPools[nextIndex];
+
+        // 2. Reset ONLY the back buffer pools and scratch buffers
+        nextPlayerPool.Reset();
+        nextNpcPool.Reset();
+        nextGadgetPool.Reset();
+        nextAttackTargetPool.Reset();
+        nextItemPool.Reset();
         m_frameDataWorkBuffer.Reset();
 
         // Clear the persistent character-to-name map (retains capacity for high-water mark strategy)
         m_charToNameMap.clear();
 
-        // Extract entity data from game memory into work buffer; only commit if it succeeds
+        // 3. Extract entity data from game memory into work buffer and back buffer pools
         const bool extracted = DataExtractor::ExtractFrameData(
-            m_playerPool, m_npcPool, m_gadgetPool,
-            m_attackTargetPool, m_itemPool, m_frameDataWorkBuffer,
+            nextPlayerPool, nextNpcPool, nextGadgetPool,
+            nextAttackTargetPool, nextItemPool, m_frameDataWorkBuffer,
             m_charToNameMap
         );
 
@@ -71,10 +82,17 @@ void EntityManager::Update(uint64_t now) {
             // Update adaptive far plane
             AppState::Get().UpdateAdaptiveFarPlane(m_frameDataWorkBuffer);
 
-            // Atomically swap work buffer to snapshot for thread-safe Render Thread access
+            // 4. Atomically publish: Swap work buffer to snapshot AND flip the write index
+            // Both operations happen inside the lock to ensure render thread sees consistent state
             {
                 std::lock_guard<std::mutex> lock(m_snapshotMutex);
                 m_frameDataSnapshot = m_frameDataWorkBuffer;
+                
+                // CRITICAL: Flip the write index inside the lock.
+                // This ensures the render thread (which grabbed the snapshot) is now 
+                // officially "using" the data from the new pool index.
+                // The NEXT update will target the old index (which is now safe to overwrite).
+                m_writeIndex = nextIndex;
             }
         }
 
@@ -83,11 +101,13 @@ void EntityManager::Update(uint64_t now) {
 }
 
 void EntityManager::Reset() {
-    m_playerPool.Reset();
-    m_npcPool.Reset();
-    m_gadgetPool.Reset();
-    m_attackTargetPool.Reset();
-    m_itemPool.Reset();
+    for (size_t i = 0; i < BUFFER_COUNT; ++i) {
+        m_playerPools[i].Reset();
+        m_npcPools[i].Reset();
+        m_gadgetPools[i].Reset();
+        m_attackTargetPools[i].Reset();
+        m_itemPools[i].Reset();
+    }
     m_frameDataWorkBuffer.Reset();
     {
         std::lock_guard<std::mutex> lock(m_snapshotMutex);
@@ -95,6 +115,7 @@ void EntityManager::Reset() {
     }
     m_activeCombatKeys.clear();
     m_allEntitiesBuffer.clear();
+    m_writeIndex = 0;
 }
 
 } // namespace kx

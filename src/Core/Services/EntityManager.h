@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <mutex>
+#include <array>
 #include <ankerl/unordered_dense.h>
 #include "../../Game/Data/FrameData.h"
 #include "../../Game/Data/EntityData.h"
@@ -63,12 +64,31 @@ public:
     void Reset();
 
 private:
-    // Object pools for entity management
-    ObjectPool<PlayerEntity> m_playerPool{EntityLimits::MAX_PLAYERS};
-    ObjectPool<NpcEntity> m_npcPool{EntityLimits::MAX_NPCS};
-    ObjectPool<GadgetEntity> m_gadgetPool{EntityLimits::MAX_GADGETS};
-    ObjectPool<AttackTargetEntity> m_attackTargetPool{EntityLimits::MAX_ATTACK_TARGETS};
-    ObjectPool<ItemEntity> m_itemPool{EntityLimits::MAX_ITEMS};
+    // Double-buffered object pools for thread-safe access
+    // Two pools allow game thread to write to one while render thread reads from the other
+    static constexpr size_t BUFFER_COUNT = 2;
+    size_t m_writeIndex = 0;
+
+    std::array<ObjectPool<PlayerEntity>, BUFFER_COUNT> m_playerPools{
+        ObjectPool<PlayerEntity>(EntityLimits::MAX_PLAYERS),
+        ObjectPool<PlayerEntity>(EntityLimits::MAX_PLAYERS)
+    };
+    std::array<ObjectPool<NpcEntity>, BUFFER_COUNT> m_npcPools{
+        ObjectPool<NpcEntity>(EntityLimits::MAX_NPCS),
+        ObjectPool<NpcEntity>(EntityLimits::MAX_NPCS)
+    };
+    std::array<ObjectPool<GadgetEntity>, BUFFER_COUNT> m_gadgetPools{
+        ObjectPool<GadgetEntity>(EntityLimits::MAX_GADGETS),
+        ObjectPool<GadgetEntity>(EntityLimits::MAX_GADGETS)
+    };
+    std::array<ObjectPool<AttackTargetEntity>, BUFFER_COUNT> m_attackTargetPools{
+        ObjectPool<AttackTargetEntity>(EntityLimits::MAX_ATTACK_TARGETS),
+        ObjectPool<AttackTargetEntity>(EntityLimits::MAX_ATTACK_TARGETS)
+    };
+    std::array<ObjectPool<ItemEntity>, BUFFER_COUNT> m_itemPools{
+        ObjectPool<ItemEntity>(EntityLimits::MAX_ITEMS),
+        ObjectPool<ItemEntity>(EntityLimits::MAX_ITEMS)
+    };
 
     // Double-buffering for thread-safe access
     // Work buffer: Populated by Game Thread during Update()
