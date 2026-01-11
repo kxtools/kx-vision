@@ -9,7 +9,7 @@
 
 namespace kx {
 
-    void DataExtractor::ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
+    bool DataExtractor::ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
         ObjectPool<NpcEntity>& npcPool,
         ObjectPool<GadgetEntity>& gadgetPool,
         ObjectPool<AttackTargetEntity>& attackTargetPool,
@@ -20,7 +20,7 @@ namespace kx {
 
         void* pContextCollection = AddressManager::GetContextCollectionPtr();
         if (!pContextCollection || !SafeAccess::IsMemorySafe(pContextCollection)) {
-            return;
+            return false;
         }
 
         // Build the map of character pointers to player names (using persistent map passed by reference)
@@ -43,6 +43,8 @@ namespace kx {
         ExtractGadgetData(gadgetPool, pooledData.gadgets);
         ExtractAttackTargetData(attackTargetPool, pooledData.attackTargets);
         ExtractItemData(itemPool, pooledData.items);
+
+        return true;
     }
 
     void DataExtractor::ExtractCharacterData(ObjectPool<PlayerEntity>& playerPool,

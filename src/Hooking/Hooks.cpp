@@ -25,11 +25,19 @@ namespace kx {
             if (funcAddr) {
                 auto getContextCollection = reinterpret_cast<GetContextCollectionFn>(funcAddr);
 
+                void* contextCollection = AddressManager::GetContextCollectionPtr();
+                bool fetched = false;
+
                 __try {
-                    AddressManager::SetContextCollectionPtr(getContextCollection());
+                    contextCollection = getContextCollection();
+                    fetched = true;
                 }
                 __except (EXCEPTION_EXECUTE_HANDLER) {
-                    AddressManager::SetContextCollectionPtr(nullptr);
+                    // Keep the last known pointer if retrieval faults
+                }
+
+                if (fetched) {
+                    AddressManager::SetContextCollectionPtr(contextCollection);
                 }
             }
 

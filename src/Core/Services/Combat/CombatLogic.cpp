@@ -78,6 +78,13 @@ namespace kx {
             // Update barrier baseline too, as mounting often resets barrier
             state.lastKnownBarrier = entity->currentBarrier;
 
+            // Clear death-related flags when an entity returns to a living state to prevent stale fade-outs
+            if (currentHealth > 0.0f) {
+                state.deathTimestamp = 0;
+                state.flushAnimationStartTime = 0;
+                state.accumulatedDamage = 0.0f;
+            }
+
             return true; // Signal that we handled a state change, so skip standard damage logic this frame
         }
 

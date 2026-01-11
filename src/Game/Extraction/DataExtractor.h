@@ -31,7 +31,7 @@ namespace kx {
          * @param pooledData Output container for pooled data pointers
          * @param charToNameMap Persistent map for character-to-player-name lookup (cleared each frame, retains capacity)
          */
-        static void ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
+        static bool ExtractFrameData(ObjectPool<PlayerEntity>& playerPool,
             ObjectPool<NpcEntity>& npcPool,
             ObjectPool<GadgetEntity>& gadgetPool,
             ObjectPool<AttackTargetEntity>& attackTargetPool,
