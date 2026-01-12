@@ -67,6 +67,7 @@
       <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
+      <StringPooling>true</StringPooling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -92,6 +93,7 @@
       <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
+      <StringPooling>true</StringPooling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
