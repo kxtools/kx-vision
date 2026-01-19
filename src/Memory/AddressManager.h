@@ -12,27 +12,27 @@ namespace kx {
  */
 namespace AddressingConstants {
     // Instruction sizes for x64 architecture
-    constexpr size_t RELATIVE_OFFSET_SIZE = 4;        // Size of relative offset in instructions
-    constexpr size_t LEA_INSTRUCTION_SIZE = 7;        // Size of LEA instruction
-    constexpr size_t CALL_INSTRUCTION_SIZE = 5;       // Size of CALL instruction
-    constexpr size_t MOV_INSTRUCTION_SIZE = 7;        // Size of MOV instruction for RIP-relative addressing
-    
+    constexpr size_t RELATIVE_OFFSET_SIZE = 0x4;      // Size of relative offset in instructions
+    constexpr size_t LEA_INSTRUCTION_SIZE = 0x7;      // Size of LEA instruction
+    constexpr size_t CALL_INSTRUCTION_SIZE = 0x5;     // Size of CALL instruction
+    constexpr size_t MOV_INSTRUCTION_SIZE = 0x7;      // Size of MOV instruction for RIP-relative addressing
+
     // Pattern search ranges
     constexpr size_t AGENT_ARRAY_SEARCH_RANGE = 0x300;  // Search range for LEA instruction in AvContext
-    
+
     // Instruction offsets for parsing
-    constexpr size_t LEA_OFFSET_POSITION = 3;         // Position of offset in LEA instruction
-    constexpr size_t MOV_OFFSET_POSITION = 3;         // Position of offset in MOV instruction
-    
+    constexpr size_t LEA_OFFSET_POSITION = 0x3;       // Position of offset in LEA instruction
+    constexpr size_t MOV_OFFSET_POSITION = 0x3;       // Position of offset in MOV instruction
+
     // Memory structure offsets
     constexpr size_t AGENT_ARRAY_OFFSET = 0x8;        // Offset from agent struct base to actual array
-    
+
     // Pattern-specific offsets
     constexpr size_t BGFX_PATTERN_OFFSET = 0x35;      // Offset from pattern to function start
-    constexpr size_t ALERT_CONTEXT_CALL_OFFSET = 0x19; // Offset from locator to call instruction
-    
-    // VTable indices
-    constexpr size_t GAME_THREAD_UPDATE_VTABLE_INDEX = 0; // Index in VTable for GameThreadUpdate function
+
+    // sub_93B990 (GameThread tick): a2 points to a time struct; frame delta in ms is at +0xC.
+    // Value from reversing the tick handler. Re-check this offset if the game is patched.
+    constexpr size_t GAME_THREAD_TICK_FRAME_MS_OFFSET = 0xC;
 }
 
 // A struct to hold all game-related pointers and addresses.
