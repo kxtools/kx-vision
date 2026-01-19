@@ -81,21 +81,14 @@ namespace CoordinateTransform {
  * @brief Entity Capacity Limits (Memory & Vectors)
  * 
  * Defines the HARD limits for Object Pools and the reservation sizes for vectors.
- * These values are tuned based on observed peaks in crowded areas + 50-100% safety margin.
- * 
- * Tuning History:
- * - Players: Peak 100 -> Limit 250 (Map cap ~150)
- * - NPCs: Peak ~413 -> Limit 750 (Meta event buffer)
- * - Gadgets: Peak 311 -> Limit 750 (Resource heavy maps)
- * - AttackTargets: Peak 106 -> Limit 250
- * - Items: Peak 2231 (Total) -> Limit 500 (Filtered Ground Loot Only)
+ * These values are tuned based on observed peaks in crowded areas + safety margin.
  */
 namespace EntityLimits {
-    constexpr size_t MAX_PLAYERS        = 250; 
-    constexpr size_t MAX_NPCS           = 750; 
-    constexpr size_t MAX_GADGETS        = 750; 
-    constexpr size_t MAX_ATTACK_TARGETS = 250; 
-    constexpr size_t MAX_ITEMS          = 200;
+    constexpr size_t MAX_PLAYERS = 500;
+    constexpr size_t MAX_NPCS = 1000;
+    constexpr size_t MAX_GADGETS = 1000;
+    constexpr size_t MAX_ATTACK_TARGETS = 500;
+    constexpr size_t MAX_ITEMS = 1000;
 }
 
 /**
