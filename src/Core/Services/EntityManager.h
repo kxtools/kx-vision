@@ -43,11 +43,11 @@ public:
     void Update(uint64_t now);
 
     /**
-     * @brief Get const reference to current frame's extracted game data
-     * Thread-safe: Returns a stable snapshot that won't be modified during rendering
-     * @return Const reference to FrameGameData snapshot
+     * @brief Get a copy of the current frame's game data.
+     * Thread-safe: Returns by value so the Render Thread owns its own pointer lists;
+     * the Game Thread can swap/reset without invalidating iterators.
      */
-    const FrameGameData& GetFrameData() const {
+    FrameGameData GetFrameData() const {
         std::lock_guard<std::mutex> lock(m_snapshotMutex);
         return m_frameDataSnapshot;
     }
@@ -64,28 +64,33 @@ public:
     void Reset();
 
 private:
-    // Double-buffered object pools for thread-safe access
-    // Two pools allow game thread to write to one while render thread reads from the other
-    static constexpr size_t BUFFER_COUNT = 2;
+    // Triple-buffered object pools: avoids Game Thread overwriting the pool
+    // the Render Thread is reading when game FPS exceeds render FPS
+    static constexpr size_t BUFFER_COUNT = 3;
     size_t m_writeIndex = 0;
 
     std::array<ObjectPool<PlayerEntity>, BUFFER_COUNT> m_playerPools{
+        ObjectPool<PlayerEntity>(EntityLimits::MAX_PLAYERS),
         ObjectPool<PlayerEntity>(EntityLimits::MAX_PLAYERS),
         ObjectPool<PlayerEntity>(EntityLimits::MAX_PLAYERS)
     };
     std::array<ObjectPool<NpcEntity>, BUFFER_COUNT> m_npcPools{
         ObjectPool<NpcEntity>(EntityLimits::MAX_NPCS),
+        ObjectPool<NpcEntity>(EntityLimits::MAX_NPCS),
         ObjectPool<NpcEntity>(EntityLimits::MAX_NPCS)
     };
     std::array<ObjectPool<GadgetEntity>, BUFFER_COUNT> m_gadgetPools{
+        ObjectPool<GadgetEntity>(EntityLimits::MAX_GADGETS),
         ObjectPool<GadgetEntity>(EntityLimits::MAX_GADGETS),
         ObjectPool<GadgetEntity>(EntityLimits::MAX_GADGETS)
     };
     std::array<ObjectPool<AttackTargetEntity>, BUFFER_COUNT> m_attackTargetPools{
         ObjectPool<AttackTargetEntity>(EntityLimits::MAX_ATTACK_TARGETS),
+        ObjectPool<AttackTargetEntity>(EntityLimits::MAX_ATTACK_TARGETS),
         ObjectPool<AttackTargetEntity>(EntityLimits::MAX_ATTACK_TARGETS)
     };
     std::array<ObjectPool<ItemEntity>, BUFFER_COUNT> m_itemPools{
+        ObjectPool<ItemEntity>(EntityLimits::MAX_ITEMS),
         ObjectPool<ItemEntity>(EntityLimits::MAX_ITEMS),
         ObjectPool<ItemEntity>(EntityLimits::MAX_ITEMS)
     };

@@ -86,8 +86,8 @@ void EntityManager::Update(uint64_t now) {
             // Both operations happen inside the lock to ensure render thread sees consistent state
             {
                 std::lock_guard<std::mutex> lock(m_snapshotMutex);
-                m_frameDataSnapshot = m_frameDataWorkBuffer;
-                
+                std::swap(m_frameDataSnapshot, m_frameDataWorkBuffer);
+
                 // CRITICAL: Flip the write index inside the lock.
                 // This ensures the render thread (which grabbed the snapshot) is now 
                 // officially "using" the data from the new pool index.
