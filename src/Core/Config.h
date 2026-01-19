@@ -21,7 +21,7 @@ namespace kx {
     constexpr std::string_view WORLD_VIEW_CONTEXT_PATTERN = "48 85 C0 75 20 41 B8 2E 04 00 00";
     constexpr std::string_view BGFX_CONTEXT_FUNC_PATTERN = "BA 10 00 00 00 48 8B 04 C8 81 3C 02 62 67 66 78"; // backup: "57 ? ? ? ? 48 8B 35 2D CD" (Offset: 9)
     constexpr std::string_view CONTEXT_COLLECTION_FUNC_PATTERN = "8B ? ? ? ? ? 65 ? ? ? ? ? ? ? ? BA ? ? ? ? 48 ? ? ? 48 ? ? ? C3";
-    constexpr std::string_view ALERT_CONTEXT_LOCATOR_PATTERN = "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 41 0F 28 CA 48 8B 08 48 8B 51 58"; // "ViewAdvanceAlert"
+    constexpr std::string_view GAME_THREAD_TICK_PATTERN = "40 53 48 83 EC ? 48 8B DA E8 ? ? ? ? 8B 53 ? 48 8B C8 48 83 C4";
 
     namespace AppConfig {
         constexpr int DEFAULT_LOG_LEVEL = 1; // INFO (good balance for both Debug and Release)

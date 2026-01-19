@@ -130,71 +130,18 @@ void AddressManager::ScanContextCollectionFunc()
 }
 
 void AddressManager::ScanGameThreadUpdateFunc() {
-    std::optional<uintptr_t> locatorOpt = Scanner::FindPattern(
-        std::string(ALERT_CONTEXT_LOCATOR_PATTERN),
+    std::optional<uintptr_t> result = Scanner::FindPattern(
+        std::string(GAME_THREAD_TICK_PATTERN),
         std::string(TARGET_PROCESS_NAME)
     );
 
-    if (!locatorOpt) {
-        LOG_ERROR("[AddressManager] AlertContext locator pattern not found.");
+    if (!result) {
+        LOG_ERROR("[AddressManager] GameThread tick pattern not found.");
         s_pointers.gameThreadUpdateFunc = 0;
         return;
     }
 
-    uintptr_t callToGetterAddr = *locatorOpt - AddressingConstants::ALERT_CONTEXT_CALL_OFFSET;
-
-    uintptr_t getterFuncAddr = ResolveRelativeAddress(callToGetterAddr, AddressingConstants::CALL_INSTRUCTION_SIZE);
-    if (!getterFuncAddr) {
-        s_pointers.gameThreadUpdateFunc = 0;
-        return;
-    }
-
-    uintptr_t staticPtrAddr = ResolveRelativeAddress(getterFuncAddr, AddressingConstants::MOV_INSTRUCTION_SIZE);
-    if (!staticPtrAddr) {
-        s_pointers.gameThreadUpdateFunc = 0;
-        return;
-    }
-
-    uintptr_t instancePtr = *reinterpret_cast<uintptr_t*>(staticPtrAddr);
-    if (!instancePtr) {
-        s_pointers.gameThreadUpdateFunc = 0;
-        return;
-    }
-
-    uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(instancePtr);
-    if (!vtable) {
-        s_pointers.gameThreadUpdateFunc = 0;
-        return;
-    }
-
-    // Validate VTable pointer is within module bounds
-    uintptr_t moduleBase = GetModuleBase();
-    size_t moduleSize = GetModuleSize();
-    uintptr_t vtableAddr = reinterpret_cast<uintptr_t>(vtable);
-
-    if (moduleBase == 0 || moduleSize == 0) {
-        LOG_ERROR("[AddressManager] Module information not available for VTable validation");
-        s_pointers.gameThreadUpdateFunc = 0;
-        return;
-    }
-
-    if (vtableAddr < moduleBase || vtableAddr >= (moduleBase + moduleSize)) {
-        LOG_ERROR("[AddressManager] VTable pointer 0x%p outside module bounds [0x%p - 0x%p]",
-                  (void*)vtableAddr, (void*)moduleBase, (void*)(moduleBase + moduleSize));
-        s_pointers.gameThreadUpdateFunc = 0;
-        return;
-    }
-
-    s_pointers.gameThreadUpdateFunc = vtable[AddressingConstants::GAME_THREAD_UPDATE_VTABLE_INDEX];
-
-    // Also validate the final function pointer
-    uintptr_t funcAddr = s_pointers.gameThreadUpdateFunc;
-    if (funcAddr < moduleBase || funcAddr >= (moduleBase + moduleSize)) {
-        LOG_ERROR("[AddressManager] GameThreadUpdate function 0x%p outside module bounds", (void*)funcAddr);
-        s_pointers.gameThreadUpdateFunc = 0;
-        return;
-    }
-
+    s_pointers.gameThreadUpdateFunc = *result;
     LOG_INFO("[AddressManager] -> SUCCESS: GameThreadUpdate function resolved to: 0x%p", (void*)s_pointers.gameThreadUpdateFunc);
 }
 

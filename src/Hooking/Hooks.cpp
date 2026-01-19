@@ -11,47 +11,56 @@
 #include "D3DRenderHook.h"
 #include "HookManager.h"
 
+namespace {
+
+void* TryGetContextCollection(void* (*fn)()) {
+    void* p = nullptr;
+    __try {
+        p = fn();
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        p = nullptr;
+    }
+    return p;
+}
+
+} // namespace
+
 namespace kx {
 
     namespace Hooking {
 
-        typedef void(__fastcall* GameThreadUpdateFunc)(void*, int);
+        typedef uintptr_t(__fastcall* GameThreadUpdateFunc)(uintptr_t, uintptr_t);
         GameThreadUpdateFunc pOriginalGameThreadUpdate = nullptr;
 
-        void __fastcall DetourGameThread(void* pInst, int frame_time) {
-            using GetContextCollectionFn = void* (*)();
+        uintptr_t __fastcall DetourGameThread(uintptr_t a1, uintptr_t a2) {
+            int frame_time = a2 ? *reinterpret_cast<int*>(a2 + AddressingConstants::GAME_THREAD_TICK_FRAME_MS_OFFSET) : 0;
+            static uint64_t s_gameTimeMs = 0;
+            s_gameTimeMs += static_cast<uint64_t>(frame_time > 0 ? frame_time : 0);
 
-            uintptr_t funcAddr = AddressManager::GetContextCollectionFunc();
-            if (funcAddr) {
-                auto getContextCollection = reinterpret_cast<GetContextCollectionFn>(funcAddr);
+            if (AddressManager::GetContextCollectionPtr() == nullptr) {
+                using GetContextCollectionFn = void* (*)();
+                uintptr_t funcAddr = AddressManager::GetContextCollectionFunc();
 
-                void* contextCollection = AddressManager::GetContextCollectionPtr();
-                bool fetched = false;
+                if (funcAddr) {
+                    auto getContextCollection = reinterpret_cast<GetContextCollectionFn>(funcAddr);
+                    void* pContext = TryGetContextCollection(getContextCollection);
 
-                __try {
-                    contextCollection = getContextCollection();
-                    fetched = true;
-                }
-                __except (EXCEPTION_EXECUTE_HANDLER) {
-                    // Keep the last known pointer if retrieval faults
-                }
-
-                if (fetched) {
-                    AddressManager::SetContextCollectionPtr(contextCollection);
+                    if (pContext) {
+                        AddressManager::SetContextCollectionPtr(pContext);
+                        LOG_INFO("[Hooks] Captured ContextCollection: 0x%p", pContext);
+                    }
                 }
             }
 
-            // Update EntityManager on Game Thread for safe TLS access
-            // Note: Memory safety is handled at the ForeignClass level during extraction
-            const uint64_t now = GetTickCount64();
-            kx::g_App.GetEntityManager().Update(now);
+            kx::g_App.GetEntityManager().Update(s_gameTimeMs);
 
-            // Run game thread updates for all features
             kx::g_App.GetFeatureManager().RunGameThreadUpdates();
 
             if (pOriginalGameThreadUpdate) {
-                pOriginalGameThreadUpdate(pInst, frame_time);
+                return pOriginalGameThreadUpdate(a1, a2);
             }
+            return 0;
         }
 
     } // namespace Hooking

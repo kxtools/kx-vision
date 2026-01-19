@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace kx {
 
     bool InitializeHooks();
@@ -7,7 +9,7 @@ namespace kx {
     void CleanupHooks();
 
     namespace Hooking {
-        void __fastcall DetourGameThread(void* pInst, int frame_time);
+        uintptr_t __fastcall DetourGameThread(uintptr_t a1, uintptr_t a2);
     }
 
 } // namespace kx
