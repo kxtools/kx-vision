@@ -30,7 +30,8 @@ namespace AddressingConstants {
     // Pattern-specific offsets
     constexpr size_t BGFX_PATTERN_OFFSET = 0x35;      // Offset from pattern to function start
 
-    // GameThread tick (sub_93B990) time-struct: frame time in ms at a2 + 0xC
+    // sub_93B990 (GameThread tick): a2 points to a time struct; frame delta in ms is at +0xC.
+    // Value from reversing the tick handler. Re-check this offset if the game is patched.
     constexpr size_t GAME_THREAD_TICK_FRAME_MS_OFFSET = 0xC;
 }
 

@@ -34,16 +34,30 @@ namespace kx {
         GameThreadUpdateFunc pOriginalGameThreadUpdate = nullptr;
 
         uintptr_t __fastcall DetourGameThread(uintptr_t a1, uintptr_t a2) {
-            int frame_time = a2 ? *reinterpret_cast<int*>(a2 + AddressingConstants::GAME_THREAD_TICK_FRAME_MS_OFFSET) : 0;
-            static uint64_t s_gameTimeMs = 0;
-            s_gameTimeMs += static_cast<uint64_t>(frame_time > 0 ? frame_time : 0);
+            // 1. Extract Native Frame Time
+            // We read the game's internal delta time (confirmed at offset 0xC).
+            // Sanity check: Ensure time is between 0ms and 1000ms (1 second) to prevent math errors during lag spikes.
+            int raw_time = a2 ? *reinterpret_cast<int*>(a2 + AddressingConstants::GAME_THREAD_TICK_FRAME_MS_OFFSET) : 0;
+            int frame_time = (raw_time > 0 && raw_time < 1000) ? raw_time : 0;
 
+            // 2. Accumulate Game Simulation Time
+            // We maintain our own TickCount that advances based on Game Physics, not Wall Clock time.
+            // This ensures Entity Interpolation is perfectly synced with the engine.
+            static uint64_t s_gameTimeMs = 0;
+            if (s_gameTimeMs == 0) {
+                s_gameTimeMs = GetTickCount64(); // Sync with OS time on first run
+            }
+            s_gameTimeMs += static_cast<uint64_t>(frame_time);
+
+            // 3. Lazy Initialization of ContextCollection
+            // This runs only once. After that, it's just a null check (near-zero overhead).
             if (AddressManager::GetContextCollectionPtr() == nullptr) {
                 using GetContextCollectionFn = void* (*)();
                 uintptr_t funcAddr = AddressManager::GetContextCollectionFunc();
 
                 if (funcAddr) {
                     auto getContextCollection = reinterpret_cast<GetContextCollectionFn>(funcAddr);
+                    // Protected call in case engine returns garbage during early init
                     void* pContext = TryGetContextCollection(getContextCollection);
 
                     if (pContext) {
@@ -53,10 +67,11 @@ namespace kx {
                 }
             }
 
+            // 4. Update Features using Synced Game Time
             kx::g_App.GetEntityManager().Update(s_gameTimeMs);
-
             kx::g_App.GetFeatureManager().RunGameThreadUpdates();
 
+            // 5. Pass execution back to the engine
             if (pOriginalGameThreadUpdate) {
                 return pOriginalGameThreadUpdate(a1, a2);
             }
