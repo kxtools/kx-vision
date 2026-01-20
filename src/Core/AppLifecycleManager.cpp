@@ -400,10 +400,11 @@ namespace kx {
         if (m_servicesInitialized) {
             LOG_INFO("AppLifecycleManager: Cleaning up services");
 
-            // Clear lifecycle manager pointer in D3DRenderHook
-            Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
+            if (m_featureManager) {
+                m_featureManager->ShutdownAll();
+            }
 
-            // Cleanup hooks and ImGui
+            Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
             CleanupHooks();
 
             m_servicesInitialized = false;

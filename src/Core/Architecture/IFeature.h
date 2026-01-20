@@ -27,6 +27,12 @@ public:
     virtual bool Initialize() = 0;
 
     /**
+     * @brief Explicitly shut down the feature.
+     * Disable hooks, stop worker threads, and release resources before destruction.
+     */
+    virtual void Shutdown() = 0;
+
+    /**
      * @brief Update feature logic. Called every frame.
      * @param deltaTime Time since last frame in seconds.
      * @param frameData Const reference to current frame's extracted game data.

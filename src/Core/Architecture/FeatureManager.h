@@ -40,6 +40,11 @@ public:
     bool InitializeAll();
 
     /**
+     * @brief Shut down all features in reverse order of registration, then clear the list.
+     */
+    void ShutdownAll();
+
+    /**
      * @brief Update all features.
      * @param deltaTime Time since last frame in seconds.
      * @param frameData Const reference to current frame's extracted game data.

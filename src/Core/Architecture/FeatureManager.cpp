@@ -30,6 +30,19 @@ bool FeatureManager::InitializeAll() {
     return true;
 }
 
+void FeatureManager::ShutdownAll() {
+    LOG_INFO("Shutting down %zu feature(s)...", m_features.size());
+
+    for (auto it = m_features.rbegin(); it != m_features.rend(); ++it) {
+        if (*it) {
+            LOG_INFO("Shutting down feature: %s", (*it)->GetName());
+            (*it)->Shutdown();
+        }
+    }
+
+    m_features.clear();
+}
+
 void FeatureManager::UpdateAll(float deltaTime, const FrameGameData& frameData) {
     for (auto& feature : m_features) {
         feature->Update(deltaTime, frameData);
