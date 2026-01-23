@@ -8,9 +8,9 @@
 #include "../Presentation/Styling.h"
 #include "../Logic/StyleCalculator.h"
 #include "../Logic/Animations/HealthBarAnimations.h"
-#include "../../../Core/Services/Combat/CombatStateManager.h"
-#include "../../../Core/Services/Combat/CombatState.h"
-#include "../../../Core/Services/Combat/CombatConstants.h"
+#include "../../../Game/Services/Combat/CombatStateManager.h"
+#include "../../../Game/Services/Combat/CombatState.h"
+#include "../../../Game/Services/Combat/CombatConstants.h"
 #include "../Settings/VisualsSettings.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include <string_view>

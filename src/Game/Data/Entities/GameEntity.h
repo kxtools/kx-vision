@@ -6,7 +6,7 @@
 #include "../../GameEnums.h"
 #include "../../Havok/HavokEnums.h"
 #include "../EntityTypes.h"
-#include "../../../Core/Services/Combat/CombatStateKey.h"
+#include "../../../Game/Services/Combat/CombatStateKey.h"
 
 namespace kx {
 

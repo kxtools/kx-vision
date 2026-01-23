@@ -113,8 +113,8 @@
     <ClCompile Include="src\Core\Bootstrap.cpp" />
     <ClCompile Include="src\Core\FrameCoordinator.cpp" />
     <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
-    <ClCompile Include="src\Core\Services\Combat\CombatLogic.cpp" />
-    <ClCompile Include="src\Core\Services\Combat\CombatStateManager.cpp" />
+    <ClCompile Include="src\Game\Services\Combat\CombatLogic.cpp" />
+    <ClCompile Include="src\Game\Services\Combat\CombatStateManager.cpp" />
     <ClCompile Include="src\Core\Services\EntityManager.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
     <ClCompile Include="src\Features\Visuals\VisualsFeature.cpp" />
@@ -180,11 +180,11 @@
     <ClInclude Include="src\Core\Architecture\IFeature.h" />
     <ClInclude Include="src\Core\Bootstrap.h" />
     <ClInclude Include="src\Core\FrameCoordinator.h" />
-    <ClInclude Include="src\Core\Services\Combat\CombatConstants.h" />
-    <ClInclude Include="src\Core\Services\Combat\CombatLogic.h" />
-    <ClInclude Include="src\Core\Services\Combat\CombatState.h" />
-    <ClInclude Include="src\Core\Services\Combat\CombatStateKey.h" />
-    <ClInclude Include="src\Core\Services\Combat\CombatStateManager.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatConstants.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatLogic.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatState.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatStateKey.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatStateManager.h" />
     <ClInclude Include="src\Core\Services\EntityManager.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Core\SettingsManager.h" />

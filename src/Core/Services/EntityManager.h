@@ -10,8 +10,8 @@
 #include "../../Game/Data/EntityData.h"
 #include "../../Utils/ObjectPool.h"
 #include "../../Rendering/Shared/LayoutConstants.h"
-#include "Combat/CombatStateManager.h"
-#include "Combat/CombatStateKey.h"
+#include "../../Game/Services/Combat/CombatStateManager.h"
+#include "../../Game/Services/Combat/CombatStateKey.h"
 
 namespace kx {
 

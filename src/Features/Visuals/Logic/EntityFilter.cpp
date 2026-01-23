@@ -3,9 +3,9 @@
 #include "FilterSettings.h"
 #include "../Settings/VisualsSettings.h"
 #include "../../../Game/Data/EntityData.h"
-#include "../../../Core/Services/Combat/CombatStateManager.h"
+#include "Services/Combat/CombatStateManager.h"
 #include "../../../Game/Services/Camera/Camera.h"
-#include "../../../Core/Services/Combat/CombatConstants.h"
+#include "Services/Combat/CombatConstants.h"
 #include "../../../Core/Settings.h"
 
 namespace kx {
