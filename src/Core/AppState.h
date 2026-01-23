@@ -4,7 +4,7 @@
 #include <mutex>
 #include <memory>
 #include "Settings.h"
-#include "AdaptiveFarPlaneCalculator.h"
+#include "../Features/Visuals/Logic/AdaptiveFarPlaneCalculator.h"
 
 namespace kx {
 
