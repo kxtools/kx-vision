@@ -182,7 +182,8 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
                             HWND windowHandle,
                             float displayWidth,
                             float displayHeight,
-                            kx::FeatureManager& featureManager) {
+                            kx::FeatureManager& featureManager,
+                            const kx::ServiceContext& ctx) {
     // Critical: Check if ImGui context is still valid and manager is initialized
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
@@ -190,7 +191,7 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
 
     // Render features to the background draw list
     ImDrawList* backgroundDrawList = ImGui::GetBackgroundDrawList();
-    featureManager.RenderAllDrawLists(backgroundDrawList);
+    featureManager.RenderAllDrawLists(backgroundDrawList, ctx);
     
     // Render the UI window if it's shown (check AppState's unified visibility flag)
     if (kx::AppState::Get().IsVisionWindowOpen()) {

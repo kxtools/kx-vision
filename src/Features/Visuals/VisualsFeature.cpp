@@ -2,7 +2,10 @@
 #include "UI/PlayersTab.h"
 #include "UI/NpcsTab.h"
 #include "UI/ObjectsTab.h"
-#include "../../Core/AppLifecycleManager.h"
+#include "../../Core/Architecture/ServiceContext.h"
+#include "../../Core/Services/EntityManager.h"
+#include "../../Game/Services/Camera/Camera.h"
+#include "../../Game/Services/Mumble/MumbleLinkManager.h"
 #include "../../Utils/DebugLogger.h"
 #include "../../../libs/ImGui/imgui.h"
 
@@ -12,8 +15,13 @@ VisualsFeature::VisualsFeature()
     : m_masterRenderer(std::make_unique<MasterRenderer>()) {
 }
 
-bool VisualsFeature::Initialize() {
+bool VisualsFeature::Initialize(const ServiceContext& ctx) {
     LOG_INFO("VisualsFeature: Initializing...");
+    
+    // Store pointers to services
+    m_entityManager = ctx.entities;
+    m_camera = ctx.camera;
+    
     // MasterRenderer initializes in its constructor, no additional setup needed
     return true;
 }
@@ -21,19 +29,20 @@ bool VisualsFeature::Initialize() {
 void VisualsFeature::Shutdown() {
 }
 
-void VisualsFeature::Update(float deltaTime, const FrameGameData& frameData) {
+void VisualsFeature::Update(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx) {
     // Push configuration to Core service (Feature depends on Core - Allowed)
-    g_App.GetEntityManager().GetCombatStateManager().SetMaxTrailPoints(m_settings.playerESP.trails.maxPoints);
+    if (m_entityManager) {
+        m_entityManager->GetCombatStateManager().SetMaxTrailPoints(m_settings.playerESP.trails.maxPoints);
+    }
 }
 
-void VisualsFeature::RenderDrawList(ImDrawList* drawList) {
-    if (!m_masterRenderer) {
+void VisualsFeature::RenderDrawList(ImDrawList* drawList, const ServiceContext& ctx) {
+    if (!m_masterRenderer || !m_camera || !m_entityManager) {
         return;
     }
 
-    // Access frame context from AppLifecycleManager
-    Camera& camera = g_App.GetCamera();
-    const MumbleLinkData* mumbleData = g_App.GetMumbleLinkData();
+    // Access MumbleLink data from context
+    const MumbleLinkData* mumbleData = ctx.mumble ? ctx.mumble->GetData() : nullptr;
     
     if (!mumbleData) {
         return;
@@ -45,7 +54,7 @@ void VisualsFeature::RenderDrawList(ImDrawList* drawList) {
     float screenHeight = io.DisplaySize.y;
 
     // Render ESP to the background draw list, passing our local settings
-    m_masterRenderer->Render(screenWidth, screenHeight, mumbleData, camera, m_settings);
+    m_masterRenderer->Render(screenWidth, screenHeight, mumbleData, *m_camera, *m_entityManager, m_settings);
 }
 
 void VisualsFeature::OnMenuRender() {

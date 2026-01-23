@@ -65,13 +65,14 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         // Get feature manager and update all features with extracted data
         kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
         const kx::FrameGameData& frameData = lifecycleManager.GetEntityManager().GetFrameData();
-        featureManager.UpdateAll(0.016f, frameData); // Approximate 60 FPS deltaTime
+        const kx::ServiceContext& ctx = lifecycleManager.GetServiceContext();
+        featureManager.UpdateAll(0.016f, frameData, ctx); // Approximate 60 FPS deltaTime
 
         // Render ImGui UI
         OverlayWindow::NewFrame();
         isImGuiFrameActive = true;
         OverlayWindow::RenderUI(camera, mumbleLinkManager, mumbleLinkData,
-            windowHandle, displayWidth, displayHeight, featureManager);
+            windowHandle, displayWidth, displayHeight, featureManager, ctx);
         OverlayWindow::Render(context, renderTargetView);
         isImGuiFrameActive = false;
 

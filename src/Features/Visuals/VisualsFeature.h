@@ -8,6 +8,7 @@
 namespace kx {
 
 class Camera;
+class EntityManager;
 struct MumbleLinkData;
 
 /**
@@ -21,10 +22,10 @@ public:
     VisualsFeature();
     ~VisualsFeature() override = default;
 
-    bool Initialize() override;
+    bool Initialize(const ServiceContext& ctx) override;
     void Shutdown() override;
-    void Update(float deltaTime, const FrameGameData& frameData) override;
-    void RenderDrawList(ImDrawList* drawList) override;
+    void Update(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx) override;
+    void RenderDrawList(ImDrawList* drawList, const ServiceContext& ctx) override;
     void OnMenuRender() override;
     const char* GetName() const override { return "Visuals"; }
     
@@ -36,6 +37,10 @@ private:
     
     std::unique_ptr<MasterRenderer> m_masterRenderer;
     VisualsConfiguration m_settings;
+    
+    // Non-owning pointers to services (populated during Initialize)
+    EntityManager* m_entityManager = nullptr;
+    Camera* m_camera = nullptr;
 };
 
 } // namespace kx

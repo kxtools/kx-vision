@@ -11,6 +11,7 @@ namespace kx {
 
 class IFeature;
 struct FrameGameData;
+struct ServiceContext;
 
 /**
  * @brief Manages the lifecycle of all registered features.
@@ -35,9 +36,10 @@ public:
 
     /**
      * @brief Initialize all registered features.
+     * @param ctx Service context containing pointers to core services.
      * @return true if all features initialized successfully, false otherwise.
      */
-    bool InitializeAll();
+    bool InitializeAll(const ServiceContext& ctx);
 
     /**
      * @brief Shut down all features in reverse order of registration, then clear the list.
@@ -48,14 +50,16 @@ public:
      * @brief Update all features.
      * @param deltaTime Time since last frame in seconds.
      * @param frameData Const reference to current frame's extracted game data.
+     * @param ctx Service context containing pointers to core services.
      */
-    void UpdateAll(float deltaTime, const FrameGameData& frameData);
+    void UpdateAll(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx);
 
     /**
      * @brief Render all features to the draw list.
      * @param drawList The ImGui draw list to render to.
+     * @param ctx Service context containing pointers to core services.
      */
-    void RenderAllDrawLists(ImDrawList* drawList);
+    void RenderAllDrawLists(ImDrawList* drawList, const ServiceContext& ctx);
 
     /**
      * @brief Render all feature menu items/tabs.

@@ -7,6 +7,7 @@
 #include "../Game/Services/Camera/Camera.h"
 #include "../Game/Services/Mumble/MumbleLinkManager.h"
 #include "Services/EntityManager.h"
+#include "Architecture/ServiceContext.h"
 
 namespace kx {
 
@@ -125,6 +126,12 @@ public:
     ID3D11Device* GetDevice() const;
 
     /**
+     * @brief Get the service context for dependency injection
+     * @return Const reference to ServiceContext
+     */
+    const ServiceContext& GetServiceContext() const { return m_serviceContext; }
+
+    /**
      * @brief Check for state transitions (for GW2AL mode)
      * 
      * This method allows external code (like GW2AL OnPresent) to trigger
@@ -182,6 +189,9 @@ private:
 
     // Entity data management (owned by EntityManager service)
     std::unique_ptr<EntityManager> m_entityManager;
+
+    // Service context for dependency injection (populated during initialization)
+    ServiceContext m_serviceContext;
 
     // State transition handlers
     void HandlePreInitState();

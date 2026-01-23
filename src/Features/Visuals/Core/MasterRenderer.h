@@ -10,12 +10,15 @@
 
 namespace kx {
 
+class EntityManager;
+
 class MasterRenderer {
 public:
     MasterRenderer();
     ~MasterRenderer() = default;
 
-    void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera, const VisualsConfiguration& visualsConfig);
+    void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, 
+                Camera& camera, EntityManager& entityManager, const VisualsConfiguration& visualsConfig);
 
     void Reset();
 

@@ -7,7 +7,8 @@
 #include <Windows.h>
 
 #include "../../../Core/AppState.h"
-#include "../../../Core/AppLifecycleManager.h"
+#include "../../../Core/Services/EntityManager.h"
+#include "../../../Game/Services/Mumble/MumbleLinkManager.h"
 #include "StageRenderer.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../Logic/EntityFilter.h"
@@ -22,7 +23,8 @@ void MasterRenderer::FilterAndProcessData(const FrameGameData& extractionData, c
     EntityFilter::FilterPooledData(extractionData, context, visualsConfig, m_processedRenderData);
 }
 
-void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, Camera& camera, const VisualsConfiguration& visualsConfig) {
+void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, 
+                            Camera& camera, EntityManager& entityManager, const VisualsConfiguration& visualsConfig) {
     if (ShouldHideESP(mumbleData)) {
         return;
     }
@@ -32,11 +34,11 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
     }
 
     const uint64_t now = GetTickCount64();
-    bool isInWvW = g_App.GetMumbleLinkManager().isInWvW();
+    bool isInWvW = mumbleData && mumbleData->context.mapType == 18; // WvW map type
 
     // Get globally extracted data from EntityManager
-    const FrameGameData& extractionData = g_App.GetEntityManager().GetFrameData();
-    CombatStateManager& combatStateManager = g_App.GetEntityManager().GetCombatStateManager();
+    const FrameGameData& extractionData = entityManager.GetFrameData();
+    CombatStateManager& combatStateManager = entityManager.GetCombatStateManager();
 
     FrameContext frameContext = {
         now,

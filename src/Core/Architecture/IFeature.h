@@ -9,6 +9,7 @@ namespace kx {
 
 // Forward declarations
 struct FrameGameData;
+struct ServiceContext;
 
 /**
  * @brief Base interface for modular features in KX-Vision.
@@ -22,9 +23,10 @@ public:
 
     /**
      * @brief Initialize the feature. Called once during startup.
+     * @param ctx Service context containing pointers to core services.
      * @return true if initialization succeeded, false otherwise.
      */
-    virtual bool Initialize() = 0;
+    virtual bool Initialize(const ServiceContext& ctx) = 0;
 
     /**
      * @brief Explicitly shut down the feature.
@@ -36,14 +38,16 @@ public:
      * @brief Update feature logic. Called every frame.
      * @param deltaTime Time since last frame in seconds.
      * @param frameData Const reference to current frame's extracted game data.
+     * @param ctx Service context containing pointers to core services.
      */
-    virtual void Update(float deltaTime, const FrameGameData& frameData) = 0;
+    virtual void Update(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx) = 0;
 
     /**
      * @brief Render the feature to the ImGui background draw list.
      * @param drawList The ImGui draw list to render to (typically background).
+     * @param ctx Service context containing pointers to core services.
      */
-    virtual void RenderDrawList(ImDrawList* drawList) = 0;
+    virtual void RenderDrawList(ImDrawList* drawList, const ServiceContext& ctx) = 0;
 
     /**
      * @brief Render feature-specific menu items/tabs in the overlay window.

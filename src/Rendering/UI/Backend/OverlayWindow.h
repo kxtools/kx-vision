@@ -10,6 +10,7 @@ namespace kx {
     class MumbleLinkManager;
     struct MumbleLinkData;
     class FeatureManager;
+    struct ServiceContext;
 }
 
 /**
@@ -34,6 +35,7 @@ public:
      * @param displayWidth Display width for rendering
      * @param displayHeight Display height for rendering
      * @param featureManager Reference to the feature manager for feature rendering
+     * @param ctx Service context for dependency injection
      */
     static void RenderUI(kx::Camera& camera, 
                         kx::MumbleLinkManager& mumbleLinkManager,
@@ -41,7 +43,8 @@ public:
                         HWND windowHandle,
                         float displayWidth,
                         float displayHeight,
-                        kx::FeatureManager& featureManager);
+                        kx::FeatureManager& featureManager,
+                        const kx::ServiceContext& ctx);
     
     static void Shutdown();
     

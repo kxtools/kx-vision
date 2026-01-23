@@ -1,5 +1,6 @@
 #include "FeatureManager.h"
 #include "IFeature.h"
+#include "ServiceContext.h"
 #include "../../Game/Data/FrameData.h"
 #include "../../Utils/DebugLogger.h"
 
@@ -16,11 +17,11 @@ void FeatureManager::RegisterFeature(std::unique_ptr<IFeature> feature) {
     }
 }
 
-bool FeatureManager::InitializeAll() {
+bool FeatureManager::InitializeAll(const ServiceContext& ctx) {
     LOG_INFO("Initializing %zu feature(s)...", m_features.size());
     
     for (auto& feature : m_features) {
-        if (!feature->Initialize()) {
+        if (!feature->Initialize(ctx)) {
             LOG_ERROR("Failed to initialize feature: %s", feature->GetName());
             return false;
         }
@@ -43,17 +44,17 @@ void FeatureManager::ShutdownAll() {
     m_features.clear();
 }
 
-void FeatureManager::UpdateAll(float deltaTime, const FrameGameData& frameData) {
+void FeatureManager::UpdateAll(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx) {
     for (auto& feature : m_features) {
-        feature->Update(deltaTime, frameData);
+        feature->Update(deltaTime, frameData, ctx);
     }
 }
 
-void FeatureManager::RenderAllDrawLists(ImDrawList* drawList) {
+void FeatureManager::RenderAllDrawLists(ImDrawList* drawList, const ServiceContext& ctx) {
     if (!drawList) return;
     
     for (auto& feature : m_features) {
-        feature->RenderDrawList(drawList);
+        feature->RenderDrawList(drawList, ctx);
     }
 }
 

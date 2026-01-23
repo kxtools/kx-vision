@@ -383,8 +383,15 @@ namespace kx {
     bool AppLifecycleManager::InitializeFeatures() {
         LOG_INFO("AppLifecycleManager: Initializing features");
 
+        // Populate ServiceContext with pointers to core services
+        m_serviceContext.entities = m_entityManager.get();
+        m_serviceContext.camera = &m_camera;
+        m_serviceContext.mumble = &m_mumbleLinkManager;
+        m_serviceContext.settings = &AppState::Get().GetSettings();
+        m_serviceContext.device = GetDevice();
+
         // Features already registered in Initialize(), just initialize them now
-        if (!m_featureManager->InitializeAll()) {
+        if (!m_featureManager->InitializeAll(m_serviceContext)) {
             LOG_ERROR("AppLifecycleManager: Failed to initialize features");
             return false;
         }
