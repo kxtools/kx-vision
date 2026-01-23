@@ -107,7 +107,7 @@
   <ItemGroup>
     <ClCompile Include="libs\Catch2\catch_amalgamated.cpp" />
     <ClCompile Include="libs\ImGui\imgui_stdlib.cpp" />
-    <ClCompile Include="src\Features\Visuals\Logic\AdaptiveFarPlaneCalculator.cpp" />
+    <ClCompile Include="src\Game\Services\AdaptiveFarPlane\AdaptiveFarPlaneCalculator.cpp" />
     <ClCompile Include="src\Core\Architecture\FeatureManager.cpp" />
     <ClCompile Include="src\Core\Architecture\FeatureRegistry.cpp" />
     <ClCompile Include="src\Core\Bootstrap.cpp" />
@@ -174,7 +174,7 @@
     <ClInclude Include="libs\gw2al\gw2al_api.h" />
     <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
     <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
-    <ClInclude Include="src\Features\Visuals\Logic\AdaptiveFarPlaneCalculator.h" />
+    <ClInclude Include="src\Game\Services\AdaptiveFarPlane\AdaptiveFarPlaneCalculator.h" />
     <ClInclude Include="src\Core\Architecture\FeatureManager.h" />
     <ClInclude Include="src\Core\Architecture\FeatureRegistry.h" />
     <ClInclude Include="src\Core\Architecture\IFeature.h" />
