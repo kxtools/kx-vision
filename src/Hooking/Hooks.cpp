@@ -1,6 +1,8 @@
 #include "Hooks.h"
 
 #include <windows.h> // For __try/__except
+#include <thread>
+#include <chrono>
 
 #include "../Core/Config.h"      // For GW2AL_BUILD define
 #include "../Core/AppLifecycleManager.h"
@@ -13,16 +15,16 @@
 
 namespace {
 
-void* TryGetContextCollection(void* (*fn)()) {
-    void* p = nullptr;
-    __try {
-        p = fn();
+    void* TryGetContextCollection(void* (*fn)()) {
+        void* p = nullptr;
+        __try {
+            p = fn();
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            p = nullptr;
+        }
+        return p;
     }
-    __except (EXCEPTION_EXECUTE_HANDLER) {
-        p = nullptr;
-    }
-    return p;
-}
 
 } // namespace
 
@@ -133,8 +135,10 @@ namespace kx {
         uintptr_t gameThreadFuncAddr = AddressManager::GetGameThreadUpdateFunc();
         if (gameThreadFuncAddr && Hooking::pOriginalGameThreadUpdate) {
             Hooking::HookManager::DisableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
+            LOG_INFO("[Hooks] GameThread hook disabled.");
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             Hooking::HookManager::RemoveHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
-            LOG_INFO("[Hooks] GameThread hook cleaned up.");
+            LOG_INFO("[Hooks] GameThread hook removed.");
         }
 
 #ifndef GW2AL_BUILD
