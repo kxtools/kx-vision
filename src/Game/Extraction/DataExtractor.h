@@ -47,16 +47,20 @@ namespace kx {
             ObjectPool<NpcEntity>& npcPool,
             std::vector<PlayerEntity*>& players,
             std::vector<NpcEntity*>& npcs,
+            FrameGameData& pooledData,
             const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap);
 
         static void ExtractGadgetData(ObjectPool<GadgetEntity>& gadgetPool,
-            std::vector<GadgetEntity*>& gadgets);
+            std::vector<GadgetEntity*>& gadgets,
+            FrameGameData& pooledData);
 
         static void ExtractAttackTargetData(ObjectPool<AttackTargetEntity>& attackTargetPool,
-            std::vector<AttackTargetEntity*>& attackTargets);
+            std::vector<AttackTargetEntity*>& attackTargets,
+            FrameGameData& pooledData);
 
         static void ExtractItemData(ObjectPool<ItemEntity>& itemPool,
-            std::vector<ItemEntity*>& items);
+            std::vector<ItemEntity*>& items,
+            FrameGameData& pooledData);
     };
 
 } // namespace kx

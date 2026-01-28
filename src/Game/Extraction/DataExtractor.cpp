@@ -39,10 +39,10 @@ namespace kx {
         }
 
         // Single pass extraction for both players and NPCs
-        ExtractCharacterData(playerPool, npcPool, pooledData.players, pooledData.npcs, characterToPlayerNameMap);
-        ExtractGadgetData(gadgetPool, pooledData.gadgets);
-        ExtractAttackTargetData(attackTargetPool, pooledData.attackTargets);
-        ExtractItemData(itemPool, pooledData.items);
+        ExtractCharacterData(playerPool, npcPool, pooledData.players, pooledData.npcs, pooledData, characterToPlayerNameMap);
+        ExtractGadgetData(gadgetPool, pooledData.gadgets, pooledData);
+        ExtractAttackTargetData(attackTargetPool, pooledData.attackTargets, pooledData);
+        ExtractItemData(itemPool, pooledData.items, pooledData);
 
         return true;
     }
@@ -51,6 +51,7 @@ namespace kx {
         ObjectPool<NpcEntity>& npcPool,
         std::vector<PlayerEntity*>& players,
         std::vector<NpcEntity*>& npcs,
+        FrameGameData& pooledData,
         const ankerl::unordered_dense::map<void*, const wchar_t*>& characterToPlayerNameMap) {
         players.clear();
         npcs.clear();
@@ -81,6 +82,7 @@ namespace kx {
                 // Delegate all extraction logic to the helper class
                 if (EntityExtractor::ExtractPlayer(*renderablePlayer, character, it->second, localPlayerPtr)) {
                     players.push_back(renderablePlayer);
+                    pooledData.entityMap[static_cast<uint32_t>(renderablePlayer->agentId)] = renderablePlayer;
                 }
             } else {
                 // This is an NPC
@@ -90,13 +92,15 @@ namespace kx {
                 // Delegate all extraction logic to the helper class
                 if (EntityExtractor::ExtractNpc(*renderableNpc, character)) {
                     npcs.push_back(renderableNpc);
+                    pooledData.entityMap[static_cast<uint32_t>(renderableNpc->agentId)] = renderableNpc;
                 }
             }
         }
     }
 
     void DataExtractor::ExtractGadgetData(ObjectPool<GadgetEntity>& gadgetPool,
-        std::vector<GadgetEntity*>& gadgets) {
+        std::vector<GadgetEntity*>& gadgets,
+        FrameGameData& pooledData) {
         gadgets.clear();
         gadgets.reserve(EntityLimits::MAX_GADGETS);
 
@@ -115,12 +119,14 @@ namespace kx {
             // Delegate all extraction logic to the helper class
             if (EntityExtractor::ExtractGadget(*renderableGadget, gadget)) {
                 gadgets.push_back(renderableGadget);
+                pooledData.entityMap[static_cast<uint32_t>(renderableGadget->agentId)] = renderableGadget;
             }
         }
     }
 
     void DataExtractor::ExtractAttackTargetData(ObjectPool<AttackTargetEntity>& attackTargetPool,
-        std::vector<AttackTargetEntity*>& attackTargets) {
+        std::vector<AttackTargetEntity*>& attackTargets,
+        FrameGameData& pooledData) {
         attackTargets.clear();
         attackTargets.reserve(EntityLimits::MAX_ATTACK_TARGETS);
 
@@ -139,12 +145,14 @@ namespace kx {
             // Delegate all extraction logic to the helper class
             if (EntityExtractor::ExtractAttackTarget(*renderableAttackTarget, agentInl)) {
                 attackTargets.push_back(renderableAttackTarget);
+                pooledData.entityMap[static_cast<uint32_t>(renderableAttackTarget->agentId)] = renderableAttackTarget;
             }
         }
     }
 
     void DataExtractor::ExtractItemData(ObjectPool<ItemEntity>& itemPool,
-        std::vector<ItemEntity*>& items) {
+        std::vector<ItemEntity*>& items,
+        FrameGameData& pooledData) {
         items.clear();
         items.reserve(EntityLimits::MAX_ITEMS);
 
@@ -170,6 +178,7 @@ namespace kx {
             // Note: ExtractItem also checks LocationType as a double-safety check
             if (EntityExtractor::ExtractItem(*renderableItem, item)) {
                 items.push_back(renderableItem);
+                pooledData.entityMap[static_cast<uint32_t>(renderableItem->agentId)] = renderableItem;
             }
         }
     }

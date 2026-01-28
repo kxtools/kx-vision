@@ -3,6 +3,7 @@
 #include "glm.hpp"
 #include <vector>
 #include <array>
+#include <ankerl/unordered_dense.h>
 
 #include "../../libs/ImGui/imgui.h" // For ImU32, ImVec2
 
@@ -112,12 +113,24 @@ struct FrameGameData {
     std::vector<AttackTargetEntity*> attackTargets;
     std::vector<ItemEntity*> items;
 
+    ankerl::unordered_dense::map<uint32_t, GameEntity*> entityMap;
+
     void Reset() {
         players.clear();
         npcs.clear();
         gadgets.clear();
         attackTargets.clear();
         items.clear();
+        entityMap.clear();
+    }
+
+    template <typename T = GameEntity>
+    const T* GetByID(uint32_t id) const {
+        auto it = entityMap.find(id);
+        if (it != entityMap.end()) {
+            return static_cast<const T*>(it->second);
+        }
+        return nullptr;
     }
 };
 

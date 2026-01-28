@@ -61,6 +61,7 @@ namespace PhysicsValidation {
         // --- Agent Info (using pre-validated agent reference) ---
         outPlayer.agentType = agentType;
         outPlayer.agentId = agentId;
+        outPlayer.agent = agent.data();
 
         // --- Health & Energy ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
@@ -132,6 +133,7 @@ namespace PhysicsValidation {
         // --- Agent Info (using pre-validated agent reference) ---
         outNpc.agentType = agentType;
         outNpc.agentId = agentId;
+        outNpc.agent = agent.data();
 
         // --- Health ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();
@@ -185,6 +187,7 @@ namespace PhysicsValidation {
         // --- Agent Info (using pre-validated agent reference) ---
         outGadget.agentType = agentType;
         outGadget.agentId = agentId;
+        outGadget.agent = agent.data();
 
         // --- Health ---
         ReClass::GdCliHealth health = inGadget.GetHealth();
@@ -221,6 +224,7 @@ namespace PhysicsValidation {
         outAttackTarget.address = inAgentInl.data();
         outAttackTarget.agentType = agKeyframed.GetType();
         outAttackTarget.agentId = agKeyframed.GetId();
+        outAttackTarget.agent = agKeyframed.data();
 
         // --- Combat State ---
         outAttackTarget.combatState = inAgentInl.GetCombatState();
@@ -267,6 +271,7 @@ namespace PhysicsValidation {
         outItem.address = inItem.data();
         outItem.agentType = agKeyFramed.GetType();
         outItem.agentId = agKeyFramed.GetId();
+        outItem.agent = agKeyFramed.data();
 
         // --- Get Definition Info ---
         ReClass::ItemDef def = inItem.GetItemDefinition();

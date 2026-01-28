@@ -15,7 +15,8 @@ struct GameEntity {
     float visualDistance;
     float gameplayDistance;
     bool isValid;
-    const void* address;
+    const void* address; // The base address of the ChCli/GdCli wrapper
+    void* agent; // The raw Gw2::Agent pointer used by game services
     float currentHealth;
     float maxHealth;
     float currentBarrier = 0.0f;
@@ -30,7 +31,7 @@ struct GameEntity {
     Havok::HkcdShapeType shapeType = Havok::HkcdShapeType::INVALID;
 
     GameEntity() : position(0.0f), visualDistance(0.0f), gameplayDistance(0.0f),
-                         isValid(false), address(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),
+                         isValid(false), address(nullptr), agent(nullptr), currentHealth(0.0f), maxHealth(0.0f), currentBarrier(0.0f),
                          entityType(EntityTypes::Gadget), agentType(Game::AgentType::Error), agentId(0),
                          shapeType(Havok::HkcdShapeType::INVALID)
     {
