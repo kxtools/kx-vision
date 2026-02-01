@@ -86,7 +86,7 @@ namespace CoordinateTransform {
 namespace EntityLimits {
     constexpr size_t MAX_PLAYERS = 500;
     constexpr size_t MAX_NPCS = 1000;
-    constexpr size_t MAX_GADGETS = 1000;
+    constexpr size_t MAX_GADGETS = 1500;
     constexpr size_t MAX_ATTACK_TARGETS = 500;
     constexpr size_t MAX_ITEMS = 1000;
 }
