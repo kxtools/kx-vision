@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h> // For UINT, WPARAM, LPARAM
+#include <memory>
 #include "../../libs/nlohmann/json.hpp"
 
 struct ImDrawList;
@@ -9,6 +10,8 @@ namespace kx {
 
 // Forward declarations
 struct FrameGameData;
+struct EntityFrameSnapshot;
+using FrameSnapshotHandle = std::shared_ptr<const EntityFrameSnapshot>;
 struct ServiceContext;
 
 /**
@@ -20,6 +23,16 @@ struct ServiceContext;
 class IFeature {
 public:
     virtual ~IFeature() = default;
+
+    /**
+     * @brief Request runtime work to start or pause without changing registration.
+     *
+     * Default keeps small features always active. Heavy features override this pair.
+     * Runtime disable must make callbacks and owned hooks passive; Shutdown() remains
+     * the only operation that destroys resources or removes hooks.
+     */
+    virtual void SetEnabled(bool enabled) { (void)enabled; }
+    virtual bool IsEnabled() const { return true; }
 
     /**
      * @brief Initialize the feature. Called once during startup.
@@ -40,20 +53,47 @@ public:
      * @param frameData Const reference to current frame's extracted game data.
      * @param ctx Service context containing pointers to core services.
      */
-    virtual void Update(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx) = 0;
+    virtual void Update(float deltaTime, const FrameSnapshotHandle& snapshot, const ServiceContext& ctx) = 0;
 
     /**
      * @brief Render the feature to the ImGui background draw list.
      * @param drawList The ImGui draw list to render to (typically background).
      * @param ctx Service context containing pointers to core services.
      */
-    virtual void RenderDrawList(ImDrawList* drawList, const ServiceContext& ctx) = 0;
+    virtual void RenderDrawList(ImDrawList* drawList, const FrameSnapshotHandle& snapshot, const ServiceContext& ctx) = 0;
 
     /**
-     * @brief Render feature-specific menu items/tabs in the overlay window.
-     * Called within the main ImGui window context.
+     * @brief Render feature-specific tab content in the main overlay hub window.
+     * Called within the main ImGui tab bar context.
      */
-    virtual void OnMenuRender() = 0;
+    virtual void OnTabRender() { OnMenuRender(); }
+
+    /**
+     * @brief Optional top-level tab group for features that should share one hub tab.
+     */
+    virtual const char* GetTabGroupName() const { return nullptr; }
+
+    /**
+     * @brief Label used when this feature is rendered inside a grouped hub tab.
+     */
+    virtual const char* GetGroupedTabLabel() const { return GetName(); }
+
+    /**
+     * @brief Render content when this feature is hosted inside a grouped hub tab.
+     */
+    virtual void OnGroupedTabRender() { OnMenuRender(); }
+
+    /**
+     * @brief Render feature-owned standalone ImGui windows.
+     * Called outside the main hub window, but on the same render thread.
+     */
+    virtual void OnStandaloneRender() {}
+
+    /**
+     * @brief Legacy menu rendering entrypoint.
+     * Kept for compatibility while features migrate to OnTabRender().
+     */
+    virtual void OnMenuRender() {}
 
     /**
      * @brief Get the name of this feature for debugging/logging.
@@ -87,6 +127,8 @@ public:
      * @param j The JSON object to write feature settings into.
      */
     virtual void SaveSettings(nlohmann::json& j) = 0;
+    virtual void ResetSettings() = 0;
+    virtual void ApplyLoadedSettings() = 0;
 };
 
 } // namespace kx

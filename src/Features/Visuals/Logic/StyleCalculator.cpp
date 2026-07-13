@@ -1,11 +1,10 @@
 #define NOMINMAX
 
 #include "StyleCalculator.h"
-#include "../../../Core/AppState.h"
 #include "../../../Game/Data/EntityData.h"
 #include "../Renderers/ShapeRenderer.h"
-#include "../../../Rendering/Shared/RenderSettingsHelper.h"
-#include "../../../Rendering/Shared/ScalingConstants.h"
+#include "RenderSettingsHelper.h"
+#include "../Rendering/VisualScalingConstants.h"
 #include "../Presentation/Styling.h"
 #include "../Settings/VisualsSettings.h"
 #include <algorithm>
@@ -14,12 +13,14 @@
 namespace kx::Logic {
 
 bool StyleCalculator::Calculate(const GameEntity& entity,
+                                 float visualDistance,
+                                 float gameplayDistance,
                                  const FrameContext& context,
                                  const VisualsConfiguration& visualsConfig,
                                  VisualStyle& outStyle) {
     float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity.entityType, context.isInWvW);
     bool useLimitMode = activeLimit > 0.0f;
-    outStyle.distanceFadeAlpha = CalculateDistanceFadeAlpha(entity.gameplayDistance, useLimitMode, activeLimit);
+    outStyle.distanceFadeAlpha = CalculateDistanceFadeAlpha(gameplayDistance, useLimitMode, activeLimit);
 
     if (outStyle.distanceFadeAlpha <= 0.0f) {
         return false;
@@ -29,17 +30,17 @@ bool StyleCalculator::Calculate(const GameEntity& entity,
 
     outStyle.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(color, outStyle.distanceFadeAlpha);
 
-    outStyle.scale = CalculateEntityScale(entity.visualDistance, entity.entityType, context);
+    outStyle.scale = CalculateEntityScale(visualDistance, entity.entityType, context);
 
     float normalizedDistance = 0.0f;
-    outStyle.finalAlpha = CalculateAdaptiveAlpha(entity.gameplayDistance, outStyle.distanceFadeAlpha,
+    outStyle.finalAlpha = CalculateAdaptiveAlpha(gameplayDistance, outStyle.distanceFadeAlpha, context,
                                              useLimitMode, entity.entityType,
                                              normalizedDistance);
 
     outStyle.fadedEntityColor = ShapeRenderer::ApplyAlphaToColor(outStyle.fadedEntityColor, outStyle.finalAlpha);
 
     EntityMultipliers multipliers = CalculateEntityMultipliers(entity, visualsConfig);
-    CalculateFinalSizes(outStyle, outStyle.scale, multipliers);
+    CalculateFinalSizes(outStyle, context.settings, outStyle.scale, multipliers);
 
     return true;
 }
@@ -59,8 +60,7 @@ float StyleCalculator::CalculateEntityScale(float visualDistance, EntityTypes en
         scalingExponent = settings.scaling.limitScalingExponent;
     } else {
         if (RenderSettingsHelper::IsObjectType(entityType)) {
-            float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
-            distanceFactor = (std::max)(AdaptiveScaling::GADGET_MIN_DISTANCE_FACTOR, adaptiveFarPlane / 2.0f);
+            distanceFactor = (std::max)(AdaptiveScaling::GADGET_MIN_DISTANCE_FACTOR, context.adaptiveFarPlane / 2.0f);
             scalingExponent = settings.scaling.noLimitScalingExponent;
         } else {
             distanceFactor = AdaptiveScaling::PLAYER_NPC_DISTANCE_FACTOR;
@@ -73,10 +73,9 @@ float StyleCalculator::CalculateEntityScale(float visualDistance, EntityTypes en
     return (std::max)(settings.scaling.minScale, (std::min)(rawScale, settings.scaling.maxScale));
 }
 
-float StyleCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
+float StyleCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha, const FrameContext& context,
                                               bool useDistanceLimit, EntityTypes entityType,
                                               float& outNormalizedDistance) {
-    const auto& settings = AppState::Get().GetSettings();
     outNormalizedDistance = 0.0f;
     
     if (useDistanceLimit) {
@@ -86,7 +85,7 @@ float StyleCalculator::CalculateAdaptiveAlpha(float gameplayDistance, float dist
     if (RenderSettingsHelper::IsObjectType(entityType)) {
         float finalAlpha = 1.0f;
         
-        const float farPlane = AppState::Get().GetAdaptiveFarPlane();
+        const float farPlane = context.adaptiveFarPlane;
         const float effectStartDistance = AdaptiveScaling::FADE_START_DISTANCE;
         
         if (gameplayDistance > effectStartDistance) {
@@ -169,11 +168,9 @@ StyleCalculator::EntityMultipliers StyleCalculator::CalculateEntityMultipliers(c
     return multipliers;
 }
 
-void StyleCalculator::CalculateFinalSizes(VisualStyle& style, 
+void StyleCalculator::CalculateFinalSizes(VisualStyle& style, const VisualsConfiguration& settings,
                                           float scale,
                                           const EntityMultipliers& multipliers) {
-    const auto& settings = AppState::Get().GetSettings();
-    
     style.finalFontSize = CalculateFinalSize(settings.sizes.baseFontSize, scale, settings.sizes.minFontSize, ScalingLimits::MAX_FONT_SIZE, multipliers.hostile);
     
     style.finalBoxThickness = CalculateFinalSize(settings.sizes.baseBoxThickness, scale, ScalingLimits::MIN_BOX_THICKNESS, ScalingLimits::MAX_BOX_THICKNESS, 1.0f);

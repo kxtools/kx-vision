@@ -1,10 +1,15 @@
 #pragma once
 
-#include "../../libs/nlohmann/json.hpp"
-#include "../../Game/Data/EntityTypes.h"
-#include "../../Rendering/UI/UIConstants.h"
+#include "../../../../libs/nlohmann/json.hpp"
+#include "../../../Game/Data/EntityTypes.h"
+#include "../../../Core/Settings/SettingsFields.h"
 
 namespace kx {
+
+namespace VisualDistanceLimits {
+    inline constexpr float PVE_PVP_NATURAL = 90.0f;
+    inline constexpr float WVW_NATURAL = 130.0f;
+}
 
     /**
      * @brief Distance display format options
@@ -40,19 +45,15 @@ namespace kx {
  *   - Display can show meters, GW2 units, or both
  *   - 1 GW2 unit = 1 inch = 0.0254 meters
  */
+#define KX_DISTANCE_SETTINGS(X) \
+        X(DistanceCullingMode, mode, DistanceCullingMode::Natural) \
+        X(float, renderDistanceLimit, 90.0f) \
+        X(bool, customLimitPlayers, false) \
+        X(bool, customLimitNpcs, false) \
+        X(bool, customLimitObjects, true) \
+        X(DistanceDisplayMode, displayMode, DistanceDisplayMode::Meters)
     struct DistanceSettings {
-        // --- Culling Mode & Value ---
-        DistanceCullingMode mode = DistanceCullingMode::Natural; // The primary control
-        float renderDistanceLimit = 90.0f;                      // Value used by Natural, CombatFocus, and Custom modes
-
-        // --- Custom Mode Toggles ---
-        // These are ONLY used when mode is DistanceCullingMode::Custom
-        bool customLimitPlayers = false;
-        bool customLimitNpcs = false;
-        bool customLimitObjects = true; // Default Custom mode to only limiting objects
-        
-        // --- Distance Display Format ---
-        DistanceDisplayMode displayMode = DistanceDisplayMode::Meters;  // How to display distances
+        KX_DISTANCE_SETTINGS(KX_SETTING_DECLARE)
 
         /**
          * @brief Helper to determine if the current mode uses a fixed distance limit for scaling.
@@ -94,7 +95,7 @@ namespace kx {
         float GetActiveDistanceLimit(EntityTypes entityType, bool isInWvW) const {
             switch (mode) {
                 case DistanceCullingMode::Natural:
-                    return isInWvW ? GUI::UIConstants::WVW_NATURAL_LIMIT : GUI::UIConstants::PVE_PVP_NATURAL_LIMIT;
+                    return isInWvW ? VisualDistanceLimits::WVW_NATURAL : VisualDistanceLimits::PVE_PVP_NATURAL;
 
                 case DistanceCullingMode::CombatFocus:
                     // In Combat Focus, only Objects are limited. Players/NPCs are unlimited.
@@ -124,7 +125,7 @@ namespace kx {
         }
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DistanceSettings, mode, renderDistanceLimit, customLimitPlayers, customLimitNpcs, customLimitObjects, displayMode);
+    KX_DEFINE_SETTINGS_JSON(DistanceSettings, KX_DISTANCE_SETTINGS)
 
     /**
      * @brief Scaling curve configuration
@@ -135,23 +136,14 @@ namespace kx {
      * The distanceFactor determines where 50% scale occurs.
      * The exponent controls the curve shape (higher = more aggressive at distance).
      */
-    struct ScalingSettings {
-        // --- Shared Settings (Both Modes) ---
-        float scalingStartDistance = 20.0f;     // Distance before scaling begins (mimics game camera-to-player offset)
-        float minScale = 0.1f;                  // Minimum scale multiplier (10% - allows extreme shrinking, protected by min sizes)
-        float maxScale = 1.0f;                  // Maximum scale multiplier (100% - no magnification for natural feel)
-        
-        // --- Limit Mode (90m range) ---
-        float limitDistanceFactor = 110.0f;     // 50% scale at 110m (just past render limit for meaningful scaling)
-        float limitScalingExponent = 1.2f;      // Moderate curve - balanced shrinking over 0-90m range
-        
-        // --- No Limit Mode (Adaptive range) ---
-        float noLimitScalingExponent = 1.2f;    // Balanced curve for long distances (distanceFactor auto-calculated from scene)
-        // Note: distanceFactor = adaptiveFarPlane / 2 (automatic 50% scale at midpoint)
-    };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ScalingSettings, scalingStartDistance, minScale, maxScale, limitDistanceFactor,
-                                       limitScalingExponent, noLimitScalingExponent);
+#define KX_SCALING_SETTINGS(X) \
+        X(float, scalingStartDistance, 20.0f) \
+        X(float, minScale, 0.1f) \
+        X(float, maxScale, 1.0f) \
+        X(float, limitDistanceFactor, 110.0f) \
+        X(float, limitScalingExponent, 1.2f) \
+        X(float, noLimitScalingExponent, 1.2f)
+    KX_DEFINE_SETTINGS_TYPE(ScalingSettings, KX_SCALING_SETTINGS)
 
     /**
      * @brief Visual appearance and styling options
@@ -159,16 +151,11 @@ namespace kx {
      * Controls the visual styling of ESP elements (not their sizes).
      * These settings affect how elements look, not their dimensions.
      */
-    struct AppearanceSettings {
-        // --- Global Controls ---
-        float globalOpacity = 0.8f;             // Global opacity multiplier for ALL ESP elements (50-100%, default 80%)
-        
-        // --- Text Styling ---
-        bool enableTextBackgrounds = true;      // Add dark backgrounds behind text (except damage numbers)
-        bool enableTextShadows = true;          // Add shadows behind text for better contrast
-    };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AppearanceSettings, globalOpacity, enableTextBackgrounds, enableTextShadows);
+#define KX_APPEARANCE_SETTINGS(X) \
+        X(float, globalOpacity, 0.8f) \
+        X(bool, enableTextBackgrounds, true) \
+        X(bool, enableTextShadows, true)
+    KX_DEFINE_SETTINGS_TYPE(AppearanceSettings, KX_APPEARANCE_SETTINGS)
 
     /**
      * @brief Base sizes for ESP elements before scaling
@@ -176,23 +163,15 @@ namespace kx {
      * These are the "100% scale" sizes. Distance-based scaling multiplies these values.
      * Minimum size protections prevent elements from becoming unusably small.
      */
-    struct ElementSizeSettings {
-        // --- Text ---
-        float baseFontSize = 16.0f;             // Optimal for Bahnschrift (wide letterforms, good balance)
-        float minFontSize = 8.0f;               // Absolute minimum font size (readability floor)
-        
-        // --- Shapes ---
-        float baseDotRadius = 3.0f;             // Center dot size (clean, minimal at 2.4px actual with multiplier)
-        float baseBoxThickness = 2.0f;          // Bounding box line thickness (optimal visibility)
-        float baseBoxHeight = 90.0f;             // Player/NPC box height (realistic proportions)
-        float baseBoxWidth = 45.0f;             // Player/NPC box width (2:1 ratio = balanced humanoid shape)
-        
-        // --- Health Bars ---
-        float baseHealthBarWidth = 60.0f;       // Health bar width (33% wider than box, maximum prominence)
-        float baseHealthBarHeight = 7.0f;       // Health bar height (~8.5:1 ratio, bold visibility)
-    };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ElementSizeSettings, baseFontSize, minFontSize, baseDotRadius, baseBoxThickness,
-                                       baseBoxHeight, baseBoxWidth, baseHealthBarWidth, baseHealthBarHeight);
+#define KX_ELEMENT_SIZE_SETTINGS(X) \
+        X(float, baseFontSize, 16.0f) \
+        X(float, minFontSize, 8.0f) \
+        X(float, baseDotRadius, 3.0f) \
+        X(float, baseBoxThickness, 2.0f) \
+        X(float, baseBoxHeight, 90.0f) \
+        X(float, baseBoxWidth, 45.0f) \
+        X(float, baseHealthBarWidth, 60.0f) \
+        X(float, baseHealthBarHeight, 7.0f)
+    KX_DEFINE_SETTINGS_TYPE(ElementSizeSettings, KX_ELEMENT_SIZE_SETTINGS)
 
 } // namespace kx

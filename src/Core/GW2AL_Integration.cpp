@@ -18,6 +18,7 @@
 #include "AppState.h"
 #include "AppLifecycleManager.h"
 #include "Bootstrap.h"
+#include "../Composition/FeatureComposition.h"
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
@@ -27,6 +28,7 @@
 #include "../Hooking/GW2AL/d3d9_wrapper_structs.h"
 
 #include "../Hooking/D3DRenderHook.h"
+#include "../Hooking/HookManager.h"
 #include "../Utils/DebugLogger.h"
 #include "../Utils/Console.h"
 
@@ -45,6 +47,8 @@ namespace kx {
  * We render our ImGui overlay here.
  */
 void OnPresent(D3D9_wrapper_event_data* evd) {
+    kx::Hooking::HookCallbackGuard callbackGuard;
+    if (kx::Hooking::HookManager::IsShuttingDown()) return;
     // Early exit checks
     if (!evd || !evd->stackPtr) return;
     if (!kx::Hooking::D3DRenderHook::IsInitialized()) return;
@@ -88,6 +92,8 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
 }
 
 void OnDXGIPostCreateSwapChain(D3D9_wrapper_event_data* evd) {
+    kx::Hooking::HookCallbackGuard callbackGuard;
+    if (kx::Hooking::HookManager::IsShuttingDown()) return;
     if (!evd || !evd->stackPtr) {
         LOG_ERROR("[GW2AL] Invalid event data in OnDXGIPostCreateSwapChain");
         return;
@@ -132,6 +138,8 @@ void OnDXGIPostCreateSwapChain(D3D9_wrapper_event_data* evd) {
  * Called when the game window is resized. We need to update our render target.
  */
 void OnResize(D3D9_wrapper_event_data* evd) {
+    kx::Hooking::HookCallbackGuard callbackGuard;
+    if (kx::Hooking::HookManager::IsShuttingDown()) return;
     if (!evd || !evd->stackPtr) {
         return;
     }
@@ -186,8 +194,10 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_load(gw2al_core_vtable* 
 
     kx::Bootstrap::Initialize("GW2AL");
 
-    if (!kx::g_App.InitializeForGW2AL()) {
+    if (!kx::g_App.InitializeForGW2AL(kx::CreateAppComposition())) {
         LOG_ERROR("Failed to initialize AppLifecycleManager for GW2AL mode - HookManager initialization failed");
+        kx::g_App.Shutdown();
+        kx::Bootstrap::Cleanup();
         return GW2AL_FAIL;
     }
 
@@ -239,6 +249,10 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting)
     // Unsubscribe from events to prevent callbacks to an unloaded module
     if (g_al_api) {
         g_al_api->unwatch_event(
+            g_al_api->query_event(g_al_api->hash_name(L"D3D9_POST_DXGI_CreateSwapChain")),
+            g_al_api->hash_name(L"kxvision_init")
+        );
+        g_al_api->unwatch_event(
             g_al_api->query_event(g_al_api->hash_name(L"D3D9_PRE_SWC_Present")),
             g_al_api->hash_name(L"kxvision_present")
         );
@@ -247,6 +261,13 @@ extern "C" __declspec(dllexport) gw2al_api_ret gw2addon_unload(int game_exiting)
             g_al_api->hash_name(L"kxvision_resize")
         );
     }
+
+    // No loader callback may enter after this point; drain callbacks already inside
+    // this DLL before feature and renderer teardown.
+    kx::Hooking::HookManager::BeginShutdown();
+    kx::Hooking::D3DRenderHook::UninstallWndProc();
+    kx::Hooking::HookManager::DisableAll();
+    kx::Hooking::HookManager::WaitForCallbacks();
 
     // Perform cleanup via the lifecycle manager
     kx::g_App.Shutdown();

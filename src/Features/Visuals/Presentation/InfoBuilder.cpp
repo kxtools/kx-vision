@@ -1,4 +1,5 @@
 #include "InfoBuilder.h"
+#include "../Core/VisualFrameTypes.h"
 #include "../../../Game/GameEnums.h"
 #include "../../../Game/Generated/StatData.h"
 #include "../../../../libs/ImGui/imgui.h"
@@ -11,11 +12,12 @@
 
 #include "Styling.h"
 #include "../../../Rendering/Shared/ColorConstants.h"
-#include "Formatting.h"
+#include "../../../Game/Presentation/GameFormatting.h"
 #include "../../../Rendering/Renderers/TextRenderer.h"
 #include "../Renderers/LayoutCursor.h"
 #include "../../../Game/Data/FrameData.h"
-#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../Rendering/VisualLayoutConstants.h"
+#include "../../../Game/Data/EntityBounds.h"
 
 namespace kx {
 
@@ -47,6 +49,7 @@ void InfoBuilder::RenderPlayerDetails(
     style.shadow = appearance.enableTextShadows;
     style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
+    style.globalOpacity = appearance.globalOpacity;
     style.color = ESPColors::DEFAULT_TEXT;
 
     char buf[128];
@@ -105,6 +108,33 @@ void InfoBuilder::RenderPlayerDetails(
         DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
     }
 
+    if (settings.showDetailPhysics) {
+        const char* shapeName = Formatting::GetShapeTypeName(player->shapeType);
+        const float debugWidth = player->hasPhysicsDimensions ? player->physicsWidth : EntityWorldBounds::PLAYER_WORLD_WIDTH;
+        const float debugDepth = player->hasPhysicsDimensions ? player->physicsDepth : EntityWorldBounds::PLAYER_WORLD_DEPTH;
+        const float debugHeight = player->hasPhysicsDimensions ? player->physicsHeight : EntityWorldBounds::PLAYER_WORLD_HEIGHT;
+        // Guardrail: show both the extraction state and the raw dimensions so fallback-vs-physics
+        // regressions are visible in the overlay without guessing which path owned the box.
+        auto shapeRes = std::format_to_n(
+            buf,
+            std::size(buf),
+            "Phys: {} ({})",
+            shapeName ? shapeName : "UNKNOWN",
+            player->hasPhysicsDimensions ? "live" : "fallback"
+        );
+        DrawLine(drawList, cursor, style, std::string_view(buf, shapeRes.size));
+
+        auto dimsRes = std::format_to_n(
+            buf,
+            std::size(buf),
+            "W/D/H: {:.2f} / {:.2f} / {:.2f}m",
+            debugWidth,
+            debugDepth,
+            debugHeight
+        );
+        DrawLine(drawList, cursor, style, std::string_view(buf, dimsRes.size));
+    }
+
     if (showDebugAddresses) {
         auto res = std::format_to_n(buf, std::size(buf), "Addr: {:#x}", reinterpret_cast<unsigned long long>(player->address));
         DrawLine(drawList, cursor, style, std::string_view(buf, res.size));
@@ -131,6 +161,7 @@ void InfoBuilder::RenderGearDetails(
     style.shadow = appearance.enableTextShadows;
     style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
+    style.globalOpacity = appearance.globalOpacity;
 
     char buf[128];
     for (const auto& slotEnum : displayOrder) {
@@ -213,7 +244,7 @@ size_t InfoBuilder::BuildCompactGearSummary(const PlayerEntity* player, CompactS
               });
 
     // Copy top results to output buffer
-    size_t resultCount = std::min(uniqueStatsCount, bufferSize);
+    size_t resultCount = (std::min)(uniqueStatsCount, bufferSize);
     for (size_t i = 0; i < resultCount; ++i) {
         outBuffer[i] = workingBuffer[i];
     }
@@ -262,7 +293,7 @@ size_t InfoBuilder::BuildDominantStats(const PlayerEntity* player, DominantStat*
               });
 
     // Copy top results to output buffer
-    size_t resultCount = std::min(statsCount, bufferSize);
+    size_t resultCount = (std::min)(statsCount, bufferSize);
     for (size_t i = 0; i < resultCount; ++i) {
         outBuffer[i] = workingBuffer[i];
     }
@@ -304,6 +335,7 @@ void InfoBuilder::RenderNpcDetails(
     style.shadow = appearance.enableTextShadows;
     style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
+    style.globalOpacity = appearance.globalOpacity;
     style.color = ESPColors::DEFAULT_TEXT;
 
     char buf[128];
@@ -372,6 +404,7 @@ void InfoBuilder::RenderGadgetDetails(
     style.shadow = appearance.enableTextShadows;
     style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
+    style.globalOpacity = appearance.globalOpacity;
     style.color = ESPColors::DEFAULT_TEXT;
 
     char buf[128];
@@ -437,6 +470,7 @@ void InfoBuilder::RenderAttackTargetDetails(
     style.shadow = appearance.enableTextShadows;
     style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
+    style.globalOpacity = appearance.globalOpacity;
     style.color = ESPColors::DEFAULT_TEXT;
 
     std::string_view typeText("Type: Attack Target");
@@ -481,6 +515,7 @@ void InfoBuilder::RenderItemDetails(
     style.shadow = appearance.enableTextShadows;
     style.background = appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
+    style.globalOpacity = appearance.globalOpacity;
     style.color = ESPColors::DEFAULT_TEXT;
 
     std::string_view typeText("Type: Item");

@@ -1,11 +1,11 @@
 #define NOMINMAX
 
 #include "ScreenProjector.h"
-#include "../../../Core/AppState.h"
 #include "../../../Game/Data/EntityData.h"
-#include "../../../Rendering/Shared/LayoutConstants.h"
-#include "../../../Rendering/Shared/MathUtils.h"
-#include "../../../Rendering/Shared/RenderSettingsHelper.h"
+#include "../Rendering/VisualLayoutConstants.h"
+#include "../../../Game/Data/EntityBounds.h"
+#include "../../../Game/Services/Camera/CameraProjection.h"
+#include "../Logic/RenderSettingsHelper.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include <algorithm>
 #include <array>
@@ -19,6 +19,7 @@ bool ScreenProjector::Project(
     float screenW,
     float screenH,
     const VisualStyle& style,
+    const VisualsConfiguration& settings,
     ScreenGeometry& outGeometry) {
     
     // Calculate world bounds - prefer physics dimensions if available
@@ -65,9 +66,9 @@ bool ScreenProjector::Project(
     
     // Project based on entity type
     if (RenderSettingsHelper::IsObjectType(entity.entityType)) {
-        ProjectGadget(entity, camera, screenW, screenH, outGeometry, style.scale, isOriginValid);
+        ProjectGadget(entity, camera, screenW, screenH, outGeometry, style.scale, settings, isOriginValid);
     } else {
-        ProjectCharacter(entity, camera, screenW, screenH, outGeometry, style.scale, isOriginValid);
+        ProjectCharacter(entity, camera, screenW, screenH, outGeometry, style.scale, settings, isOriginValid);
     }
     
     // Perform frustum culling check
@@ -109,10 +110,10 @@ void ScreenProjector::Calculate3DBoundingBox(
             geometry.cornerValidity[i] = true;
             validCornerCount++;
             
-            minX = std::min(minX, geometry.projectedCorners[i].x);
-            minY = std::min(minY, geometry.projectedCorners[i].y);
-            maxX = std::max(maxX, geometry.projectedCorners[i].x);
-            maxY = std::max(maxY, geometry.projectedCorners[i].y);
+            minX = (std::min)(minX, geometry.projectedCorners[i].x);
+            minY = (std::min)(minY, geometry.projectedCorners[i].y);
+            maxX = (std::max)(maxX, geometry.projectedCorners[i].x);
+            maxY = (std::max)(maxY, geometry.projectedCorners[i].y);
         } else {
             geometry.cornerValidity[i] = false;
         }
@@ -154,10 +155,8 @@ void ScreenProjector::GetWorldBoundsForEntity(
     }
 }
 
-void ScreenProjector::CalculateEntityBoxDimensions(EntityTypes entityType, float scale,
+void ScreenProjector::CalculateEntityBoxDimensions(EntityTypes entityType, float scale, const VisualsConfiguration& settings,
                                                     float& outBoxWidth, float& outBoxHeight) {
-    const auto& settings = AppState::Get().GetSettings();
-    
     switch (entityType) {
     case EntityTypes::Player:
         outBoxHeight = settings.sizes.baseBoxHeight * scale;
@@ -198,9 +197,10 @@ void ScreenProjector::ApplyFallback2DBox(
     const GameEntity& entity,
     ScreenGeometry& geometry,
     float scale,
+    const VisualsConfiguration& settings,
     const glm::vec2& screenPos) {
     float boxWidth, boxHeight;
-    CalculateEntityBoxDimensions(entity.entityType, scale, boxWidth, boxHeight);
+    CalculateEntityBoxDimensions(entity.entityType, scale, settings, boxWidth, boxHeight);
     geometry.boxMin = ImVec2(screenPos.x - boxWidth / 2, screenPos.y - boxHeight);
     geometry.boxMax = ImVec2(screenPos.x + boxWidth / 2, screenPos.y);
 }
@@ -212,9 +212,8 @@ void ScreenProjector::ProjectGadget(
     float screenHeight,
     ScreenGeometry& geometry,
     float scale,
+    const VisualsConfiguration& settings,
     bool isOriginValid) {
-    const auto& settings = AppState::Get().GetSettings();
-    
     float baseRadius = settings.sizes.baseBoxWidth * EntitySizeRatios::GADGET_CIRCLE_RADIUS_RATIO;
     geometry.circleRadius = (std::max)(MinimumSizes::GADGET_MIN_WIDTH / 2.0f, baseRadius * scale);
 
@@ -257,6 +256,7 @@ void ScreenProjector::ProjectCharacter(
     float screenHeight,
     ScreenGeometry& geometry,
     float scale,
+    const VisualsConfiguration& settings,
     bool isOriginValid) {
     float worldWidth, worldDepth, worldHeight;
     
@@ -283,7 +283,7 @@ void ScreenProjector::ProjectCharacter(
     
     if (!boxValid) {
         if (isOriginValid) {
-            ApplyFallback2DBox(entity, geometry, scale, geometry.screenPos);
+            ApplyFallback2DBox(entity, geometry, scale, settings, geometry.screenPos);
         }
     }
     

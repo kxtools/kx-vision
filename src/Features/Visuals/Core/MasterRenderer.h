@@ -4,8 +4,10 @@
 #include "../../../Game/Services/Mumble/MumbleLink.h"
 #include "../../../Game/Data/EntityData.h"
 #include "../../../Game/Data/FrameData.h"
-#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "VisualFrameTypes.h"
+#include "../Rendering/VisualLayoutConstants.h"
 #include "../Settings/VisualsSettings.h"
+#include "../Combat/VisualCombatTracker.h"
 #include <vector>
 
 namespace kx {
@@ -18,7 +20,10 @@ public:
     ~MasterRenderer() = default;
 
     void Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, 
-                Camera& camera, EntityManager& entityManager, const VisualsConfiguration& visualsConfig);
+                Camera& camera, const FrameSnapshotHandle& snapshot,
+                const VisualCombatTracker::StateMap& visualCombatStates,
+                const VisualsConfiguration& visualsConfig,
+                float adaptiveFarPlane);
 
     void Reset();
 

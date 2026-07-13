@@ -2,6 +2,7 @@
 
 #include "LayoutCursor.h"
 #include "../../../Game/Data/FrameData.h"
+#include "../Core/VisualFrameTypes.h"
 #include "../../../Rendering/Data/HealthBarAnimationState.h"
 #include "../../../Game/GameEnums.h"
 #include <string_view>
@@ -13,10 +14,11 @@ struct VisualsConfiguration;
 
 class EntityComponentRenderer {
 public:
-    static void RenderGeometry(const FrameContext& ctx, const GameEntity& entity, const VisualProperties& props, const VisualsConfiguration& visualsConfig);
+    static void RenderGeometry(const FrameContext& ctx, const GameEntity& entity, float gameplayDistance, const VisualProperties& props, const VisualsConfiguration& visualsConfig);
 
     static void RenderIdentity(const FrameContext& ctx,
                                const GameEntity& entity,
+                               float gameplayDistance,
                                std::string_view displayName,
                                const VisualProperties& props,
                                LayoutCursor& cursor,

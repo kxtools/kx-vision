@@ -10,6 +10,8 @@
 #include "../../libs/ImGui/imgui.h"
 #include "UI/Backend/D3DState.h"
 #include "UI/Backend/OverlayWindow.h"
+#include "../Hooking/D3DRenderHook.h"
+#include <mutex>
 
 void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
                                HWND windowHandle, 
@@ -18,25 +20,16 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
                                ID3D11DeviceContext* context, 
                                ID3D11RenderTargetView* renderTargetView) {
 
-    // Early exit checks
-    if (lifecycleManager.IsShuttingDown()) {
+    // Guardrail: render-thread product setup must run before any frame work and
+    // exactly once. Running it on entry/init thread breaks thread-local setup.
+    static std::once_flag s_renderThreadStartFlag;
+    std::call_once(s_renderThreadStartFlag, [&lifecycleManager]() {
+        lifecycleManager.OnRenderThreadStart();
+    });
+
+    if (!CanExecute(lifecycleManager, context, renderTargetView)) {
         return;
     }
-
-    if (!context || !renderTargetView) {
-        return;
-    }
-
-    // Critical: Check if ImGui context is still valid before any ImGui operations
-    if (!ImGui::GetCurrentContext()) {
-        return;
-    }
-
-    // Update ImGui display size
-    UpdateImGuiDisplaySize(displayWidth, displayHeight);
-
-    // Handle input for UI toggle
-    HandleInput(windowHandle);
 
     // Declare state backup here to ensure it's available in the catch block
     kx::StateBackupD3D11 d3dState;
@@ -48,50 +41,103 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         // CRITICAL: Backup D3D state before rendering
         BackupD3D11State(context, d3dState);
 
-        // Update game state
-        kx::MumbleLinkManager& mumbleLinkManager = lifecycleManager.GetMumbleLinkManager();
-        mumbleLinkManager.Update();
-        const kx::MumbleLinkData* mumbleLinkData = mumbleLinkManager.GetData();
+        const kx::MumbleLinkData* mumbleLinkData =
+            PrepareGameState(lifecycleManager, windowHandle, displayWidth, displayHeight);
 
-        // Check for state transitions (GW2AL mode only)
-#ifdef GW2AL_BUILD
-        lifecycleManager.CheckStateTransitions();
-#endif
-
-        // Update camera with current game state
-        kx::Camera& camera = lifecycleManager.GetCamera();
-        camera.Update(mumbleLinkManager, windowHandle);
-
-        // Get feature manager and update all features with extracted data
-        kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
-        const kx::FrameGameData& frameData = lifecycleManager.GetEntityManager().GetFrameData();
-        const kx::ServiceContext& ctx = lifecycleManager.GetServiceContext();
-        featureManager.UpdateAll(0.016f, frameData, ctx); // Approximate 60 FPS deltaTime
-
-        // Render ImGui UI
         OverlayWindow::NewFrame();
         isImGuiFrameActive = true;
-        OverlayWindow::RenderUI(camera, mumbleLinkManager, mumbleLinkData,
-            windowHandle, displayWidth, displayHeight, featureManager, ctx);
-        OverlayWindow::Render(context, renderTargetView);
+
+        if (lifecycleManager.RequiresExclusiveOverlay()) {
+            // Guardrail: exclusive product overlays preempt feature execution.
+            // Moving this later lets locked features execute off-screen.
+            RenderExclusiveOverlayFrame(lifecycleManager, context, renderTargetView);
+        } else {
+            RenderFeatureFrame(lifecycleManager, mumbleLinkData, windowHandle,
+                displayWidth, displayHeight, context, renderTargetView);
+        }
         isImGuiFrameActive = false;
 
         // CRITICAL: Restore D3D state after rendering
         RestoreD3D11State(context, d3dState);
     }
     catch (...) {
-        LOG_ERROR("Exception caught in FrameCoordinator::Execute");
-        
-        // RECOVERY: If we crashed mid-frame, close the frame safely
-        if (isImGuiFrameActive) {
-            if (ImGui::GetCurrentContext()) {
-                ImGui::EndFrame();
-            }
-        }
-
-        // Attempt to restore the original D3D state to prevent a game crash
-        RestoreD3D11State(context, d3dState);
+        RecoverFailedFrame(context, d3dState, isImGuiFrameActive);
     }
+}
+
+bool FrameCoordinator::CanExecute(const kx::AppLifecycleManager& lifecycleManager,
+                                  ID3D11DeviceContext* context,
+                                  ID3D11RenderTargetView* renderTargetView) {
+    return !lifecycleManager.IsShuttingDown() &&
+           context && renderTargetView && ImGui::GetCurrentContext();
+}
+
+const kx::MumbleLinkData* FrameCoordinator::PrepareGameState(
+    kx::AppLifecycleManager& lifecycleManager,
+    HWND windowHandle,
+    float displayWidth,
+    float displayHeight) {
+    UpdateImGuiDisplaySize(displayWidth, displayHeight);
+    HandleInput(windowHandle);
+    kx::Hooking::D3DRenderHook::SyncOverlayInputState();
+
+    kx::MumbleLinkManager& mumbleLinkManager = lifecycleManager.GetMumbleLinkManager();
+    mumbleLinkManager.Update();
+
+#ifdef GW2AL_BUILD
+    lifecycleManager.CheckStateTransitions();
+#endif
+
+    lifecycleManager.GetCamera().Update(mumbleLinkManager, windowHandle);
+    return mumbleLinkManager.GetData();
+}
+
+void FrameCoordinator::RenderExclusiveOverlayFrame(kx::AppLifecycleManager& lifecycleManager,
+                                                   ID3D11DeviceContext* context,
+                                                   ID3D11RenderTargetView* renderTargetView) {
+    lifecycleManager.RenderRuntimeOverlay();
+    kx::Hooking::D3DRenderHook::CaptureOverlayRouting();
+    OverlayWindow::Render(context, renderTargetView);
+}
+
+void FrameCoordinator::RenderFeatureFrame(kx::AppLifecycleManager& lifecycleManager,
+                                          const kx::MumbleLinkData* mumbleLinkData,
+                                          HWND windowHandle,
+                                          float displayWidth,
+                                          float displayHeight,
+                                          ID3D11DeviceContext* context,
+                                          ID3D11RenderTargetView* renderTargetView) {
+    kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
+    // Guardrail: acquire once per render frame and forward same handle through update
+    // and draw. A second acquisition can mix entity generations inside one frame.
+    const kx::FrameSnapshotHandle snapshot = lifecycleManager.GetEntityManager().AcquireFrameSnapshot();
+    const kx::ServiceContext& ctx = lifecycleManager.GetServiceContext();
+
+    const auto now = std::chrono::steady_clock::now();
+    static auto lastFrameTime = now;
+    const std::chrono::duration<float> elapsed = now - lastFrameTime;
+    lastFrameTime = now;
+    // Guardrail: general features receive real monotonic elapsed time so deadlines
+    // survive stalls. Clamp only at movement/physics integration call sites.
+    const float realDeltaTime = (std::max)(0.0f, elapsed.count());
+    featureManager.UpdateAll(realDeltaTime, snapshot, ctx);
+
+    kx::MumbleLinkManager& mumbleLinkManager = lifecycleManager.GetMumbleLinkManager();
+    OverlayWindow::RenderUI(lifecycleManager.GetCamera(), mumbleLinkManager, mumbleLinkData,
+        windowHandle, displayWidth, displayHeight, featureManager, snapshot, ctx);
+    lifecycleManager.RenderRuntimeOverlay();
+    kx::Hooking::D3DRenderHook::CaptureOverlayRouting();
+    OverlayWindow::Render(context, renderTargetView);
+}
+
+void FrameCoordinator::RecoverFailedFrame(ID3D11DeviceContext* context,
+                                          kx::StateBackupD3D11& d3dState,
+                                          bool isImGuiFrameActive) {
+    LOG_ERROR("Exception caught in FrameCoordinator::Execute");
+    if (isImGuiFrameActive && ImGui::GetCurrentContext()) {
+        ImGui::EndFrame();
+    }
+    RestoreD3D11State(context, d3dState);
 }
 
 void FrameCoordinator::HandleInput(HWND windowHandle) {

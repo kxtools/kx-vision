@@ -1,121 +1,119 @@
 #include "EntityManager.h"
 #include "../../Game/Extraction/DataExtractor.h"
-#include "../AppState.h"
 #include <algorithm>
 
 namespace kx {
 
-EntityManager::EntityManager() = default;
+EntityManager::EntityManager() {
+    for (auto& slot : m_slots) slot = std::make_shared<SnapshotSlot>();
+}
 
 void EntityManager::Update(uint64_t now) {
-    const float currentTimeSeconds = now / 1000.0f;
-    const Settings& settings = AppState::Get().GetSettings();
-    const float updateInterval = 1.0f / (std::max)(1.0f, settings.espUpdateRate);
+    if (!ShouldExtract(now)) {
+        return;
+    }
 
-    if (currentTimeSeconds - m_lastGameDataUpdateTime >= updateInterval) {
-        // 1. Determine which pools to write to (back buffers)
-        // We compute the next index but don't flip the global index yet
-        const size_t nextIndex = (m_writeIndex + 1) % BUFFER_COUNT;
+    std::shared_ptr<SnapshotSlot> writeSlot = FindWritableSlot();
+    // Guardrail: never recycle storage visible to render/automation. Dropping one
+    // extraction is safer than blocking game thread or allocating a fourth slot.
+    if (!writeSlot) {
+        m_lastGameDataUpdateMs = now;
+        return;
+    }
 
-        // Get references to the back buffer pools
-        auto& nextPlayerPool = m_playerPools[nextIndex];
-        auto& nextNpcPool = m_npcPools[nextIndex];
-        auto& nextGadgetPool = m_gadgetPools[nextIndex];
-        auto& nextAttackTargetPool = m_attackTargetPools[nextIndex];
-        auto& nextItemPool = m_itemPools[nextIndex];
+    if (ExtractInto(*writeSlot)) {
+        UpdateCombatObservations(*writeSlot, now);
+        PublishSnapshot(writeSlot, now);
+    }
 
-        // 2. Reset ONLY the back buffer pools and scratch buffers
-        nextPlayerPool.Reset();
-        nextNpcPool.Reset();
-        nextGadgetPool.Reset();
-        nextAttackTargetPool.Reset();
-        nextItemPool.Reset();
-        m_frameDataWorkBuffer.Reset();
+    m_lastGameDataUpdateMs = now;
+}
 
-        // Clear the persistent character-to-name map (retains capacity for high-water mark strategy)
-        m_charToNameMap.clear();
+bool EntityManager::ShouldExtract(uint64_t now) const {
+    const float updateRateHz = m_requestedUpdateRateHz.load(std::memory_order_relaxed);
+    const uint64_t updateIntervalMs = static_cast<uint64_t>(1000.0f / (std::max)(1.0f, updateRateHz));
+    // Guardrail: keep throttle math in monotonic integer milliseconds. Converting the
+    // large tick epoch to float seconds loses precision and eventually changes cadence.
+    return now - m_lastGameDataUpdateMs >= updateIntervalMs;
+}
 
-        // 3. Extract entity data from game memory into work buffer and back buffer pools
-        const bool extracted = DataExtractor::ExtractFrameData(
-            nextPlayerPool, nextNpcPool, nextGadgetPool,
-            nextAttackTargetPool, nextItemPool, m_frameDataWorkBuffer,
-            m_charToNameMap
-        );
+std::shared_ptr<EntityManager::SnapshotSlot> EntityManager::FindWritableSlot() {
+    for (auto& slot : m_slots) {
+        if (slot.use_count() == 1) {
+            return slot;
+        }
+    }
+    return {};
+}
 
-        if (extracted) {
-            // Collect all combat state keys from work buffer
-            const size_t totalCount = m_frameDataWorkBuffer.players.size() + m_frameDataWorkBuffer.npcs.size() +
-                m_frameDataWorkBuffer.gadgets.size() + m_frameDataWorkBuffer.attackTargets.size() +
-                m_frameDataWorkBuffer.items.size();
+bool EntityManager::ExtractInto(SnapshotSlot& slot) {
+    slot.ResetStorage();
+    m_charToNameMap.clear();
+    return DataExtractor::ExtractFrameData(
+        slot.players, slot.npcs, slot.gadgets,
+        slot.attackTargets, slot.items, slot.frameData,
+        m_charToNameMap
+    );
+}
 
-            m_activeCombatKeys.clear();
-            m_activeCombatKeys.reserve(totalCount);
+void EntityManager::UpdateCombatObservations(SnapshotSlot& slot, uint64_t now) {
+    const auto& data = slot.frameData;
+    const size_t totalCount = data.players.size() + data.npcs.size() + data.gadgets.size() +
+        data.attackTargets.size() + data.items.size();
 
-            auto collectKeys = [&](const auto& collection) {
-                for (const auto* e : collection) {
-                    m_activeCombatKeys.insert(e->GetCombatKey());
-                }
-            };
+    m_activeCombatKeys.clear();
+    m_activeCombatKeys.reserve(totalCount);
 
-            collectKeys(m_frameDataWorkBuffer.players);
-            collectKeys(m_frameDataWorkBuffer.npcs);
-            collectKeys(m_frameDataWorkBuffer.gadgets);
-            collectKeys(m_frameDataWorkBuffer.attackTargets);
-            collectKeys(m_frameDataWorkBuffer.items);
-
-            // Prune stale combat states
-            m_combatStateManager.Prune(m_activeCombatKeys);
-
-            // Update combat states
-            m_allEntitiesBuffer.clear();
-            if (m_allEntitiesBuffer.capacity() < totalCount) {
-                m_allEntitiesBuffer.reserve(totalCount);
-            }
-
-            m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_frameDataWorkBuffer.players.begin(), m_frameDataWorkBuffer.players.end());
-            m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_frameDataWorkBuffer.npcs.begin(), m_frameDataWorkBuffer.npcs.end());
-            m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_frameDataWorkBuffer.gadgets.begin(), m_frameDataWorkBuffer.gadgets.end());
-            m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_frameDataWorkBuffer.attackTargets.begin(), m_frameDataWorkBuffer.attackTargets.end());
-            m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), m_frameDataWorkBuffer.items.begin(), m_frameDataWorkBuffer.items.end());
-            m_combatStateManager.Update(m_allEntitiesBuffer, now);
-
-            // Update adaptive far plane
-            AppState::Get().UpdateAdaptiveFarPlane(m_frameDataWorkBuffer);
-
-            // 4. Atomically publish: Swap work buffer to snapshot AND flip the write index
-            // Both operations happen inside the lock to ensure render thread sees consistent state
-            {
-                std::lock_guard<std::mutex> lock(m_snapshotMutex);
-                std::swap(m_frameDataSnapshot, m_frameDataWorkBuffer);
-
-                // CRITICAL: Flip the write index inside the lock.
-                // This ensures the render thread (which grabbed the snapshot) is now 
-                // officially "using" the data from the new pool index.
-                // The NEXT update will target the old index (which is now safe to overwrite).
-                m_writeIndex = nextIndex;
+    const auto collectKeys = [&](const auto& collection) {
+        for (const auto* entity : collection) {
+            const CombatObservationKey key = entity->GetCombatKey();
+            if (key.IsValid()) {
+                m_activeCombatKeys.insert(key);
             }
         }
+    };
 
-        m_lastGameDataUpdateTime = currentTimeSeconds;
+    collectKeys(data.players);
+    collectKeys(data.npcs);
+    collectKeys(data.gadgets);
+    collectKeys(data.attackTargets);
+    collectKeys(data.items);
+
+    m_combatObservationTracker.Prune(m_activeCombatKeys);
+
+    m_allEntitiesBuffer.clear();
+    if (m_allEntitiesBuffer.capacity() < totalCount) {
+        m_allEntitiesBuffer.reserve(totalCount);
     }
+
+    m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), data.players.begin(), data.players.end());
+    m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), data.npcs.begin(), data.npcs.end());
+    m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), data.gadgets.begin(), data.gadgets.end());
+    m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), data.attackTargets.begin(), data.attackTargets.end());
+    m_allEntitiesBuffer.insert(m_allEntitiesBuffer.end(), data.items.begin(), data.items.end());
+
+    m_combatObservationTracker.Update(m_allEntitiesBuffer, now);
+}
+
+void EntityManager::PublishSnapshot(const std::shared_ptr<SnapshotSlot>& slot, uint64_t now) {
+    // Guardrail: finish every field before release-store. Readers treat publication as
+    // immutable and perform no second readiness check.
+    m_combatObservationTracker.CopyObservationsTo(slot->combatObservations);
+    slot->capturedAtMs = now;
+
+    FrameSnapshotHandle published(slot, static_cast<const EntityFrameSnapshot*>(slot.get()));
+    m_publishedSnapshot.store(std::move(published), std::memory_order_release);
 }
 
 void EntityManager::Reset() {
-    for (size_t i = 0; i < BUFFER_COUNT; ++i) {
-        m_playerPools[i].Reset();
-        m_npcPools[i].Reset();
-        m_gadgetPools[i].Reset();
-        m_attackTargetPools[i].Reset();
-        m_itemPools[i].Reset();
-    }
-    m_frameDataWorkBuffer.Reset();
-    {
-        std::lock_guard<std::mutex> lock(m_snapshotMutex);
-        m_frameDataSnapshot.Reset();
-    }
+    m_publishedSnapshot.store({}, std::memory_order_release);
+    for (auto& slot : m_slots) if (slot.use_count() == 1) slot->ResetStorage();
+    // Guardrail: agent IDs can be reused across maps. Keeping combat state here
+    // would attach stale health/death/trail effects to unrelated new entities.
+    m_combatObservationTracker.Clear();
     m_activeCombatKeys.clear();
     m_allEntitiesBuffer.clear();
-    m_writeIndex = 0;
+    m_lastGameDataUpdateMs = 0;
 }
 
 } // namespace kx

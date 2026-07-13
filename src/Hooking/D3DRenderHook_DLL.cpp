@@ -22,23 +22,18 @@ namespace kx::Hooking {
             return false;
         }
 
-        // Create and enable the Present hook via HookManager
-        if (!HookManager::CreateHook(m_pTargetPresent, DetourPresent, reinterpret_cast<LPVOID*>(&m_pOriginalPresent))) {
-            LOG_ERROR("[D3DRenderHook] Failed to create Present hook via HookManager.");
+        if (!HookManager::CreateAndEnable(
+                m_presentHook,
+                reinterpret_cast<LPVOID>(m_pTargetPresent),
+                reinterpret_cast<LPVOID>(DetourPresent),
+                reinterpret_cast<LPVOID*>(&m_pOriginalPresent))) {
+            LOG_ERROR("[D3DRenderHook] Failed to create and enable Present hook.");
             return false;
         }
-        if (!HookManager::EnableHook(m_pTargetPresent)) {
-            LOG_ERROR("[D3DRenderHook] Failed to enable Present hook via HookManager.");
-            return false;
-        }
+        m_presentHookInstalled = true;
 
         LOG_INFO("[D3DRenderHook] Present hook created and enabled.");
-        
-        // Initialize WndProc state
-        m_rightMouseDown = false;
-        m_leftMouseDown = false;
-        m_wasOverImGuiWindow = false;
-        
+
         AppState::Get().SetPresentHookStatus(HookStatus::OK);
         return true;
     }
@@ -100,8 +95,9 @@ namespace kx::Hooking {
     }
 
     HRESULT __stdcall D3DRenderHook::DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
+        HookCallbackGuard callbackGuard;
         // Check the shutdown flag FIRST
-        if (AppState::Get().IsShuttingDown()) {
+        if (HookManager::IsShuttingDown() || AppState::Get().IsShuttingDown()) {
             return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
         }
 
@@ -164,9 +160,7 @@ namespace kx::Hooking {
         // Note: We no longer create a cached render target view here
         // Instead, we create a fresh RTV every frame in DetourPresent() to handle resize properly
 
-        // Hook WndProc
-        m_pOriginalWndProc = (WNDPROC)SetWindowLongPtr(m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
-        if (!m_pOriginalWndProc) {
+        if (!InstallWndProc(m_hWindow)) {
             LOG_ERROR("[D3DRenderHook] Failed to hook WndProc");
             // Release partially initialized resources before cleanup
             if (m_pContext) {

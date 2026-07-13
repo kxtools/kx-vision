@@ -1,29 +1,44 @@
 #pragma once
 
+#include <windows.h>
+
+#include <cstdint>
+#include <cstring>
+#include <limits>
+
 #include "../Memory/AddressManager.h"
 
 namespace kx {
 namespace SafeAccess {
 
-    // Hard Limits (User Mode Address Space)
-    constexpr uintptr_t MIN_VALID = 0x10000;      // Skip null & low partition
-    constexpr uintptr_t MAX_VALID = 0x7FFFFFFEFFFF; // User mode limit
+    constexpr uintptr_t MIN_VALID = 0x10000;
+    constexpr uintptr_t MAX_VALID = 0x7FFFFFFEFFFF;
+    constexpr uint32_t MAX_GAME_CONTAINER_CAPACITY = 1u << 20;
 
-    /**
-     * @brief Super-fast check. Does NOT guarantee readability, only sanity.
-     */
-    inline bool IsAddressInBounds(void* ptr) {
-        uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
-        return addr >= MIN_VALID && addr <= MAX_VALID;
+    inline bool IsAddressInBounds(const void* ptr) noexcept {
+        const uintptr_t address = reinterpret_cast<uintptr_t>(ptr);
+        return address >= MIN_VALID && address <= MAX_VALID;
     }
 
-    // ---------------------------------------------------------
-    // HELPER 1: Safe Pointer Read
-    // Isolated in its own function to avoid C2712 errors.
-    // ---------------------------------------------------------
-    inline bool SafeReadVTable(void* pObject, uintptr_t& outVTable) {
+    inline bool IsRangeInBounds(uintptr_t address, size_t size) noexcept {
+        if (size == 0 || address < MIN_VALID || address > MAX_VALID) {
+            return false;
+        }
+
+        const size_t tail = size - 1;
+        return tail <= MAX_VALID - address;
+    }
+
+    template<typename T>
+    inline bool TryRead(uintptr_t address, T& outValue) noexcept {
+        if (!IsRangeInBounds(address, sizeof(T))) {
+            return false;
+        }
+
+        // Crash-safety invariant: foreign reads get exactly one guarded typed access.
+        // Do not add a separate probe: it adds hot-path cost and cannot prevent TOCTOU invalidation.
         __try {
-            outVTable = *reinterpret_cast<uintptr_t*>(pObject);
+            outValue = *reinterpret_cast<const T*>(address);
             return true;
         }
         __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -31,14 +46,20 @@ namespace SafeAccess {
         }
     }
 
-    // ---------------------------------------------------------
-    // HELPER 2: Memory Probe
-    // Isolated in its own function to avoid C2712 errors.
-    // ---------------------------------------------------------
-    inline bool ProbeMemory(void* ptr) {
+    template<typename T>
+    inline bool TryRead(const void* address, T& outValue) noexcept {
+        return TryRead(reinterpret_cast<uintptr_t>(address), outValue);
+    }
+
+    template<typename T>
+    inline bool TryWrite(uintptr_t address, const T& value) noexcept {
+        if (!IsRangeInBounds(address, sizeof(T))) {
+            return false;
+        }
+
+        // Foreign writes must stay inside SEH; C++ catch (...) does not reliably catch access violations.
         __try {
-            volatile char c = *reinterpret_cast<volatile char*>(ptr);
-            (void)c;
+            *reinterpret_cast<T*>(address) = value;
             return true;
         }
         __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -46,14 +67,14 @@ namespace SafeAccess {
         }
     }
 
-    // ---------------------------------------------------------
-    // HELPER 3: Safe Byte Read
-    // Isolated proxy for single-byte reads without C++ objects.
-    // Used by Scanner to avoid SEH/C++ destructor conflicts.
-    // ---------------------------------------------------------
-    inline bool RawSafeReadByte(uintptr_t address, unsigned char& outByte) {
+    inline bool TryReadBuffer(uintptr_t address, void* outBuffer, size_t size) noexcept {
+        if (!outBuffer || !IsRangeInBounds(address, size)) {
+            return false;
+        }
+
+        // Keep copy itself guarded. A prior readability check can become stale before memcpy executes.
         __try {
-            outByte = *reinterpret_cast<unsigned char*>(address);
+            std::memcpy(outBuffer, reinterpret_cast<const void*>(address), size);
             return true;
         }
         __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -61,86 +82,81 @@ namespace SafeAccess {
         }
     }
 
-    // ---------------------------------------------------------
-    // Main Safety Checks
-    // ---------------------------------------------------------
+    inline bool ProbeReadableRange(uintptr_t address, size_t size) noexcept {
+        if (!IsRangeInBounds(address, size)) {
+            return false;
+        }
 
-    /**
-     * @brief The High-Performance Safety Check.
-     * RELIES ON /EHa (Async Exceptions) to catch crashes.
-     */
-    inline bool IsMemorySafe(void* ptr) {
-        if (!IsAddressInBounds(ptr)) return false;
+        __try {
+            const auto* bytes = reinterpret_cast<const volatile uint8_t*>(address);
+            for (size_t i = 0; i < size; ++i) {
+                (void)bytes[i];
+            }
+            return true;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            return false;
+        }
+    }
+
+    inline bool SafeReadVTable(void* object, uintptr_t& outVTable) noexcept {
+        return TryRead(object, outVTable);
+    }
+
+    inline bool ProbeMemory(void* ptr) noexcept {
+        uint8_t ignored = 0;
+        return TryRead(ptr, ignored);
+    }
+
+    inline bool RawSafeReadByte(uintptr_t address, unsigned char& outByte) noexcept {
+        return TryRead(address, outByte);
+    }
+
+    inline bool IsMemorySafe(void* ptr) noexcept {
         return ProbeMemory(ptr);
     }
 
-    /**
-     * @brief Checks if an object is a Valid Game Object.
-     * This is the BEST check for Entity Lists.
-     */
-    inline bool IsValidGameObject(void* pObject) {
-        // 1. Fast sanity checks
-        if (!IsAddressInBounds(pObject)) return false;
+    inline bool IsExecutableAddress(uintptr_t address) noexcept {
+        if (!IsAddressInBounds(reinterpret_cast<const void*>(address))) {
+            return false;
+        }
 
-        // 2. Get Module Info
-        // Note: We moved the static vars out or rely on fast getters
-        // AddressManager::GetModuleBase() should be a simple return of a static var
-        uintptr_t modBase = AddressManager::GetModuleBase();
-        size_t modSize = AddressManager::GetModuleSize();
+        MEMORY_BASIC_INFORMATION info{};
+        if (VirtualQuery(reinterpret_cast<const void*>(address), &info, sizeof(info)) != sizeof(info) ||
+            info.State != MEM_COMMIT || (info.Protect & (PAGE_GUARD | PAGE_NOACCESS)) != 0) {
+            return false;
+        }
 
-        // 3. Use the Helper for the dangerous read
+        const DWORD protection = info.Protect & 0xFF;
+        return protection == PAGE_EXECUTE || protection == PAGE_EXECUTE_READ ||
+               protection == PAGE_EXECUTE_READWRITE || protection == PAGE_EXECUTE_WRITECOPY;
+    }
+
+    inline bool IsValidGameObject(void* object) noexcept {
+        if (!IsAddressInBounds(object)) {
+            return false;
+        }
+
         uintptr_t vtable = 0;
-        if (SafeReadVTable(pObject, vtable)) {
-            // 4. Validate VTable range
-            if (modBase > 0 && modSize > 0) {
-                return (vtable >= modBase && vtable < (modBase + modSize));
-            }
+        if (!TryRead(object, vtable)) {
+            return false;
         }
 
-        return false;
+        const uintptr_t moduleBase = AddressManager::GetModuleBase();
+        const size_t moduleSize = AddressManager::GetModuleSize();
+        if (moduleBase < MIN_VALID || moduleBase > MAX_VALID || moduleSize == 0 ||
+            moduleSize > MAX_VALID - moduleBase) {
+            return false;
+        }
+
+        return vtable >= moduleBase && vtable < moduleBase + moduleSize;
     }
 
-    /**
-     * @brief Validates if an object's VTable pointer resides within the game module
-     * @param pObject Pointer to the object whose VTable should be validated
-     * @return true if the VTable pointer is valid and within module bounds, false otherwise
-     */
-    inline bool IsVTablePointerValid(void* pObject) {
-        if (!pObject || !IsMemorySafe(pObject)) {
-            return false;
-        }
-
-        // Safely read the first pointer-sized value (VTable pointer) using helper
-        uintptr_t vtablePtr = 0;
-        if (!SafeReadVTable(pObject, vtablePtr)) {
-            return false;
-        }
-
-        // Get cached module information from AddressManager
-        uintptr_t moduleBase = AddressManager::GetModuleBase();
-        size_t moduleSize = AddressManager::GetModuleSize();
-        
-        // If module information hasn't been scanned yet, can't validate
-        if (moduleBase == 0 || moduleSize == 0) {
-            return false;
-        }
-
-        // Check if VTable pointer is within the game module bounds
-        return (vtablePtr >= moduleBase && vtablePtr < (moduleBase + moduleSize));
+    inline bool IsVTablePointerValid(void* object) noexcept {
+        return IsValidGameObject(object);
     }
 
-    /**
-     * @brief Validates if an Agent ID is within a sane range
-     * Memory addresses are reused, but Agent IDs are unique for the entity's lifetime.
-     * This check helps detect when a pointer is accessing stale or garbage memory.
-     * 
-     * @param id The agent ID to validate
-     * @return true if the ID is within expected bounds, false if it's garbage
-     */
-    inline bool IsAgentIdSane(int32_t id) {
-        // Agent IDs are usually positive and within a reasonable range.
-        // If you see an ID of 0, -1, or extremely large values, the memory is likely corrupted.
-        // Typical range in active sessions: 1 to ~100,000
+    inline bool IsAgentIdSane(int32_t id) noexcept {
         return id > 0 && id < 0x0FFFFFFF;
     }
 

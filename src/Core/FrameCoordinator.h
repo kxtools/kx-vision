@@ -9,6 +9,7 @@ namespace kx {
     class MumbleLinkManager;
     class AppLifecycleManager;
     struct MumbleLinkData;
+    struct StateBackupD3D11;
 }
 
 /**
@@ -45,6 +46,31 @@ public:
                        ID3D11RenderTargetView* renderTargetView);
 
 private:
+    static bool CanExecute(const kx::AppLifecycleManager& lifecycleManager,
+                           ID3D11DeviceContext* context,
+                           ID3D11RenderTargetView* renderTargetView);
+
+    static const kx::MumbleLinkData* PrepareGameState(kx::AppLifecycleManager& lifecycleManager,
+                                                       HWND windowHandle,
+                                                       float displayWidth,
+                                                       float displayHeight);
+
+    static void RenderExclusiveOverlayFrame(kx::AppLifecycleManager& lifecycleManager,
+                                            ID3D11DeviceContext* context,
+                                            ID3D11RenderTargetView* renderTargetView);
+
+    static void RenderFeatureFrame(kx::AppLifecycleManager& lifecycleManager,
+                                   const kx::MumbleLinkData* mumbleLinkData,
+                                   HWND windowHandle,
+                                   float displayWidth,
+                                   float displayHeight,
+                                   ID3D11DeviceContext* context,
+                                   ID3D11RenderTargetView* renderTargetView);
+
+    static void RecoverFailedFrame(ID3D11DeviceContext* context,
+                                   kx::StateBackupD3D11& d3dState,
+                                   bool isImGuiFrameActive);
+
     /**
      * @brief Handle UI input (toggle keys, etc.)
      * @param windowHandle Window handle for input context

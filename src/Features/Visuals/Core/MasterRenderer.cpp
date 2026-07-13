@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <Windows.h>
 
-#include "../../../Core/AppState.h"
 #include "../../../Core/Services/EntityManager.h"
 #include "../../../Game/Services/Mumble/MumbleLinkManager.h"
 #include "StageRenderer.h"
@@ -24,7 +23,10 @@ void MasterRenderer::FilterAndProcessData(const FrameGameData& extractionData, c
 }
 
 void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleLinkData* mumbleData, 
-                            Camera& camera, EntityManager& entityManager, const VisualsConfiguration& visualsConfig) {
+                            Camera& camera, const FrameSnapshotHandle& snapshot,
+                            const VisualCombatTracker::StateMap& visualCombatStates,
+                            const VisualsConfiguration& visualsConfig,
+                            float adaptiveFarPlane) {
     if (ShouldHideESP(mumbleData)) {
         return;
     }
@@ -36,15 +38,17 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
     const uint64_t now = GetTickCount64();
     bool isInWvW = mumbleData && mumbleData->context.mapType == 18; // WvW map type
 
-    // Get globally extracted data from EntityManager
-    const FrameGameData& extractionData = entityManager.GetFrameData();
-    CombatStateManager& combatStateManager = entityManager.GetCombatStateManager();
+    if (!snapshot) return;
 
+    // Guardrail: observations belong to same immutable generation as entities. Render
+    // must not reach back into game-thread tracker state.
     FrameContext frameContext = {
         now,
         camera,
-        combatStateManager,
-        AppState::Get().GetSettings(),
+        snapshot->combatObservations,
+        visualCombatStates,
+        visualsConfig,
+        adaptiveFarPlane,
         ImGui::GetBackgroundDrawList(),
         screenWidth,
         screenHeight,
@@ -52,7 +56,7 @@ void MasterRenderer::Render(float screenWidth, float screenHeight, const MumbleL
     };
 
     // Filter the global data for this frame
-    FilterAndProcessData(extractionData, frameContext, visualsConfig);
+    FilterAndProcessData(snapshot->frameData, frameContext, visualsConfig);
 
     // Render the filtered data
     StageRenderer::RenderFrameData(frameContext, m_processedRenderData, visualsConfig);

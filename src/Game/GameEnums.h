@@ -99,7 +99,8 @@ enum class ResourceNodeType : int {
     Tree = 1,
     Rock = 2,
     Quest = 3,
-    None = 4
+    None = 4,
+    Cache = 6  // cargos, speed mushrooms, chests, trade caches
 };
 
 // Attack Target Combat States
@@ -192,7 +193,6 @@ enum class EquipmentSlot : int {
     PvpOffhandWeapon2 = 53,
 
     PvpAmulet = 58,
-    FishingRod = 60,
     Relic = 67,
     Backpack1 = 68,
     End = 69

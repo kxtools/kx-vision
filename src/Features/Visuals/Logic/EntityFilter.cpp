@@ -1,23 +1,25 @@
 #include "EntityFilter.h"
+#include "../Core/VisualFrameTypes.h"
+#include "../../../Game/Data/FrameData.h"
 
 #include "FilterSettings.h"
 #include "../Settings/VisualsSettings.h"
 #include "../../../Game/Data/EntityData.h"
-#include "Services/Combat/CombatStateManager.h"
 #include "../../../Game/Services/Camera/Camera.h"
-#include "Services/Combat/CombatConstants.h"
-#include "../../../Core/Settings.h"
+#include "../Combat/VisualCombatConstants.h"
+#include "../../../Game/Services/Combat/CombatObservation.h"
 
 namespace kx {
 
 namespace { // Anonymous namespace for local helpers
 
-    bool IsDeathAnimationPlaying(const GameEntity* entity, const CombatStateManager& stateManager, uint64_t now) {
-        const EntityCombatState* state = stateManager.GetState(entity->GetCombatKey());
+    bool IsDeathAnimationPlaying(const GameEntity* entity, const FrameContext& context, uint64_t now) {
+        const auto it = context.combatObservations.find(entity->GetCombatKey());
+        const CombatObservation* state = it != context.combatObservations.end() ? &it->second : nullptr;
         if (!state || state->deathTimestamp == 0) {
             return false;
         }
-        return (now - state->deathTimestamp) <= CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
+        return CombatElapsedMs(now, state->deathTimestamp) <= VisualCombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
     }
 
     /**
@@ -34,11 +36,12 @@ namespace { // Anonymous namespace for local helpers
             return false;
         }
 
-        entity->visualDistance = glm::length(entity->position - cameraPos);
-        entity->gameplayDistance = glm::length(entity->position - playerPos);
+        // Guardrail: published snapshot entities are immutable on render thread. Keep
+        // camera/player-derived metrics local; writing entity distance fields creates a race.
+        const float gameplayDistance = glm::length(entity->position - playerPos);
 
         float activeLimit = context.settings.distance.GetActiveDistanceLimit(entity->entityType, context.isInWvW);
-        if (activeLimit > 0.0f && entity->gameplayDistance > activeLimit) {
+        if (activeLimit > 0.0f && gameplayDistance > activeLimit) {
             return false;
         }
 
@@ -66,7 +69,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             // Now, perform player-specific filtering
             if (player->isLocalPlayer && !visualsConfig.playerESP.showLocalPlayer) continue;
             
-            if (player->currentHealth <= 0.0f && !IsDeathAnimationPlaying(player, context.stateManager, context.now)) {
+            if (player->currentHealth <= 0.0f && !IsDeathAnimationPlaying(player, context, context.now)) {
                 continue;
             }
             
@@ -86,7 +89,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             }
             
             // Now, perform NPC-specific filtering
-            if (npc->currentHealth <= 0.0f && !visualsConfig.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc, context.stateManager, context.now)) {
+            if (npc->currentHealth <= 0.0f && !visualsConfig.npcESP.showDeadNpcs && !IsDeathAnimationPlaying(npc, context, context.now)) {
                 continue;
             }
             
@@ -106,7 +109,7 @@ void EntityFilter::FilterPooledData(const FrameGameData& extractedData, const Fr
             }
 
             // Now, perform gadget-specific filtering
-            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !visualsConfig.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget, context.stateManager, context.now)) {
+            if (gadget->maxHealth > 0 && gadget->currentHealth <= 0.0f && !visualsConfig.objectESP.showDeadGadgets && !IsDeathAnimationPlaying(gadget, context, context.now)) {
                 continue;
             }
 

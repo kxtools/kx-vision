@@ -1,4 +1,4 @@
-#include "MathUtils.h"
+#include "CameraProjection.h"
 
 #include "gtc/type_ptr.hpp" // Required for glm::value_ptr
 
@@ -66,6 +66,6 @@ namespace kx {
             return true;
         }
 
-    } // namespace ESPUtils
+    } // namespace MathUtils
 
 } // namespace kx

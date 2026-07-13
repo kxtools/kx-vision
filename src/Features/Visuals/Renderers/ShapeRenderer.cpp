@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "../../../../libs/ImGui/imgui.h"
-#include "../../../Rendering/Shared/MathUtils.h"
+#include "../../../Game/Services/Camera/CameraProjection.h"
 #include "../../../Game/Data/FrameData.h"
-#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../Rendering/VisualLayoutConstants.h"
 
 namespace kx {
 

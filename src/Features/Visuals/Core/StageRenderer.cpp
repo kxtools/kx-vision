@@ -1,4 +1,5 @@
 #include "StageRenderer.h"
+#include "VisualFrameTypes.h"
 #include "../../../Game/Services/Camera/Camera.h"
 #include "../Renderers/EntityComponentRenderer.h"
 #include "../Renderers/LayoutCursor.h"
@@ -8,27 +9,27 @@
 #include "../Presentation/Styling.h"
 #include "../Logic/StyleCalculator.h"
 #include "../Logic/Animations/HealthBarAnimations.h"
-#include "../../../Game/Services/Combat/CombatStateManager.h"
-#include "../../../Game/Services/Combat/CombatState.h"
-#include "../../../Game/Services/Combat/CombatConstants.h"
+#include "../../../Game/Services/Combat/CombatObservation.h"
+#include "../Combat/VisualCombatConstants.h"
+#include "../Combat/VisualCombatState.h"
 #include "../Settings/VisualsSettings.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include <string_view>
 #include <vector>
 
 #include "../Renderers/ScreenProjector.h"
-#include "../../../Rendering/Shared/RenderSettingsHelper.h"
+#include "../Logic/RenderSettingsHelper.h"
 
 namespace kx {
 
 namespace {
 
-float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showBurstDpsSetting) {
+float CalculateBurstDps(const VisualCombatState* state, uint64_t now, bool showBurstDpsSetting) {
     if (!showBurstDpsSetting || !state || state->burstStartTime == 0 || state->accumulatedDamage <= 0.0f) {
         return 0.0f;
     }
 
-    uint64_t durationMs = now - state->burstStartTime;
+    uint64_t durationMs = CombatElapsedMs(now, state->burstStartTime);
     if (durationMs <= 100) {
         return 0.0f;
     }
@@ -37,11 +38,11 @@ float CalculateBurstDps(const EntityCombatState* state, uint64_t now, bool showB
     return durationSeconds > 0.0f ? (state->accumulatedDamage / durationSeconds) : 0.0f;
 }
 
-bool IsDeathAnimating(const EntityCombatState* state, uint64_t now) {
+bool IsDeathAnimating(const CombatObservation* state, uint64_t now) {
     if (!state || state->deathTimestamp == 0) {
         return false;
     }
-    return (now - state->deathTimestamp) <= CombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
+    return CombatElapsedMs(now, state->deathTimestamp) <= VisualCombatEffects::DEATH_ANIMATION_TOTAL_DURATION_MS;
 }
 
 bool ShouldRenderPlayerHealthBar(const PlayerEntity& player, const PlayerEspSettings& settings) {
@@ -56,7 +57,7 @@ bool ShouldRenderPlayerHealthBar(const PlayerEntity& player, const PlayerEspSett
 
 bool ShouldRenderNpcHealthBar(const NpcEntity& npc,
                               const NpcEspSettings& settings,
-                              const EntityCombatState* state,
+                              const CombatObservation* state,
                               uint64_t now) {
     if (!settings.renderHealthBar) {
         return false;
@@ -81,7 +82,7 @@ bool ShouldRenderNpcHealthBar(const NpcEntity& npc,
 
 bool ShouldRenderGadgetHealthBar(const GadgetEntity& gadget,
                                  const ObjectEspSettings& settings,
-                                 const EntityCombatState* state,
+                                 const CombatObservation* state,
                                  uint64_t now) {
     if (!settings.renderHealthBar) {
         return false;
@@ -133,7 +134,9 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity, con
     }
 
     VisualProperties visuals;
-    if (!Logic::StyleCalculator::Calculate(*entity, context, visualsConfig, visuals.style)) {
+    const float visualDistance = glm::length(entity->position - context.camera.GetCameraPosition());
+    const float gameplayDistance = glm::length(entity->position - context.camera.GetPlayerPosition());
+    if (!Logic::StyleCalculator::Calculate(*entity, visualDistance, gameplayDistance, context, visualsConfig, visuals.style)) {
         return;
     }
 
@@ -143,13 +146,21 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity, con
         context.screenWidth,
         context.screenHeight,
         visuals.style,
+        visualsConfig,
         visuals.geometry);
 
     if (!isOnScreen) {
         return;
     }
 
-    const EntityCombatState* combatState = context.stateManager.GetState(entity->GetCombatKey());
+    const auto observationIt = context.combatObservations.find(entity->GetCombatKey());
+    const CombatObservation* observation = observationIt != context.combatObservations.end()
+        ? &observationIt->second
+        : nullptr;
+    const auto visualCombatIt = context.visualCombatStates.find(entity->GetCombatKey());
+    const VisualCombatState* visualCombatState = visualCombatIt != context.visualCombatStates.end()
+        ? &visualCombatIt->second
+        : nullptr;
     
     bool showCombatUI = true;
     bool renderHealthBar = false;
@@ -164,28 +175,28 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity, con
             renderHealthBar = ShouldRenderPlayerHealthBar(player, visualsConfig.playerESP);
             renderEnergyBar = visualsConfig.playerESP.renderEnergyBar;
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.playerESP.showBurstDps);
+            burstDps = CalculateBurstDps(visualCombatState, context.now, visualsConfig.playerESP.showBurstDps);
             break;
         }
         case EntityTypes::NPC: {
             const auto& npc = static_cast<const NpcEntity&>(*entity);
             attitude = npc.attitude;
-            renderHealthBar = ShouldRenderNpcHealthBar(npc, visualsConfig.npcESP, combatState, context.now);
+            renderHealthBar = ShouldRenderNpcHealthBar(npc, visualsConfig.npcESP, observation, context.now);
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.npcESP.showBurstDps);
+            burstDps = CalculateBurstDps(visualCombatState, context.now, visualsConfig.npcESP.showBurstDps);
             break;
         }
         case EntityTypes::Gadget: {
             const auto& gadget = static_cast<const GadgetEntity&>(*entity);
-            renderHealthBar = ShouldRenderGadgetHealthBar(gadget, visualsConfig.objectESP, combatState, context.now);
+            renderHealthBar = ShouldRenderGadgetHealthBar(gadget, visualsConfig.objectESP, observation, context.now);
             showCombatUI = !Styling::ShouldHideCombatUIForGadget(gadget.type);
-            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.objectESP.showBurstDps);
+            burstDps = CalculateBurstDps(visualCombatState, context.now, visualsConfig.objectESP.showBurstDps);
             break;
         }
         case EntityTypes::AttackTarget: {
             renderHealthBar = false;
             showCombatUI = true;
-            burstDps = CalculateBurstDps(combatState, context.now, visualsConfig.objectESP.showBurstDps);
+            burstDps = CalculateBurstDps(visualCombatState, context.now, visualsConfig.objectESP.showBurstDps);
             break;
         }
         case EntityTypes::Item: {
@@ -196,8 +207,8 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity, con
     }
 
     HealthBarAnimationState animState;
-    if (renderHealthBar && combatState) {
-        PopulateHealthBarAnimations(entity, combatState, animState, context.now);
+    if (renderHealthBar && observation && visualCombatState) {
+        PopulateHealthBarAnimations(entity, observation, visualCombatState, animState, context.now);
     }
 
     // RENDER PHASE (Immediate Mode)
@@ -216,11 +227,11 @@ void ProcessAndRender(const FrameContext& context, const GameEntity* entity, con
     }
 
     // A. Geometry
-    EntityComponentRenderer::RenderGeometry(context, *entity, visuals, visualsConfig);
+    EntityComponentRenderer::RenderGeometry(context, *entity, gameplayDistance, visuals, visualsConfig);
 
     // B. Identity
     std::string_view name = GetEntityName(*entity);
-    EntityComponentRenderer::RenderIdentity(context, *entity, name, visuals, cursor, visualsConfig);
+    EntityComponentRenderer::RenderIdentity(context, *entity, gameplayDistance, name, visuals, cursor, visualsConfig);
 
     // C. Bars
     EntityComponentRenderer::RenderStatusBars(context,

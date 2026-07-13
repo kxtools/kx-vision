@@ -3,17 +3,21 @@
 #include <windows.h> // For __try/__except
 #include <thread>
 #include <chrono>
+#include <atomic>
 
 #include "../Core/Config.h"      // For GW2AL_BUILD define
 #include "../Core/AppLifecycleManager.h"
 #include "../Core/Architecture/FeatureManager.h"
 #include "../Utils/DebugLogger.h"
 #include "../Memory/AddressManager.h"
+#include "../Memory/Safety.h"
 #include "AppState.h"
 #include "D3DRenderHook.h"
 #include "HookManager.h"
 
 namespace {
+    std::atomic<bool> g_gameThreadHookInitialized{false};
+    kx::Hooking::HookHandle g_gameThreadHook;
 
     void* TryGetContextCollection(void* (*fn)()) {
         void* p = nullptr;
@@ -36,20 +40,17 @@ namespace kx {
         GameThreadUpdateFunc pOriginalGameThreadUpdate = nullptr;
 
         uintptr_t __fastcall DetourGameThread(uintptr_t a1, uintptr_t a2) {
-            // 1. Extract Native Frame Time
-            // We read the game's internal delta time (confirmed at offset 0xC).
-            // Sanity check: Ensure time is between 0ms and 1000ms (1 second) to prevent math errors during lag spikes.
-            int raw_time = a2 ? *reinterpret_cast<int*>(a2 + AddressingConstants::GAME_THREAD_TICK_FRAME_MS_OFFSET) : 0;
-            int frame_time = (raw_time > 0 && raw_time < 1000) ? raw_time : 0;
-
-            // 2. Accumulate Game Simulation Time
-            // We maintain our own TickCount that advances based on Game Physics, not Wall Clock time.
-            // This ensures Entity Interpolation is perfectly synced with the engine.
-            static uint64_t s_gameTimeMs = 0;
-            if (s_gameTimeMs == 0) {
-                s_gameTimeMs = GetTickCount64(); // Sync with OS time on first run
+            HookCallbackGuard callbackGuard;
+            if (HookManager::IsShuttingDown()) {
+                return pOriginalGameThreadUpdate ? pOriginalGameThreadUpdate(a1, a2) : 0;
             }
-            s_gameTimeMs += static_cast<uint64_t>(frame_time);
+            // Native game delta is FPS-quantized and may pause. Keep it diagnostic-only;
+            // behavioral clocks use monotonic real elapsed time.
+            int rawFrameTime = 0;
+            if (a2) {
+                SafeAccess::TryRead<int>(a2 + AddressingConstants::GAME_THREAD_TICK_FRAME_MS_OFFSET, rawFrameTime);
+            }
+            (void)rawFrameTime;
 
             // 3. Lazy Initialization of ContextCollection
             // This runs only once. After that, it's just a null check (near-zero overhead).
@@ -70,7 +71,7 @@ namespace kx {
             }
 
             // 4. Update Features using Synced Game Time
-            kx::g_App.GetEntityManager().Update(s_gameTimeMs);
+            kx::g_App.GetEntityManager().Update(GetTickCount64());
             kx::g_App.GetFeatureManager().RunGameThreadUpdates();
 
             // 5. Pass execution back to the engine
@@ -98,8 +99,7 @@ namespace kx {
     }
 
     bool InitializeGameThreadHook() {
-        static bool s_initialized = false;
-        if (s_initialized) {
+        if (g_gameThreadHookInitialized.load(std::memory_order_acquire)) {
             LOG_WARN("[Hooks] GameThread hook already initialized, skipping.");
             return true;
         }
@@ -110,21 +110,15 @@ namespace kx {
             return false;
         }
 
-        if (!Hooking::HookManager::CreateHook(
-            reinterpret_cast<LPVOID>(gameThreadFuncAddr),
-            reinterpret_cast<LPVOID>(Hooking::DetourGameThread),
-            reinterpret_cast<LPVOID*>(&Hooking::pOriginalGameThreadUpdate)
-        )) {
-            LOG_ERROR("[Hooks] Failed to create GameThread hook.");
+        if (!Hooking::HookManager::CreateAndEnable(
+                g_gameThreadHook,
+                reinterpret_cast<LPVOID>(gameThreadFuncAddr),
+                reinterpret_cast<LPVOID>(Hooking::DetourGameThread),
+                reinterpret_cast<LPVOID*>(&Hooking::pOriginalGameThreadUpdate))) {
+            LOG_ERROR("[Hooks] Failed to create and enable GameThread hook.");
             return false;
         }
-
-        if (!Hooking::HookManager::EnableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr))) {
-            LOG_ERROR("[Hooks] Failed to enable GameThread hook.");
-            return false;
-        }
-
-        s_initialized = true;
+        g_gameThreadHookInitialized.store(true, std::memory_order_release);
         LOG_INFO("[Hooks] GameThread hook created and enabled.");
         return true;
     }
@@ -132,14 +126,13 @@ namespace kx {
     void CleanupHooks() {
         LOG_INFO("[Hooks] Cleaning up...");
 
-        uintptr_t gameThreadFuncAddr = AddressManager::GetGameThreadUpdateFunc();
-        if (gameThreadFuncAddr && Hooking::pOriginalGameThreadUpdate) {
-            Hooking::HookManager::DisableHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
+        if (g_gameThreadHook.created) {
+            Hooking::HookManager::DisableAndRemove(g_gameThreadHook);
             LOG_INFO("[Hooks] GameThread hook disabled.");
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            Hooking::HookManager::RemoveHook(reinterpret_cast<LPVOID>(gameThreadFuncAddr));
             LOG_INFO("[Hooks] GameThread hook removed.");
         }
+        Hooking::pOriginalGameThreadUpdate = nullptr;
+        g_gameThreadHookInitialized.store(false, std::memory_order_release);
 
 #ifndef GW2AL_BUILD
         // D3DRenderHook::Shutdown() now handles Present hook cleanup internally

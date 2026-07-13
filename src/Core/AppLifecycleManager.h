@@ -4,9 +4,11 @@
 #include <windows.h>
 #include <memory>
 #include <vector>
+#include <atomic>
 #include "../Game/Services/Camera/Camera.h"
 #include "../Game/Services/Mumble/MumbleLinkManager.h"
 #include "Services/EntityManager.h"
+#include "Architecture/AppComposition.h"
 #include "Architecture/ServiceContext.h"
 
 namespace kx {
@@ -36,13 +38,13 @@ public:
      * @brief Initialize the application lifecycle manager (DLL mode)
      * @return true if initialization successful, false otherwise
      */
-    bool Initialize();
+    bool Initialize(AppComposition composition);
 
     /**
      * @brief Initialize for GW2AL mode (event-driven)
      * @return true if initialization successful, false otherwise
      */
-    bool InitializeForGW2AL();
+    bool InitializeForGW2AL(AppComposition composition);
 
     /**
      * @brief Destructor
@@ -76,7 +78,7 @@ public:
      * @brief Check if the application is currently shutting down
      * @return true if shutting down, false otherwise
      */
-    bool IsShuttingDown() const { return m_currentState == State::ShuttingDown; }
+    bool IsShuttingDown() const { return m_currentState.load(std::memory_order_acquire) == State::ShuttingDown; }
 
     /**
      * @brief Check if shutdown has been requested
@@ -158,8 +160,15 @@ public:
     void RenderTick(HWND windowHandle, float displayWidth, float displayHeight, 
                     ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView);
 
+    void SynchronizeFeatures();
+
+    void OnRenderThreadStart();
+    bool RequiresExclusiveOverlay() const;
+    bool WantsOverlayInput() const;
+    void RenderRuntimeOverlay();
+
     /**
-     * @brief Show donation prompt with 30% random chance (if not already shown this session)
+     * @brief Show donation prompt in 50% of Release sessions; disabled in Debug
      */
     void ShowDonationPromptIfNeeded();
 
@@ -178,14 +187,20 @@ private:
         ShuttingDown          // Cleanup in progress
     };
 
-    State m_currentState = State::PreInit;
-    bool m_servicesInitialized = false;
+    // Guardrail: render, init, and shutdown threads observe this state. Atomic visibility
+    // prevents render from entering services after shutdown transition begins.
+    std::atomic<State> m_currentState{State::PreInit};
+    std::atomic<bool> m_servicesInitialized{false};
+    std::atomic<bool> m_shutdownStarted{false};
     bool m_donationPromptShownOnStartup = false;
 
     // Core game state (owned by lifecycle manager)
     Camera m_camera;
     MumbleLinkManager m_mumbleLinkManager;
     std::unique_ptr<FeatureManager> m_featureManager;
+    FeatureRegistration m_featureRegistration;
+    std::unique_ptr<IRuntimeExtension> m_runtimeExtension;
+    bool m_runtimeExtensionInitialized = false;
 
     // Entity data management (owned by EntityManager service)
     std::unique_ptr<EntityManager> m_entityManager;

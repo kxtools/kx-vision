@@ -1,11 +1,10 @@
 #include "TrailRenderer.h"
 #include "../../../Game/Data/FrameData.h"
+#include "../Core/VisualFrameTypes.h"
 #include "../../../Game/Data/EntityData.h"
-#include "../../../Game/Services/Combat/CombatStateManager.h"
-#include "../../../Game/Services/Combat/CombatState.h"
-#include "../../../Rendering/Shared/MathUtils.h"
+#include "../Combat/VisualCombatState.h"
+#include "../../../Game/Services/Camera/CameraProjection.h"
 #include "ShapeRenderer.h"
-#include "../../../Core/AppState.h"
 #include "../../../Game/GameEnums.h"
 #include "../Settings/VisualsSettings.h"
 #include <algorithm>
@@ -41,8 +40,9 @@ void TrailRenderer::RenderPlayerTrail(
     }
     
     const uint64_t now = context.now;
-    const EntityCombatState* state = context.stateManager.GetState(player.GetCombatKey());
-    if (!state || state->historySize < 2) {
+    const auto stateIt = context.visualCombatStates.find(player.GetCombatKey());
+    const VisualCombatState* state = stateIt != context.visualCombatStates.end() ? &stateIt->second : nullptr;
+    if (!state || state->trail.size < 2) {
         return;
     }
     
@@ -58,8 +58,8 @@ void TrailRenderer::RenderPlayerTrail(
     constexpr float GAP_LENGTH = 5.0f;
     constexpr float TELEPORT_ALPHA = 0.8f;
     
-    auto DrawTeleportConnection = [&](const PositionHistoryPoint& startWorld, const PositionHistoryPoint& endWorld) {
-        float age = static_cast<float>(now - startWorld.timestamp) / 1000.0f;
+    auto DrawTeleportConnection = [&](const TrailPoint& startWorld, const TrailPoint& endWorld) {
+        float age = static_cast<float>(CombatElapsedMs(now, startWorld.timestamp)) / 1000.0f;
         float timeBasedFade = 1.0f - glm::clamp(age / maxDuration, 0.0f, 1.0f);
         timeBasedFade *= timeBasedFade;
         
@@ -88,8 +88,8 @@ void TrailRenderer::RenderPlayerTrail(
         }
     };
     
-    auto DrawSplineSegment = [&](const PositionHistoryPoint& p0, const PositionHistoryPoint& p1, 
-                                 const PositionHistoryPoint& p2, const PositionHistoryPoint& p3) {
+    auto DrawSplineSegment = [&](const TrailPoint& p0, const TrailPoint& p1,
+                                 const TrailPoint& p2, const TrailPoint& p3) {
         glm::vec2 screenPrev;
         bool prevValid = false;
         
@@ -102,10 +102,10 @@ void TrailRenderer::RenderPlayerTrail(
             
             glm::vec3 worldPos = glm::catmullRom(p0.position, p1.position, p2.position, p3.position, t);
             
-            uint64_t timeDiff = p2.timestamp - p1.timestamp;
+            uint64_t timeDiff = CombatElapsedMs(p2.timestamp, p1.timestamp);
             uint64_t interpTime = p1.timestamp + static_cast<uint64_t>(static_cast<float>(timeDiff) * t);
             
-            float age = static_cast<float>(now - interpTime) / 1000.0f;
+            float age = static_cast<float>(CombatElapsedMs(now, interpTime)) / 1000.0f;
             float timeFade = 1.0f - glm::clamp(age / maxDuration, 0.0f, 1.0f);
             timeFade *= timeFade;
             
@@ -126,9 +126,9 @@ void TrailRenderer::RenderPlayerTrail(
         }
     };
     
-    for (size_t i = 0; i < state->historySize - 1; ++i) {
-        const auto& p1 = state->GetHistoryItem(i);
-        const auto& p2 = state->GetHistoryItem(i + 1);
+    for (size_t i = 0; i < state->trail.size - 1; ++i) {
+        const auto& p1 = state->trail.Get(i);
+        const auto& p2 = state->trail.Get(i + 1);
         
         float dist = glm::distance(p1.position, p2.position);
         
@@ -139,38 +139,38 @@ void TrailRenderer::RenderPlayerTrail(
             continue;
         }
         
-        const auto& p0 = (i > 0) ? state->GetHistoryItem(i - 1) : p1;
-        const auto& p3 = (i + 2 < state->historySize) ? state->GetHistoryItem(i + 2) : p2;
+        const auto& p0 = (i > 0) ? state->trail.Get(i - 1) : p1;
+        const auto& p3 = (i + 2 < state->trail.size) ? state->trail.Get(i + 2) : p2;
         
         DrawSplineSegment(p0, p1, p2, p3);
     }
     
-    if (state->historySize > 0) {
-        const auto& newestPoint = state->GetHistoryItem(state->historySize - 1);
-        if ((now - newestPoint.timestamp) < 150) {
-            PositionHistoryPoint interpolatedHeadPoint;
+    if (state->trail.size > 0) {
+        const auto& newestPoint = state->trail.Get(state->trail.size - 1);
+        if (CombatElapsedMs(now, newestPoint.timestamp) < 150) {
+            TrailPoint interpolatedHeadPoint;
             interpolatedHeadPoint.position = player.position;
             interpolatedHeadPoint.timestamp = now;
             
-            if (state->historySize >= 2) {
-                const auto& secondNewest = state->GetHistoryItem(state->historySize - 2);
+            if (state->trail.size >= 2) {
+                const auto& secondNewest = state->trail.Get(state->trail.size - 2);
                 
                 if (now >= newestPoint.timestamp && newestPoint.timestamp > secondNewest.timestamp) {
-                    uint64_t timeDiff = newestPoint.timestamp - secondNewest.timestamp;
+                    uint64_t timeDiff = CombatElapsedMs(newestPoint.timestamp, secondNewest.timestamp);
                     if (timeDiff > 0) {
-                        uint64_t timeSinceNewest = now - newestPoint.timestamp;
+                        uint64_t timeSinceNewest = CombatElapsedMs(now, newestPoint.timestamp);
                         float t = static_cast<float>(timeSinceNewest) / static_cast<float>(timeDiff);
                         t = glm::clamp(t, 0.0f, 1.0f);
                         
                         interpolatedHeadPoint.position = glm::mix(newestPoint.position, player.position, t);
                         
-                        uint64_t headTimeRange = now - newestPoint.timestamp;
+                        uint64_t headTimeRange = CombatElapsedMs(now, newestPoint.timestamp);
                         interpolatedHeadPoint.timestamp = newestPoint.timestamp + static_cast<uint64_t>(static_cast<float>(headTimeRange) * t);
                     }
                 }
             }
             
-            const auto& p0 = (state->historySize >= 2) ? state->GetHistoryItem(state->historySize - 2) : newestPoint;
+            const auto& p0 = (state->trail.size >= 2) ? state->trail.Get(state->trail.size - 2) : newestPoint;
             const auto& p1 = newestPoint;
             const auto& p2 = interpolatedHeadPoint;
             const auto& p3 = interpolatedHeadPoint;

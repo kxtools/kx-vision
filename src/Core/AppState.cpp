@@ -1,11 +1,9 @@
 #include "AppState.h"
-#include "SettingsManager.h"
 
 namespace kx {
 
     AppState::AppState() {
-        // Constructor initializes default values (already done in member initializer list)
-        SettingsManager::Load(m_settings); // Load settings from file
+        // SettingsManager overlays persisted data after features are registered.
     }
 
     AppState& AppState::Get() {

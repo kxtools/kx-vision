@@ -3,6 +3,7 @@
 #include "glm.hpp"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../../../Game/Data/FrameData.h"
+#include "../Core/VisualFrameTypes.h"
 
 namespace kx {
 

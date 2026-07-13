@@ -2,7 +2,9 @@
 
 #include <windows.h> // For UINT, WPARAM, LPARAM
 #include <memory>
+#include <shared_mutex>
 #include <vector>
+#include "../../../libs/nlohmann/json_fwd.hpp"
 
 namespace spdlog { class logger; }
 struct ImDrawList;
@@ -10,7 +12,8 @@ struct ImDrawList;
 namespace kx {
 
 class IFeature;
-struct FrameGameData;
+struct EntityFrameSnapshot;
+using FrameSnapshotHandle = std::shared_ptr<const EntityFrameSnapshot>;
 struct ServiceContext;
 
 /**
@@ -33,6 +36,8 @@ public:
      * @param feature Unique pointer to the feature to register.
      */
     void RegisterFeature(std::unique_ptr<IFeature> feature);
+    bool HasFeature(const char* featureName) const;
+    bool RemoveFeature(const char* featureName);
 
     /**
      * @brief Initialize all registered features.
@@ -52,17 +57,27 @@ public:
      * @param frameData Const reference to current frame's extracted game data.
      * @param ctx Service context containing pointers to core services.
      */
-    void UpdateAll(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx);
+    void UpdateAll(float deltaTime, const FrameSnapshotHandle& snapshot, const ServiceContext& ctx);
 
     /**
      * @brief Render all features to the draw list.
      * @param drawList The ImGui draw list to render to.
      * @param ctx Service context containing pointers to core services.
      */
-    void RenderAllDrawLists(ImDrawList* drawList, const ServiceContext& ctx);
+    void RenderAllDrawLists(ImDrawList* drawList, const FrameSnapshotHandle& snapshot, const ServiceContext& ctx);
 
     /**
-     * @brief Render all feature menu items/tabs.
+     * @brief Render all feature tab content for the main hub.
+     */
+    void RenderAllTabs();
+
+    /**
+     * @brief Render all feature-owned standalone windows.
+     */
+    void RenderAllStandaloneWindows();
+
+    /**
+     * @brief Legacy compatibility wrapper for feature menu rendering.
      */
     void RenderAllMenus();
 
@@ -85,15 +100,28 @@ public:
      * Called from the game thread hook.
      */
     void RunGameThreadUpdates();
+    void LoadPendingSettings(const nlohmann::json& root);
+    void LoadAllSettings(const nlohmann::json& root);
+    void ResetAllSettings();
 
     /**
      * @brief Get read-only access to all registered features.
      * Used for settings management and other introspection needs.
      */
-    const std::vector<std::unique_ptr<IFeature>>& GetFeatures() const { return m_features; }
+    template <typename Fn>
+    void ForEachFeature(Fn&& fn) {
+        // Guardrail: callbacks may inspect/mutate feature-owned settings, but registration
+        // cannot invalidate feature addresses until visit completes.
+        std::shared_lock lock(m_featureMutex);
+        for (auto& feature : m_features) {
+            if (feature) fn(*feature);
+        }
+    }
 
 private:
     std::vector<std::unique_ptr<IFeature>> m_features;
+    mutable std::shared_mutex m_featureMutex;
+    size_t m_initializedFeatureCount = 0;
 };
 
 } // namespace kx

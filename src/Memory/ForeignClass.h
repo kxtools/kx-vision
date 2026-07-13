@@ -1,9 +1,8 @@
 #pragma once
 
-#include <windows.h> // Required for VirtualProtect
+#include <windows.h>
 #include <cstdint>   // Required for UINTPTR_MAX
 #include "../Memory/Safety.h"
-#include "DebugLogger.h"
 
 namespace kx {
 
@@ -28,7 +27,7 @@ namespace kx {
      * in our ESP rendering pipeline.
      * 
      * Key safety features:
-     * - Construction-time validation with automatic nullification of unsafe pointers
+     * - Cheap construction-time address sanity validation
      * - Range validation (1MB max offset, 64KB max access size)
      * - Integer overflow protection in pointer arithmetic
      * - VTable integrity validation with reasonable memory range checks
@@ -39,16 +38,16 @@ namespace kx {
     class ForeignClass {
     public:
         ForeignClass(void* ptr) : m_ptr(ptr) {
-            // Critical validation on construction - nullify unsafe pointers immediately
-            if (ptr && !SafeAccess::IsMemorySafe(ptr)) {
-                m_ptr = nullptr; // Nullify unsafe pointers to prevent future crashes
+            // Construction checks address shape only. Every later foreign access must use SafeAccess helpers;
+            // probing here would duplicate work and still would not establish object lifetime.
+            if (ptr && !SafeAccess::IsAddressInBounds(ptr)) {
+                m_ptr = nullptr;
             }
         }
 
         // Copy constructor with validation
         ForeignClass(const ForeignClass& other) : m_ptr(other.m_ptr) {
-            // Re-validate on copy to ensure safety
-            if (m_ptr && !SafeAccess::IsMemorySafe(m_ptr)) {
+            if (m_ptr && !SafeAccess::IsAddressInBounds(m_ptr)) {
                 m_ptr = nullptr;
             }
         }
@@ -57,8 +56,7 @@ namespace kx {
         ForeignClass& operator=(const ForeignClass& other) {
             if (this != &other) {
                 m_ptr = other.m_ptr;
-                // Re-validate on assignment
-                if (m_ptr && !SafeAccess::IsMemorySafe(m_ptr)) {
+                if (m_ptr && !SafeAccess::IsAddressInBounds(m_ptr)) {
                     m_ptr = nullptr;
                 }
             }
@@ -92,8 +90,9 @@ namespace kx {
                 return defaultValue;
             }
             
-            T result;
-            if (!Debug::SafeRead<T>(data(), offset, result)) {
+            T result{};
+            uintptr_t address = 0;
+            if (!tryGetAddress(offset, sizeof(T), address) || !SafeAccess::TryRead(address, result)) {
                 return defaultValue;
             }
             
@@ -101,16 +100,12 @@ namespace kx {
         }
 
         /**
-         * @brief FAST read. No VirtualQuery check. Use only after validating base pointer and inside guarded (__try/__except) regions.
+         * @brief Compatibility fast read using one guarded typed access and no pre-probe.
          */
         template<typename T>
         [[nodiscard]] T ReadMemberFast(uintptr_t offset, const T& defaultValue = T{}) const {
-            if (!m_ptr) {
-                return defaultValue;
-            }
-
-            auto* address = reinterpret_cast<const T*>(reinterpret_cast<uintptr_t>(m_ptr) + offset);
-            return *address;
+            // Compatibility name only: keep this guarded. Raw dereferences here make every SDK getter crash-prone.
+            return ReadMember<T>(offset, defaultValue);
         }
 
         /**
@@ -126,7 +121,8 @@ namespace kx {
             }
             
             void* ptr = nullptr;
-            if (!kx::Debug::SafeRead<void*>(data(), offset, ptr)) {
+            uintptr_t address = 0;
+            if (!tryGetAddress(offset, sizeof(ptr), address) || !SafeAccess::TryRead(address, ptr)) {
                 return WrapperType(nullptr);
             }
             
@@ -134,16 +130,12 @@ namespace kx {
         }
 
         /**
-         * @brief FAST pointer read without validation. Use only after validating base pointer and inside guarded regions.
+         * @brief Compatibility fast pointer read using one guarded typed access and no pre-probe.
          */
         template<typename WrapperType>
         [[nodiscard]] WrapperType ReadPointerFast(uintptr_t offset) const {
-            if (!m_ptr) {
-                return WrapperType(nullptr);
-            }
-
-            void* ptr = *reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(m_ptr) + offset);
-            return WrapperType(ptr);
+            // Compatibility name only: pointer-chain hops must remain guarded even on hot extraction paths.
+            return ReadPointer<WrapperType>(offset);
         }
 
         /**
@@ -160,7 +152,8 @@ namespace kx {
             }
             
             PtrType ptr = nullptr;
-            if (!Debug::SafeRead<PtrType>(data(), offset, ptr)) {
+            uintptr_t address = 0;
+            if (!tryGetAddress(offset, sizeof(ptr), address) || !SafeAccess::TryRead(address, ptr)) {
                 return WrapperType(nullptr);
             }
             
@@ -180,13 +173,15 @@ namespace kx {
             }
             
             ArrayType* arrayPtr = nullptr;
-            if (!Debug::SafeRead<ArrayType*>(data(), offset, arrayPtr)) {
+            uintptr_t address = 0;
+            if (!tryGetAddress(offset, sizeof(arrayPtr), address) || !SafeAccess::TryRead(address, arrayPtr)) {
                 return nullptr;
             }
             
             return arrayPtr;
         }
 
+    protected:
         /**
          * @brief Safely set a value in foreign memory with offset
          * @tparam T Type to write
@@ -196,17 +191,8 @@ namespace kx {
          */
         template <typename T>
         bool set(uintptr_t offset, const T& value) {
-            if (!isValidAccess(offset, sizeof(T))) {
-                return false; // Cannot set on invalid memory
-            }
-            
-            try {
-                *(T*)((uintptr_t)m_ptr + offset) = value;
-                return true;
-            }
-            catch (...) {
-                return false;
-            }
+            uintptr_t address = 0;
+            return tryGetAddress(offset, sizeof(T), address) && SafeAccess::TryWrite(address, value);
         }
 
         /**
@@ -219,19 +205,19 @@ namespace kx {
          */
         template <typename T, typename... Ts>
         T call(uintptr_t offset, Ts... args) {
-            // Critical validation - this is the most dangerous operation
-            if (!isValidForVirtualCall(offset)) {
-                return T(); // Return default-constructed value if unsafe
-            }
-            
-            // Additional critical checks for virtual function calls
             if (offset > SafeForeignClassLimits::MAX_REASONABLE_VTABLE_OFFSET) {
-                return T(); // Refuse obviously invalid offsets
+                return T();
             }
             
-            try {
-                uintptr_t vtable_ptr = *(uintptr_t*)m_ptr;
-                uintptr_t function_ptr = *(uintptr_t*)(vtable_ptr + offset);
+            uintptr_t vtable_ptr = 0;
+            if (!SafeAccess::TryRead(m_ptr, vtable_ptr) || vtable_ptr > UINTPTR_MAX - offset) {
+                return T();
+            }
+
+            uintptr_t function_ptr = 0;
+            if (!SafeAccess::TryRead(vtable_ptr + offset, function_ptr)) {
+                return T();
+            }
                 
                 // Critical validation: Check if function pointer looks reasonable
                 // Function pointers should be in valid executable memory ranges
@@ -241,26 +227,22 @@ namespace kx {
                 }
                 
                 // Additional validation of function pointer
-                if (!SafeAccess::IsMemorySafe((void*)function_ptr)) {
-                    return T();
-                }
+            if (!SafeAccess::IsExecutableAddress(function_ptr)) {
+                return T();
+            }
                 
                 // Wrap the virtual function call in exception handling for maximum safety
-                T result = T();
-                __try {
-                    result = ((T(__thiscall*)(void*, Ts...))(function_ptr))(m_ptr, args...);
-                }
-                __except (EXCEPTION_EXECUTE_HANDLER) {
-                    // Virtual function call failed - return default value
-                    return T();
-                }
-                return result;
+            T result = T();
+            __try {
+                result = ((T(__thiscall*)(void*, Ts...))(function_ptr))(m_ptr, args...);
             }
-            catch (...) {
-                return T(); // Return default value on any exception
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+                return T();
             }
+            return result;
         }
 
+    public:
         /**
          * @brief Check if this foreign class points to valid memory
          * @return true if the base pointer is valid and safe to access
@@ -288,14 +270,8 @@ namespace kx {
                 return false; // Refuse unreasonably large access
             }
             
-            // Check for potential overflow in pointer arithmetic
-            uintptr_t base_addr = reinterpret_cast<uintptr_t>(m_ptr);
-            if (base_addr > UINTPTR_MAX - offset) {
-                return false; // Would overflow
-            }
-            
-            void* target_ptr = (void*)(base_addr + offset);
-            return SafeAccess::IsMemorySafe(target_ptr);
+            uintptr_t address = 0;
+            return tryGetAddress(offset, size, address) && SafeAccess::ProbeReadableRange(address, size);
         }
 
         /**
@@ -313,8 +289,8 @@ namespace kx {
                 return false; // Refuse obviously invalid VTable offsets
             }
             
-            try {
-                uintptr_t vtable_ptr = *(uintptr_t*)m_ptr;
+            uintptr_t vtable_ptr = 0;
+            if (SafeAccess::TryRead(m_ptr, vtable_ptr)) {
                 if (vtable_ptr == 0) {
                     return false; // Null VTable
                 }
@@ -326,21 +302,16 @@ namespace kx {
                 }
                 
                 // Validate VTable pointer itself
-                if (!SafeAccess::IsMemorySafe((void*)vtable_ptr)) {
-                    return false;
-                }
-                
                 // Validate function pointer location with overflow check
                 if (vtable_ptr > UINTPTR_MAX - offset) {
                     return false; // Would overflow
                 }
                 
-                void* function_ptr_location = (void*)(vtable_ptr + offset);
-                return SafeAccess::IsMemorySafe(function_ptr_location);
+                uintptr_t function_ptr = 0;
+                return SafeAccess::TryRead(vtable_ptr + offset, function_ptr) &&
+                       SafeAccess::IsExecutableAddress(function_ptr);
             }
-            catch (...) {
-                return false;
-            }
+            return false;
         }
 
         explicit operator bool() const { return isValid(); }
@@ -357,8 +328,8 @@ namespace kx {
                 return false;
             }
             
-            try {
-                uintptr_t potential_vtable = *(uintptr_t*)m_ptr;
+            uintptr_t potential_vtable = 0;
+            if (SafeAccess::TryRead(m_ptr, potential_vtable)) {
                 
                 // Critical validation: Zero VTable is definitely invalid
                 if (potential_vtable == 0) {
@@ -374,11 +345,10 @@ namespace kx {
                 // Additional check: VTable should be readable
                 return SafeAccess::IsMemorySafe((void*)potential_vtable);
             }
-            catch (...) {
-                return false;
-            }
+            return false;
         }
 
+        // Raw identity only. Non-null does not guarantee memory remains readable.
         void* data() { return m_ptr; }
         [[nodiscard]] const void* data() const { return m_ptr; }
 
@@ -403,13 +373,22 @@ namespace kx {
          */
         void reset(void* ptr) {
             m_ptr = ptr;
-            // Validate the new pointer
-            if (m_ptr && !SafeAccess::IsMemorySafe(m_ptr)) {
+            if (m_ptr && !SafeAccess::IsAddressInBounds(m_ptr)) {
                 m_ptr = nullptr;
             }
         }
 
     private:
+        [[nodiscard]] bool tryGetAddress(uintptr_t offset, size_t size, uintptr_t& outAddress) const {
+            if (!m_ptr || size == 0) return false;
+            const uintptr_t base = reinterpret_cast<uintptr_t>(m_ptr);
+            if (base > UINTPTR_MAX - offset) return false;
+            const uintptr_t address = base + offset;
+            if (!SafeAccess::IsRangeInBounds(address, size)) return false;
+            outAddress = address;
+            return true;
+        }
+
         void* m_ptr;
     };
 

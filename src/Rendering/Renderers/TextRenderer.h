@@ -15,6 +15,11 @@ namespace kx {
         bool shadow = true;
         bool background = true;
         float fadeAlpha = 1.0f;
+        float globalOpacity = 1.0f;
+        float backgroundPaddingX = 4.0f;
+        float backgroundPaddingY = 2.0f;
+        float backgroundRounding = 3.0f;
+        float backgroundAlpha = 60.0f;
     };
 
     class TextRenderer {

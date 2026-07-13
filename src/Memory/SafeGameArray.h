@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <cstdint>
+#include <limits>
 #include "Safety.h"
 
 namespace kx {
@@ -28,14 +29,18 @@ namespace SafeAccess {
             void advance_to_valid() {
                 m_current = WrapperType(nullptr);
                 while (m_idx < m_cap) {
-                    void* candidate = m_ptr[m_idx];
+                    const uintptr_t slotAddress = reinterpret_cast<uintptr_t>(m_ptr) +
+                                                  static_cast<uintptr_t>(m_idx) * sizeof(void*);
+                    void* candidate = nullptr;
+                    if (!TryRead(slotAddress, candidate)) {
+                        // Backing storage became unreadable: abort whole traversal instead of walking adjacent memory.
+                        m_idx = m_cap;
+                        return;
+                    }
                     
                     if (IsValidGameObject(candidate)) {
-                        WrapperType wrapper(candidate);
-                        if (wrapper.isValid()) {
-                            m_current = wrapper;
-                            return;
-                        }
+                        m_current = WrapperType(candidate);
+                        return;
                     }
                     m_idx++;
                 }
@@ -93,7 +98,13 @@ namespace SafeAccess {
     public:
         SafeGameArray(void* ptrArray, uint32_t capacity)
             : m_rawArray(reinterpret_cast<void**>(ptrArray)), m_capacity(capacity) {
-            if (!m_rawArray) {
+            const uintptr_t base = reinterpret_cast<uintptr_t>(m_rawArray);
+            const size_t maxEntriesBySize = (std::numeric_limits<size_t>::max)() / sizeof(void*);
+            // Capacity comes from foreign memory. Keep both hard ceiling and byte-range overflow checks.
+            if (!m_rawArray || m_capacity > MAX_GAME_CONTAINER_CAPACITY ||
+                m_capacity > maxEntriesBySize ||
+                (m_capacity > 0 && !IsRangeInBounds(base, static_cast<size_t>(m_capacity) * sizeof(void*)))) {
+                m_rawArray = nullptr;
                 m_capacity = 0;
             }
         }

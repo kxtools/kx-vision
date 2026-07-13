@@ -43,6 +43,10 @@ std::string Logger::GetLogFilePath() noexcept {
     }
 }
 
+std::string Logger::GetActiveLogFilePath() noexcept {
+    return GetLogFilePath();
+}
+
 /**
  * @brief Convert our log level to spdlog level
  * @param level Our internal log level

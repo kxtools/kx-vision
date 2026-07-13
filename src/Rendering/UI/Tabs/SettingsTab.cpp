@@ -9,16 +9,52 @@
 
 #include "DebugLogger.h"
 #include "SettingsManager.h"
+#include "../../../Core/AppLifecycleManager.h"
+#include "../../../Core/Settings.h"
+#include "../../../Core/Architecture/FeatureManager.h"
+#include "../../../Core/Architecture/IFeature.h"
 
 #include "ImGui/imgui.h"
 #include "SDK/ContextStructs.h"
 #include "SDK/GadgetStructs.h"
 #include "../../../Memory/SafeGameArray.h"
-#include "../../../Features/Visuals/Presentation/Formatting.h"
+#include "../../../Memory/Safety.h"
+#include "../../../Game/Presentation/GameFormatting.h"
 #include "../../../Memory/AddressManager.h"
 
 namespace kx {
     namespace GUI {
+
+        static void RenderMenuAppearance(GuiSettings& settings) {
+            if (!ImGui::CollapsingHeader("Menu Appearance")) {
+                return;
+            }
+
+            ImGui::SliderFloat("UI Scale", &settings.uiScale, 0.8f, 1.5f, "%.1fx");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip(
+                    "Scale every menu in the application.\n\n"
+                    "0.8x: Compact (more content visible)\n"
+                    "1.0x: Default (recommended)\n"
+                    "1.5x: Large (better for 4K displays)\n\n"
+                    "Requires app restart to take effect."
+                );
+            }
+
+            float displayOpacity = settings.menuOpacity * 100.0f;
+            if (ImGui::SliderFloat("Menu Opacity", &displayOpacity, 50.0f, 100.0f, "%.0f%%")) {
+                settings.menuOpacity = displayOpacity / 100.0f;
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip(
+                    "Transparency of every application menu.\n\n"
+                    "50%%: Subtle, see-through\n"
+                    "90%% (Default): Balanced visibility\n"
+                    "100%%: Fully opaque\n\n"
+                    "Tip: Lower opacity during combat for less obstruction."
+                );
+            }
+        }
         
         // Helper function to parse log level from formatted log string
         static std::string ExtractLogLevel(const std::string& logLine) {
@@ -524,8 +560,9 @@ namespace kx {
                         ImGui::Text("Are you sure? This will reset all settings to their default values.");
                         ImGui::Separator();
                         if (ImGui::Button("OK", ImVec2(120, 0))) { 
-                            settings = Settings(); // Reset to default
+                            SettingsManager::ResetAll(settings);
                             Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(settings.logLevel));
+
                             ImGui::CloseCurrentPopup(); 
                         }
                         ImGui::SetItemDefaultFocus();
@@ -543,19 +580,11 @@ namespace kx {
                     }
                 }
 
+                RenderMenuAppearance(settings.gui);
+
                 ImGui::Separator();
                 ImGui::Text("System Configuration");
                 ImGui::Separator();
-                
-                // Performance Settings
-                if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    ImGui::SliderFloat("ESP Update Rate", &settings.espUpdateRate, 30.0f, 360.0f, "%.0f FPS");
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("(?)");
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("Lower values improve performance but make ESP less responsive.\nRecommended: 60-120 FPS for good balance, up to 360 FPS for high refresh displays.");
-                    }
-                }
                 
                 // Debug Settings
                 if (ImGui::CollapsingHeader("Debug Options")) {
@@ -642,6 +671,33 @@ namespace kx {
                         ImGui::PopItemWidth();
 
                         if (charContext) {
+                            // Local Player
+                            ReClass::ChCliCharacter localPlayer = charContext.GetLocalPlayer();
+							std::string localPlayerAddrStr = std::format("0x{:X}", reinterpret_cast<uintptr_t>(localPlayer.data()));
+							ImGui::Text("LocalPlayer:");
+							ImGui::PushItemWidth(-1.0f);
+							ImGui::InputText("##LocalPlayerAddr", localPlayerAddrStr.data(), localPlayerAddrStr.size() + 1, ImGuiInputTextFlags_ReadOnly);
+							ImGui::PopItemWidth();
+                            if (localPlayer.data()) {
+                                ReClass::AgChar agent = localPlayer.GetAgent();
+                                if (agent.isValid()) {
+                                    ReClass::CoChar coChar = agent.GetCoChar();
+                                    if (coChar.data()) {
+                                        glm::vec3 pos = coChar.GetVisualPosition();
+                                        ImGui::Text("Position (Visual): %.2f, %.2f, %.2f", pos.x, pos.y, pos.z);
+                                        if (ImGui::IsItemHovered()) {
+                                            ImGui::SetTooltip("Local player position from game memory (visual coordinates).");
+                                        }
+                                    } else {
+                                        ImGui::TextColored(ImVec4(0.7f, 0.5f, 0.0f, 1.0f), "Position (Visual): N/A");
+                                    }
+                                } else {
+                                    ImGui::TextColored(ImVec4(0.7f, 0.5f, 0.0f, 1.0f), "Position (Visual): N/A");
+                                }
+                            } else {
+                                ImGui::TextColored(ImVec4(0.7f, 0.5f, 0.0f, 1.0f), "Position (Visual): N/A");
+                            }
+
                             // Character List
                             ReClass::ChCliCharacter** characterList = charContext.GetCharacterList();
                             uint32_t characterCapacity = charContext.GetCharacterListCapacity();
@@ -717,6 +773,8 @@ namespace kx {
                             ImGui::PopItemWidth();
 
                         }
+
+						ImGui::Separator();
 
                         RenderCharacterStatistics(charContext);
                         RenderPlayerStatistics(charContext);

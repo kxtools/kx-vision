@@ -1,11 +1,10 @@
 #pragma once
 
-#include "../../../Game/Data/FrameData.h"
-
 namespace kx {
 
-    class CombatStateManager; // Forward declaration
-    struct VisualsConfiguration; // Forward declaration
+struct FrameGameData;
+struct FrameContext;
+struct VisualsConfiguration;
 
 class EntityFilter {
 public:

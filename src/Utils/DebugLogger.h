@@ -72,6 +72,9 @@ public:
     
     // Get the underlying spdlog logger for direct access
     static std::shared_ptr<spdlog::logger> GetLogger() noexcept { return s_logger; }
+
+    // Get the active file path used by the file sink.
+    static std::string GetActiveLogFilePath() noexcept;
     
     // Get recent logs from ringbuffer for GUI display
     static std::vector<std::string> GetRecentLogs(size_t limit = 0) noexcept;
@@ -282,13 +285,7 @@ public:
  */
 template<typename T>
 inline bool SafeReadImpl(uintptr_t address, T& result) noexcept {
-    __try {
-        result = *reinterpret_cast<const T*>(address);
-        return true;
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER) {
-        return false;
-    }
+    return SafeAccess::TryRead(address, result);
 }
 
 /**
@@ -305,21 +302,12 @@ inline bool SafeRead(void* basePtr, uintptr_t offset, T& result) noexcept {
         return false;
     }
     
-    const uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
-    
-    // Use centralized address validation from SafeAccess
-    if (address == 0xFFFFFFFFFFFFFFFF || 
-        address < SafeAccess::MIN_VALID || 
-        address > SafeAccess::MAX_VALID) {
+    const uintptr_t base = reinterpret_cast<uintptr_t>(basePtr);
+    if (base > UINTPTR_MAX - offset) {
         return false;
     }
-    
-    // Use centralized memory safety check
-    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address))) {
-        return false;
-    }
-    
-    return SafeReadImpl(address, result);
+
+    return SafeAccess::TryRead(base + offset, result);
 }
 
 /**
@@ -336,21 +324,12 @@ inline bool SafeRead(const void* basePtr, uintptr_t offset, T& result) noexcept 
         return false;
     }
     
-    const uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
-    
-    // Use centralized address validation from SafeAccess
-    if (address == 0xFFFFFFFFFFFFFFFF || 
-        address < SafeAccess::MIN_VALID || 
-        address > SafeAccess::MAX_VALID) {
+    const uintptr_t base = reinterpret_cast<uintptr_t>(basePtr);
+    if (base > UINTPTR_MAX - offset) {
         return false;
     }
-    
-    // Use centralized memory safety check
-    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address))) {
-        return false;
-    }
-    
-    return SafeReadImpl(address, result);
+
+    return SafeAccess::TryRead(base + offset, result);
 }
 
 /**
@@ -372,12 +351,14 @@ inline bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result,
         return false;
     }
     
-    const uintptr_t address = reinterpret_cast<uintptr_t>(basePtr) + offset;
+    const uintptr_t base = reinterpret_cast<uintptr_t>(basePtr);
+    if (base > UINTPTR_MAX - offset) {
+        return false;
+    }
+    const uintptr_t address = base + offset;
     
     // Use centralized address validation from SafeAccess
-    if (address == 0xFFFFFFFFFFFFFFFF || 
-        address < SafeAccess::MIN_VALID || 
-        address > SafeAccess::MAX_VALID) {
+    if (!SafeAccess::IsRangeInBounds(address, sizeof(T))) {
         if (!context.empty()) {
             try {
                 std::stringstream ss;
@@ -392,8 +373,7 @@ inline bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result,
         return false;
     }
     
-    // Use centralized memory safety check
-    if (!SafeAccess::IsMemorySafe(reinterpret_cast<void*>(address))) {
+    if (!SafeAccess::TryRead(address, result)) {
         if (!context.empty()) {
             try {
                 std::stringstream ss;
@@ -408,7 +388,7 @@ inline bool SafeReadWithLogging(void* basePtr, uintptr_t offset, T& result,
         return false;
     }
     
-    return SafeReadImpl(address, result);
+    return true;
 }
 
 } // namespace Debug

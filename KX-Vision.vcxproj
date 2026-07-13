@@ -59,10 +59,10 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Features;$(ProjectDir)src\Utils;$(ProjectDir)src\Memory;$(ProjectDir)libs;$(ProjectDir)libs\glm;$(ProjectDir)libs\safetyhook;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -72,7 +72,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>psapi.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;d3d11.lib;dxgi.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcrt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -85,10 +85,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Utils;$(ProjectDir)libs;$(ProjectDir)libs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\Core;$(ProjectDir)src\Game;$(ProjectDir)src\Hooking;$(ProjectDir)src\Rendering;$(ProjectDir)src\Features;$(ProjectDir)src\Utils;$(ProjectDir)src\Memory;$(ProjectDir)libs;$(ProjectDir)libs\glm;$(ProjectDir)libs\safetyhook;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -100,24 +100,25 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>psapi.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;d3d11.lib;dxgi.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;libcmtd.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="libs\Catch2\catch_amalgamated.cpp" />
     <ClCompile Include="libs\ImGui\imgui_stdlib.cpp" />
-    <ClCompile Include="src\Game\Services\AdaptiveFarPlane\AdaptiveFarPlaneCalculator.cpp" />
+    <ClCompile Include="src\Features\Visuals\Logic\AdaptiveFarPlaneCalculator.cpp" />
     <ClCompile Include="src\Core\Architecture\FeatureManager.cpp" />
-    <ClCompile Include="src\Core\Architecture\FeatureRegistry.cpp" />
+    <ClCompile Include="src\Composition\FeatureComposition.cpp" />
     <ClCompile Include="src\Core\Bootstrap.cpp" />
     <ClCompile Include="src\Core\FrameCoordinator.cpp" />
     <ClCompile Include="src\Core\GW2AL_Integration.cpp" />
-    <ClCompile Include="src\Game\Services\Combat\CombatLogic.cpp" />
-    <ClCompile Include="src\Game\Services\Combat\CombatStateManager.cpp" />
+    <ClCompile Include="src\Game\Services\Combat\CombatObservationLogic.cpp" />
+    <ClCompile Include="src\Game\Services\Combat\CombatObservationTracker.cpp" />
     <ClCompile Include="src\Core\Services\EntityManager.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
     <ClCompile Include="src\Features\Visuals\VisualsFeature.cpp" />
+    <ClCompile Include="src\Features\Visuals\VisualsRegistration.cpp" />
     <ClCompile Include="src\Memory\AddressManager.cpp" />
     <ClCompile Include="src\Game\Services\Camera\Camera.cpp" />
     <ClCompile Include="src\Game\Services\Mumble\MumbleLinkManager.cpp" />
@@ -125,7 +126,7 @@
     <ClCompile Include="src\Game\Extraction\DataExtractor.cpp" />
     <ClCompile Include="src\Rendering\UI\Backend\OverlayWindow.cpp" />
     <ClCompile Include="src\Rendering\UI\Backend\ImGuiStyle.cpp" />
-    <ClCompile Include="src\Rendering\UI\Tabs\AppearanceTab.cpp" />
+    <ClCompile Include="src\Features\Visuals\UI\AppearanceTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\InfoTab.cpp" />
     <ClCompile Include="src\Features\Visuals\UI\NpcsTab.cpp" />
     <ClCompile Include="src\Features\Visuals\UI\ObjectsTab.cpp" />
@@ -133,11 +134,12 @@
     <ClCompile Include="src\Rendering\UI\Tabs\SettingsTab.cpp" />
     <ClCompile Include="src\Rendering\UI\Tabs\ValidationTab.cpp" />
     <ClCompile Include="src\Features\Visuals\Logic\Animations\HealthBarAnimations.cpp" />
+    <ClCompile Include="src\Features\Visuals\Combat\VisualCombatTracker.cpp" />
     <ClCompile Include="src\Features\Visuals\Logic\EntityFilter.cpp" />
     <ClCompile Include="src\Features\Visuals\Core\MasterRenderer.cpp" />
     <ClCompile Include="src\Features\Visuals\Core\StageRenderer.cpp" />
     <ClCompile Include="src\Features\Visuals\Logic\StyleCalculator.cpp" />
-    <ClCompile Include="src\Features\Visuals\Presentation\Formatting.cpp" />
+    <ClCompile Include="src\Game\Presentation\GameFormatting.cpp" />
     <ClCompile Include="src\Features\Visuals\Presentation\Styling.cpp" />
     <ClCompile Include="src\Features\Visuals\Renderers\EntityComponentRenderer.cpp" />
     <ClCompile Include="src\Features\Visuals\Renderers\EnergyBarRenderer.cpp" />
@@ -151,7 +153,7 @@
     <ClCompile Include="src\Core\AppState.cpp" />
     <ClCompile Include="src\Game\Extraction\EntityExtractor.cpp" />
     <ClCompile Include="src\Features\Visuals\UI\GuiHelpers.cpp" />
-    <ClCompile Include="src\Rendering\Shared\MathUtils.cpp" />
+    <ClCompile Include="src\Game\Services\Camera\CameraProjection.cpp" />
     <ClCompile Include="src\Tests\OffsetValidationTests.cpp" />
     <ClCompile Include="src\Utils\Console.cpp" />
     <ClCompile Include="src\Hooking\D3DRenderHook_Shared.cpp" />
@@ -174,29 +176,37 @@
     <ClInclude Include="libs\gw2al\gw2al_api.h" />
     <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
     <ClInclude Include="libs\ImGui\imgui_stdlib.h" />
-    <ClInclude Include="src\Game\Services\AdaptiveFarPlane\AdaptiveFarPlaneCalculator.h" />
+    <ClInclude Include="src\Features\Visuals\Logic\AdaptiveFarPlaneCalculator.h" />
     <ClInclude Include="src\Core\Architecture\FeatureManager.h" />
-    <ClInclude Include="src\Core\Architecture\FeatureRegistry.h" />
+    <ClInclude Include="src\Core\Architecture\FeatureRegistration.h" />
+    <ClInclude Include="src\Core\Architecture\IRuntimeExtension.h" />
+    <ClInclude Include="src\Core\Architecture\AppComposition.h" />
+    <ClInclude Include="src\Composition\FeatureComposition.h" />
     <ClInclude Include="src\Core\Architecture\IFeature.h" />
     <ClInclude Include="src\Core\Bootstrap.h" />
     <ClInclude Include="src\Core\FrameCoordinator.h" />
-    <ClInclude Include="src\Game\Services\Combat\CombatConstants.h" />
-    <ClInclude Include="src\Game\Services\Combat\CombatLogic.h" />
-    <ClInclude Include="src\Game\Services\Combat\CombatState.h" />
-    <ClInclude Include="src\Game\Services\Combat\CombatStateKey.h" />
-    <ClInclude Include="src\Game\Services\Combat\CombatStateManager.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatObservation.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatObservationKey.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatObservationLogic.h" />
+    <ClInclude Include="src\Game\Services\Combat\CombatObservationTracker.h" />
     <ClInclude Include="src\Core\Services\EntityManager.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Core\SettingsManager.h" />
     <ClInclude Include="src\Features\Visuals\Settings\VisualsSettings.h" />
+    <ClInclude Include="src\Features\Visuals\Settings\VisualRenderSettings.h" />
     <ClInclude Include="src\Features\Visuals\Logic\FilterSettings.h" />
-    <ClInclude Include="src\Core\Settings\RenderSettings.h" />
     <ClInclude Include="src\Core\Settings\SettingsConstants.h" />
+    <ClInclude Include="src\Core\Settings\SettingsFields.h" />
+    <ClInclude Include="src\Core\Architecture\FeatureWithSettings.h" />
     <ClInclude Include="src\Features\Visuals\VisualsFeature.h" />
+    <ClInclude Include="src\Features\Visuals\VisualsRegistration.h" />
     <ClInclude Include="src\Game\Data\Entities\GameEntity.h" />
     <ClInclude Include="src\Game\Data\Entities\NpcEntity.h" />
     <ClInclude Include="src\Game\Data\Entities\PlayerEntity.h" />
     <ClInclude Include="src\Game\Data\PlayerGearData.h" />
+    <ClInclude Include="src\Game\Data\EntityBounds.h" />
+    <ClInclude Include="src\Game\Data\EntityLimits.h" />
+    <ClInclude Include="src\Game\World\WorldUnits.h" />
     <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
     <ClInclude Include="src\Core\AppState.h" />
@@ -221,15 +231,12 @@
     <ClInclude Include="src\Hooking\D3DRenderHook.h" />
     <ClInclude Include="src\Hooking\GW2AL\d3d9_wrapper_structs.h" />
     <ClInclude Include="src\Game\Data\Entities\AttackTargetEntity.h" />
-    <ClInclude Include="src\Game\Data\Entities\RenderableEntity.h" />
     <ClInclude Include="src\Game\Data\Entities\GadgetEntity.h" />
     <ClInclude Include="src\Game\Data\Entities\ItemEntity.h" />
-    <ClInclude Include="src\Game\Data\Entities\RenderableNpc.h" />
-    <ClInclude Include="src\Game\Data\Entities\RenderablePlayer.h" />
     <ClInclude Include="src\Game\Extraction\DataExtractor.h" />
     <ClInclude Include="src\Rendering\UI\Backend\OverlayWindow.h" />
     <ClInclude Include="src\Rendering\UI\Backend\ImGuiStyle.h" />
-    <ClInclude Include="src\Rendering\UI\Tabs\AppearanceTab.h" />
+    <ClInclude Include="src\Features\Visuals\UI\AppearanceTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\InfoTab.h" />
     <ClInclude Include="src\Features\Visuals\UI\NpcsTab.h" />
     <ClInclude Include="src\Features\Visuals\UI\ObjectsTab.h" />
@@ -237,12 +244,16 @@
     <ClInclude Include="src\Rendering\UI\Tabs\SettingsTab.h" />
     <ClInclude Include="src\Rendering\UI\Tabs\ValidationTab.h" />
     <ClInclude Include="src\Features\Visuals\Logic\Animations\HealthBarAnimations.h" />
+    <ClInclude Include="src\Features\Visuals\Combat\TrailHistory.h" />
+    <ClInclude Include="src\Features\Visuals\Combat\VisualCombatConstants.h" />
+    <ClInclude Include="src\Features\Visuals\Combat\VisualCombatState.h" />
+    <ClInclude Include="src\Features\Visuals\Combat\VisualCombatTracker.h" />
     <ClInclude Include="src\Features\Visuals\Logic\EntityFilter.h" />
     <ClInclude Include="src\Features\Visuals\Core\MasterRenderer.h" />
+    <ClInclude Include="src\Features\Visuals\Core\VisualFrameTypes.h" />
     <ClInclude Include="src\Features\Visuals\Core\StageRenderer.h" />
-    <ClInclude Include="src\Rendering\UI\UIConstants.h" />
     <ClInclude Include="src\Features\Visuals\Logic\StyleCalculator.h" />
-    <ClInclude Include="src\Features\Visuals\Presentation\Formatting.h" />
+    <ClInclude Include="src\Game\Presentation\GameFormatting.h" />
     <ClInclude Include="src\Features\Visuals\Renderers\LayoutCursor.h" />
     <ClInclude Include="src\Features\Visuals\Renderers\EntityComponentRenderer.h" />
     <ClInclude Include="src\Features\Visuals\Renderers\EnergyBarRenderer.h" />
@@ -262,13 +273,12 @@
     <ClInclude Include="src\Rendering\Shared\AnimationHelpers.h" />
     <ClInclude Include="src\Rendering\Shared\ColorConstants.h" />
     <ClInclude Include="src\Rendering\UI\Backend\D3DState.h" />
-    <ClInclude Include="src\Rendering\Shared\MathUtils.h" />
-    <ClInclude Include="src\Rendering\Shared\LayoutConstants.h" />
-    <ClInclude Include="src\Rendering\Shared\RenderSettingsHelper.h" />
-    <ClInclude Include="src\Rendering\Shared\ScalingConstants.h" />
+    <ClInclude Include="src\Game\Services\Camera\CameraProjection.h" />
+    <ClInclude Include="src\Features\Visuals\Rendering\VisualLayoutConstants.h" />
+    <ClInclude Include="src\Features\Visuals\Logic\RenderSettingsHelper.h" />
+    <ClInclude Include="src\Features\Visuals\Rendering\VisualScalingConstants.h" />
     <ClInclude Include="src\Utils\Console.h" />
     <ClInclude Include="src\Utils\DebugLogger.h" />
-    <ClInclude Include="src\Rendering\Logic\FilterSettings.h" />
     <ClInclude Include="src\Hooking\HookManager.h" />
     <ClInclude Include="src\Hooking\Hooks.h" />
     <ClInclude Include="libs\ImGui\imconfig.h" />
@@ -286,10 +296,12 @@
     <ClInclude Include="src\Memory\Scanner.h" />
     <ClInclude Include="src\Memory\ForeignClass.h" />
     <ClInclude Include="src\Memory\SafeGameArray.h" />
+    <ClInclude Include="src\Memory\SafeGameDictionary.h" />
     <ClInclude Include="src\Utils\StringHelpers.h" />
     <ClInclude Include="src\Utils\UnitConversion.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Import Project="KX-Vision.Product.props" Condition="Exists('KX-Vision.Product.props')" />
 </Project>

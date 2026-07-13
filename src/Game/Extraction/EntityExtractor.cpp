@@ -3,8 +3,9 @@
 #include "../SDK/HavokStructs.h"
 #include "../../Utils/StringHelpers.h"
 #include "../../Memory/Safety.h"
+#include "../World/WorldUnits.h"
 
-#include "../../Features/Visuals/Presentation/Formatting.h"
+#include <cmath>
 
 namespace kx {
 
@@ -62,6 +63,13 @@ namespace PhysicsValidation {
         outPlayer.agentType = agentType;
         outPlayer.agentId = agentId;
         outPlayer.agent = agent.data();
+        ReClass::CoChar coChar = agent.GetCoChar();
+        if (coChar) {
+            const glm::vec3 velocity = coChar.GetVelocity();
+            outPlayer.planarVelocity = std::sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y));
+        } else {
+            outPlayer.planarVelocity = 0.0f;
+        }
 
         // --- Health & Energy ---
         ReClass::ChCliHealth health = inCharacter.GetHealth();

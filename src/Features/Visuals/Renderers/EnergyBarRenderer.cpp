@@ -1,15 +1,15 @@
 #include "EnergyBarRenderer.h"
 
 #include "ShapeRenderer.h"
-#include "../../../Core/Settings.h"
+#include "../Settings/VisualsSettings.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../../../Rendering/Shared/ColorConstants.h"
-#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../Rendering/VisualLayoutConstants.h"
 
 namespace kx {
 
     void EnergyBarRenderer::Render(
-        const Settings& settings,
+        const VisualsConfiguration& settings,
         ImDrawList* drawList,
         const glm::vec2& barTopLeftPosition,
         float energyPercent,

@@ -1,4 +1,4 @@
-#include "Formatting.h"
+#include "GameFormatting.h"
 
 namespace kx::Formatting {
 
@@ -91,6 +91,7 @@ namespace kx::Formatting {
             case Game::ResourceNodeType::Tree: return "Tree";
             case Game::ResourceNodeType::Rock: return "Rock";
             case Game::ResourceNodeType::Quest: return "Quest Node";
+            case Game::ResourceNodeType::Cache: return "Cache";
             default: return nullptr;
         }
     }

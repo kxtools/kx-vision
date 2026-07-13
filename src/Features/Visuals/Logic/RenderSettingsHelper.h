@@ -1,7 +1,6 @@
 #pragma once
-#include "../../Core/Settings.h"
-#include "../../Features/Visuals/Settings/VisualsSettings.h"
-#include "../../Game/Data/EntityTypes.h"
+#include "../Settings/VisualsSettings.h"
+#include "../../../Game/Data/EntityTypes.h"
 
 namespace kx {
 

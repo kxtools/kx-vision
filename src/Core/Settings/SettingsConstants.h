@@ -2,7 +2,13 @@
 
 namespace kx {
 
-    constexpr int CURRENT_SETTINGS_VERSION = 1;
+    constexpr int CURRENT_SETTINGS_VERSION = 3;
+
+    namespace SettingsSections {
+        inline constexpr const char* Version = "settingsVersion";
+        inline constexpr const char* Core = "core";
+        inline constexpr const char* Visuals = "visuals";
+    }
 
     /**
      * @brief Display mode for player gear/equipment stats

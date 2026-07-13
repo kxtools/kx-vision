@@ -1,200 +1,95 @@
 #pragma once
 
-#include "../../../../libs/nlohmann/json.hpp"
 #include "../../../Core/Settings/SettingsConstants.h"
+#include "../../../Core/Settings/SettingsFields.h"
+#include "VisualRenderSettings.h"
 
 namespace kx {
 
-    // --- Category-specific settings ---
-    struct AttitudeSettings {
-        bool showFriendly = true;
-        bool showHostile = true;
-        bool showNeutral = true;
-        bool showIndifferent = true;
-    };
+#define KX_ATTITUDE_SETTINGS(X) \
+    X(bool, showFriendly, true) \
+    X(bool, showHostile, true) \
+    X(bool, showNeutral, true) \
+    X(bool, showIndifferent, true)
+KX_DEFINE_SETTINGS_TYPE(AttitudeSettings, KX_ATTITUDE_SETTINGS)
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AttitudeSettings, showFriendly, showHostile, showNeutral, showIndifferent);
+#define KX_TRAIL_SETTINGS(X) \
+    X(bool, enabled, false) \
+    X(int, maxPoints, 30) \
+    X(float, maxDuration, 1.0f) \
+    X(TrailDisplayMode, displayMode, TrailDisplayMode::Hostile) \
+    X(TrailTeleportMode, teleportMode, TrailTeleportMode::Tactical) \
+    X(float, thickness, 2.0f)
+KX_DEFINE_SETTINGS_TYPE(TrailSettings, KX_TRAIL_SETTINGS)
 
-    struct TrailSettings {
-        bool enabled = false;
-        int maxPoints = 30;
-        float maxDuration = 1.0f;
-        TrailDisplayMode displayMode = TrailDisplayMode::Hostile;
-        TrailTeleportMode teleportMode = TrailTeleportMode::Tactical;
-        float thickness = 2.0f;
-    };
+#define KX_PLAYER_ESP_SETTINGS(X) \
+    X(bool, enabled, true) X(bool, renderBox, false) X(bool, renderWireframe, false) \
+    X(bool, renderDistance, false) X(bool, renderDot, false) X(bool, renderDetails, false) \
+    X(bool, renderHealthBar, true) X(bool, renderEnergyBar, false) X(bool, renderPlayerName, true) \
+    X(bool, showBurstDps, false) X(bool, showDamageNumbers, true) X(bool, showOnlyDamaged, false) \
+    X(bool, showHealthPercentage, false) X(bool, showLocalPlayer, false) X(bool, enableGearDisplay, false) \
+    X(GearDisplayMode, gearDisplayMode, GearDisplayMode::Compact) \
+    X(EnergyDisplayType, energyDisplayType, EnergyDisplayType::Energy) \
+    X(bool, showDetailLevel, true) X(bool, showDetailHp, true) X(bool, showDetailAttitude, true) \
+    X(bool, showDetailEnergy, true) X(bool, showDetailPosition, true) X(bool, showDetailRank, true) \
+    X(bool, showDetailProfession, true) X(bool, showDetailRace, true) X(bool, showDetailPhysics, false) \
+    X(float, hostileBoostMultiplier, 2.0f) X(TrailSettings, trails, {})
+struct PlayerEspSettings : AttitudeSettings { KX_PLAYER_ESP_SETTINGS(KX_SETTING_DECLARE) };
+inline void to_json(nlohmann::json& j, const PlayerEspSettings& value) {
+    j = nlohmann::json::object(); KX_ATTITUDE_SETTINGS(KX_SETTING_SAVE) KX_PLAYER_ESP_SETTINGS(KX_SETTING_SAVE)
+}
+inline void from_json(const nlohmann::json& j, PlayerEspSettings& value) {
+    value = PlayerEspSettings{}; if (!j.is_object()) return;
+    KX_ATTITUDE_SETTINGS(KX_SETTING_LOAD) KX_PLAYER_ESP_SETTINGS(KX_SETTING_LOAD)
+}
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TrailSettings, enabled, maxPoints, maxDuration, displayMode, teleportMode, thickness);
+#define KX_NPC_ESP_SETTINGS(X) \
+    X(bool, enabled, true) X(bool, renderBox, false) X(bool, renderWireframe, false) \
+    X(bool, renderDistance, false) X(bool, renderDot, false) X(bool, renderDetails, false) \
+    X(bool, renderHealthBar, true) X(bool, showBurstDps, false) X(bool, showDamageNumbers, true) \
+    X(bool, showOnlyDamaged, false) X(bool, showHealthPercentage, false) \
+    X(bool, showLegendary, true) X(bool, showChampion, true) X(bool, showElite, true) \
+    X(bool, showVeteran, true) X(bool, showAmbient, true) X(bool, showNormal, true) X(bool, showDeadNpcs, false) \
+    X(bool, showDetailLevel, true) X(bool, showDetailHp, true) X(bool, showDetailAttitude, true) \
+    X(bool, showDetailRank, true) X(bool, showDetailPosition, true)
+struct NpcEspSettings : AttitudeSettings { KX_NPC_ESP_SETTINGS(KX_SETTING_DECLARE) };
+inline void to_json(nlohmann::json& j, const NpcEspSettings& value) {
+    j = nlohmann::json::object(); KX_ATTITUDE_SETTINGS(KX_SETTING_SAVE) KX_NPC_ESP_SETTINGS(KX_SETTING_SAVE)
+}
+inline void from_json(const nlohmann::json& j, NpcEspSettings& value) {
+    value = NpcEspSettings{}; if (!j.is_object()) return;
+    KX_ATTITUDE_SETTINGS(KX_SETTING_LOAD) KX_NPC_ESP_SETTINGS(KX_SETTING_LOAD)
+}
 
-    struct PlayerEspSettings : AttitudeSettings {
-        bool enabled = true;
-        bool renderBox = false;
-        bool renderWireframe = false;
-        bool renderDistance = false;
-        bool renderDot = false;
-        bool renderDetails = false;
-        bool renderHealthBar = true;
-        bool renderEnergyBar = false;
-        bool renderPlayerName = true;  // Show player names by default for natural identification
-        bool showBurstDps = false;
-        bool showDamageNumbers = true;
-        bool showOnlyDamaged = false;
-        bool showHealthPercentage = false;
-        bool showLocalPlayer = false; // Hide local player by default
-        bool enableGearDisplay = false;
-        GearDisplayMode gearDisplayMode = GearDisplayMode::Compact;
-        EnergyDisplayType energyDisplayType = EnergyDisplayType::Energy;
-        // Detail-field filters
-        bool showDetailLevel = true;
-        bool showDetailHp = true;
-        bool showDetailAttitude = true;
-        bool showDetailEnergy = true;
-        bool showDetailPosition = true;
-        bool showDetailRank = true;
-        bool showDetailProfession = true;
-        bool showDetailRace = true;
-        float hostileBoostMultiplier = 2.0f;
-        TrailSettings trails;
-    };
+#define KX_OBJECT_ESP_SETTINGS(X) \
+    X(bool, enabled, true) X(bool, renderBox, false) X(bool, renderWireframe, false) X(float, maxBoxHeight, 10.0f) \
+    X(bool, renderCircle, false) X(bool, renderSphere, false) X(bool, renderDistance, false) X(bool, renderDot, true) \
+    X(bool, renderDetails, false) X(bool, renderHealthBar, true) X(bool, showBurstDps, false) \
+    X(bool, showDamageNumbers, true) X(bool, showOnlyDamaged, true) X(bool, showHealthPercentage, false) \
+    X(bool, showDeadGadgets, true) X(bool, showResourceNodes, true) X(bool, showWaypoints, true) \
+    X(bool, showVistas, true) X(bool, showCraftingStations, true) X(bool, showAttackTargets, true) \
+    X(bool, showPlayerCreated, true) X(bool, showInteractables, true) X(bool, showDoors, true) \
+    X(bool, showPortals, true) X(bool, showDestructible, true) X(bool, showPoints, true) \
+    X(bool, showPlayerSpecific, true) X(bool, showProps, false) X(bool, showBuildSites, true) \
+    X(bool, showBountyBoards, true) X(bool, showRifts, true) X(bool, showGeneric, false) \
+    X(bool, showGeneric2, false) X(bool, showUnknown, true) X(bool, showAttackTargetList, true) \
+    X(bool, showAttackTargetListOnlyInCombat, true) X(bool, showItems, true) X(bool, showItemJunk, false) \
+    X(bool, showItemCommon, false) X(bool, showItemFine, true) X(bool, showItemMasterwork, true) \
+    X(bool, showItemRare, true) X(bool, showItemExotic, true) X(bool, showItemAscended, true) \
+    X(bool, showItemLegendary, true) X(bool, showDetailGadgetType, true) X(bool, showDetailHealth, true) \
+    X(bool, showDetailPosition, true) X(bool, showDetailResourceInfo, true) X(bool, showDetailGatherableStatus, true)
+KX_DEFINE_SETTINGS_TYPE(ObjectEspSettings, KX_OBJECT_ESP_SETTINGS)
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerEspSettings, enabled, renderBox, renderWireframe, renderDistance, renderDot, renderDetails,
-                                       renderHealthBar, renderEnergyBar, renderPlayerName, showBurstDps,
-                                       showDamageNumbers, showOnlyDamaged, showHealthPercentage, showLocalPlayer,
-                                       enableGearDisplay, gearDisplayMode, energyDisplayType, showDetailLevel, showDetailHp,
-                                       showDetailAttitude, showDetailEnergy, showDetailPosition, showDetailRank,
-                                       showDetailProfession, showDetailRace, hostileBoostMultiplier, showFriendly, showHostile, showNeutral,
-                                       showIndifferent, trails);
-
-    struct NpcEspSettings : AttitudeSettings {
-        bool enabled = true;
-        bool renderBox = false;
-        bool renderWireframe = false;
-        bool renderDistance = false;
-        bool renderDot = false;
-        bool renderDetails = false;
-        bool renderHealthBar = true;
-        bool showBurstDps = false;
-        bool showDamageNumbers = true;
-        bool showOnlyDamaged = false;
-        bool showHealthPercentage = false;
-        // Rank filters
-        bool showLegendary = true;
-        bool showChampion = true;
-        bool showElite = true;
-        bool showVeteran = true;
-        bool showAmbient = true;
-        bool showNormal = true;
-        // Health-based filtering
-        bool showDeadNpcs = false;  // Show NPCs with 0 HP (dead/defeated enemies)
-        // Detail-field filters
-        bool showDetailLevel = true;
-        bool showDetailHp = true;
-        bool showDetailAttitude = true;
-        bool showDetailRank = true;
-        bool showDetailPosition = true;
-    };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(NpcEspSettings, enabled, renderBox, renderWireframe, renderDistance, renderDot, renderDetails,
-                                       renderHealthBar, showBurstDps, showDamageNumbers, showOnlyDamaged,
-                                       showHealthPercentage, showLegendary, showChampion, showElite, showVeteran,
-                                       showAmbient, showNormal, showDeadNpcs, showDetailLevel, showDetailHp,
-                                       showDetailAttitude, showDetailRank, showDetailPosition, showFriendly,
-                                       showHostile, showNeutral, showIndifferent);
-
-    struct ObjectEspSettings {
-        bool enabled = true;
-        bool renderBox = false;         // Render 2D bounding box
-        bool renderWireframe = false;    // Render 3D wireframe box
-        float maxBoxHeight = 10.0f;     // Max height (meters) to show box (filters huge gadgets)
-        bool renderCircle = false;      // Render a 2D circle for the object
-        bool renderSphere = false;      // Render a 3D sphere for the object
-        bool renderDistance = false;
-        bool renderDot = true;
-        bool renderDetails = false;
-        bool renderHealthBar = true;
-        bool showBurstDps = false;
-        bool showDamageNumbers = true;
-        bool showOnlyDamaged = true;
-        bool showHealthPercentage = false;
-        bool showDeadGadgets = true;
-        
-        // Gadget Type Filters
-        bool showResourceNodes = true;    // Type 19
-        bool showWaypoints = true;        // Type 18
-        bool showVistas = true;           // Type 24
-        bool showCraftingStations = true; // Type 5
-        bool showAttackTargets = true;    // Type 16
-        bool showPlayerCreated = true;    // Type 23
-        bool showInteractables = true;    // Type 12 (covers chests, etc.)
-        bool showDoors = true;            // Type 6
-        bool showPortals = true;          // Type 17 (MapPortal)
-        bool showDestructible = true;     // Type 1
-        bool showPoints = true;           // Type 2 (PvP points)
-        bool showPlayerSpecific = true;   // Type 14
-        bool showProps = false;            // Type 20
-        bool showBuildSites = true;       // Type 25
-        bool showBountyBoards = true;     // Type 11
-        bool showRifts = true;            // Type 13
-        bool showGeneric = false;         // Type 3
-        bool showGeneric2 = false;
-        bool showUnknown = true;          // For any type not explicitly handled
-        bool showAttackTargetList = true; // Attack Target List (AgentType::GadgetAttackTarget, separate from GadgetType::AttackTarget)
-        bool showAttackTargetListOnlyInCombat = true; // Only show attack targets that are in combat state
-
-        // Item Settings
-        bool showItems = true;             // Main toggle for items
-        // Rarity Filters
-        bool showItemJunk = false;
-        bool showItemCommon = false;
-        bool showItemFine = true;
-        bool showItemMasterwork = true;
-        bool showItemRare = true;
-        bool showItemExotic = true;
-        bool showItemAscended = true;
-        bool showItemLegendary = true;
-
-        // Detail-field filters
-        bool showDetailGadgetType = true;
-        bool showDetailHealth = true;
-        bool showDetailPosition = true;
-        bool showDetailResourceInfo = true;
-        bool showDetailGatherableStatus = true;
-    };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ObjectEspSettings, enabled, renderBox, renderWireframe, maxBoxHeight, renderCircle, renderSphere, renderDistance,
-                                       renderDot, renderDetails, renderHealthBar, showBurstDps, showDamageNumbers,
-                                       showOnlyDamaged, showHealthPercentage, showDeadGadgets, showResourceNodes,
-                                       showWaypoints, showVistas, showCraftingStations, showAttackTargets,
-                                       showPlayerCreated, showInteractables, showDoors, showPortals, showDestructible,
-                                       showPoints, showPlayerSpecific, showProps, showBuildSites, showBountyBoards,
-                                       showRifts, showGeneric, showGeneric2, showUnknown, showAttackTargetList,
-                                       showAttackTargetListOnlyInCombat, showItems, showItemJunk, showItemCommon, showItemFine, 
-                                       showItemMasterwork, showItemRare, showItemExotic, showItemAscended, showItemLegendary,
-                                       showDetailGadgetType, showDetailHealth, showDetailPosition, showDetailResourceInfo,
-                                       showDetailGatherableStatus);
-
-    /**
-     * @brief Unified configuration for the Visuals feature.
-     * Consolidates all ESP settings and visuals-specific configuration.
-     */
-    struct VisualsConfiguration {
-        // Category-specific ESP settings
-        PlayerEspSettings playerESP;
-        NpcEspSettings npcESP;
-        ObjectEspSettings objectESP;
-
-        // Enhanced filtering options
-        bool hideDepletedNodes = true;          // Hide depleted resource nodes
-
-        // Debug options
 #ifdef _DEBUG
-        bool showDebugAddresses = true;         // Show entity memory addresses on ESP
+#define KX_VISUAL_DEBUG_DEFAULT true
 #else
-        bool showDebugAddresses = false;
+#define KX_VISUAL_DEBUG_DEFAULT false
 #endif
-    };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(VisualsConfiguration, playerESP, npcESP, objectESP, 
-                                       hideDepletedNodes, showDebugAddresses);
+#define KX_VISUALS_CONFIGURATION(X) \
+    X(PlayerEspSettings, playerESP, {}) X(NpcEspSettings, npcESP, {}) X(ObjectEspSettings, objectESP, {}) \
+    X(DistanceSettings, distance, {}) X(ScalingSettings, scaling, {}) X(ElementSizeSettings, sizes, {}) \
+    X(AppearanceSettings, appearance, {}) X(float, espUpdateRate, 60.0f) \
+    X(bool, hideDepletedNodes, true) X(bool, showDebugAddresses, KX_VISUAL_DEBUG_DEFAULT)
+KX_DEFINE_SETTINGS_TYPE(VisualsConfiguration, KX_VISUALS_CONFIGURATION)
 
 } // namespace kx

@@ -5,7 +5,7 @@
 #include "../../Memory/SafeGameArray.h"
 #include "../../Memory/Safety.h"
 #include "EntityExtractor.h"
-#include "../../Rendering/Shared/LayoutConstants.h"
+#include "../Data/EntityLimits.h"
 
 namespace kx {
 

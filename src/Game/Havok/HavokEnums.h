@@ -55,6 +55,12 @@ enum class HkcdShapeType : uint8_t {
     ALL_SHAPE_TYPES = 0xFF
 };
 
+enum class HkCharacterGroundState : int32_t {
+    InAir = 0,
+    OnGround = 1,
+    HillyGround = 2
+};
+
 } // namespace Havok
 } // namespace kx
 

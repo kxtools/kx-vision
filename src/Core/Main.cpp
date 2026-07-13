@@ -5,15 +5,26 @@
 
 #include "AppLifecycleManager.h"
 #include "Bootstrap.h"
+#include "../Composition/FeatureComposition.h"
 #include "../Utils/DebugLogger.h"
 
 HINSTANCE dll_handle;
 static HANDLE g_hSingleInstanceMutex = NULL;
 
+namespace {
+
+void ReleaseSingleInstanceMutex() {
+    if (g_hSingleInstanceMutex) {
+        ReleaseMutex(g_hSingleInstanceMutex);
+        CloseHandle(g_hSingleInstanceMutex);
+        g_hSingleInstanceMutex = NULL;
+    }
+}
+
+} // namespace
+
 // Eject thread to free the DLL
 DWORD WINAPI EjectThread(LPVOID lpParameter) {
-    kx::Bootstrap::Cleanup();
-    Sleep(500); // Increased from 100ms to ensure all in-flight Present calls complete
     FreeLibraryAndExitThread(dll_handle, 0);
     return 0;
 }
@@ -23,8 +34,9 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
     kx::Bootstrap::Initialize("DLL");
 
     // Initialize the global application lifecycle manager
-    if (!kx::g_App.Initialize()) {
+    if (!kx::g_App.Initialize(kx::CreateAppComposition())) {
         LOG_ERROR("Failed to initialize application - HookManager or D3D hooks setup failed");
+        kx::g_App.Shutdown();
         kx::Bootstrap::Cleanup();
         CreateThread(0, 0, EjectThread, 0, 0, 0);
         return 1;
@@ -47,7 +59,7 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
     // Cleanup common resources
     kx::Bootstrap::Cleanup();
 
-    // Eject the DLL and exit the thread
+    // Eject the DLL and exit the thread.
     CreateThread(0, 0, EjectThread, 0, 0, 0);
 
     return 0;
@@ -75,6 +87,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             // and signal the loader to NOT load this DLL.
             if (g_hSingleInstanceMutex) {
                 CloseHandle(g_hSingleInstanceMutex);
+                g_hSingleInstanceMutex = NULL;
             }
             return FALSE; // Prevents the DLL from being loaded.
         }
@@ -92,10 +105,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
         kx::g_App.SaveSettingsOnExit();
 
         // It's good practice to release and close the mutex on shutdown.
-        if (g_hSingleInstanceMutex) {
-            ReleaseMutex(g_hSingleInstanceMutex);
-            CloseHandle(g_hSingleInstanceMutex);
-        }
+        ReleaseSingleInstanceMutex();
     }
     break;
     }

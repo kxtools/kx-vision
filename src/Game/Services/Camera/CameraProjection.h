@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glm.hpp" 
-#include "Services/Camera/Camera.h"
+#include "Camera.h"
 
 namespace kx {
 
@@ -29,6 +29,6 @@ namespace MathUtils {
      */
     bool ProjectToScreen(const glm::vec3& worldPos, const Camera& camera, float screenWidth, float screenHeight, glm::vec2& outScreenPos);
 
-} // namespace ESPUtils
+} // namespace MathUtils
 
 } // namespace kx

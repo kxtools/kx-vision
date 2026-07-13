@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 
-#include "../../../Core/AppState.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../Settings/VisualsSettings.h"
 #include "GuiHelpers.h"

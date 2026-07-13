@@ -1,11 +1,11 @@
 #include "AdaptiveFarPlaneCalculator.h"
-#include "../Game/Data/FrameData.h"
-#include "../Game/Data/EntityData.h"
-#include "../Utils/DebugLogger.h"
+#include "../../../Game/Data/FrameData.h"
+#include "../../../Game/Data/EntityData.h"
+#include "../../../Utils/DebugLogger.h"
 #include <vector>
 #include <algorithm>
 
-#include "Shared/ScalingConstants.h"
+#include "../Rendering/VisualScalingConstants.h"
 
 namespace kx {
 

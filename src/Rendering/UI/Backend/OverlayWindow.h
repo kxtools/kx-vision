@@ -2,6 +2,7 @@
 
 #include <d3d11.h>
 #include <chrono>
+#include <memory>
 #pragma comment(lib, "d3d11.lib")
 
 // Forward declarations to avoid circular dependencies
@@ -11,6 +12,8 @@ namespace kx {
     struct MumbleLinkData;
     class FeatureManager;
     struct ServiceContext;
+    struct EntityFrameSnapshot;
+    using FrameSnapshotHandle = std::shared_ptr<const EntityFrameSnapshot>;
 }
 
 /**
@@ -44,6 +47,7 @@ public:
                         float displayWidth,
                         float displayHeight,
                         kx::FeatureManager& featureManager,
+                        const kx::FrameSnapshotHandle& snapshot,
                         const kx::ServiceContext& ctx);
     
     static void Shutdown();

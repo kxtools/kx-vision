@@ -1,8 +1,7 @@
 #include "AppearanceTab.h"
 
-#include "Settings.h"
-#include "AppState.h"
-#include "ImGui/imgui.h"
+#include "../Settings/VisualsSettings.h"
+#include "../../../../libs/ImGui/imgui.h"
 
 namespace kx {
     namespace GUI {
@@ -10,7 +9,7 @@ namespace kx {
         // --- Helper Functions for Rendering UI Sections ---
 
         // Renders all distance-related settings in a dedicated section.
-        static void RenderDistanceSettings(Settings& settings) {
+        static void RenderDistanceSettings(VisualsConfiguration& settings) {
             if (ImGui::CollapsingHeader("Distance Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::SeparatorText("Culling Mode");
                 
@@ -103,18 +102,18 @@ namespace kx {
             }
         }
 
-        // Renders the global appearance settings (opacity, text styles).
-        static void RenderGlobalSettings(Settings& settings) {
-            if (ImGui::CollapsingHeader("Global Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::SeparatorText("General Appearance");
+        // Renders appearance policy shared by every ESP element.
+        static void RenderEspWideSettings(VisualsConfiguration& settings) {
+            if (ImGui::CollapsingHeader("ESP-Wide Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::SeparatorText("Shared ESP Style");
                 
                 float displayValue = settings.appearance.globalOpacity * 100.0f;
-                if (ImGui::SliderFloat("Global Opacity", &displayValue, 50.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp)) {
+                if (ImGui::SliderFloat("ESP Opacity", &displayValue, 50.0f, 100.0f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp)) {
                     settings.appearance.globalOpacity = displayValue / 100.0f;
                 }
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip(
-                        "Global opacity multiplier for ALL ESP elements.\n\n"
+                        "Opacity multiplier shared by all ESP elements.\n\n"
                         "80%% (Default): Subtle integration, matches GW2's UI style\n"
                         "100%%: Full opacity, maximum visibility\n"
                         "50-70%%: Very subtle, minimal presence\n\n"
@@ -146,7 +145,7 @@ namespace kx {
         }
 
         // Renders all sliders related to the ESP scaling curve.
-        static void RenderScalingSettings(Settings& settings) {
+        static void RenderScalingSettings(VisualsConfiguration& settings, float adaptiveFarPlane) {
             if (ImGui::CollapsingHeader("ESP Scaling Configuration")) { // Collapsed by default
 
                 // --- PRIMARY, ALWAYS-VISIBLE CONTROLS ---
@@ -177,7 +176,6 @@ namespace kx {
                     ImGui::TextWrapped("Distance Factor is automatic based on scene.");
                     
                     // Display current adaptive far plane value
-                    float adaptiveFarPlane = AppState::Get().GetAdaptiveFarPlane();
                     ImGui::Text("Adaptive Far Plane: %.1fm", adaptiveFarPlane);
                     if (ImGui::IsItemHovered()) {
                         ImGui::SetTooltip(
@@ -229,7 +227,7 @@ namespace kx {
         }
 
         // Renders all sliders related to the base size of ESP elements.
-        static void RenderBaseSizeSettings(Settings& settings) {
+        static void RenderBaseSizeSettings(VisualsConfiguration& settings) {
             if (ImGui::CollapsingHeader("Element Base Sizes")) { // Collapsed by default
                 ImGui::SliderFloat("Font Size", &settings.sizes.baseFontSize, 6.0f, 30.0f, "%.1fpx");
                 ImGui::SliderFloat("Dot Radius", &settings.sizes.baseDotRadius, 1.0f, 10.0f, "%.1fpx");
@@ -247,50 +245,21 @@ namespace kx {
             }
         }
 
-        // Renders menu appearance settings (UI scale, etc.)
-        static void RenderMenuAppearance(Settings& settings) {
-            if (ImGui::CollapsingHeader("Menu Appearance")) {
-                if (ImGui::SliderFloat("UI Scale", &settings.gui.uiScale, 0.8f, 1.5f, "%.1fx")) {
-                    // Scale change will be applied on next app restart
-                }
-                
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "Scale the menu interface size\n\n"
-                        "0.8x: Compact (more content visible)\n"
-                        "1.0x: Default (recommended)\n"
-                        "1.5x: Large (better for 4K displays)\n\n"
-                        "Note: Requires app restart to take effect"
-                    );
-                }
-
-                float displayOpacity = settings.gui.menuOpacity * 100.0f;
-                if (ImGui::SliderFloat("Menu Opacity", &displayOpacity, 50.0f, 100.0f, "%.0f%%")) {
-                    settings.gui.menuOpacity = displayOpacity / 100.0f;
-                }
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "Transparency of the menu window\n\n"
-                        "50%%: Subtle, see-through\n"
-                        "90%% (Default): Balanced visibility\n"
-                        "100%%: Fully opaque\n\n"
-                        "Tip: Lower opacity during combat for less obstruction"
-                    );
-                }
-            }
-        }
-
         // --- Main Tab Rendering Function ---
 
-        void RenderAppearanceTab() {
+        void RenderAppearanceTab(VisualsConfiguration& settings, float adaptiveFarPlane) {
             if (ImGui::BeginTabItem("Appearance")) {
-                auto& settings = AppState::Get().GetSettings();
-
                 RenderDistanceSettings(settings);
-                RenderGlobalSettings(settings);
-                RenderScalingSettings(settings);
+                RenderEspWideSettings(settings);
+                RenderScalingSettings(settings, adaptiveFarPlane);
                 RenderBaseSizeSettings(settings);
-                RenderMenuAppearance(settings);
+
+                if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::SliderFloat("ESP Update Rate", &settings.espUpdateRate, 30.0f, 360.0f, "%.0f FPS");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Lower values improve performance but make ESP less responsive.\nRecommended: 60-120 FPS for good balance, up to 360 FPS for high refresh displays.");
+                    }
+                }
 
                 ImGui::EndTabItem();
             }

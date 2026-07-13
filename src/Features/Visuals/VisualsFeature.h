@@ -1,8 +1,10 @@
 #pragma once
 
-#include "../../Core/Architecture/IFeature.h"
+#include "../../Core/Architecture/FeatureWithSettings.h"
 #include "Core/MasterRenderer.h"
+#include "Logic/AdaptiveFarPlaneCalculator.h"
 #include "Settings/VisualsSettings.h"
+#include "Combat/VisualCombatTracker.h"
 #include <memory>
 
 namespace kx {
@@ -17,26 +19,24 @@ struct MumbleLinkData;
  * This feature handles ESP rendering for players, NPCs, objects, and other entities.
  * It owns the MasterRenderer instance and provides the UI tabs for ESP configuration.
  */
-class VisualsFeature : public IFeature {
+class VisualsFeature : public FeatureWithSettings<VisualsConfiguration> {
 public:
     VisualsFeature();
     ~VisualsFeature() override = default;
 
     bool Initialize(const ServiceContext& ctx) override;
     void Shutdown() override;
-    void Update(float deltaTime, const FrameGameData& frameData, const ServiceContext& ctx) override;
-    void RenderDrawList(ImDrawList* drawList, const ServiceContext& ctx) override;
-    void OnMenuRender() override;
+    void Update(float deltaTime, const FrameSnapshotHandle& snapshot, const ServiceContext& ctx) override;
+    void RenderDrawList(ImDrawList* drawList, const FrameSnapshotHandle& snapshot, const ServiceContext& ctx) override;
+    void OnTabRender() override;
     const char* GetName() const override { return "Visuals"; }
     
-    void LoadSettings(const nlohmann::json& j) override;
-    void SaveSettings(nlohmann::json& j) override;
-
 private:
-    static constexpr const char* SettingsKey = "visuals";
+    void NormalizeSettings() override;
     
     std::unique_ptr<MasterRenderer> m_masterRenderer;
-    VisualsConfiguration m_settings;
+    AdaptiveFarPlaneCalculator m_adaptiveFarPlane;
+    VisualCombatTracker m_visualCombatTracker;
     
     // Non-owning pointers to services (populated during Initialize)
     EntityManager* m_entityManager = nullptr;

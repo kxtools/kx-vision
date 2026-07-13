@@ -365,3 +365,6 @@ FodyWeavers.xsd
 # GW2 API Cache  
 scripts/api_cache/
 *.json.tmp
+
+# Private product overlay must never enter public repository.
+/KX-Vision.Product.props

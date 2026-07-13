@@ -39,6 +39,7 @@ namespace AddressingConstants {
 struct GamePointers {
     uintptr_t agentArray = 0;
     uintptr_t worldViewContextPtr = 0;
+    uintptr_t cameraManagerPtr = 0;
     uintptr_t bgfxContextFunc = 0;
     uintptr_t contextCollectionFunc = 0;
     uintptr_t gameThreadUpdateFunc = 0;
@@ -59,6 +60,7 @@ public:
     // Inlined getters for direct and fast access.
     static uintptr_t GetAgentArray() { return s_pointers.agentArray; }
     static uintptr_t GetWorldViewContextPtr() { return s_pointers.worldViewContextPtr; }
+    static uintptr_t GetCameraManagerPtr() { return s_pointers.cameraManagerPtr; }
     static uintptr_t GetBgfxContextFunc() { return s_pointers.bgfxContextFunc; }
     static uintptr_t GetContextCollectionFunc() { return s_pointers.contextCollectionFunc; }
     static uintptr_t GetGameThreadUpdateFunc() { return s_pointers.gameThreadUpdateFunc; }

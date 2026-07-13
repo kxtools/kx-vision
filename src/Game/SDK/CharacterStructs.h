@@ -185,14 +185,23 @@ namespace kx {
             }
         };
 
+        class ChCliSkillbar;
+
         /**
          * @brief ChCliCharacter - Main character structure containing all subsystems
          */
         class ChCliCharacter : public ForeignClass {
         private:
             struct Offsets {
+                // --- States ---
+                static constexpr uintptr_t WATER_STATE = 0x0D8;    // uint32_t: 0=Dry, 1=Diving, 2=Surface
+                static constexpr uintptr_t LIFE_STATE = 0x0188;     // uint32_t: 0=Alive, 1=Dead, 2=Downed
+
+                // --- Identification ---
                 static constexpr uintptr_t AGENT = 0x98;            // AgChar* character's agent
                 static constexpr uintptr_t ATTITUDE = 0x00C0;       // uint32_t attitude flags
+
+                // --- Subsystems ---
                 static constexpr uintptr_t BREAKBAR = 0x00C8;       // CmbtCliBreakBar* breakbar subsystem
                 static constexpr uintptr_t RANK_FLAGS = 0x0264;     // uint32_t rank flags (veteran, elite, etc.)
                 static constexpr uintptr_t CORE_STATS = 0x0388;     // ChCliCoreStats* stats subsystem
@@ -202,6 +211,7 @@ namespace kx {
                 static constexpr uintptr_t HEALTH = 0x03E8;         // ChCliHealth* health subsystem
                 static constexpr uintptr_t INVENTORY = 0x3F0;       // ChCliInventory* inventory subsystem
                 static constexpr uintptr_t SKILLBAR = 0x0520;       // ChCliSkillbar* skillbar subsystem
+				static constexpr uintptr_t WEAPON_DRAWN = 0x0178;   // uint8_t weapon drawn (24=sheathed, 88=drawn)
             };
 
         public:
@@ -280,7 +290,108 @@ namespace kx {
             ChCliInventory GetInventory() const {
                 return ReadPointerFast<ChCliInventory>(Offsets::INVENTORY);
             }
+
+            bool IsWeaponDrawn() const {
+                LOG_MEMORY("ChCliCharacter", "IsWeaponDrawn", data(), Offsets::WEAPON_DRAWN);
+                uint8_t drawnState = ReadMemberFast<uint8_t>(Offsets::WEAPON_DRAWN, 0);
+                
+                LOG_DEBUG("ChCliCharacter::IsWeaponDrawn - Drawn State: %u", drawnState);
+                return drawnState == 88; // 88 = drawn, 24 = sheathed
+			}
+
+            uint32_t GetWaterState() const {
+                LOG_MEMORY("ChCliCharacter", "GetWaterState", data(), Offsets::WATER_STATE);
+                
+                uint32_t waterState = ReadMemberFast<uint32_t>(Offsets::WATER_STATE, 0);
+                
+                LOG_DEBUG("ChCliCharacter::GetWaterState - Water State: %u", waterState);
+                return waterState;
+			}
+
+            uint32_t GetLifeState() const {
+                LOG_MEMORY("ChCliCharacter", "GetLifeState", data(), Offsets::LIFE_STATE);
+                
+                uint32_t lifeState = ReadMemberFast<uint32_t>(Offsets::LIFE_STATE, 0);
+                
+                LOG_DEBUG("ChCliCharacter::GetLifeState - Life State: %u", lifeState);
+                return lifeState;
+            }
+
+            ChCliSkillbar GetSkillbar() const;
         };
+
+        // Forward declarations
+        class AsContext;
+        class CharSkillbar;
+
+        /**
+         * @brief ChCliSkill - Skill definition entry for a skillbar slot
+         */
+        class ChCliSkill : public ForeignClass {
+        private:
+            struct Offsets {
+                static constexpr uintptr_t SKILL_ID = 0x0028;       // uint32_t skill id
+                static constexpr uintptr_t FLAGS = 0x0038;          // uint32_t status/behavioral bitmask: disabled/silenced state (e.g. 0x1000), targeting requirements, and special range-check requirements (e.g. 0x1000000)
+            };
+
+        public:
+            ChCliSkill(void* ptr) : ForeignClass(ptr) {}
+
+            uint32_t GetSkillId() const {
+                return ReadMemberFast<uint32_t>(Offsets::SKILL_ID, 0u);
+            }
+
+            uint32_t GetFlags() const {
+                return ReadMemberFast<uint32_t>(Offsets::FLAGS, 0u);
+            }
+        };
+
+        /**
+         * @brief ChCliSkillbar - Character skillbar subsystem
+         */
+        class ChCliSkillbar : public ForeignClass {
+        private:
+            static constexpr uintptr_t SLOT_COUNT = 23;
+
+            struct Offsets {
+                static constexpr uintptr_t SLOT_VALID = 0x0074;                              // uint32_t active slot index; 23 (0x17) means "no skill active", 0..22 are valid slots
+                static constexpr uintptr_t P_AS_CONTEXT = 0x0080;                             // AsContext* as context
+                static constexpr uintptr_t USING_SKILL = 0x00B0;                                // uint32_t
+                static constexpr uintptr_t P_CH_CLI_CHARACTER = 0x00F0;                      // ChCliCharacter* character
+                static constexpr uintptr_t NOTIFIER = 0x0100;                                 // void* notifier (N00002074*)
+                static constexpr uintptr_t P_CHAR_SKILLBAR = 0x0150;                          // void* char skillbar (CharSkillbar*)
+                static constexpr uintptr_t REGISTERED_COMBATANT = 0x0158;                     // void* registered combatant (N00001FE8*)
+                static constexpr uintptr_t REGISTERED_CORE_STATS = 0x0160;                    // ChCliCoreStats* registered core stats
+                static constexpr uintptr_t REGISTERED_INVENTORY = 0x0168;                     // ChCliInventory* registered inventory
+                static constexpr uintptr_t REGISTERED_TRANSFORMATION_MGR = 0x0178;           // void* registered transformation manager (N00002023*)
+                static constexpr uintptr_t HELD_INSTANT_SKILL_SLOT = 0x0180;                  // uint32_t/hex slot indicator while the key is held down; reports 0..22 for supported instant/non-ground skills, otherwise inactive
+                static constexpr uintptr_t SLOT_SKILL_DEFS = 0x01D0;                         // ChCliSkill*[23] slot skill definitions
+            };
+
+        public:
+            ChCliSkillbar(void* ptr) : ForeignClass(ptr) {}
+
+            void* GetAsContext() const {
+                LOG_MEMORY("ChCliSkillbar", "GetAsContext", data(), Offsets::P_AS_CONTEXT);
+                return ReadMemberFast<void*>(Offsets::P_AS_CONTEXT, nullptr);
+            }
+
+            uint32_t GetUsingSkill() const {
+                return ReadMemberFast<uint32_t>(Offsets::USING_SKILL, 0u);
+            }
+
+            ChCliSkill GetSlotSkillDef(uint32_t slotIndex) const {
+                if (slotIndex >= SLOT_COUNT || !data()) {
+                    return ChCliSkill(nullptr);
+                }
+
+                return ReadPointerFast<ChCliSkill>(Offsets::SLOT_SKILL_DEFS + (slotIndex * sizeof(void*)));
+            }
+        };
+
+        inline ChCliSkillbar ChCliCharacter::GetSkillbar() const {
+            return ReadPointerFast<ChCliSkillbar>(Offsets::SKILLBAR);
+        }
 
         /**
          * @brief ChCliPlayer - Player wrapper containing character and name

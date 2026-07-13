@@ -33,6 +33,7 @@ namespace kx {
                 static constexpr uintptr_t POSITION_ALT1 = 0xB8;    // glm::vec3 alternative position 1
                 static constexpr uintptr_t POSITION_ALT2 = 0x118;   // glm::vec3 alternative position 2 (may lag)
                 static constexpr uintptr_t PHYSICS_PHANTOM_PLAYER = 0x78;  // hkpSimpleShapePhantom* physics object (PLAYER ONLY) - see HavokOffsets.h
+                static constexpr uintptr_t CHARACTER_PROXY = 0x68;   // hkpCharacterProxy* character controller proxy
                 static constexpr uintptr_t BOX_SHAPE_NPC = 0xE8;        // hkpBoxShape* physics box shape (NPC ONLY - Players are nullptr) - see HavokOffsets.h
             };
 
@@ -60,6 +61,10 @@ namespace kx {
                 return ReadPointerFast<HkpSimpleShapePhantom>(Offsets::PHYSICS_PHANTOM_PLAYER);
             }
 
+            HkpCharacterProxy GetCharacterProxy() const {
+                return ReadPointerFast<HkpCharacterProxy>(Offsets::CHARACTER_PROXY);
+            }
+
             HkpBoxShape GetBoxShapeNpc() const {
                 return ReadPointerFast<HkpBoxShape>(Offsets::BOX_SHAPE_NPC);
             }
@@ -67,37 +72,124 @@ namespace kx {
 
         /**
          * @brief CoChar - Character coordinate system for visual positioning
-         * VISUAL_POSITION is the primary position source for real-time rendering.
-         */
+         *
+         * IMPORTANT:
+         * CoChar layout is not assumed to be uniform across players and NPCs.
+         * Every offset below must be validated independently for the entity class it belongs to.
+         * Do not treat a verified PLAYER offset as implicitly valid for NPCs, or vice versa.
+         *
+         * VISUAL_POSITION is currently used as the primary render/extraction position, but even
+         * "common" offsets should still be re-validated separately on both player and NPC entities.
+        */
         class CoChar : public ForeignClass {
-        private:
+        protected:
             struct Offsets {
-                static constexpr uintptr_t VISUAL_POSITION = 0x30;  // glm::vec3 position (primary)
-                static constexpr uintptr_t RIGID_BODY_PLAYER = 0x60;       // hkpRigidBody* physics rigid body (PLAYER ONLY - NPCs are nullptr) - see HavokOffsets.h
-                static constexpr uintptr_t SIMPLE_CLI_WRAPPER = 0x88;   // CoCharSimpleCliWrapper* - contains additional position data and physics info
+                struct Common {
+                    // NOTE: "Common" here means "currently used by shared code paths", not
+                    // "proven identical for every entity class". Validate separately for players
+                    // and NPCs before relying on these in new code.
+                    static constexpr uintptr_t VISUAL_POSITION = 0x30;    // glm::vec3 primary visual position
+                    static constexpr uintptr_t SIMPLE_CLI_WRAPPER = 0x88; // CoCharSimpleCliWrapper* helper wrapper
+                    // Velocity components are signed. 0x150/0x154 are planar X/Y, 0x158 is vertical.
+                    static constexpr uintptr_t VELOCITY_X = 0x150;        // float horizontal velocity X
+                    static constexpr uintptr_t VELOCITY_Y = 0x154;        // float horizontal velocity Y
+                    static constexpr uintptr_t VELOCITY_VERTICAL = 0x158; // float vertical velocity
+                    static constexpr uintptr_t GRAVITY = 0x294;           // float gravity
+                    static constexpr uintptr_t MAX_CLIMB_SLOPE = 0x29C;   // float maxClimbSlope
+                    static constexpr uintptr_t MOVEMENT_SPEED = 0x2B8;    // float movementSpeed
+                };
+
+                struct Player {
+                    static constexpr uintptr_t RIGID_BODY = 0x60;             // hkpRigidBody* (PLAYER ONLY)
+                    static constexpr uintptr_t PHYSICS_PHANTOM = 0x100;       // HkpSimpleShapePhantom* (PLAYER ONLY)
+                    static constexpr uintptr_t CURRENT_DIRECTION = 0x180;     // glm::vec2 facing dir (PLAYER ONLY)
+                    static constexpr uintptr_t LOOK_ANGLE_VERTICAL = 0x188;   // float pitch/look angle (PLAYER ONLY)
+                };
+
+                struct Npc {
+                    static constexpr uintptr_t CURRENT_DIRECTION = 0x110;     // glm::vec2 facing dir (NPC ONLY)
+                    static constexpr uintptr_t BOX_SHAPE = 0x170;             // hkpBoxShape* (NPC ONLY)
+                };
             };
 
         public:
             CoChar(void* ptr) : ForeignClass(ptr) {}
 
             glm::vec3 GetVisualPosition() const {
-                // TESTED: Primary position source - smooth and accurate for real-time rendering
+                // TESTED: Primary position source used by current render/extraction code.
+                // Guardrail: keep validating this separately on both players and NPCs.
                 // Only log memory access for successful reads to reduce spam
                 if (!data()) {
                     return { 0.0f, 0.0f, 0.0f };
                 }
                 
-                glm::vec3 result = ReadMemberFast<glm::vec3>(Offsets::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
+                glm::vec3 result = ReadMemberFast<glm::vec3>(Offsets::Common::VISUAL_POSITION, { 0.0f, 0.0f, 0.0f });
                 
                 return result;
             }
 
             HkpRigidBody GetRigidBodyPlayer() const {
-                return ReadPointerFast<HkpRigidBody>(Offsets::RIGID_BODY_PLAYER);
+                return ReadPointerFast<HkpRigidBody>(Offsets::Player::RIGID_BODY);
             }
 
             CoCharSimpleCliWrapper GetSimpleCliWrapper() const {
-                return ReadPointerFast<CoCharSimpleCliWrapper>(Offsets::SIMPLE_CLI_WRAPPER);
+                return ReadPointerFast<CoCharSimpleCliWrapper>(Offsets::Common::SIMPLE_CLI_WRAPPER);
+            }
+
+            HkpSimpleShapePhantom GetPhysicsPhantomPlayer() const {
+                return ReadPointerFast<HkpSimpleShapePhantom>(Offsets::Player::PHYSICS_PHANTOM);
+            }
+
+            glm::vec2 GetCurrentDirectionNpc() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f };
+                }
+                return ReadMemberFast<glm::vec2>(Offsets::Npc::CURRENT_DIRECTION, { 0.0f, 0.0f });
+            }
+
+            glm::vec3 GetVelocity() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f, 0.0f };
+                }
+
+                // Read raw signed components directly instead of assuming an opaque packed vec3.
+                return glm::vec3(
+                    ReadMemberFast<float>(Offsets::Common::VELOCITY_X, 0.0f),
+                    ReadMemberFast<float>(Offsets::Common::VELOCITY_Y, 0.0f),
+                    ReadMemberFast<float>(Offsets::Common::VELOCITY_VERTICAL, 0.0f));
+            }
+
+            HkpBoxShape GetBoxShapeNpc() const {
+                return ReadPointerFast<HkpBoxShape>(Offsets::Npc::BOX_SHAPE);
+            }
+
+            glm::vec2 GetCurrentDirectionPlayer() const {
+                if (!data()) {
+                    return { 0.0f, 0.0f };
+                }
+                return ReadMemberFast<glm::vec2>(Offsets::Player::CURRENT_DIRECTION, { 0.0f, 0.0f });
+            }
+
+            float GetLookAngleVerticalPlayer() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMemberFast<float>(Offsets::Player::LOOK_ANGLE_VERTICAL, 0.0f);
+            }
+
+            float GetGravity() const {
+                if (!data()) return 0.0f;
+                return ReadMemberFast<float>(Offsets::Common::GRAVITY, 0.0f);
+            }
+
+            float GetMaxClimbSlope() const {
+                if (!data()) return 0.0f;
+                return ReadMemberFast<float>(Offsets::Common::MAX_CLIMB_SLOPE, 0.0f);
+            }
+
+            float GetMovementSpeed() const {
+                if (!data()) return 0.0f;
+                return ReadMemberFast<float>(Offsets::Common::MOVEMENT_SPEED, 0.0f);
             }
         };
 
@@ -107,10 +199,19 @@ namespace kx {
         class AgChar : public ForeignClass {
         private:
             struct Offsets {
-                static constexpr uintptr_t CO_CHAR = 0x50;  // CoChar* coordinate system
-                static constexpr uintptr_t TYPE = 0x08;     // int32_t agent type identifier
-                static constexpr uintptr_t ID = 0x0C;       // int32_t agent ID
-                static constexpr uintptr_t GROUNDED_POSITION32 = 0x120;  // glm::vec3 last grounded/navmesh position (scaled by 32)
+                // --- Identification ---
+                static constexpr uintptr_t TYPE = 0x08;         // int32_t: agent type identifier
+                static constexpr uintptr_t ID = 0x0C;           // int32_t: Unique runtime Agent ID
+
+                // --- Components ---
+                static constexpr uintptr_t CO_CHAR = 0x50;      // CoChar*: The physical/physics representation
+
+                // --- Physics State ---
+                static constexpr uintptr_t MOVEMENT_STATE = 0x1B8;      // byte: 1=Idle, 5=Jump, 4=Fall, etc.
+
+                // --- Grounding & Recovery ---
+                static constexpr uintptr_t GROUNDED_POSITION32 = 0x120;   // glm::vec3: Last "safe" world position verified by engine
+                static constexpr uintptr_t GROUNDED_TIMESTAMP = 0x12C;  // uint32_t: Last time (ms) the character touched the ground
             };
 
         public:
@@ -141,6 +242,11 @@ namespace kx {
                 
                 LOG_DEBUG("AgChar::GetId - ID: %d", id);
                 return id;
+            }
+
+            uint8_t GetMovementState() const {
+                if (!data()) return 0;
+                return ReadMemberFast<uint8_t>(Offsets::MOVEMENT_STATE, 0);
             }
 
             /**

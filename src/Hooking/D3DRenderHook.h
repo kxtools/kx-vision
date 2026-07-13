@@ -5,6 +5,7 @@
 
 #include <d3d11.h>
 #include <windows.h>
+#include "HookManager.h"
 #pragma comment(lib, "d3d11.lib")
 
 namespace kx {
@@ -37,6 +38,15 @@ namespace kx::Hooking {
 
         static HWND GetWindowHandle() { return m_hWindow; }
 
+        static bool InstallWndProc(HWND hwnd);
+        static void UninstallWndProc();
+        static void SyncOverlayInputState();
+
+        // Render-thread ImGui input (WndProc enqueues; Present drains/applies).
+        static void DrainOverlayInputQueue();      // Before ImGui_Impl* / NewFrame
+        static void ApplyDeferredOverlayInput();   // After NewFrame (focus-loss input clear)
+        static void CaptureOverlayRouting();       // After UI build (publish WantCapture* atomics)
+
     private:
         D3DRenderHook() = delete;
         ~D3DRenderHook() = delete;
@@ -47,21 +57,16 @@ namespace kx::Hooking {
 
         // D3D resources
         static bool m_isInit;
+        static bool m_presentHookInstalled;
+        static HookHandle m_presentHook;
         static HWND m_hWindow;
         static ID3D11Device* m_pDevice;
         static ID3D11DeviceContext* m_pContext;
-        static WNDPROC m_pOriginalWndProc;
         static AppLifecycleManager* m_pLifecycleManager;
-
-        // WndProc state (used in both modes)
-        static bool m_rightMouseDown;
-        static bool m_leftMouseDown;
-        static bool m_wasOverImGuiWindow;
 
         // Methods
         static bool FindPresentPointer();
         static HRESULT __stdcall DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
-        static LRESULT __stdcall WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
         static bool InitializeD3DResources(IDXGISwapChain* pSwapChain);
         static void CleanupD3DResources(bool includeWndProc = true);
     };

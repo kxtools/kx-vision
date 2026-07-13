@@ -6,9 +6,9 @@
 #include <windows.h>
 
 #include "ImGuiStyle.h"
-#include "../../libs/ImGui/imgui.h"
-#include "../../libs/ImGui/imgui_impl_dx11.h"
-#include "../../libs/ImGui/imgui_impl_win32.h"
+#include "../../../../libs/ImGui/imgui.h"
+#include "../../../../libs/ImGui/imgui_impl_dx11.h"
+#include "../../../../libs/ImGui/imgui_impl_win32.h"
 #include "../Core/AppState.h"
 #include "../Core/Config.h"
 #include "../Core/Architecture/FeatureManager.h"
@@ -17,7 +17,6 @@
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 
-#include "UI/Tabs/AppearanceTab.h"
 #include "UI/Tabs/InfoTab.h"
 #include "UI/Tabs/SettingsTab.h"
 #include "UI/Tabs/ValidationTab.h"
@@ -34,6 +33,7 @@ bool OverlayWindow::Initialize(ID3D11Device* device, ID3D11DeviceContext* contex
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
+    io.ConfigWindowsResizeFromEdges = true;
 
     // Load font with saved UI scale
     float uiScale = kx::AppState::Get().GetSettings().gui.uiScale;
@@ -53,10 +53,17 @@ void OverlayWindow::NewFrame() {
         return;
     }
 
+    // Guardrail: WndProc enqueues Win32 messages on another thread. Drain here so only
+    // the render thread touches ImGui during NewFrame/Render.
+    kx::Hooking::D3DRenderHook::DrainOverlayInputQueue();
+
     // Prepare ImGui for a new frame of rendering
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+
+    // Deferred input clear from WndProc on alt-tab / focus loss.
+    kx::Hooking::D3DRenderHook::ApplyDeferredOverlayInput();
 }
 
 void OverlayWindow::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView) {
@@ -84,6 +91,9 @@ void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager,
 
     // Use AppState singleton instead of global variable
     if (!kx::AppState::Get().IsVisionWindowOpen()) return;
+
+    // Render standalone feature-owned windows in the same global visibility scope.
+    featureManager.RenderAllStandaloneWindows();
 
     // Get settings reference once for the entire function
     auto& settings = kx::AppState::Get().GetSettings();
@@ -159,10 +169,9 @@ void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager,
 
     if (ImGui::BeginTabBar("##ESPCategories")) {
         // Render feature-specific menu tabs (Players, NPCs, Objects from VisualsFeature)
-        featureManager.RenderAllMenus();
+        featureManager.RenderAllTabs();
         
         // Render core application tabs
-        kx::GUI::RenderAppearanceTab();
         kx::GUI::RenderSettingsTab();
         kx::GUI::RenderInfoTab();
 
@@ -183,6 +192,7 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
                             float displayWidth,
                             float displayHeight,
                             kx::FeatureManager& featureManager,
+                            const kx::FrameSnapshotHandle& snapshot,
                             const kx::ServiceContext& ctx) {
     // Critical: Check if ImGui context is still valid and manager is initialized
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
@@ -191,7 +201,7 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
 
     // Render features to the background draw list
     ImDrawList* backgroundDrawList = ImGui::GetBackgroundDrawList();
-    featureManager.RenderAllDrawLists(backgroundDrawList, ctx);
+    featureManager.RenderAllDrawLists(backgroundDrawList, snapshot, ctx);
     
     // Render the UI window if it's shown (check AppState's unified visibility flag)
     if (kx::AppState::Get().IsVisionWindowOpen()) {

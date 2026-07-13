@@ -59,6 +59,17 @@ void AddressManager::ScanAgentArray() {
     LOG_INFO("[AddressManager] -> SUCCESS: AgentArray resolved to: 0x%p", (void*)s_pointers.agentArray);
 }
 
+// Helper function to read CameraManager pointer (avoids object unwinding issues)
+static uintptr_t ReadCameraManagerPtrImpl(uintptr_t staticPointerAddress) {
+    constexpr uintptr_t CAMERA_MANAGER_OFFSET = 0x88;
+    __try {
+        return *reinterpret_cast<uintptr_t*>(staticPointerAddress + CAMERA_MANAGER_OFFSET);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        return 0;
+    }
+}
+
 void AddressManager::ScanWorldViewContextPtr() {
     std::optional<uintptr_t> landmarkOpt = Scanner::FindPattern(
         std::string(WORLD_VIEW_CONTEXT_PATTERN),
@@ -68,6 +79,7 @@ void AddressManager::ScanWorldViewContextPtr() {
     if (!landmarkOpt) {
         LOG_ERROR("[AddressManager] WorldViewContext pattern not found.");
         s_pointers.worldViewContextPtr = 0;
+        s_pointers.cameraManagerPtr = 0;
         return;
     }
 
@@ -82,9 +94,19 @@ void AddressManager::ScanWorldViewContextPtr() {
 
     if (s_pointers.worldViewContextPtr) {
         LOG_INFO("[AddressManager] -> SUCCESS: WorldViewContext resolved to: 0x%p", (void*)s_pointers.worldViewContextPtr);
+
+        // Calculate CameraManager address: staticPointerAddress + 0x88 (PTR_CAMERA_MANAGER offset)
+        s_pointers.cameraManagerPtr = ReadCameraManagerPtrImpl(staticPointerAddress);
+        if (s_pointers.cameraManagerPtr) {
+            LOG_INFO("[AddressManager] -> SUCCESS: CameraManager resolved to: 0x%p", (void*)s_pointers.cameraManagerPtr);
+        }
+        else {
+            LOG_WARN("[AddressManager] CameraManager pointer was null.");
+        }
     }
     else {
         LOG_ERROR("[AddressManager] ERROR: WvContext static address was null.");
+        s_pointers.cameraManagerPtr = 0;
     }
 }
 
@@ -166,17 +188,17 @@ void AddressManager::ScanModuleInformation() {
 
 void AddressManager::Scan() {
     LOG_INFO("[AddressManager] Scanning for memory addresses...");
-    
+
     // Scan active pointers (currently used)
     ScanModuleInformation();
     ScanContextCollectionFunc();
     ScanGameThreadUpdateFunc();
+    ScanWorldViewContextPtr();  // For camera and rendering features
 
     // Future feature scanners (currently inactive but kept for future use)
     // These are commented out to avoid unnecessary scanning overhead
     // but can be easily enabled when the features are implemented:
     //ScanAgentArray();           // For future ESP features
-    //ScanWorldViewContextPtr();  // For future rendering features  
     //ScanBgfxContextFunc();      // For future rendering features
 }
 
@@ -186,7 +208,7 @@ void AddressManager::Initialize() {
 
 void* AddressManager::GetLocalPlayer() {
     if (!s_pointers.pContextCollection) return nullptr;
-    
+
     return GetLocalPlayerImpl(s_pointers.pContextCollection);
 }
 
@@ -196,7 +218,7 @@ void* AddressManager::GetLocalPlayerImpl(void* pContextCollection) {
         ReClass::ContextCollection contextCollection(pContextCollection);
         ReClass::ChCliContext chContext = contextCollection.GetChCliContext();
         if (!chContext.data()) return nullptr;
-        
+
         ReClass::ChCliCharacter localPlayer = chContext.GetLocalPlayer();
         return localPlayer.data();
     } __except (EXCEPTION_EXECUTE_HANDLER) {

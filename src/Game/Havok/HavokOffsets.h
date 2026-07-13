@@ -111,7 +111,16 @@ namespace HavokOffsets {
      * Contains physics-driven position data. Not a collision shape.
      */
     struct HkpSimpleShapePhantom {
+        static constexpr uintptr_t CollisionOffsetX = 0x110;      // float: X collision offset; NaN disables local collision
         static constexpr uintptr_t PHYSICS_POSITION = 0x120;  // glm::vec3: Physics position
+    };
+
+    /**
+     * @brief hkpCharacterProxy - Havok character controller proxy
+     * groundState: 0=in air, 1=on ground, 2=hilly ground
+     */
+    struct HkpCharacterProxy {
+        static constexpr uintptr_t GROUND_STATE = 0x28;  // int32_t: 0=in air, 1=on ground, 2=hilly ground
     };
 
     // ============================================================================

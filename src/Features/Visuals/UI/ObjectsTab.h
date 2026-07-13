@@ -1,7 +1,6 @@
 #pragma once
 
 namespace kx {
-    struct Settings;
     struct ObjectEspSettings;
     struct VisualsConfiguration;
 

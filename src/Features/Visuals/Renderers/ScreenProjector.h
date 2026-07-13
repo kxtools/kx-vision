@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../../Game/Data/FrameData.h"
+#include "../Core/VisualFrameTypes.h"
 #include "../../../Game/Data/EntityTypes.h"
 #include "../../../Game/Services/Camera/Camera.h"
 
@@ -39,6 +40,7 @@ public:
         float screenW,
         float screenH,
         const VisualStyle& style,
+        const VisualsConfiguration& settings,
         ScreenGeometry& outGeometry
     );
 
@@ -64,9 +66,10 @@ private:
         const GameEntity& entity,
         ScreenGeometry& geometry,
         float scale,
+        const VisualsConfiguration& settings,
         const glm::vec2& screenPos);
 
-    static void CalculateEntityBoxDimensions(EntityTypes entityType, float scale,
+    static void CalculateEntityBoxDimensions(EntityTypes entityType, float scale, const VisualsConfiguration& settings,
                                             float& outBoxWidth, float& outBoxHeight);
 
     static void ProjectGadget(
@@ -76,6 +79,7 @@ private:
         float screenHeight,
         ScreenGeometry& geometry,
         float scale,
+        const VisualsConfiguration& settings,
         bool isOriginValid);
 
     static void ProjectCharacter(
@@ -85,6 +89,7 @@ private:
         float screenHeight,
         ScreenGeometry& geometry,
         float scale,
+        const VisualsConfiguration& settings,
         bool isOriginValid);
 };
 

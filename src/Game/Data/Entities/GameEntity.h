@@ -6,7 +6,7 @@
 #include "../../GameEnums.h"
 #include "../../Havok/HavokEnums.h"
 #include "../EntityTypes.h"
-#include "../../../Game/Services/Combat/CombatStateKey.h"
+#include "../../../Game/Services/Combat/CombatObservationKey.h"
 
 namespace kx {
 
@@ -37,8 +37,8 @@ struct GameEntity {
     {
     }
 
-    CombatStateKey GetCombatKey() const {
-        return CombatStateKey(static_cast<uint32_t>(agentId), address);
+    CombatObservationKey GetCombatKey() const {
+        return CombatObservationKey(agentId > 0 ? static_cast<uint32_t>(agentId) : 0u, address);
     }
 };
 

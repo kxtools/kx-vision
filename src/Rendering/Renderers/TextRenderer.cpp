@@ -1,6 +1,4 @@
 #include "TextRenderer.h"
-#include "../../Core/AppState.h"
-#include "../Shared/LayoutConstants.h"
 #include "../../../libs/ImGui/imgui.h"
 #include <algorithm>
 
@@ -26,19 +24,18 @@ namespace kx {
         float x = pos.x - (textSize.x * 0.5f);
         float y = pos.y;
 
-        float globalOpacity = AppState::Get().GetSettings().appearance.globalOpacity;
-        float combinedOpacity = style.fadeAlpha * globalOpacity;
+        float combinedOpacity = style.fadeAlpha * style.globalOpacity;
 
         if (style.background) {
-            float paddingX = RenderingLayout::TEXT_DEFAULT_BG_PADDING_X;
-            float paddingY = RenderingLayout::TEXT_DEFAULT_BG_PADDING_Y;
-            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(RenderingLayout::TEXT_BG_ALPHA * combinedOpacity));
+            float paddingX = style.backgroundPaddingX;
+            float paddingY = style.backgroundPaddingY;
+            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(style.backgroundAlpha * combinedOpacity));
             
             dl->AddRectFilled(
                 ImVec2(x - paddingX, y - paddingY),
                 ImVec2(x + textSize.x + paddingX, y + textSize.y + paddingY),
                 bgCol,
-                RenderingLayout::TEXT_DEFAULT_BG_ROUNDING
+                style.backgroundRounding
             );
         }
 
@@ -79,19 +76,18 @@ namespace kx {
 
         float x = pos.x - (totalWidth * 0.5f);
         float y = pos.y;
-        float globalOpacity = AppState::Get().GetSettings().appearance.globalOpacity;
-        float combinedOpacity = style.fadeAlpha * globalOpacity;
+        float combinedOpacity = style.fadeAlpha * style.globalOpacity;
 
         if (style.background) {
-            float paddingX = RenderingLayout::TEXT_DEFAULT_BG_PADDING_X;
-            float paddingY = RenderingLayout::TEXT_DEFAULT_BG_PADDING_Y;
-            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(RenderingLayout::TEXT_BG_ALPHA * combinedOpacity));
+            float paddingX = style.backgroundPaddingX;
+            float paddingY = style.backgroundPaddingY;
+            ImU32 bgCol = IM_COL32(0, 0, 0, static_cast<int>(style.backgroundAlpha * combinedOpacity));
             
             dl->AddRectFilled(
                 ImVec2(x - paddingX, y - paddingY),
                 ImVec2(x + totalWidth + paddingX, y + maxHeight + paddingY),
                 bgCol,
-                RenderingLayout::TEXT_DEFAULT_BG_ROUNDING
+                style.backgroundRounding
             );
         }
 

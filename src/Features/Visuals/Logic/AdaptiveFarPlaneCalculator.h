@@ -9,7 +9,7 @@ namespace kx {
     struct FrameGameData;
 
     /**
-     * @brief Handles adaptive far plane calculation for "No Limit" mode
+     * @brief Visuals-owned adaptive far plane policy for "No Limit" mode
      * 
      * This class encapsulates the logic for calculating an adaptive far plane
      * based on gadget distances. It uses statistical analysis to determine

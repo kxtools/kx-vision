@@ -13,7 +13,6 @@
 #include <shellapi.h>
 
 #include "UI/Backend/OverlayWindow.h"
-#include "Architecture/FeatureRegistry.h"
 #include "Architecture/FeatureManager.h"
 
 namespace kx {
@@ -24,8 +23,25 @@ namespace kx {
     // Define destructor where FeatureManager's complete type is known
     AppLifecycleManager::~AppLifecycleManager() = default;
 
-    bool AppLifecycleManager::Initialize() {
+    bool AppLifecycleManager::Initialize(AppComposition composition) {
         LOG_INFO("AppLifecycleManager: Starting initialization");
+
+        if (!composition.features.registerAll) {
+            LOG_ERROR("AppLifecycleManager: Missing required feature registration callback");
+            return false;
+        }
+        m_featureRegistration = composition.features;
+        m_runtimeExtension = std::move(composition.runtimeExtension);
+        if (!m_runtimeExtension) {
+            m_runtimeExtension = std::make_unique<IRuntimeExtension>();
+        }
+        m_runtimeExtension->OnEntryThreadStart();
+        if (!m_runtimeExtension->Initialize()) {
+            m_runtimeExtension->Shutdown();
+            LOG_ERROR("AppLifecycleManager: Runtime extension initialization failed");
+            return false;
+        }
+        m_runtimeExtensionInitialized = true;
 
         // Initialize EntityManager
         m_entityManager = std::make_unique<EntityManager>();
@@ -34,7 +50,8 @@ namespace kx {
         m_featureManager = std::make_unique<FeatureManager>();
 
         // Register features immediately so UI tabs appear in correct order from first frame
-        RegisterFeatures(*m_featureManager);
+        m_featureRegistration.registerAll(*m_featureManager);
+        SettingsManager::Load(AppState::Get().GetSettings());
 
         // Initialize HookManager (MinHook)
         if (!Hooking::HookManager::Initialize()) {
@@ -58,8 +75,25 @@ namespace kx {
         return true;
     }
 
-    bool AppLifecycleManager::InitializeForGW2AL() {
+    bool AppLifecycleManager::InitializeForGW2AL(AppComposition composition) {
         LOG_INFO("AppLifecycleManager: Initializing for GW2AL mode");
+
+        if (!composition.features.registerAll) {
+            LOG_ERROR("AppLifecycleManager: Missing required feature registration callback for GW2AL mode");
+            return false;
+        }
+        m_featureRegistration = composition.features;
+        m_runtimeExtension = std::move(composition.runtimeExtension);
+        if (!m_runtimeExtension) {
+            m_runtimeExtension = std::make_unique<IRuntimeExtension>();
+        }
+        m_runtimeExtension->OnEntryThreadStart();
+        if (!m_runtimeExtension->Initialize()) {
+            m_runtimeExtension->Shutdown();
+            LOG_ERROR("AppLifecycleManager: Runtime extension initialization failed for GW2AL mode");
+            return false;
+        }
+        m_runtimeExtensionInitialized = true;
 
         // Initialize EntityManager
         m_entityManager = std::make_unique<EntityManager>();
@@ -68,7 +102,8 @@ namespace kx {
         m_featureManager = std::make_unique<FeatureManager>();
 
         // Register features immediately so UI tabs appear in correct order from first frame
-        RegisterFeatures(*m_featureManager);
+        m_featureRegistration.registerAll(*m_featureManager);
+        SettingsManager::Load(AppState::Get().GetSettings());
 
         // Initialize HookManager (MinHook) - needed for game thread hook later
         if (!Hooking::HookManager::Initialize()) {
@@ -103,7 +138,11 @@ namespace kx {
         return;
 #endif
 
-        switch (m_currentState) {
+        if (m_runtimeExtension && m_runtimeExtension->Tick()) {
+            SynchronizeFeatures();
+        }
+
+        switch (m_currentState.load(std::memory_order_acquire)) {
         case State::PreInit:
             HandlePreInitState();
             break;
@@ -152,66 +191,72 @@ namespace kx {
     }
     
     void AppLifecycleManager::ShowDonationPromptIfNeeded() {
-        // Don't show in debug builds
 #ifdef _DEBUG
         return;
-#endif
-        
+#else
         // If already shown this session, skip
         if (AppState::Get().IsDonationPromptShown()) {
             return;
         }
-        
+
+        // Evaluate only once per session, whether or not this attempt displays the prompt.
+        AppState::Get().SetDonationPromptShown(true);
+
         // Use QueryPerformanceCounter for better randomness (no seeding needed)
         LARGE_INTEGER counter;
         QueryPerformanceCounter(&counter);
         int randomValue = static_cast<int>(counter.QuadPart % 100);
-        
-        // 20% chance to show
-        if (randomValue < 20) {
-            AppState::Get().SetDonationPromptShown(true);
-            
-            // Bring window to foreground
-            HWND hwnd = GetForegroundWindow();
-            if (hwnd) {
-                SetForegroundWindow(hwnd);
-            }
-            
+
+        // Release builds show the prompt for 50% of sessions.
+        if (randomValue >= 50) {
+            return;
+        }
+
+        // Bring window to foreground
+        HWND hwnd = GetForegroundWindow();
+        if (hwnd) {
+            SetForegroundWindow(hwnd);
+        }
+
         const wchar_t* title = L"Thank You for Using KX Vision!";
-        const wchar_t* message = 
+        const wchar_t* message =
             L"Thank you for using KX Vision!\r\n\r\n"
             L"This is free, open-source software, but it still costs money to write, support, and distribute it.\r\n\r\n"
             L"If you enjoy using it, please consider a donation to help:\r\n"
             L"• Build new features and fix bugs\r\n"
             L"• Keep it 100% free and ad-free forever\r\n\r\n"
             L"Click Yes to visit my GitHub Sponsors page.";
-        
-            int result = MessageBoxW(NULL, message, title, MB_ICONINFORMATION | MB_YESNO | MB_TOPMOST | MB_SETFOREGROUND);
-            
-            if (result == IDYES) {
-                ShellExecuteW(NULL, L"open", L"https://github.com/sponsors/Krixx1337", NULL, NULL, SW_SHOWNORMAL);
-                Sleep(500);
-            }
-        } else {
-            // Still set the flag even if we don't show, so we don't check again
-            AppState::Get().SetDonationPromptShown(true);
+
+        int result = MessageBoxW(NULL, message, title, MB_ICONINFORMATION | MB_YESNO | MB_TOPMOST | MB_SETFOREGROUND);
+
+        if (result == IDYES) {
+            ShellExecuteW(NULL, L"open", L"https://github.com/sponsors/Krixx1337", NULL, NULL, SW_SHOWNORMAL);
+            Sleep(500);
         }
+#endif
     }
 
     void AppLifecycleManager::Shutdown() {
+        if (m_shutdownStarted.exchange(true, std::memory_order_acq_rel)) return;
         LOG_INFO("AppLifecycleManager: Full shutdown requested");
         
         // Perform the save FIRST. This function handles the atomic flag.
         SaveSettingsOnExit(); 
         
         m_currentState = State::ShuttingDown;
-        
-        // Give hooks a moment to recognize the flag before cleanup starts
-        // This helps prevent calls into ImGui after it's destroyed
-        Sleep(Timing::SHUTDOWN_GRACE_MS);
-        
+
+        // Guardrail: disable callback sources, then drain code already executing in
+        // detours before any feature, ImGui, or original-function storage is destroyed.
+        Hooking::HookManager::BeginShutdown();
+        Hooking::D3DRenderHook::UninstallWndProc();
+        Hooking::HookManager::DisableAll();
+        Hooking::HookManager::WaitForCallbacks();
+
         CleanupServices();
-        
+        if (m_runtimeExtensionInitialized && m_runtimeExtension) {
+            m_runtimeExtension->Shutdown();
+            m_runtimeExtensionInitialized = false;
+        }
         LOG_INFO("AppLifecycleManager: Shutdown complete");
     }
 
@@ -222,7 +267,7 @@ namespace kx {
     }
 
     const char* AppLifecycleManager::GetCurrentStateName() const {
-        switch (m_currentState) {
+        switch (m_currentState.load(std::memory_order_acquire)) {
         case State::PreInit:              return "PreInit";
         case State::WaitingForImGui:      return "WaitingForImGui";
         case State::WaitingForRenderer:   return "WaitingForRenderer";
@@ -259,8 +304,14 @@ namespace kx {
     }
 
     void AppLifecycleManager::CheckStateTransitions() {
+#ifdef GW2AL_BUILD
+        if (m_runtimeExtension && m_runtimeExtension->Tick()) {
+            SynchronizeFeatures();
+        }
+#endif
+
         // Handle state transitions and state processing for GW2AL mode
-        switch (m_currentState) {
+        switch (m_currentState.load(std::memory_order_acquire)) {
         case State::WaitingForGame:
             // Initialize MumbleLink manager if needed
             if (!m_mumbleLinkManager.IsInitialized()) {
@@ -306,9 +357,54 @@ namespace kx {
 
     void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, float displayHeight,
         ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView) {
-
         // Delegate to FrameCoordinator for the actual rendering logic
         FrameCoordinator::Execute(*this, windowHandle, displayWidth, displayHeight, context, renderTargetView);
+    }
+
+    void AppLifecycleManager::SynchronizeFeatures() {
+        if (!m_featureManager || !m_featureRegistration.sync) {
+            return;
+        }
+
+        if (!m_featureRegistration.sync(*m_featureManager)) {
+            return;
+        }
+
+        // Guardrail: features registered at runtime still need their persisted
+        // settings/default path resolution before Initialize() runs. Startup does this
+        // later in InitializeFeatures(), so runtime synchronization must mirror it.
+        SettingsManager::LoadPendingFeatureSettings();
+
+        // Guardrail: runtime synchronization must initialize only the
+        // newly registered features. Reinitializing the full list would rerun
+        // hooks and stateful setup for features already in service.
+        if (m_servicesInitialized && !m_featureManager->InitializeAll(m_serviceContext)) {
+#ifdef _DEBUG
+            LOG_ERROR("AppLifecycleManager: Failed to initialize feature(s) added by runtime synchronization");
+#else
+            LOG_ERROR("AppLifecycleManager: Runtime feature initialization failed");
+#endif
+        }
+    }
+
+    void AppLifecycleManager::OnRenderThreadStart() {
+        if (m_runtimeExtension) {
+            m_runtimeExtension->OnRenderThreadStart();
+        }
+    }
+
+    bool AppLifecycleManager::RequiresExclusiveOverlay() const {
+        return m_runtimeExtension && m_runtimeExtension->RequiresExclusiveOverlay();
+    }
+
+    bool AppLifecycleManager::WantsOverlayInput() const {
+        return m_runtimeExtension && m_runtimeExtension->WantsOverlayInput();
+    }
+
+    void AppLifecycleManager::RenderRuntimeOverlay() {
+        if (m_runtimeExtension) {
+            m_runtimeExtension->RenderOverlay();
+        }
     }
 
     void AppLifecycleManager::HandleInitializingServicesState() {
@@ -396,26 +492,22 @@ namespace kx {
             return false;
         }
 
-        // Load feature-specific settings after features are initialized
-        SettingsManager::LoadFeatureSettings();
-
         LOG_INFO("AppLifecycleManager: Features initialized successfully");
         return true;
     }
 
     void AppLifecycleManager::CleanupServices() {
-        if (m_servicesInitialized) {
-            LOG_INFO("AppLifecycleManager: Cleaning up services");
+        LOG_INFO("AppLifecycleManager: Cleaning up owned resources");
 
-            if (m_featureManager) {
-                m_featureManager->ShutdownAll();
-            }
-
-            Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
-            CleanupHooks();
-
-            m_servicesInitialized = false;
+        // Partial initialization still owns registered features and MinHook state.
+        // Resource flags inside each owner make this repeated cleanup idempotent.
+        if (m_featureManager) {
+            m_featureManager->ShutdownAll();
         }
+
+        Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
+        CleanupHooks();
+        m_servicesInitialized = false;
     }
 
     ID3D11Device* AppLifecycleManager::GetDevice() const {

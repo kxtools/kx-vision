@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace kx {
 
 /**
@@ -24,34 +26,6 @@ namespace MinimumSizes {
 }
 
 /**
- * @brief World-space bounding box dimensions for 3D projection
- * 
- * These constants define the actual physical dimensions (in meters) of entities
- * in the game world, used for proper 3D bounding box projection to screen space.
- * 
- * Design philosophy:
- * - NPCs: Cube-like dimensions (0.7m all sides) for square appearance from most angles
- * - Players: Rectangular dimensions (narrow width, tall height) for distinct humanoid shape
- */
-namespace EntityWorldBounds {
-    // Player bounding box in world space (meters) - RECTANGULAR feel
-    constexpr float PLAYER_WORLD_WIDTH = 0.6f;   // 0.6m width (wider, less narrow - was 0.4m)
-    constexpr float PLAYER_WORLD_DEPTH = 0.6f;   // 0.6m depth (matches width)
-    constexpr float PLAYER_WORLD_HEIGHT = 1.4f;  // 1.4m height (tall for distinct rectangle - 2.3:1 ratio)
-    
-    // NPC bounding box in world space (meters) - SQUARE/CUBE feel
-    constexpr float NPC_WORLD_WIDTH = 0.6f;      // 0.6m - smaller cube for less screen clutter
-    constexpr float NPC_WORLD_DEPTH = 0.6f;      // 0.6m - matches width
-    constexpr float NPC_WORLD_HEIGHT = 0.6f;     // 0.6m - matches width (1:1:1 cube)
-    
-    // Gadget bounding box in world space (meters) - fallback when physics data unavailable
-    // Small square/cube like MinimumSizes (3×3px) - physics data provides accurate dimensions when available
-    constexpr float GADGET_WORLD_WIDTH = 0.5f;   // 0.5m - small, compact cube
-    constexpr float GADGET_WORLD_DEPTH = 0.5f;   // 0.5m - matches width (square footprint)
-    constexpr float GADGET_WORLD_HEIGHT = 0.5f;  // 0.5m - matches width (1:1:1 cube for generic objects)
-}
-
-/**
  * @brief Entity size ratios and proportions
  * 
  * Defines the relative sizing and proportions for different entity types.
@@ -64,31 +38,6 @@ namespace EntitySizeRatios {
     
     // NPC box sizing (uses base box width directly - see CalculateEntityBoxDimensions)
     // NPCs are 45×45 squares (1.0× player width) for visual consistency
-}
-
-/**
- * @brief Coordinate transformation constants
- * 
- * Constants used for converting between game world coordinates and MumbleLink coordinates.
- * The game uses different coordinate systems internally vs what's exposed through MumbleLink.
- */
-namespace CoordinateTransform {
-    // Scale factor for converting game world coordinates to MumbleLink meter-based units
-    constexpr float GAME_TO_MUMBLE_SCALE_FACTOR = 1.23f;
-}
-
-/**
- * @brief Entity Capacity Limits (Memory & Vectors)
- * 
- * Defines the HARD limits for Object Pools and the reservation sizes for vectors.
- * These values are tuned based on observed peaks in crowded areas + safety margin.
- */
-namespace EntityLimits {
-    constexpr size_t MAX_PLAYERS = 500;
-    constexpr size_t MAX_NPCS = 1000;
-    constexpr size_t MAX_GADGETS = 1500;
-    constexpr size_t MAX_ATTACK_TARGETS = 500;
-    constexpr size_t MAX_ITEMS = 1000;
 }
 
 /**

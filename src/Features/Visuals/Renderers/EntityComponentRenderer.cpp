@@ -7,7 +7,7 @@
 #include "../../../Rendering/Renderers/TextRenderer.h"
 
 #include "../../../Game/Data/FrameData.h"
-#include "../../../Rendering/Shared/LayoutConstants.h"
+#include "../Rendering/VisualLayoutConstants.h"
 #include "../../../../libs/ImGui/imgui.h"
 #include "../../../Game/Data/EntityData.h"
 #include <string_view>
@@ -17,9 +17,9 @@
 
 #include "../Presentation/Styling.h"
 #include "../Presentation/InfoBuilder.h"
-#include "../Presentation/Formatting.h"
-#include "../../../Game/Services/Combat/CombatConstants.h"
-#include "../../../Rendering/Shared/RenderSettingsHelper.h"
+#include "../../../Game/Presentation/GameFormatting.h"
+#include "../Combat/VisualCombatConstants.h"
+#include "../Logic/RenderSettingsHelper.h"
 #include "../../../Utils/UnitConversion.h"
 #include "../../../Rendering/Shared/ColorConstants.h"
 
@@ -43,7 +43,7 @@ namespace {
         return -1.0f;
     }
 
-    size_t FormatDistance(char* buffer, size_t bufferSize, float meters, const Settings& settings) {
+    size_t FormatDistance(char* buffer, size_t bufferSize, float meters, const VisualsConfiguration& settings) {
         float units = UnitConversion::MetersToGW2Units(meters);
         std::format_to_n_result<char*> result;
         
@@ -65,7 +65,7 @@ namespace {
     }
 }
 
-void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const GameEntity& entity, const VisualProperties& props, const VisualsConfiguration& visualsConfig) {
+void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const GameEntity& entity, float gameplayDistance, const VisualProperties& props, const VisualsConfiguration& visualsConfig) {
     float globalOpacity = GetGlobalOpacity(ctx);
 
     bool shouldRenderBox = RenderSettingsHelper::ShouldRenderBox(visualsConfig, entity.entityType);
@@ -86,7 +86,7 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Game
             ShapeRenderer::RenderGyroscopicOverlay(
                 ctx.drawList, 
                 entity.position,          
-                entity.gameplayDistance,  
+                gameplayDistance,
                 ctx.camera, 
                 ctx.screenWidth, 
                 ctx.screenHeight, 
@@ -111,7 +111,8 @@ void EntityComponentRenderer::RenderGeometry(const FrameContext& ctx, const Game
 }
 
 void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
-                                             const GameEntity& entity,
+                                              const GameEntity& entity,
+                                              float gameplayDistance,
                                              std::string_view displayName,
                                              const VisualProperties& props,
                                              LayoutCursor& cursor,
@@ -142,7 +143,7 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
 
     std::string_view distanceText;
     if (showDistance) {
-        size_t len = FormatDistance(distanceBuffer, sizeof(distanceBuffer), entity.gameplayDistance, ctx.settings);
+        size_t len = FormatDistance(distanceBuffer, sizeof(distanceBuffer), gameplayDistance, ctx.settings);
         distanceText = std::string_view(distanceBuffer, len);
     }
 
@@ -153,6 +154,7 @@ void EntityComponentRenderer::RenderIdentity(const FrameContext& ctx,
     style.shadow = ctx.settings.appearance.enableTextShadows;
     style.background = ctx.settings.appearance.enableTextBackgrounds;
     style.fadeAlpha = props.style.finalAlpha;
+    style.globalOpacity = ctx.settings.appearance.globalOpacity;
 
     if (showName && showDistance) {
         std::string_view texts[] = { nameText, separatorBuffer, distanceText };
@@ -207,6 +209,7 @@ static void RenderDamageNumbers(const FrameContext& context,
     style.shadow = context.settings.appearance.enableTextShadows;
     style.background = false;
     style.fadeAlpha = animState.damageNumberAlpha;
+    style.globalOpacity = context.settings.appearance.globalOpacity;
 
     TextRenderer::DrawCentered(context.drawList, anchorPos, damageText, style);
 }
@@ -233,8 +236,8 @@ static void RenderBurstDps(const FrameContext& context,
     char burstBuffer[32];
     std::string_view burstText;
     std::format_to_n_result<char*> result;
-    if (burstDps >= CombatEffects::DPS_FORMATTING_THRESHOLD) {
-        result = std::format_to_n(burstBuffer, std::size(burstBuffer), "{:.1f}k", burstDps / CombatEffects::DPS_FORMATTING_THRESHOLD);
+    if (burstDps >= VisualCombatEffects::DPS_FORMATTING_THRESHOLD) {
+        result = std::format_to_n(burstBuffer, std::size(burstBuffer), "{:.1f}k", burstDps / VisualCombatEffects::DPS_FORMATTING_THRESHOLD);
         burstText = std::string_view(burstBuffer, result.size);
     }
     else {
@@ -279,10 +282,11 @@ static void RenderBurstDps(const FrameContext& context,
 
     FastTextStyle style;
     style.fontSize = props.style.finalFontSize * RenderingLayout::STATUS_TEXT_FONT_SIZE_MULTIPLIER;
-    style.color = ESPBarColors::BURST_DPS_TEXT;
+    style.color = VisualCombatColors::BURST_DPS_TEXT;
     style.shadow = context.settings.appearance.enableTextShadows;
     style.background = false;
     style.fadeAlpha = animState.healthBarFadeAlpha;
+    style.globalOpacity = context.settings.appearance.globalOpacity;
 
     TextRenderer::DrawCentered(context.drawList, anchorPos, burstText, style);
 }
@@ -357,6 +361,7 @@ void EntityComponentRenderer::RenderEntityDetails(const FrameContext& ctx,
             style.shadow = ctx.settings.appearance.enableTextShadows;
             style.background = ctx.settings.appearance.enableTextBackgrounds;
             style.fadeAlpha = props.style.finalAlpha;
+            style.globalOpacity = ctx.settings.appearance.globalOpacity;
 
             switch (gearDisplayMode) {
                 case GearDisplayMode::Compact: {

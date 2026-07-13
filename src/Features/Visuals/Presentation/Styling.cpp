@@ -1,7 +1,7 @@
 #include "Styling.h"
 #include "../../../Game/Data/EntityData.h"
 #include "../../../Rendering/Shared/ColorConstants.h"
-#include "../../../Rendering/Shared/ScalingConstants.h"
+#include "../Rendering/VisualScalingConstants.h"
 #include <algorithm>
 
 namespace kx::Styling {

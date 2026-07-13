@@ -17,6 +17,7 @@ struct PlayerEntity : public GameEntity {
     Game::Profession profession;
     Game::Attitude attitude;
     Game::Race race;
+    float planarVelocity = 0.0f;
     bool isLocalPlayer;
 
     struct GearItem {
@@ -46,7 +47,7 @@ struct PlayerEntity : public GameEntity {
                          currentEnergy(0.0f), maxEnergy(0.0f),
                          level(0), scaledLevel(0),
                          profession(Game::Profession::None), attitude(Game::Attitude::Neutral),
-                         race(Game::Race::None), isLocalPlayer(false)
+                         race(Game::Race::None), planarVelocity(0.0f), isLocalPlayer(false)
     {
         entityType = EntityTypes::Player;
     }

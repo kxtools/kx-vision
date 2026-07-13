@@ -4,12 +4,12 @@
 struct ImDrawList;
 
 namespace kx {
-    struct Settings;
+    struct VisualsConfiguration;
 
     class EnergyBarRenderer {
     public:
         static void Render(
-            const Settings& settings, 
+            const VisualsConfiguration& settings,
             ImDrawList* drawList,
             const glm::vec2& barTopLeftPosition,
             float energyPercent,

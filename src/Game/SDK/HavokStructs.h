@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../../Memory/ForeignClass.h"
-#include "../../Rendering/Shared/LayoutConstants.h"
+#include "../Data/EntityBounds.h"
+#include "../World/WorldUnits.h"
 #include "../Havok/HavokEnums.h"
 #include "../Havok/HavokOffsets.h"
 #include <glm.hpp>
@@ -102,6 +103,33 @@ namespace kx {
                     return { 0.0f, 0.0f, 0.0f };
                 }
                 return ReadMemberFast<glm::vec3>(HavokOffsets::HkpSimpleShapePhantom::PHYSICS_POSITION, { 0.0f, 0.0f, 0.0f });
+            }
+
+            float GetCollisionOffsetX() const {
+                if (!data()) {
+                    return 0.0f;
+                }
+                return ReadMemberFast<float>(HavokOffsets::HkpSimpleShapePhantom::CollisionOffsetX, 0.0f);
+            }
+
+        };
+
+        /**
+         * @brief Havok character controller proxy - ground state (in air, on ground, hilly ground)
+         */
+        class HkpCharacterProxy : public ForeignClass {
+        public:
+            HkpCharacterProxy(void* ptr) : ForeignClass(ptr) {}
+
+            Havok::HkCharacterGroundState GetGroundState() const {
+                if (!data()) {
+                    return Havok::HkCharacterGroundState::InAir;
+                }
+                int32_t raw = ReadMemberFast<int32_t>(HavokOffsets::HkpCharacterProxy::GROUND_STATE, 0);
+                if (raw >= 0 && raw <= 2) {
+                    return static_cast<Havok::HkCharacterGroundState>(raw);
+                }
+                return Havok::HkCharacterGroundState::InAir;
             }
         };
 

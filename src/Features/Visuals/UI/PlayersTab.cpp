@@ -83,6 +83,12 @@ namespace kx {
                             ImGui::Checkbox("HP##PlayerDetail", &settings.showDetailHp); ImGui::SameLine();
                             ImGui::Checkbox("Energy##PlayerDetail", &settings.showDetailEnergy); ImGui::SameLine();
                             ImGui::Checkbox("Position##PlayerDetail", &settings.showDetailPosition);
+#ifdef _DEBUG
+                            ImGui::Checkbox("Physics##PlayerDetail", &settings.showDetailPhysics);
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("Show extracted Havok shape type and W/D/H meters in the player details panel.");
+                            }
+#endif
                             ImGui::Unindent();
                         }
                     }

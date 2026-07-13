@@ -9,10 +9,10 @@
 #include <format>
 #include <string_view>
 #include "../../../Rendering/Renderers/TextRenderer.h"
-#include "../../../Rendering/Shared/LayoutConstants.h"
-#include "../../../Core/Settings.h"
-#include "../../../Rendering/Shared/RenderSettingsHelper.h"
-#include "../../../Game/Services/Combat/CombatConstants.h"
+#include "../Rendering/VisualLayoutConstants.h"
+#include "../Settings/VisualsSettings.h"
+#include "../Logic/RenderSettingsHelper.h"
+#include "../Combat/VisualCombatConstants.h"
 #include "../../../Game/Data/EntityData.h"
 #include "../../../Game/GameEnums.h"
 
@@ -45,7 +45,7 @@ namespace kx {
         float healthPercent,
         unsigned int entityColor,
         float fadeAlpha,
-        const Settings& settings) {
+        const VisualsConfiguration& settings) {
         float hpWidth = barWidth * Clamp01(healthPercent);
         ImVec2 hMin = barMin;
         ImVec2 hMax(barMin.x + hpWidth, barMax.y);
@@ -60,7 +60,7 @@ namespace kx {
     }
 
     void HealthBarRenderer::DrawHealOverlay(ImDrawList* dl, const HealthBarAnimationState& animState, const ImVec2& barMin, float barWidth, float barHeight,
-	    float fadeAlpha, const Settings& settings)
+	    float fadeAlpha, const VisualsConfiguration& settings)
     {
         if (animState.healOverlayAlpha <= 0.0f) return;
 
@@ -72,7 +72,7 @@ namespace kx {
         ImVec2 oMax(barMin.x + barWidth * currentPercent, barMin.y + barHeight);
 
         // Apply global opacity to heal overlay
-        ImU32 color = ApplyAlphaToColor(ESPBarColors::HEAL_OVERLAY, animState.healOverlayAlpha * fadeAlpha * settings.appearance.globalOpacity);
+        ImU32 color = ApplyAlphaToColor(VisualCombatColors::HEAL_OVERLAY, animState.healOverlayAlpha * fadeAlpha * settings.appearance.globalOpacity);
         DrawFilledRect(dl, oMin, oMax, color, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
@@ -82,7 +82,7 @@ namespace kx {
         float barWidth,
         float barHeight,
         float fadeAlpha,
-        const Settings& settings) {
+        const VisualsConfiguration& settings) {
         if (animState.healFlashAlpha <= 0.0f) return;
 
         float startPercent = animState.healOverlayStartPercent; // Reuse from heal overlay
@@ -95,7 +95,7 @@ namespace kx {
         // Apply global opacity to heal flash
         ImU32 flashColor = IM_COL32( // keep runtime alpha because it varies per frame
             255, 255, 255, static_cast<int>(animState.healFlashAlpha * 255 * fadeAlpha * settings.appearance.globalOpacity));
-        flashColor = (ESPBarColors::HEAL_FLASH & 0x00FFFFFF) | (flashColor & 0xFF000000);
+        flashColor = (VisualCombatColors::HEAL_FLASH & 0x00FFFFFF) | (flashColor & 0xFF000000);
         DrawFilledRect(dl, fMin, fMax, flashColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);
     }
 
@@ -106,7 +106,7 @@ namespace kx {
         float barWidth,
         float barHeight,
         float fadeAlpha,
-        const Settings& settings) {
+        const VisualsConfiguration& settings) {
         // Exit if there's nothing to draw OR if the fade animation is complete
         if (animState.damageAccumulatorPercent <= 0.0f || animState.damageAccumulatorAlpha <= 0.0f) return;
 
@@ -118,7 +118,7 @@ namespace kx {
         ImVec2 oMin(barMin.x + barWidth * startPercent, barMin.y);
         ImVec2 oMax(barMin.x + barWidth * endPercent, barMin.y + barHeight);
 
-        ImU32 base = ESPBarColors::DAMAGE_ACCUM;
+        ImU32 base = VisualCombatColors::DAMAGE_ACCUM;
         unsigned int a = (base >> 24) & 0xFF;
         // --- THIS IS THE FIX ---
         // Multiply by the overall bar fade AND the specific accumulator fade animation alpha AND global opacity
@@ -134,7 +134,7 @@ namespace kx {
         float barWidth,
         float barHeight,
         float fadeAlpha,
-        const Settings& settings) {
+        const VisualsConfiguration& settings) {
         if (animState.damageFlashAlpha <= 0.0f) return;
 
         float currentPercent = entity.maxHealth > 0 ? (entity.currentHealth / entity.maxHealth) : 0.0f;
@@ -145,7 +145,7 @@ namespace kx {
         ImVec2 fMin(barMin.x + barWidth * currentPercent, barMin.y);
         ImVec2 fMax(barMin.x + barWidth * previousPercent, barMin.y + barHeight);
 
-        ImU32 flashColor = ESPBarColors::DAMAGE_FLASH;
+        ImU32 flashColor = VisualCombatColors::DAMAGE_FLASH;
         // Apply global opacity to damage flash
         unsigned int a = static_cast<unsigned int>(255 * animState.damageFlashAlpha * fadeAlpha * settings.appearance.globalOpacity);
         flashColor = (flashColor & 0x00FFFFFF) | (ClampAlpha(a) << 24);
@@ -162,7 +162,7 @@ namespace kx {
         float barWidth,
         float barHeight,
         float fadeAlpha,
-        const Settings& settings)
+        const VisualsConfiguration& settings)
     {
         if (entity.maxHealth <= 0) return;
 
@@ -173,8 +173,8 @@ namespace kx {
         const float barrierPercent = animatedBarrier / entity.maxHealth;
 
         // Apply global opacity to barrier overlay
-        const ImU32 barrierColor = ApplyAlphaToColor(ESPBarColors::BARRIER_FILL, fadeAlpha * settings.appearance.globalOpacity);
-        const ImU32 overflowOutlineColor = ApplyAlphaToColor(ESPBarColors::BARRIER_SEPARATOR, fadeAlpha * settings.appearance.globalOpacity);
+        const ImU32 barrierColor = ApplyAlphaToColor(VisualCombatColors::BARRIER_FILL, fadeAlpha * settings.appearance.globalOpacity);
+        const ImU32 overflowOutlineColor = ApplyAlphaToColor(VisualCombatColors::BARRIER_SEPARATOR, fadeAlpha * settings.appearance.globalOpacity);
 
         // 1) Barrier inside the remaining health segment, left to right
         if (healthPercent < 1.0f) {
@@ -221,7 +221,7 @@ namespace kx {
         Game::Attitude attitude,
         const VisualProperties& props,
         const HealthBarAnimationState& animState,
-        const Settings& settings,
+        const VisualsConfiguration& settings,
         const VisualsConfiguration& visualsSettings) 
     { 
         // Use properties from VisualProperties directly
@@ -292,7 +292,7 @@ namespace kx {
         const VisualProperties& props,
         float fadeAlpha,
         const HealthBarAnimationState& animState,
-        const Settings& settings,
+        const VisualsConfiguration& settings,
         const VisualsConfiguration& visualsSettings) 
     {
         float barWidth = props.style.finalHealthBarWidth;
@@ -320,11 +320,12 @@ namespace kx {
         bool shouldRenderHealthPercentage = RenderSettingsHelper::ShouldRenderHealthPercentage(visualsSettings, entityType);
         if (shouldRenderHealthPercentage && entity.maxHealth > 0) {
             float healthPercent = entity.currentHealth / entity.maxHealth;
-            DrawHealthPercentageText(drawList, barMin, barMax, healthPercent, props.style.finalFontSize, fadeAlpha);
+            DrawHealthPercentageText(drawList, barMin, barMax, healthPercent, props.style.finalFontSize, fadeAlpha,
+                                     settings.appearance.globalOpacity);
         }
     }
 
-    void HealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha)
+    void HealthBarRenderer::DrawHealthPercentageText(ImDrawList* dl, const ImVec2& barMin, const ImVec2& barMax, float healthPercent, float fontSize, float fadeAlpha, float globalOpacity)
     {
         char buffer[16];
         auto result = std::format_to_n(buffer, std::size(buffer), "{:.0f}%", healthPercent * 100.0f);
@@ -350,6 +351,7 @@ namespace kx {
         style.shadow = true;
         style.background = false;
         style.fadeAlpha = fadeAlpha;
+        style.globalOpacity = globalOpacity;
 
         TextRenderer::DrawCentered(dl, pos, text, style);
     }
@@ -368,7 +370,7 @@ namespace kx {
         ImVec2 burstMin(center.x - width * 0.5f, barMin.y);
         ImVec2 burstMax(center.x + width * 0.5f, barMax.y);
 
-        ImU32 burstColor = ESPBarColors::DEATH_BURST;
+        ImU32 burstColor = VisualCombatColors::DEATH_BURST;
         unsigned int a = static_cast<unsigned int>(255 * animState.deathBurstAlpha * fadeAlpha);
         burstColor = (burstColor & 0x00FFFFFF) | (ClampAlpha(a) << 24);
         DrawFilledRect(drawList, burstMin, burstMax, burstColor, RenderingLayout::STANDALONE_HEALTH_BAR_BG_ROUNDING);

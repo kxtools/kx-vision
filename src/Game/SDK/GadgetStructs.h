@@ -3,6 +3,7 @@
 #include "../../Utils/DebugLogger.h"
 #include "../../Memory/ForeignClass.h"
 #include "../GameEnums.h"
+#include "AgentStructs.h"  // Required for AgChar in GetAgChar()
 #include "HavokStructs.h"
 #include <glm.hpp>
 
@@ -14,6 +15,7 @@ namespace kx {
         class AgKeyFramed;
         class GdCliGadget;
         class AgentInl;
+        class AgChar;  // Forward declare AgChar for GetAgChar() method
 
         /**
          * @brief CoKeyFramed - Coordinate system for keyframed objects (gadgets)
@@ -57,6 +59,7 @@ namespace kx {
                 static constexpr uintptr_t ID = 0x0C;              // int32_t agent ID
                 static constexpr uintptr_t GADGET_TYPE = 0x40;     // uint32_t gadget type
                 static constexpr uintptr_t CO_KEYFRAMED = 0x0050;  // CoKeyframed* coordinate system
+                static constexpr uintptr_t AG_CHAR = 0xB8;        // AgChar* character pointer
             };
 
         public:
@@ -68,6 +71,15 @@ namespace kx {
                 CoKeyFramed result = ReadPointerFast<CoKeyFramed>(Offsets::CO_KEYFRAMED);
                 
                 LOG_PTR("CoKeyFramed", result.data());
+                return result;
+            }
+
+            AgChar GetAgChar() const {
+                LOG_MEMORY("AgKeyFramed", "GetAgChar", data(), Offsets::AG_CHAR);
+                
+                AgChar result = ReadPointerFast<AgChar>(Offsets::AG_CHAR);
+                
+                LOG_PTR("AgChar", result.data());
                 return result;
             }
 

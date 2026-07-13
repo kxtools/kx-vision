@@ -2,7 +2,10 @@
 #include "../Utils/DebugLogger.h"
 #include "../Utils/Console.h"
 #include "AppState.h"
+
 #include <cstdio>
+
+#include <Windows.h>
 
 namespace kx {
 
@@ -42,7 +45,15 @@ namespace kx {
         LOG_INIT_WITH_SETTINGS();
         
         InitializeConsole();
+#ifdef _DEBUG
+        LOG_INFO("[Bootstrap] Console/logger reinitialized. Starting common bootstrap in %s mode.", modeName);
+#else
+        (void)modeName;
+#endif
+
+#ifdef _DEBUG
         LOG_INFO("KX Vision starting up in %s mode...", modeName);
+#endif
     }
 
     void Bootstrap::Cleanup() {

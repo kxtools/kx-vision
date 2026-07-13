@@ -4,13 +4,10 @@
 #include <mutex>
 #include <memory>
 #include "Settings.h"
-#include "../Game/Services/AdaptiveFarPlane/AdaptiveFarPlaneCalculator.h"
 
 namespace kx {
 
     // Forward declarations
-    struct FrameGameData;
-
     // --- Status Information ---
     enum class HookStatus {
         Unknown,
@@ -58,12 +55,6 @@ namespace kx {
         // --- Debug Logging Helper ---
         bool IsDebugLoggingEnabled() const { return m_settings.enableDebugLogging; }
 
-        // --- Adaptive Far Plane (for "No Limit" mode) ---
-        float GetAdaptiveFarPlane() const { return m_adaptiveFarPlaneCalculator.GetCurrentFarPlane(); }
-        void UpdateAdaptiveFarPlane(const FrameGameData& frameData) {
-            m_adaptiveFarPlaneCalculator.UpdateAndGetFarPlane(frameData);
-        }
-
         // Private constructor for singleton
         AppState();
         ~AppState() = default;
@@ -79,9 +70,6 @@ namespace kx {
         #endif
         std::atomic<bool> m_isShuttingDown = false;
         bool m_donationPromptShown = false; // Session-only flag (not persisted)
-
-        // Adaptive far plane calculator
-        AdaptiveFarPlaneCalculator m_adaptiveFarPlaneCalculator;
 
         // Mutex for thread-safe access (if needed for future extensions)
         mutable std::mutex m_mutex;

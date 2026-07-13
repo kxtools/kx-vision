@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../../Game/Data/FrameData.h"
 #include "../../../Game/Data/EntityTypes.h"
+#include "../Core/VisualFrameTypes.h"
 
 // Forward declarations
 namespace kx {
@@ -33,6 +33,8 @@ public:
      */
     static bool Calculate(
         const GameEntity& entity, 
+        float visualDistance,
+        float gameplayDistance,
         const FrameContext& context,
         const VisualsConfiguration& visualsConfig,
         VisualStyle& outStyle
@@ -40,7 +42,7 @@ public:
 
 private:
     static float CalculateEntityScale(float visualDistance, EntityTypes entityType, const FrameContext& context);
-    static float CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha,
+    static float CalculateAdaptiveAlpha(float gameplayDistance, float distanceFadeAlpha, const FrameContext& context,
                                        bool useDistanceLimit, EntityTypes entityType,
                                        float& outNormalizedDistance);
     static float CalculateFinalSize(float baseSize, float scale, float minLimit, float maxLimit, float multiplier = 1.0f);
@@ -54,7 +56,7 @@ private:
     };
     
     static EntityMultipliers CalculateEntityMultipliers(const GameEntity& entity, const VisualsConfiguration& visualsConfig);
-    static void CalculateFinalSizes(VisualStyle& style, 
+    static void CalculateFinalSizes(VisualStyle& style, const VisualsConfiguration& settings,
                                    float scale,
                                    const EntityMultipliers& multipliers);
 };
