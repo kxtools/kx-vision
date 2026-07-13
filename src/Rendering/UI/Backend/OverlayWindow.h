@@ -11,6 +11,7 @@ namespace kx {
     class MumbleLinkManager;
     struct MumbleLinkData;
     class FeatureManager;
+    struct Settings;
     struct ServiceContext;
     struct EntityFrameSnapshot;
     using FrameSnapshotHandle = std::shared_ptr<const EntityFrameSnapshot>;
@@ -25,7 +26,8 @@ namespace kx {
  */
 class OverlayWindow {
 public:
-    static bool Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd);
+    static bool Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd,
+                           const kx::Settings& settings);
     static void NewFrame();
     static void Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* mainRenderTargetView);
     
@@ -47,20 +49,25 @@ public:
                         float displayWidth,
                         float displayHeight,
                         kx::FeatureManager& featureManager,
+                        kx::Settings& settings,
                         const kx::FrameSnapshotHandle& snapshot,
                         const kx::ServiceContext& ctx);
     
     static void Shutdown();
     
     static bool IsImGuiInitialized() { return m_isInitialized; }
+    static bool IsVisible() { return m_isVisible; }
+    static void ToggleVisibility() { m_isVisible = !m_isVisible; }
 
 private:
     static void RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, 
                                const kx::MumbleLinkData* mumbleLinkData,
-                               kx::FeatureManager& featureManager);
+                               kx::FeatureManager& featureManager,
+                               kx::Settings& settings);
     static void RenderHints();
 
     static bool m_isInitialized;
+    static bool m_isVisible;
 
     // NEW MEMBERS for UI-side timeout logic
     static std::chrono::steady_clock::time_point m_connectingStartTime;

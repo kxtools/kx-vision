@@ -1,7 +1,6 @@
 #include "Bootstrap.h"
 #include "../Utils/DebugLogger.h"
 #include "../Utils/Console.h"
-#include "AppState.h"
 
 #include <cstdio>
 
@@ -39,11 +38,6 @@ namespace kx {
 
     void Bootstrap::Initialize(const char* modeName) {
         InitializeLogging();
-        
-        // Load settings and apply saved log level early
-        AppState::Get();  // Force settings load
-        LOG_INIT_WITH_SETTINGS();
-        
         InitializeConsole();
 #ifdef _DEBUG
         LOG_INFO("[Bootstrap] Console/logger reinitialized. Starting common bootstrap in %s mode.", modeName);

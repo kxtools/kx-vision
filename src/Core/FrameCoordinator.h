@@ -6,6 +6,7 @@
 // Forward declarations to avoid circular dependencies
 namespace kx {
     class Camera;
+    class GameEngineService;
     class MumbleLinkManager;
     class AppLifecycleManager;
     struct MumbleLinkData;
@@ -32,6 +33,7 @@ public:
      * - Render ImGui UI
      * 
      * @param lifecycleManager Reference to the app lifecycle manager
+     * @param gameEngineService Reference to game-runtime state and snapshots
      * @param windowHandle The HWND of the game window
      * @param displayWidth The width of the display/viewport
      * @param displayHeight The height of the display/viewport
@@ -39,6 +41,7 @@ public:
      * @param renderTargetView The render target view to render to
      */
     static void Execute(kx::AppLifecycleManager& lifecycleManager,
+                       kx::GameEngineService& gameEngineService,
                        HWND windowHandle, 
                        float displayWidth, 
                        float displayHeight,
@@ -51,6 +54,7 @@ private:
                            ID3D11RenderTargetView* renderTargetView);
 
     static const kx::MumbleLinkData* PrepareGameState(kx::AppLifecycleManager& lifecycleManager,
+                                                       kx::GameEngineService& gameEngineService,
                                                        HWND windowHandle,
                                                        float displayWidth,
                                                        float displayHeight);
@@ -60,6 +64,7 @@ private:
                                             ID3D11RenderTargetView* renderTargetView);
 
     static void RenderFeatureFrame(kx::AppLifecycleManager& lifecycleManager,
+                                   kx::GameEngineService& gameEngineService,
                                    const kx::MumbleLinkData* mumbleLinkData,
                                    HWND windowHandle,
                                    float displayWidth,

@@ -4,7 +4,7 @@
  */
 
 #include "D3DRenderHook.h"
-#include "../Core/AppState.h"
+#include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"
 #include "UI/Backend/OverlayWindow.h"
@@ -65,7 +65,9 @@ namespace kx::Hooking {
             }
 
             // Initialize ImGui
-            if (!OverlayWindow::Initialize(m_pDevice, m_pContext, m_hWindow)) {
+            if (!m_pLifecycleManager ||
+                !OverlayWindow::Initialize(m_pDevice, m_pContext, m_hWindow,
+                                           m_pLifecycleManager->GetSettings())) {
                 LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui in GW2AL mode.");
                 CleanupD3DResources(true);
                 return false;
@@ -73,7 +75,6 @@ namespace kx::Hooking {
 
             m_isInit = true;
             LOG_INFO("[D3DRenderHook] Initialized successfully via GW2AL.");
-            AppState::Get().SetPresentHookStatus(HookStatus::OK);
             return true;
         }
         catch (const std::exception& e) {
@@ -121,7 +122,6 @@ namespace kx::Hooking {
         m_presentHookInstalled = false;
         m_pOriginalPresent = nullptr;
         m_pTargetPresent = nullptr;
-        AppState::Get().SetPresentHookStatus(HookStatus::Unknown);
     }
 
     bool D3DRenderHook::IsInitialized() {

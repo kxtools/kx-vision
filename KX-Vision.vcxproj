@@ -116,6 +116,7 @@
     <ClCompile Include="src\Game\Services\Combat\CombatObservationLogic.cpp" />
     <ClCompile Include="src\Game\Services\Combat\CombatObservationTracker.cpp" />
     <ClCompile Include="src\Core\Services\EntityManager.cpp" />
+    <ClCompile Include="src\Core\Services\GameEngineService.cpp" />
     <ClCompile Include="src\Core\SettingsManager.cpp" />
     <ClCompile Include="src\Features\Visuals\VisualsFeature.cpp" />
     <ClCompile Include="src\Features\Visuals\VisualsRegistration.cpp" />
@@ -150,7 +151,6 @@
     <ClCompile Include="src\Features\Visuals\Presentation\InfoBuilder.cpp" />
     <ClCompile Include="src\Rendering\Renderers\TextRenderer.cpp" />
     <ClCompile Include="src\Core\AppLifecycleManager.cpp" />
-    <ClCompile Include="src\Core\AppState.cpp" />
     <ClCompile Include="src\Game\Extraction\EntityExtractor.cpp" />
     <ClCompile Include="src\Features\Visuals\UI\GuiHelpers.cpp" />
     <ClCompile Include="src\Game\Services\Camera\CameraProjection.cpp" />
@@ -172,6 +172,7 @@
     <ClCompile Include="src\Utils\TestRunner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="libs\BS_thread_pool\BS_thread_pool.hpp" />
     <ClInclude Include="libs\Catch2\catch_amalgamated.hpp" />
     <ClInclude Include="libs\gw2al\gw2al_api.h" />
     <ClInclude Include="libs\gw2al\gw2al_d3d9_wrapper.h" />
@@ -190,6 +191,7 @@
     <ClInclude Include="src\Game\Services\Combat\CombatObservationLogic.h" />
     <ClInclude Include="src\Game\Services\Combat\CombatObservationTracker.h" />
     <ClInclude Include="src\Core\Services\EntityManager.h" />
+    <ClInclude Include="src\Core\Services\GameEngineService.h" />
     <ClInclude Include="src\Core\Settings.h" />
     <ClInclude Include="src\Core\SettingsManager.h" />
     <ClInclude Include="src\Features\Visuals\Settings\VisualsSettings.h" />
@@ -209,7 +211,6 @@
     <ClInclude Include="src\Game\World\WorldUnits.h" />
     <ClInclude Include="src\Memory\AddressManager.h" />
     <ClInclude Include="src\Core\AppLifecycleManager.h" />
-    <ClInclude Include="src\Core\AppState.h" />
     <ClInclude Include="src\Game\Services\Camera\Camera.h" />
     <ClInclude Include="src\Game\GameEnums.h" />
     <ClInclude Include="src\Game\Generated\APIData.h" />

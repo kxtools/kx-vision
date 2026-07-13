@@ -1,9 +1,9 @@
 #include "FrameCoordinator.h"
 #include "AppLifecycleManager.h"
-#include "AppState.h"
 #include "Config.h"
 #include "Architecture/FeatureManager.h"
 #include "Architecture/IFeature.h"
+#include "Services/GameEngineService.h"
 #include "../Utils/DebugLogger.h"
 #include "../Memory/Safety.h"
 #include "../Game/Data/FrameData.h"
@@ -14,6 +14,7 @@
 #include <mutex>
 
 void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
+                               kx::GameEngineService& gameEngineService,
                                HWND windowHandle, 
                                float displayWidth, 
                                float displayHeight,
@@ -42,7 +43,7 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
         BackupD3D11State(context, d3dState);
 
         const kx::MumbleLinkData* mumbleLinkData =
-            PrepareGameState(lifecycleManager, windowHandle, displayWidth, displayHeight);
+            PrepareGameState(lifecycleManager, gameEngineService, windowHandle, displayWidth, displayHeight);
 
         OverlayWindow::NewFrame();
         isImGuiFrameActive = true;
@@ -52,7 +53,7 @@ void FrameCoordinator::Execute(kx::AppLifecycleManager& lifecycleManager,
             // Moving this later lets locked features execute off-screen.
             RenderExclusiveOverlayFrame(lifecycleManager, context, renderTargetView);
         } else {
-            RenderFeatureFrame(lifecycleManager, mumbleLinkData, windowHandle,
+            RenderFeatureFrame(lifecycleManager, gameEngineService, mumbleLinkData, windowHandle,
                 displayWidth, displayHeight, context, renderTargetView);
         }
         isImGuiFrameActive = false;
@@ -74,6 +75,7 @@ bool FrameCoordinator::CanExecute(const kx::AppLifecycleManager& lifecycleManage
 
 const kx::MumbleLinkData* FrameCoordinator::PrepareGameState(
     kx::AppLifecycleManager& lifecycleManager,
+    kx::GameEngineService& gameEngineService,
     HWND windowHandle,
     float displayWidth,
     float displayHeight) {
@@ -81,15 +83,13 @@ const kx::MumbleLinkData* FrameCoordinator::PrepareGameState(
     HandleInput(windowHandle);
     kx::Hooking::D3DRenderHook::SyncOverlayInputState();
 
-    kx::MumbleLinkManager& mumbleLinkManager = lifecycleManager.GetMumbleLinkManager();
-    mumbleLinkManager.Update();
+    const kx::MumbleLinkData* mumbleLinkData = gameEngineService.UpdateRenderState(windowHandle);
 
 #ifdef GW2AL_BUILD
     lifecycleManager.CheckStateTransitions();
 #endif
 
-    lifecycleManager.GetCamera().Update(mumbleLinkManager, windowHandle);
-    return mumbleLinkManager.GetData();
+    return mumbleLinkData;
 }
 
 void FrameCoordinator::RenderExclusiveOverlayFrame(kx::AppLifecycleManager& lifecycleManager,
@@ -101,6 +101,7 @@ void FrameCoordinator::RenderExclusiveOverlayFrame(kx::AppLifecycleManager& life
 }
 
 void FrameCoordinator::RenderFeatureFrame(kx::AppLifecycleManager& lifecycleManager,
+                                          kx::GameEngineService& gameEngineService,
                                           const kx::MumbleLinkData* mumbleLinkData,
                                           HWND windowHandle,
                                           float displayWidth,
@@ -110,7 +111,7 @@ void FrameCoordinator::RenderFeatureFrame(kx::AppLifecycleManager& lifecycleMana
     kx::FeatureManager& featureManager = lifecycleManager.GetFeatureManager();
     // Guardrail: acquire once per render frame and forward same handle through update
     // and draw. A second acquisition can mix entity generations inside one frame.
-    const kx::FrameSnapshotHandle snapshot = lifecycleManager.GetEntityManager().AcquireFrameSnapshot();
+    const kx::FrameSnapshotHandle snapshot = gameEngineService.GetEntityManager().AcquireFrameSnapshot();
     const kx::ServiceContext& ctx = lifecycleManager.GetServiceContext();
 
     const auto now = std::chrono::steady_clock::now();
@@ -122,9 +123,9 @@ void FrameCoordinator::RenderFeatureFrame(kx::AppLifecycleManager& lifecycleMana
     const float realDeltaTime = (std::max)(0.0f, elapsed.count());
     featureManager.UpdateAll(realDeltaTime, snapshot, ctx);
 
-    kx::MumbleLinkManager& mumbleLinkManager = lifecycleManager.GetMumbleLinkManager();
-    OverlayWindow::RenderUI(lifecycleManager.GetCamera(), mumbleLinkManager, mumbleLinkData,
-        windowHandle, displayWidth, displayHeight, featureManager, snapshot, ctx);
+    kx::MumbleLinkManager& mumbleLinkManager = gameEngineService.GetMumbleLinkManager();
+    OverlayWindow::RenderUI(gameEngineService.GetCamera(), mumbleLinkManager, mumbleLinkData,
+        windowHandle, displayWidth, displayHeight, featureManager, lifecycleManager.GetSettings(), snapshot, ctx);
     lifecycleManager.RenderRuntimeOverlay();
     kx::Hooking::D3DRenderHook::CaptureOverlayRouting();
     OverlayWindow::Render(context, renderTargetView);
@@ -146,8 +147,7 @@ void FrameCoordinator::HandleInput(HWND windowHandle) {
     bool currentToggleKeyState = (GetAsyncKeyState(kx::Hotkeys::TOGGLE_OVERLAY) & 0x8000) != 0;
 
     if (currentToggleKeyState && !lastToggleKeyState) {
-        bool isOpen = kx::AppState::Get().IsVisionWindowOpen();
-        kx::AppState::Get().SetVisionWindowOpen(!isOpen);
+        OverlayWindow::ToggleVisibility();
     }
     lastToggleKeyState = currentToggleKeyState;
 }

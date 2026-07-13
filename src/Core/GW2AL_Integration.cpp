@@ -15,7 +15,6 @@
 #ifdef GW2AL_BUILD // This entire file will only be compiled when GW2AL_BUILD is defined
 
 #include <cstdio> // For fclose in console cleanup
-#include "AppState.h"
 #include "AppLifecycleManager.h"
 #include "Bootstrap.h"
 #include "../Composition/FeatureComposition.h"
@@ -52,7 +51,7 @@ void OnPresent(D3D9_wrapper_event_data* evd) {
     // Early exit checks
     if (!evd || !evd->stackPtr) return;
     if (!kx::Hooking::D3DRenderHook::IsInitialized()) return;
-    if (kx::AppState::Get().IsShuttingDown()) return;
+    if (kx::g_App.IsShuttingDown()) return;
 
     // Correctly get the swapchain from the wrapped object
     wrapped_com_obj* wrapObj = reinterpret_cast<wrapped_com_obj*>(evd->stackPtr[0]);

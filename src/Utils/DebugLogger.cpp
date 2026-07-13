@@ -1,5 +1,4 @@
 #include "DebugLogger.h"
-#include "../Core/Settings.h"
 #include "Config.h"
 #include <iostream>
 #include <sstream>
@@ -15,6 +14,7 @@ namespace Debug {
 // Initialize static members
 std::shared_ptr<spdlog::logger> Logger::s_logger = nullptr;
 std::atomic<Logger::Level> Logger::s_minLogLevel{static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL)};
+std::atomic<bool> Logger::s_debugLoggingEnabled{true};
 std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> Logger::s_ringbuffer_sink = nullptr;
 
 /**
@@ -149,37 +149,6 @@ void Logger::Initialize() noexcept {
 }
 
 /**
- * @brief Initialize logger with settings (call after settings are loaded)
- */
-void Logger::InitializeWithSettings() noexcept {
-    try {
-        // Get log level from settings, fallback to default if not available
-        int logLevel = AppConfig::DEFAULT_LOG_LEVEL;
-        try {
-            logLevel = AppState::Get().GetSettings().logLevel;
-        }
-        catch (...) {
-            // If AppState is not available yet, use default
-        }
-        
-        // Set the log level
-        s_minLogLevel.store(static_cast<Level>(logLevel), std::memory_order_release);
-        if (s_logger) {
-            s_logger->set_level(ConvertLevel(static_cast<Level>(logLevel)));
-        }
-        
-        LOG_INFO("Logger initialized with log level: %d", logLevel);
-    }
-    catch (...) {
-        // If initialization fails, use default log level
-        s_minLogLevel.store(static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL), std::memory_order_release);
-        if (s_logger) {
-            s_logger->set_level(ConvertLevel(static_cast<Level>(AppConfig::DEFAULT_LOG_LEVEL)));
-        }
-    }
-}
-
-/**
  * @brief Reinitialize logger (call after console setup to enable console output)
  */
 void Logger::Reinitialize() noexcept {
@@ -280,6 +249,14 @@ Logger::Level Logger::GetMinLogLevel() noexcept {
     return s_minLogLevel.load(std::memory_order_acquire);
 }
 
+void Logger::SetDebugLoggingEnabled(bool enabled) noexcept {
+    s_debugLoggingEnabled.store(enabled, std::memory_order_release);
+}
+
+bool Logger::IsDebugLoggingEnabled() noexcept {
+    return s_debugLoggingEnabled.load(std::memory_order_acquire);
+}
+
 /**
  * @brief Check if a level should be logged (used by macros)
  */
@@ -290,17 +267,16 @@ bool Logger::ShouldLog(Level level) noexcept {
             return false;
         }
         
-        // Then check the AppState debug logging setting
-        // Only check for DEBUG level logs - errors should always be allowed
+        // Only DEBUG messages use the separate user filter. Higher-severity logs
+        // remain controlled solely by minimum level.
         if (level == DEBUG) {
-            return AppState::Get().IsDebugLoggingEnabled();
+            return IsDebugLoggingEnabled();
         }
         
         // For non-debug levels (INFO, WARNING, ERROR, CRITICAL), always allow if level passes
         return true;
     }
     catch (...) {
-        // If we can't check AppState for any reason, fall back to level-only check
         return level >= s_minLogLevel.load(std::memory_order_acquire);
     }
 }
@@ -323,7 +299,7 @@ void Logger::PrintCurrentLogLevel() noexcept {
                 break;
         }
         
-        bool guiDebugEnabled = AppState::Get().IsDebugLoggingEnabled();
+        bool guiDebugEnabled = IsDebugLoggingEnabled();
         
         // Force output to console regardless of current level
         std::cout << "[LOGGER] Internal log level: " << levelName 

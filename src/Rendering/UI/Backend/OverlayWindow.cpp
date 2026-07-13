@@ -9,8 +9,8 @@
 #include "../../../../libs/ImGui/imgui.h"
 #include "../../../../libs/ImGui/imgui_impl_dx11.h"
 #include "../../../../libs/ImGui/imgui_impl_win32.h"
-#include "../Core/AppState.h"
 #include "../Core/Config.h"
+#include "../Core/Settings.h"
 #include "../Core/Architecture/FeatureManager.h"
 #include "../Core/Architecture/IFeature.h"
 #include "../Game/Services/Mumble/MumbleLinkManager.h"
@@ -23,12 +23,18 @@
 
 // Define static members
 bool OverlayWindow::m_isInitialized = false;
+#ifdef _DEBUG
+bool OverlayWindow::m_isVisible = true;
+#else
+bool OverlayWindow::m_isVisible = false;
+#endif
 
 // NEW MEMBERS for UI-side timeout logic
 std::chrono::steady_clock::time_point OverlayWindow::m_connectingStartTime;
 bool OverlayWindow::m_isWaitingForConnection = false;
 
-bool OverlayWindow::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd) {
+bool OverlayWindow::Initialize(ID3D11Device* device, ID3D11DeviceContext* context, HWND hwnd,
+                               const kx::Settings& settings) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -36,8 +42,7 @@ bool OverlayWindow::Initialize(ID3D11Device* device, ID3D11DeviceContext* contex
     io.ConfigWindowsResizeFromEdges = true;
 
     // Load font with saved UI scale
-    float uiScale = kx::AppState::Get().GetSettings().gui.uiScale;
-    kx::GUI::LoadAppFont(uiScale);
+    kx::GUI::LoadAppFont(settings.gui.uiScale);
     kx::GUI::ApplyCustomStyle();
 
     if (!ImGui_ImplWin32_Init(hwnd)) return false;
@@ -83,20 +88,17 @@ void OverlayWindow::Render(ID3D11DeviceContext* context, ID3D11RenderTargetView*
 
 void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager, 
                                    const kx::MumbleLinkData* mumbleData,
-                                   kx::FeatureManager& featureManager) {
+                                   kx::FeatureManager& featureManager,
+                                   kx::Settings& settings) {
     // Critical: Check if ImGui context is still valid before any ImGui operations
     if (!ImGui::GetCurrentContext() || !m_isInitialized) {
         return;
     }
 
-    // Use AppState singleton instead of global variable
-    if (!kx::AppState::Get().IsVisionWindowOpen()) return;
+    if (!m_isVisible) return;
 
     // Render standalone feature-owned windows in the same global visibility scope.
     featureManager.RenderAllStandaloneWindows();
-
-    // Get settings reference once for the entire function
-    auto& settings = kx::AppState::Get().GetSettings();
 
     std::string windowTitle = "KX Vision v";
     windowTitle += kx::APP_VERSION.data();
@@ -113,8 +115,8 @@ void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager,
     // Apply menu opacity setting
     ImGui::SetNextWindowBgAlpha(settings.gui.menuOpacity);
     
-    // Pass a direct pointer to the singleton's vision window state
-    ImGui::Begin(windowTitle.c_str(), kx::AppState::Get().GetVisionWindowOpenRef());
+    // Raw close-button state remains render-thread-owned inside OverlayWindow.
+    ImGui::Begin(windowTitle.c_str(), &m_isVisible);
 
     RenderHints();
 
@@ -172,7 +174,7 @@ void OverlayWindow::RenderESPWindow(kx::MumbleLinkManager& mumbleLinkManager,
         featureManager.RenderAllTabs();
         
         // Render core application tabs
-        kx::GUI::RenderSettingsTab();
+        kx::GUI::RenderSettingsTab(settings, featureManager);
         kx::GUI::RenderInfoTab();
 
 #ifdef _DEBUG
@@ -192,6 +194,7 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
                             float displayWidth,
                             float displayHeight,
                             kx::FeatureManager& featureManager,
+                            kx::Settings& settings,
                             const kx::FrameSnapshotHandle& snapshot,
                             const kx::ServiceContext& ctx) {
     // Critical: Check if ImGui context is still valid and manager is initialized
@@ -203,9 +206,8 @@ void OverlayWindow::RenderUI(kx::Camera& camera,
     ImDrawList* backgroundDrawList = ImGui::GetBackgroundDrawList();
     featureManager.RenderAllDrawLists(backgroundDrawList, snapshot, ctx);
     
-    // Render the UI window if it's shown (check AppState's unified visibility flag)
-    if (kx::AppState::Get().IsVisionWindowOpen()) {
-        RenderESPWindow(mumbleLinkManager, mumbleLinkData, featureManager);
+    if (m_isVisible) {
+        RenderESPWindow(mumbleLinkManager, mumbleLinkData, featureManager, settings);
     }
 }
 

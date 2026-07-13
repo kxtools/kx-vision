@@ -8,7 +8,6 @@
 #include "Config.h"
 #ifndef GW2AL_BUILD // Only compile this file in DLL mode
 
-#include "../Core/AppState.h"
 #include "../Core/AppLifecycleManager.h"
 #include "../Utils/DebugLogger.h"
 #include "HookManager.h"
@@ -34,7 +33,6 @@ namespace kx::Hooking {
 
         LOG_INFO("[D3DRenderHook] Present hook created and enabled.");
 
-        AppState::Get().SetPresentHookStatus(HookStatus::OK);
         return true;
     }
 
@@ -97,7 +95,7 @@ namespace kx::Hooking {
     HRESULT __stdcall D3DRenderHook::DetourPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
         HookCallbackGuard callbackGuard;
         // Check the shutdown flag FIRST
-        if (HookManager::IsShuttingDown() || AppState::Get().IsShuttingDown()) {
+        if (HookManager::IsShuttingDown() || !m_pLifecycleManager || m_pLifecycleManager->IsShuttingDown()) {
             return m_pOriginalPresent ? m_pOriginalPresent(pSwapChain, SyncInterval, Flags) : E_FAIL;
         }
 
@@ -176,7 +174,8 @@ namespace kx::Hooking {
         }
 
         // Initialize ImGui
-        if (!OverlayWindow::Initialize(m_pDevice, m_pContext, m_hWindow)) {
+        if (!OverlayWindow::Initialize(m_pDevice, m_pContext, m_hWindow,
+                                       m_pLifecycleManager->GetSettings())) {
             LOG_ERROR("[D3DRenderHook] Failed to initialize ImGui");
             CleanupD3DResources(true);
             return false;

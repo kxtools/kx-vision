@@ -14,8 +14,8 @@
 #include <mutex>
 
 #include "../Core/AppLifecycleManager.h"
-#include "../Core/AppState.h"
 #include "../Core/Architecture/FeatureManager.h"
+#include "UI/Backend/OverlayWindow.h"
 #include "../../libs/ImGui/imgui.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(
@@ -174,8 +174,8 @@ public:
         if (!HookManager::IsShuttingDown()) reset();
     }
 
-    void setMenuVisible(bool visible) { menuVisible_ = visible; }
-    void setImGuiReady(bool ready) { imguiReady_ = ready; }
+    void setMenuVisible(bool visible) { menuVisible_.store(visible, std::memory_order_release); }
+    void setImGuiReady(bool ready) { imguiReady_.store(ready, std::memory_order_release); }
     void setPreDispatchHook(PreDispatchHook hook, void* userData) {
         preDispatchHook_ = hook;
         preDispatchUserData_ = userData;
@@ -185,8 +185,8 @@ private:
     void reset() {
         hwnd_ = nullptr;
         original_ = nullptr;
-        menuVisible_ = false;
-        imguiReady_ = false;
+        menuVisible_.store(false, std::memory_order_release);
+        imguiReady_.store(false, std::memory_order_release);
         preDispatchHook_ = nullptr;
         preDispatchUserData_ = nullptr;
         std::memset(gameKeyDown_, 0, sizeof(gameKeyDown_));
@@ -214,7 +214,10 @@ private:
         if (focusLost || msg == WM_EXITSIZEMOVE || msg == WM_CAPTURECHANGED)
             syncStuckKeys(hwnd);
 
-        if (!imguiReady_ || !menuVisible_)
+        // Guardrail: render thread publishes routing state; WndProc may consume it
+        // concurrently and must never read OverlayWindow's raw ImGui close flag.
+        if (!imguiReady_.load(std::memory_order_acquire) ||
+            !menuVisible_.load(std::memory_order_acquire))
             return forwardToGame(hwnd, msg, wParam, lParam);
 
         g_input.enqueue(msg, wParam, lParam);
@@ -278,24 +281,25 @@ private:
     WNDPROC original_ = nullptr;
     PreDispatchHook preDispatchHook_ = nullptr;
     void* preDispatchUserData_ = nullptr;
-    bool menuVisible_ = false;
-    bool imguiReady_ = false;
+    std::atomic<bool> menuVisible_{false};
+    std::atomic<bool> imguiReady_{false};
     bool gameKeyDown_[256]{};
 };
 
 GameWndProc* GameWndProc::instance_ = nullptr;
 GameWndProc g_wndProc;
 
-bool preDispatchInput(HWND, UINT uMsg, WPARAM wParam, LPARAM lParam, void*) {
-    if (!D3DRenderHook::IsInitialized())
+bool preDispatchInput(HWND, UINT uMsg, WPARAM wParam, LPARAM lParam, void* context) {
+    auto* lifecycleManager = static_cast<AppLifecycleManager*>(context);
+    if (!D3DRenderHook::IsInitialized() || !lifecycleManager)
         return false;
-    return kx::g_App.GetFeatureManager().BroadcastInput(uMsg, wParam, lParam);
+    return lifecycleManager->GetFeatureManager().BroadcastInput(uMsg, wParam, lParam);
 }
 
 } // namespace
 
 bool D3DRenderHook::InstallWndProc(HWND hwnd) {
-    g_wndProc.setPreDispatchHook(&preDispatchInput, nullptr);
+    g_wndProc.setPreDispatchHook(&preDispatchInput, m_pLifecycleManager);
     return g_wndProc.install(hwnd);
 }
 
@@ -306,8 +310,8 @@ void D3DRenderHook::UninstallWndProc() {
 
 void D3DRenderHook::SyncOverlayInputState() {
     const bool wantsOverlayInput =
-        AppState::Get().IsVisionWindowOpen()
-        || g_App.WantsOverlayInput();
+        OverlayWindow::IsVisible()
+        || (m_pLifecycleManager && m_pLifecycleManager->WantsOverlayInput());
     g_wndProc.setImGuiReady(m_isInit);
     g_wndProc.setMenuVisible(wantsOverlayInput);
 }

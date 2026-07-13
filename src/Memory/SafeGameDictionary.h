@@ -11,13 +11,13 @@ namespace SafeAccess {
 
     /**
      * @brief Key-Value pair for game dictionary structures
-     *
+     * 
      * Represents a dictionary entry with a key (typically uint32_t) and a value (wrapper object).
      * The layout matches GW2's dictionary structure:
      * - Key (4 bytes)
      * - Padding (4 bytes)
      * - Pointer to value object (8 bytes)
-     *
+     * 
      * @tparam KeyType The type of the key (default: uint32_t)
      * @tparam ValueType The wrapper class type for the value (e.g., PoiCliUnlock)
      */
@@ -31,17 +31,17 @@ namespace SafeAccess {
 
     /**
      * @brief Generic safe iterator for game dictionary structures
-     *
+     * 
      * This template class provides safe iteration over game dictionaries with automatic
      * validation of memory addresses, VTable pointers, and wrapper validity.
      * Exposes key-value pairs in a dictionary-like manner.
-     *
+     * 
      * Dictionary structure layout (GW2):
      * Offset 0x00: Key (4 bytes, uint32_t)
      * Offset 0x04: Padding (4 bytes)
      * Offset 0x08: Pointer to value object (8 bytes)
      * Total stride: 0x18 bytes (includes additional internal data)
-     *
+     * 
      * @tparam KeyType The type of the key (default: uint32_t)
      * @tparam ValueType The wrapper class type (e.g., PoiCliUnlock)
      */
@@ -78,7 +78,7 @@ namespace SafeAccess {
                         m_idx = m_cap;
                         return;
                     }
-
+                    
                     // Dictionary values may be plain structures without VTables.
                     ValueType wrapper(candidate);
                     if (wrapper.isValid()) {
@@ -97,8 +97,8 @@ namespace SafeAccess {
             using reference = const Entry&;
 
             Iterator(uint8_t* base, uint32_t idx, uint32_t cap, size_t stride, size_t keyOffset, size_t ptrOffset)
-                : m_base(base), m_idx(idx), m_cap(cap), m_stride(stride),
-                  m_keyOffset(keyOffset), m_ptrOffset(ptrOffset),
+                : m_base(base), m_idx(idx), m_cap(cap), m_stride(stride), 
+                  m_keyOffset(keyOffset), m_ptrOffset(ptrOffset), 
                   m_current(KeyType{}, ValueType(nullptr)) {
                 if (m_base && m_idx < m_cap) {
                     advance_to_valid();
@@ -153,7 +153,7 @@ namespace SafeAccess {
          * @param keyOffset Offset to key within each element (default: 0x00)
          */
         SafeGameDictionary(void* ptrArray, uint32_t capacity, size_t stride, size_t ptrOffset, size_t keyOffset = 0)
-            : m_rawArray(reinterpret_cast<uint8_t*>(ptrArray)),
+            : m_rawArray(reinterpret_cast<uint8_t*>(ptrArray)), 
               m_capacity(capacity),
               m_stride(stride),
               m_keyOffset(keyOffset),
@@ -206,14 +206,14 @@ namespace SafeAccess {
                     if (!TryRead(entryAddress + m_ptrOffset, candidate)) {
                         return std::nullopt;
                     }
-
+                    
                     ValueType wrapper(candidate);
                     if (wrapper.isValid()) {
                         return wrapper;
                     }
                 }
             }
-
+            
             return std::nullopt;
         }
 

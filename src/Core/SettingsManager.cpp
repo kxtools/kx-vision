@@ -1,5 +1,4 @@
 #include "SettingsManager.h"
-#include "AppLifecycleManager.h"
 #include "Architecture/FeatureManager.h"
 #include "Architecture/IFeature.h"
 #include "Settings/SettingsConstants.h"
@@ -34,7 +33,7 @@ std::filesystem::path SettingsManager::GetConfigFilePath() {
     return path / "kx-vision" / "settings.json";
 }
 
-void SettingsManager::Load(Settings& settings) {
+void SettingsManager::Load(Settings& settings, FeatureManager& featureManager) {
     settings = Settings{};
     g_loadedDocument = nlohmann::json::object();
     const auto path = GetConfigFilePath();
@@ -58,20 +57,20 @@ void SettingsManager::Load(Settings& settings) {
     }
 
     NormalizeCore(settings);
-    g_App.GetFeatureManager().LoadAllSettings(g_loadedDocument);
+    featureManager.LoadAllSettings(g_loadedDocument);
 }
 
-void SettingsManager::LoadPendingFeatureSettings() {
-    g_App.GetFeatureManager().LoadPendingSettings(g_loadedDocument);
+void SettingsManager::LoadPendingFeatureSettings(FeatureManager& featureManager) {
+    featureManager.LoadPendingSettings(g_loadedDocument);
 }
 
-void SettingsManager::ResetAll(Settings& settings) {
+void SettingsManager::ResetAll(Settings& settings, FeatureManager& featureManager) {
     settings = Settings{};
     NormalizeCore(settings);
-    g_App.GetFeatureManager().ResetAllSettings();
+    featureManager.ResetAllSettings();
 }
 
-void SettingsManager::Save(const Settings& source) {
+void SettingsManager::Save(const Settings& source, FeatureManager& featureManager) {
     const auto path = GetConfigFilePath();
     if (path.empty()) return;
 
@@ -81,7 +80,7 @@ void SettingsManager::Save(const Settings& source) {
         nlohmann::json document = g_loadedDocument.is_object() ? g_loadedDocument : nlohmann::json::object();
         document[SettingsSections::Version] = CURRENT_SETTINGS_VERSION;
         document[SettingsSections::Core] = settings;
-        g_App.GetFeatureManager().ForEachFeature([&](IFeature& feature) {
+        featureManager.ForEachFeature([&](IFeature& feature) {
             try {
                 feature.SaveSettings(document);
             } catch (const std::exception& e) {

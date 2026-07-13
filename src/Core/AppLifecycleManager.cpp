@@ -1,21 +1,26 @@
 #include "AppLifecycleManager.h"
 #include "Config.h"
-#include "AppState.h"
 #include "SettingsManager.h"
 #include "FrameCoordinator.h"
-#include "../Memory/AddressManager.h"
+#include "Services/GameEngineService.h"
 #include "HookManager.h"
 #include "Hooks.h"
 #include "../Hooking/D3DRenderHook.h"
 #include "../Utils/DebugLogger.h"
 #include "../../libs/ImGui/imgui.h"
 #include <windows.h>
-#include <shellapi.h>
 
 #include "UI/Backend/OverlayWindow.h"
 #include "Architecture/FeatureManager.h"
 
 namespace kx {
+
+    namespace {
+        void ApplyLoggerSettings(const Settings& settings) {
+            Debug::Logger::SetDebugLoggingEnabled(settings.enableDebugLogging);
+            Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(settings.logLevel));
+        }
+    }
 
     // Global instance of AppLifecycleManager
     AppLifecycleManager g_App;
@@ -43,31 +48,27 @@ namespace kx {
         }
         m_runtimeExtensionInitialized = true;
 
-        // Initialize EntityManager
-        m_entityManager = std::make_unique<EntityManager>();
+        m_gameEngineService = std::make_unique<GameEngineService>();
 
         // Initialize FeatureManager
         m_featureManager = std::make_unique<FeatureManager>();
 
         // Register features immediately so UI tabs appear in correct order from first frame
         m_featureRegistration.registerAll(*m_featureManager);
-        SettingsManager::Load(AppState::Get().GetSettings());
+        SettingsManager::Load(m_settings, *m_featureManager);
+        ApplyLoggerSettings(m_settings);
+        m_serviceContext.settings = &m_settings;
 
-        // Initialize HookManager (MinHook)
-        if (!Hooking::HookManager::Initialize()) {
-            LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager - MinHook initialization failed");
-            return false;
-        }
-        LOG_INFO("AppLifecycleManager: HookManager initialized");
-
-        // Initialize hooks (this sets up D3D hook which creates ImGuiManager)
-        if (!InitializeHooks()) {
-            LOG_ERROR("AppLifecycleManager: Failed to initialize hooks - D3D Present hook setup failed");
-            return false;
-        }
-
-        // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
+        // Guardrail: Present/WndProc callbacks may run as soon as hooks become enabled.
+        // Publish their host dependency first so no callback observes a null target.
         Hooking::D3DRenderHook::SetLifecycleManager(this);
+
+        // Initialize host hooks (this sets up D3D hook which creates ImGuiManager)
+        if (!InitializeHostHooks()) {
+            Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
+            LOG_ERROR("AppLifecycleManager: Failed to initialize host hooks");
+            return false;
+        }
 
         LOG_INFO("AppLifecycleManager: Hooks initialized successfully");
         m_currentState = State::WaitingForImGui;
@@ -95,22 +96,25 @@ namespace kx {
         }
         m_runtimeExtensionInitialized = true;
 
-        // Initialize EntityManager
-        m_entityManager = std::make_unique<EntityManager>();
+        m_gameEngineService = std::make_unique<GameEngineService>();
 
         // Initialize FeatureManager
         m_featureManager = std::make_unique<FeatureManager>();
 
         // Register features immediately so UI tabs appear in correct order from first frame
         m_featureRegistration.registerAll(*m_featureManager);
-        SettingsManager::Load(AppState::Get().GetSettings());
+        SettingsManager::Load(m_settings, *m_featureManager);
+        ApplyLoggerSettings(m_settings);
+        m_serviceContext.settings = &m_settings;
 
-        // Initialize HookManager (MinHook) - needed for game thread hook later
-        if (!Hooking::HookManager::Initialize()) {
-            LOG_ERROR("AppLifecycleManager: Failed to initialize HookManager for GW2AL mode - MinHook initialization failed");
+        // GW2AL renderer callbacks are enabled later, but their host dependency must exist first.
+        Hooking::D3DRenderHook::SetLifecycleManager(this);
+
+        if (!InitializeHostHooks()) {
+            Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
+            LOG_ERROR("AppLifecycleManager: Failed to initialize host hooks for GW2AL mode");
             return false;
         }
-        LOG_INFO("AppLifecycleManager: HookManager initialized");
 
         // In GW2AL mode, hooks are managed differently
         // We don't initialize the Present hook here (GW2AL handles that)
@@ -124,9 +128,6 @@ namespace kx {
 
     void AppLifecycleManager::OnRendererInitialized() {
         LOG_INFO("AppLifecycleManager: Renderer initialized, waiting for player to be in-game");
-
-        // Set this lifecycle manager in D3DRenderHook so it can access Camera and MumbleLink
-        Hooking::D3DRenderHook::SetLifecycleManager(this);
 
         // Transition to WaitingForGame - services will be initialized when player enters game
         m_currentState = State::WaitingForGame;
@@ -174,76 +175,27 @@ namespace kx {
     }
 
     void AppLifecycleManager::SaveSettingsOnExit() {
-        // Use the existing shutdown flag in AppState to prevent saving more than once.
-        if (AppState::Get().IsShuttingDown()) {
-            return; // Shutdown/save has already been initiated.
-        }
-        
-        // Signal that shutdown has begun.
-        AppState::Get().SetShuttingDown(true);
+        // Guardrail: clean shutdown and DllMain detach can both request persistence.
+        // Claim save ownership before touching feature settings so only one path writes.
+        if (m_settingsSaveStarted.exchange(true, std::memory_order_acq_rel)) return;
     
         LOG_INFO("AppLifecycleManager: Performing final settings save on exit...");
     
-        // Check the user's preference and save the settings.
-        if (AppState::Get().GetSettings().autoSaveOnExit) {
-            SettingsManager::Save(AppState::Get().GetSettings());
+        if (m_settings.autoSaveOnExit && m_featureManager) {
+            SettingsManager::Save(m_settings, *m_featureManager);
         }
-    }
-    
-    void AppLifecycleManager::ShowDonationPromptIfNeeded() {
-#ifdef _DEBUG
-        return;
-#else
-        // If already shown this session, skip
-        if (AppState::Get().IsDonationPromptShown()) {
-            return;
-        }
-
-        // Evaluate only once per session, whether or not this attempt displays the prompt.
-        AppState::Get().SetDonationPromptShown(true);
-
-        // Use QueryPerformanceCounter for better randomness (no seeding needed)
-        LARGE_INTEGER counter;
-        QueryPerformanceCounter(&counter);
-        int randomValue = static_cast<int>(counter.QuadPart % 100);
-
-        // Release builds show the prompt for 50% of sessions.
-        if (randomValue >= 50) {
-            return;
-        }
-
-        // Bring window to foreground
-        HWND hwnd = GetForegroundWindow();
-        if (hwnd) {
-            SetForegroundWindow(hwnd);
-        }
-
-        const wchar_t* title = L"Thank You for Using KX Vision!";
-        const wchar_t* message =
-            L"Thank you for using KX Vision!\r\n\r\n"
-            L"This is free, open-source software, but it still costs money to write, support, and distribute it.\r\n\r\n"
-            L"If you enjoy using it, please consider a donation to help:\r\n"
-            L"• Build new features and fix bugs\r\n"
-            L"• Keep it 100% free and ad-free forever\r\n\r\n"
-            L"Click Yes to visit my GitHub Sponsors page.";
-
-        int result = MessageBoxW(NULL, message, title, MB_ICONINFORMATION | MB_YESNO | MB_TOPMOST | MB_SETFOREGROUND);
-
-        if (result == IDYES) {
-            ShellExecuteW(NULL, L"open", L"https://github.com/sponsors/Krixx1337", NULL, NULL, SW_SHOWNORMAL);
-            Sleep(500);
-        }
-#endif
     }
 
     void AppLifecycleManager::Shutdown() {
         if (m_shutdownStarted.exchange(true, std::memory_order_acq_rel)) return;
         LOG_INFO("AppLifecycleManager: Full shutdown requested");
-        
-        // Perform the save FIRST. This function handles the atomic flag.
-        SaveSettingsOnExit(); 
-        
+
+        // Publish shutdown before persistence so render callbacks cannot observe
+        // feature settings while they are being serialized.
         m_currentState = State::ShuttingDown;
+
+        // Perform the save before service teardown. Separate save guard handles detach too.
+        SaveSettingsOnExit();
 
         // Guardrail: disable callback sources, then drain code already executing in
         // detours before any feature, ImGui, or original-function storage is destroyed.
@@ -313,14 +265,8 @@ namespace kx {
         // Handle state transitions and state processing for GW2AL mode
         switch (m_currentState.load(std::memory_order_acquire)) {
         case State::WaitingForGame:
-            // Initialize MumbleLink manager if needed
-            if (!m_mumbleLinkManager.IsInitialized()) {
-                m_mumbleLinkManager.Update();
-                return;
-            }
-
             // Check if player is in-game and transition to InitializingServices
-            if (IsPlayerInGame()) {
+            if (m_gameEngineService && m_gameEngineService->PollPlayerInGame()) {
                 LOG_INFO("AppLifecycleManager: Player is in-game, transitioning to InitializingServices");
                 m_currentState = State::InitializingServices;
             }
@@ -332,11 +278,6 @@ namespace kx {
             break;
 
         case State::Running:
-            // Show donation prompt once after entering Running state (game fully loaded)
-            if (!m_donationPromptShownOnStartup) {
-                m_donationPromptShownOnStartup = true;
-                ShowDonationPromptIfNeeded();
-            }
             break;
 
         default:
@@ -358,7 +299,10 @@ namespace kx {
     void AppLifecycleManager::RenderTick(HWND windowHandle, float displayWidth, float displayHeight,
         ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTargetView) {
         // Delegate to FrameCoordinator for the actual rendering logic
-        FrameCoordinator::Execute(*this, windowHandle, displayWidth, displayHeight, context, renderTargetView);
+        if (m_gameEngineService) {
+            FrameCoordinator::Execute(*this, *m_gameEngineService, windowHandle,
+                displayWidth, displayHeight, context, renderTargetView);
+        }
     }
 
     void AppLifecycleManager::SynchronizeFeatures() {
@@ -373,7 +317,7 @@ namespace kx {
         // Guardrail: features registered at runtime still need their persisted
         // settings/default path resolution before Initialize() runs. Startup does this
         // later in InitializeFeatures(), so runtime synchronization must mirror it.
-        SettingsManager::LoadPendingFeatureSettings();
+        SettingsManager::LoadPendingFeatureSettings(*m_featureManager);
 
         // Guardrail: runtime synchronization must initialize only the
         // newly registered features. Reinitializing the full list would rerun
@@ -408,7 +352,11 @@ namespace kx {
     }
 
     void AppLifecycleManager::HandleInitializingServicesState() {
-        if (InitializeGameServices() && InitializeFeatures()) {
+        if (m_gameEngineService) {
+            m_gameEngineService->Initialize(*m_featureManager);
+        }
+
+        if (m_gameEngineService && InitializeFeatures()) {
             LOG_INFO("AppLifecycleManager: Services and features initialized, transitioning to Running");
             m_currentState = State::Running;
             m_servicesInitialized = true;
@@ -419,14 +367,8 @@ namespace kx {
     }
 
     void AppLifecycleManager::HandleRunningState() {
-        // Show donation prompt once after entering Running state (game fully loaded)
-        if (!m_donationPromptShownOnStartup) {
-            m_donationPromptShownOnStartup = true;
-            ShowDonationPromptIfNeeded();
-        }
-        
         // Normal operation - just sleep to avoid busy-waiting
-        // Note: Camera and MumbleLink are updated per-frame in D3DRenderHook::RenderFrame
+        // GameEngineService updates render-facing game state per frame.
         Sleep(Timing::RUNNING_POLL_INTERVAL_MS);
     }
 
@@ -441,49 +383,14 @@ namespace kx {
         return OverlayWindow::IsImGuiInitialized();
     }
 
-    bool AppLifecycleManager::IsPlayerInGame() const {
-        if (!IsImGuiReady()) {
-            return false;
-        }
-
-        const MumbleLinkData* data = m_mumbleLinkManager.GetData();
-
-        // Check if MumbleLink is connected and player is in a map (mapId != 0)
-        if (data && m_mumbleLinkManager.IsInitialized() && data->context.mapId != 0) {
-            LOG_INFO("AppLifecycleManager: Player is in-map (Map ID: %u)", data->context.mapId);
-            return true;
-        }
-
-        return false;
-    }
-
-    bool AppLifecycleManager::InitializeGameServices() {
-        LOG_INFO("AppLifecycleManager: Initializing game services");
-
-        // Initialize AddressManager (both DLL and GW2AL modes)
-        AddressManager::Initialize();
-        LOG_INFO("AppLifecycleManager: AddressManager initialized");
-
-        // Note: HookManager was initialized earlier in Initialize() or InitializeForGW2AL()
-
-        // Initialize the game thread hook (both DLL and GW2AL modes)
-        if (InitializeGameThreadHook()) {
-            LOG_INFO("AppLifecycleManager: Game thread hook initialized successfully");
-    } else {
-            LOG_WARN("AppLifecycleManager: Game thread hook initialization failed - ESP may not work");
-        }
-
-        return true;
-    }
-
     bool AppLifecycleManager::InitializeFeatures() {
         LOG_INFO("AppLifecycleManager: Initializing features");
 
         // Populate ServiceContext with pointers to core services
-        m_serviceContext.entities = m_entityManager.get();
-        m_serviceContext.camera = &m_camera;
-        m_serviceContext.mumble = &m_mumbleLinkManager;
-        m_serviceContext.settings = &AppState::Get().GetSettings();
+        m_serviceContext.entities = &m_gameEngineService->GetEntityManager();
+        m_serviceContext.camera = &m_gameEngineService->GetCamera();
+        m_serviceContext.mumble = &m_gameEngineService->GetMumbleLinkManager();
+        m_serviceContext.settings = &m_settings;
         m_serviceContext.device = GetDevice();
 
         // Features already registered in Initialize(), just initialize them now
@@ -505,8 +412,12 @@ namespace kx {
             m_featureManager->ShutdownAll();
         }
 
+        if (m_gameEngineService) {
+            m_gameEngineService->Shutdown();
+        }
+
         Hooking::D3DRenderHook::SetLifecycleManager(nullptr);
-        CleanupHooks();
+        ShutdownHostHooks();
         m_servicesInitialized = false;
     }
 

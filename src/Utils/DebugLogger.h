@@ -9,7 +9,6 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/ringbuffer_sink.h>
-#include "../Core/AppState.h"
 #include "../Memory/Safety.h"
 
 namespace kx {
@@ -40,6 +39,7 @@ private:
     // spdlog logger instance
     static std::shared_ptr<spdlog::logger> s_logger;
     static std::atomic<Level> s_minLogLevel;
+    static std::atomic<bool> s_debugLoggingEnabled;
     static std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> s_ringbuffer_sink;
     
     // Helper methods
@@ -50,9 +50,6 @@ public:
     // Initialize logger (call once at startup for guaranteed proper initialization)
     static void Initialize() noexcept;
     
-    // Initialize logger with settings (call after settings are loaded)
-    static void InitializeWithSettings() noexcept;
-    
     // Reinitialize logger (call after console setup to enable console output)
     static void Reinitialize() noexcept;
     
@@ -62,6 +59,8 @@ public:
     // Thread-safe log level management
     static void SetMinLogLevel(Level level) noexcept;
     static Level GetMinLogLevel() noexcept;
+    static void SetDebugLoggingEnabled(bool enabled) noexcept;
+    static bool IsDebugLoggingEnabled() noexcept;
 
     // Convenience methods for setting common log levels
     static void SetLogLevelDebug() noexcept { SetMinLogLevel(DEBUG); }
@@ -263,9 +262,6 @@ public:
 
 // Convenience macro to initialize logger
 #define LOG_INIT() kx::Debug::Logger::Initialize()
-
-// Convenience macro to initialize logger with settings
-#define LOG_INIT_WITH_SETTINGS() kx::Debug::Logger::InitializeWithSettings()
 
 // Convenience macro to reinitialize logger (after console setup)
 #define LOG_REINIT() kx::Debug::Logger::Reinitialize()

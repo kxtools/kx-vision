@@ -3,11 +3,8 @@
 #include <d3d11.h>
 #include <windows.h>
 #include <memory>
-#include <vector>
 #include <atomic>
-#include "../Game/Services/Camera/Camera.h"
-#include "../Game/Services/Mumble/MumbleLinkManager.h"
-#include "Services/EntityManager.h"
+#include "Settings.h"
 #include "Architecture/AppComposition.h"
 #include "Architecture/ServiceContext.h"
 
@@ -15,6 +12,7 @@ namespace kx {
 
 // Forward declarations
 class FeatureManager;
+class GameEngineService;
 
 /**
  * @brief Manages the application lifecycle state machine
@@ -28,7 +26,7 @@ class FeatureManager;
  * - WaitingForImGui: Waiting for ImGui to be initialized by the Present hook
  * - WaitingForRenderer: (GW2AL mode) Waiting for GW2AL to provide D3D device
  * - WaitingForGame: Waiting for player to be in-game (map loaded)
- * - InitializingServices: Initializing AddressManager and game thread hook
+ * - InitializingServices: Initializing game runtime and features
  * - Running: Normal operation
  * - ShuttingDown: Cleanup in progress
  */
@@ -92,34 +90,13 @@ public:
     const char* GetCurrentStateName() const;
 
     /**
-     * @brief Get reference to the Camera (for core game state)
-     * @return Reference to Camera instance
-     */
-    Camera& GetCamera() { return m_camera; }
-
-    /**
-     * @brief Get reference to MumbleLinkManager (for core game state)
-     * @return Reference to MumbleLinkManager instance
-     */
-    MumbleLinkManager& GetMumbleLinkManager() { return m_mumbleLinkManager; }
-
-    /**
-     * @brief Get const pointer to current MumbleLink data
-     * @return Pointer to MumbleLinkData, or nullptr if not available
-     */
-    const MumbleLinkData* GetMumbleLinkData() const { return m_mumbleLinkManager.GetData(); }
-
-    /**
      * @brief Get reference to the FeatureManager
      * @return Reference to FeatureManager instance
      */
     FeatureManager& GetFeatureManager() { return *m_featureManager; }
 
-    /**
-     * @brief Get reference to EntityManager
-     * @return Reference to EntityManager instance
-     */
-    EntityManager& GetEntityManager() { return *m_entityManager; }
+    Settings& GetSettings() { return m_settings; }
+    const Settings& GetSettings() const { return m_settings; }
 
     /**
      * @brief Get the D3D11 device (if initialized)
@@ -167,12 +144,6 @@ public:
     bool WantsOverlayInput() const;
     void RenderRuntimeOverlay();
 
-    /**
-     * @brief Show donation prompt in 50% of Release sessions; disabled in Debug
-     */
-    void ShowDonationPromptIfNeeded();
-
-
 private:
     /**
      * @brief Application lifecycle states
@@ -192,18 +163,15 @@ private:
     std::atomic<State> m_currentState{State::PreInit};
     std::atomic<bool> m_servicesInitialized{false};
     std::atomic<bool> m_shutdownStarted{false};
-    bool m_donationPromptShownOnStartup = false;
+    std::atomic<bool> m_settingsSaveStarted{false};
 
-    // Core game state (owned by lifecycle manager)
-    Camera m_camera;
-    MumbleLinkManager m_mumbleLinkManager;
+    // Host state and orchestration owned by lifecycle manager.
+    Settings m_settings;
+    std::unique_ptr<GameEngineService> m_gameEngineService;
     std::unique_ptr<FeatureManager> m_featureManager;
     FeatureRegistration m_featureRegistration;
     std::unique_ptr<IRuntimeExtension> m_runtimeExtension;
     bool m_runtimeExtensionInitialized = false;
-
-    // Entity data management (owned by EntityManager service)
-    std::unique_ptr<EntityManager> m_entityManager;
 
     // Service context for dependency injection (populated during initialization)
     ServiceContext m_serviceContext;
@@ -219,8 +187,6 @@ private:
 
     // Helper methods
     bool IsImGuiReady() const;
-    bool IsPlayerInGame() const;
-    bool InitializeGameServices();
     bool InitializeFeatures();
     void CleanupServices();
 };

@@ -9,7 +9,6 @@
 
 #include "DebugLogger.h"
 #include "SettingsManager.h"
-#include "../../../Core/AppLifecycleManager.h"
 #include "../../../Core/Settings.h"
 #include "../../../Core/Architecture/FeatureManager.h"
 #include "../../../Core/Architecture/IFeature.h"
@@ -24,6 +23,11 @@
 
 namespace kx {
     namespace GUI {
+
+        static void ApplyLoggerSettings(const Settings& settings) {
+            Debug::Logger::SetDebugLoggingEnabled(settings.enableDebugLogging);
+            Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(settings.logLevel));
+        }
 
         static void RenderMenuAppearance(GuiSettings& settings) {
             if (!ImGui::CollapsingHeader("Menu Appearance")) {
@@ -536,19 +540,17 @@ namespace kx {
             }
         }
         
-        void RenderSettingsTab() {
+        void RenderSettingsTab(Settings& settings, FeatureManager& featureManager) {
             if (ImGui::BeginTabItem("Settings")) {
-                auto& settings = AppState::Get().GetSettings();
-
                 // NEW SECTION
                 if (ImGui::CollapsingHeader("Settings Management")) {
                     if (ImGui::Button("Save Settings")) {
-                        SettingsManager::Save(settings);
+                        SettingsManager::Save(settings, featureManager);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Reload Settings")) {
-                        SettingsManager::Load(settings);
-                        Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(settings.logLevel));
+                        SettingsManager::Load(settings, featureManager);
+                        ApplyLoggerSettings(settings);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Reset to Defaults")) {
@@ -560,8 +562,8 @@ namespace kx {
                         ImGui::Text("Are you sure? This will reset all settings to their default values.");
                         ImGui::Separator();
                         if (ImGui::Button("OK", ImVec2(120, 0))) { 
-                            SettingsManager::ResetAll(settings);
-                            Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(settings.logLevel));
+                            SettingsManager::ResetAll(settings, featureManager);
+                            ApplyLoggerSettings(settings);
 
                             ImGui::CloseCurrentPopup(); 
                         }
@@ -588,8 +590,9 @@ namespace kx {
                 
                 // Debug Settings
                 if (ImGui::CollapsingHeader("Debug Options")) {
-                    // Access debug logging through AppState singleton
-                    ImGui::Checkbox("Enable Debug Logging", &settings.enableDebugLogging);
+                    if (ImGui::Checkbox("Enable Debug Logging", &settings.enableDebugLogging)) {
+                        Debug::Logger::SetDebugLoggingEnabled(settings.enableDebugLogging);
+                    }
                     if (ImGui::IsItemHovered()) {
                         ImGui::SetTooltip("Enable detailed logging to console and kx_debug.log file.\nHelps diagnose crashes and memory access issues.");
                     }
@@ -605,7 +608,6 @@ namespace kx {
                     
                     if (ImGui::Combo("##LogLevel", &currentLogLevel, logLevels, IM_ARRAYSIZE(logLevels))) {
                         Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(currentLogLevel));
-                        auto& settings = AppState::Get().GetSettings();
                         settings.logLevel = currentLogLevel;
                     }
                     
@@ -628,7 +630,6 @@ namespace kx {
                         // Map back: combo index 0=INFO (logger level 1), 1=WARNING (logger level 2), etc.
                         int actualLogLevel = comboIndex + 1;
                         Debug::Logger::SetMinLogLevel(static_cast<Debug::Logger::Level>(actualLogLevel));
-                        auto& settings = AppState::Get().GetSettings();
                         settings.logLevel = actualLogLevel;
                     }
                     

@@ -94,7 +94,7 @@ void AddressManager::ScanWorldViewContextPtr() {
 
     if (s_pointers.worldViewContextPtr) {
         LOG_INFO("[AddressManager] -> SUCCESS: WorldViewContext resolved to: 0x%p", (void*)s_pointers.worldViewContextPtr);
-
+        
         // Calculate CameraManager address: staticPointerAddress + 0x88 (PTR_CAMERA_MANAGER offset)
         s_pointers.cameraManagerPtr = ReadCameraManagerPtrImpl(staticPointerAddress);
         if (s_pointers.cameraManagerPtr) {
@@ -188,7 +188,7 @@ void AddressManager::ScanModuleInformation() {
 
 void AddressManager::Scan() {
     LOG_INFO("[AddressManager] Scanning for memory addresses...");
-
+    
     // Scan active pointers (currently used)
     ScanModuleInformation();
     ScanContextCollectionFunc();
@@ -208,7 +208,7 @@ void AddressManager::Initialize() {
 
 void* AddressManager::GetLocalPlayer() {
     if (!s_pointers.pContextCollection) return nullptr;
-
+    
     return GetLocalPlayerImpl(s_pointers.pContextCollection);
 }
 
@@ -218,7 +218,7 @@ void* AddressManager::GetLocalPlayerImpl(void* pContextCollection) {
         ReClass::ContextCollection contextCollection(pContextCollection);
         ReClass::ChCliContext chContext = contextCollection.GetChCliContext();
         if (!chContext.data()) return nullptr;
-
+        
         ReClass::ChCliCharacter localPlayer = chContext.GetLocalPlayer();
         return localPlayer.data();
     } __except (EXCEPTION_EXECUTE_HANDLER) {
